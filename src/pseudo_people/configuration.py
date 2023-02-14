@@ -1,5 +1,4 @@
 from pseudo_people.entities import (
-    ColumnMetadata,
     ColumnNoiseParameter,
     ColumnNoiseType,
     Form,
@@ -56,8 +55,8 @@ class NoiseConfiguration:
     a single column of a form.
 
     Row noise configurations can be accessed by calling
-    :func: `NoiseConfiguration.get_row_noise`, while column noise configurations
-    can be accessed by calling :func: `NoiseConfiguration.get_column_noise`.
+    :py:meth: `.get_row_noise`, while column noise configurations can be
+    accessed by calling :py:meth: `.get_column_noise`.
     """
 
     def get_row_noise(
@@ -75,14 +74,14 @@ class NoiseConfiguration:
         ...
 
     def get_column_noise(
-        self, form: Form, column_metadata: ColumnMetadata, noise_type: ColumnNoiseType
+        self, form: Form, column: str, noise_type: ColumnNoiseType
     ) -> ColumnNoiseConfigurationNode:
         """
         Access method to return the column noise configuration node for the
         input form, column, and noise type.
 
         :param form:
-        :param column_metadata:
+        :param column:
         :param noise_type:
         :return:
         """

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, List
+from typing import Callable, Set
 
 import pandas as pd
 
@@ -46,24 +46,9 @@ class ColumnNoiseType:
 
     name: str
     noise_function: Callable[[pd.Series, ColumnNoiseConfigurationNode], pd.Series]
+    columns: Set[str]
 
     def __call__(
         self, column: pd.Series, configuration: ColumnNoiseConfigurationNode
     ) -> pd.Series:
         return self.noise_function(column, configuration)
-
-
-@dataclass
-class ColumnMetadata:
-    """
-    Defines a column and its noise functions.
-
-    The name is the name of the particular column (e.g. "first_name" or
-    "state").
-
-    The noise types is a list of the types of noise that should be applied to
-    this column in the order of application.
-    """
-
-    name: str
-    noise_types: List[ColumnNoiseType]

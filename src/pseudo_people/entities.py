@@ -2,7 +2,8 @@ from enum import Enum
 from typing import NamedTuple
 
 from pseudo_people import noise_functions
-from pseudo_people.entity_types import ColumnMetadata, ColumnNoiseType, RowNoiseType
+from pseudo_people.configuration import NoiseConfiguration
+from pseudo_people.entity_types import ColumnNoiseType, RowNoiseType
 
 
 class Form(Enum):
@@ -15,26 +16,48 @@ class Form(Enum):
     TAX_1040 = "taxes_1040"
 
 
-class __RowNoiseTypes(NamedTuple):
-    OMISSION = RowNoiseType("omission", noise_functions.omit_rows)
-    DUPLICATION = RowNoiseType("duplication", noise_functions.duplicate_rows)
+class __Columns(NamedTuple):
+    FIRST_NAME: str = "first_name"
+    MIDDLE_INITIAL: str = "middle_initial"
+    LAST_NAME: str = "last_name"
+    STREET_NAME: str = "street_name"
+    CITY: str = "city"
+    # todo finish filling in columns
 
 
-ROW_NOISE_TYPES = __RowNoiseTypes()
+COLUMNS = __Columns()
 
 
-class __ColumnNoiseTypes(NamedTuple):
+class __NoiseTypes(NamedTuple):
     """
-    Container for all column noise types.
+    Container for all noise types in the order in which they should be applied.
     """
 
-    NICKNAME = ColumnNoiseType("nickname", noise_functions.generate_nicknames)
-    FAKE_NAME = ColumnNoiseType("fake_names", noise_functions.generate_fake_names)
-    PHONETIC = ColumnNoiseType("phonetic", noise_functions.generate_phonetic_errors)
-    # todo finish filling in noise types
+    # todo finish filling in noise types in the correct order per the docs
+    OMISSION: RowNoiseType = RowNoiseType("omission", noise_functions.omit_rows)
+    DUPLICATION: RowNoiseType = RowNoiseType("duplication", noise_functions.duplicate_rows)
+    NICKNAME: ColumnNoiseType = ColumnNoiseType(
+        "nickname", noise_functions.generate_nicknames, {COLUMNS.FIRST_NAME}
+    )
+    FAKE_NAME: ColumnNoiseType = ColumnNoiseType(
+        "fake_names",
+        noise_functions.generate_fake_names,
+        {COLUMNS.FIRST_NAME, COLUMNS.LAST_NAME},
+    )
+    PHONETIC: ColumnNoiseType = ColumnNoiseType(
+        "phonetic",
+        noise_functions.generate_phonetic_errors,
+        {
+            COLUMNS.FIRST_NAME,
+            COLUMNS.MIDDLE_INITIAL,
+            COLUMNS.LAST_NAME,
+            COLUMNS.STREET_NAME,
+            COLUMNS.CITY,
+        },
+    )
 
 
-COLUMN_NOISE_TYPES = __ColumnNoiseTypes()
+NOISE_TYPES = __NoiseTypes()
 
 
 class ColumnNoiseParameter(Enum):
@@ -49,26 +72,5 @@ class ColumnNoiseParameter(Enum):
     ZIPCODE_MISWRITING = "zipcode_miswriting"
 
 
-class __ColumnsMetadata(NamedTuple):
-    """
-    Container for the metadata required to add noise for all possible columns
-    """
-
-    FIRST_NAME = ColumnMetadata(
-        "first_name",
-        [
-            COLUMN_NOISE_TYPES.NICKNAME,
-            COLUMN_NOISE_TYPES.FAKE_NAME,
-            COLUMN_NOISE_TYPES.PHONETIC,
-            # todo add remaining column noise
-        ],
-    )
-    MIDDLE_INITIAL = ColumnMetadata("middle_initial", [])
-    # todo finish filling in columns
-
-    def __getitem__(self, column_name: str) -> ColumnMetadata:
-        # todo
-        ...
-
-
-COLUMNS_METADATA = __ColumnsMetadata()
+# TODO create proper default configuration
+DEFAULT_CONFIGURATION = NoiseConfiguration()

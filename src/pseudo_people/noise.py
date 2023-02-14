@@ -1,7 +1,8 @@
 import pandas as pd
 
 from pseudo_people.configuration import NoiseConfiguration
-from pseudo_people.entities import COLUMNS_METADATA, ROW_NOISE_TYPES, Form
+from pseudo_people.entities import DEFAULT_CONFIGURATION, NOISE_TYPES, Form
+from pseudo_people.entity_types import ColumnNoiseType, RowNoiseType
 
 
 def noise_form(
@@ -10,13 +11,12 @@ def noise_form(
     noise_config: NoiseConfiguration = None,
 ) -> pd.DataFrame:
     """
-    Adds noise to the input form data. Row noise functions are executed which
-    add or remove whole rows of data. Then column noise functions are applied.
-    Each column has a set of noise functions that will get applied in a specific
-    order.
+    Adds noise to the input form data. Noise functions are executed in the order
+    defined by :py:const: `.NOISE_TYPES`. Row noise functions are applied to the
+    whole DataFrame. Column noise functions will be applied to each column that
+    is pertinent to it.
 
     Noise levels are determined by the noise_config.
-    column
     :param form:
         Form needing to be noised
     :param form_data:
@@ -26,16 +26,28 @@ def noise_form(
     :return:
         Noised form data
     """
-    for noise_type in ROW_NOISE_TYPES:
-        row_configuration = noise_config.get_row_noise(form, noise_type)
-        form_data = noise_type(form_data, row_configuration)
 
-    for column_name in form_data.columns:
-        column_metadata = COLUMNS_METADATA[column_name]
-        for noise_type in column_metadata.noise_types:
-            column_configuration = noise_config.get_column_noise(
-                form, column_metadata, noise_type
+    if noise_config is None:
+        noise_config = DEFAULT_CONFIGURATION
+
+    for noise_type in NOISE_TYPES:
+        if isinstance(noise_type, RowNoiseType):
+            # Apply row noise
+            row_configuration = noise_config.get_row_noise(form, noise_type)
+            form_data = noise_type(form_data, row_configuration)
+
+        elif isinstance(noise_type, ColumnNoiseType):
+            # Apply column noise to each column as appropriate
+            for column in form_data.columns:
+                if column not in noise_type.columns:
+                    continue
+
+                column_configuration = noise_config.get_column_noise(form, column, noise_type)
+                form_data[column] = noise_type(form_data[column], column_configuration)
+        else:
+            raise TypeError(
+                f"Invalid noise type. Allowed types are {RowNoiseType} and "
+                f"{ColumnNoiseType}. Provided {type(noise_type)}."
             )
-            form_data[column_name] = noise_type(form_data[column_name], column_configuration)
 
     return form_data
