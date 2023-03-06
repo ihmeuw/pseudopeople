@@ -1,14 +1,14 @@
 import pandas as pd
 
 from pseudo_people.configuration import NoiseConfiguration
-from pseudo_people.entities import DEFAULT_CONFIGURATION, NOISE_TYPES, Form
+from pseudo_people.entities import NOISE_TYPES, Form
 from pseudo_people.entity_types import ColumnNoiseType, RowNoiseType
 
 
 def noise_form(
     form: Form,
     form_data: pd.DataFrame,
-    noise_config: NoiseConfiguration = None,
+    noise_config: NoiseConfiguration,
 ) -> pd.DataFrame:
     """
     Adds noise to the input form data. Noise functions are executed in the order
@@ -22,13 +22,10 @@ def noise_form(
     :param form_data:
         Clean data input which needs to be noised.
     :param noise_config:
-        Object to configure noise levels. Default levels are used if None
+        Object to configure noise levels
     :return:
         Noised form data
     """
-
-    if noise_config is None:
-        noise_config = DEFAULT_CONFIGURATION
 
     for noise_type in NOISE_TYPES:
         if isinstance(noise_type, RowNoiseType):

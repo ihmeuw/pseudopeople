@@ -70,7 +70,3 @@ class ColumnNoiseParameter(Enum):
     TYPOGRAPHIC_NOISE = "typographic_noise"
     AGE_MISWRITING = "age_miswriting"
     ZIPCODE_MISWRITING = "zipcode_miswriting"
-
-
-# TODO create proper default configuration
-DEFAULT_CONFIGURATION = NoiseConfiguration()
