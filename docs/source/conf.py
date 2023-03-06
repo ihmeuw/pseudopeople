@@ -20,9 +20,9 @@ from pathlib import Path
 from docutils.nodes import Text
 from sphinx.ext.intersphinx import missing_reference
 
-import pseudo_people
+import pseudopeople
 
-base_dir = Path(pseudo_people.__file__).parent
+base_dir = Path(pseudopeople.__file__).parent
 
 about = {}
 with (base_dir / "__about__.py").open() as f:

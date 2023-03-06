@@ -1,4 +1,4 @@
-from pseudo_people.__about__ import (
+from pseudopeople.__about__ import (
     __author__,
     __copyright__,
     __email__,

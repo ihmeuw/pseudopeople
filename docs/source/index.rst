@@ -1,8 +1,8 @@
-===========================
-Pseudo People Documentation
-===========================
+==========================
+Pseudopeople Documentation
+==========================
 
-Pseudo People is a package intended to add configurable noise to a simulated
+Pseudopeople is a package intended to add configurable noise to a simulated
 census-scale data-set written using standard
 `scientific Python <https://www.scipy.org/>`_ tools.
 

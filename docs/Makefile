@@ -3,7 +3,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-SPHINXPROJ    = pseudo_people
+SPHINXPROJ    = pseudopeople
 SOURCEDIR     = source
 BUILDDIR      = build
 

@@ -1,7 +1,7 @@
 API Reference
 =============
 
-.. automodule:: pseudo_people
+.. automodule:: pseudopeople
 
 .. toctree::
    :maxdepth: 2
