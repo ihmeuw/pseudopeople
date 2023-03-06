@@ -1,14 +1,8 @@
 import pandas as pd
-
-from pseudo_people.configuration import (
-    ColumnNoiseConfigurationNode,
-    RowNoiseConfigurationNode,
-)
+from vivarium import ConfigTree
 
 
-def omit_rows(
-    form_data: pd.DataFrame, configuration: RowNoiseConfigurationNode
-) -> pd.DataFrame:
+def omit_rows(form_data: pd.DataFrame, configuration: float) -> pd.DataFrame:
     """
 
     :param form_data:
@@ -19,9 +13,7 @@ def omit_rows(
     return form_data
 
 
-def duplicate_rows(
-    form_data: pd.DataFrame, configuration: RowNoiseConfigurationNode
-) -> pd.DataFrame:
+def duplicate_rows(form_data: pd.DataFrame, configuration: float) -> pd.DataFrame:
     """
 
     :param form_data:
@@ -32,9 +24,7 @@ def duplicate_rows(
     return form_data
 
 
-def generate_nicknames(
-    column: pd.Series, configuration: ColumnNoiseConfigurationNode
-) -> pd.Series:
+def generate_nicknames(column: pd.Series, configuration: ConfigTree) -> pd.Series:
     """
 
     :param column:
@@ -45,9 +35,7 @@ def generate_nicknames(
     return column
 
 
-def generate_fake_names(
-    column: pd.Series, configuration: ColumnNoiseConfigurationNode
-) -> pd.Series:
+def generate_fake_names(column: pd.Series, configuration: ConfigTree) -> pd.Series:
     """
 
     :param column:
@@ -58,9 +46,7 @@ def generate_fake_names(
     return column
 
 
-def generate_phonetic_errors(
-    column: pd.Series, configuration: ColumnNoiseConfigurationNode
-) -> pd.Series:
+def generate_phonetic_errors(column: pd.Series, configuration: ConfigTree) -> pd.Series:
     """
 
     :param column:

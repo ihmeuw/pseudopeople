@@ -2,7 +2,6 @@ from enum import Enum
 from typing import NamedTuple
 
 from pseudo_people import noise_functions
-from pseudo_people.configuration import NoiseConfiguration
 from pseudo_people.entity_types import ColumnNoiseType, RowNoiseType
 
 
@@ -37,30 +36,20 @@ class __NoiseTypes(NamedTuple):
     OMISSION: RowNoiseType = RowNoiseType("omission", noise_functions.omit_rows)
     DUPLICATION: RowNoiseType = RowNoiseType("duplication", noise_functions.duplicate_rows)
     NICKNAME: ColumnNoiseType = ColumnNoiseType(
-        "nickname", noise_functions.generate_nicknames, {COLUMNS.FIRST_NAME}
+        "nickname", noise_functions.generate_nicknames
     )
     FAKE_NAME: ColumnNoiseType = ColumnNoiseType(
-        "fake_names",
-        noise_functions.generate_fake_names,
-        {COLUMNS.FIRST_NAME, COLUMNS.LAST_NAME},
+        "fake_names", noise_functions.generate_fake_names
     )
     PHONETIC: ColumnNoiseType = ColumnNoiseType(
-        "phonetic",
-        noise_functions.generate_phonetic_errors,
-        {
-            COLUMNS.FIRST_NAME,
-            COLUMNS.MIDDLE_INITIAL,
-            COLUMNS.LAST_NAME,
-            COLUMNS.STREET_NAME,
-            COLUMNS.CITY,
-        },
+        "phonetic", noise_functions.generate_phonetic_errors
     )
 
 
 NOISE_TYPES = __NoiseTypes()
 
 
-class ColumnNoiseParameter(Enum):
+class NoiseParameter(Enum):
     """
     Enum containing all additional parameters used to specify column noise.
     """

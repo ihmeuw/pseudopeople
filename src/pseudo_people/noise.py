@@ -1,6 +1,6 @@
 import pandas as pd
+from vivarium import ConfigTree
 
-from pseudo_people.configuration import NoiseConfiguration
 from pseudo_people.entities import NOISE_TYPES, Form
 from pseudo_people.entity_types import ColumnNoiseType, RowNoiseType
 
@@ -8,7 +8,7 @@ from pseudo_people.entity_types import ColumnNoiseType, RowNoiseType
 def noise_form(
     form: Form,
     form_data: pd.DataFrame,
-    noise_config: NoiseConfiguration,
+    configuration: ConfigTree,
 ) -> pd.DataFrame:
     """
     Adds noise to the input form data. Noise functions are executed in the order
@@ -21,25 +21,25 @@ def noise_form(
         Form needing to be noised
     :param form_data:
         Clean data input which needs to be noised.
-    :param noise_config:
+    :param configuration:
         Object to configure noise levels
     :return:
         Noised form data
     """
 
     for noise_type in NOISE_TYPES:
+        noise_configuration = configuration[form][noise_type]
         if isinstance(noise_type, RowNoiseType):
             # Apply row noise
-            row_configuration = noise_config.get_row_noise(form, noise_type)
-            form_data = noise_type(form_data, row_configuration)
+            form_data = noise_type(form_data, noise_configuration)
 
         elif isinstance(noise_type, ColumnNoiseType):
             # Apply column noise to each column as appropriate
             for column in form_data.columns:
-                if column not in noise_type.columns:
+                if column not in noise_configuration:
                     continue
 
-                column_configuration = noise_config.get_column_noise(form, column, noise_type)
+                column_configuration = noise_configuration[column]
                 form_data[column] = noise_type(form_data[column], column_configuration)
         else:
             raise TypeError(
