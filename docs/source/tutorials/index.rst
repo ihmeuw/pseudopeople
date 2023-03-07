@@ -4,7 +4,7 @@
 Tutorials
 =========
 Here you'll find a set of tutorials to introduce concepts and tools available
-in the ``pseudo_people`` package.
+in the ``pseudopeople`` package.
 
 Before digging into the tutorials, please walk through the
 :doc:`getting started <getting_started>` guide.  It will help you set up a

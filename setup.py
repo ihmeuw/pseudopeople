@@ -10,7 +10,7 @@ if not (min_version[0] <= sys.version_info[:2] <= max_version[0]):
     py_version = ".".join([str(v) for v in sys.version_info[:3]])
     error = (
         "\n----------------------------------------\n"
-        "Error: Pseudo People runs under python {min_version}-{max_version}.\n"
+        "Error: Pseudopeople runs under python {min_version}-{max_version}.\n"
         "You are running python {py_version}".format(
             min_version=min_version[1], max_version=max_version[1], py_version=py_version
         )
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     src_dir = base_dir / "src"
 
     about = {}
-    with (src_dir / "pseudo_people" / "__about__.py").open() as f:
+    with (src_dir / "pseudopeople" / "__about__.py").open() as f:
         exec(f.read(), about)
 
     with (base_dir / "README.rst").open() as f:
@@ -95,7 +95,7 @@ if __name__ == "__main__":
         },
         # entry_points="""
         #         [console_scripts]
-        #         simulate=pseudo_people.interface.cli:simulate
+        #         simulate=pseudopeople.interface.cli:simulate
         #     """,
         zip_safe=False,
     )
