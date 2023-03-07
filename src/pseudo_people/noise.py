@@ -3,12 +3,14 @@ from vivarium import ConfigTree
 
 from pseudo_people.entities import NOISE_TYPES, Form
 from pseudo_people.entity_types import ColumnNoiseType, RowNoiseType
+from pseudo_people.utilities import get_randomness_stream
 
 
 def noise_form(
     form: Form,
     form_data: pd.DataFrame,
     configuration: ConfigTree,
+    seed: int,
 ) -> pd.DataFrame:
     """
     Adds noise to the input form data. Noise functions are executed in the order
@@ -23,15 +25,18 @@ def noise_form(
         Clean data input which needs to be noised.
     :param configuration:
         Object to configure noise levels
+    :param seed:
+        Seed for controlling randomness
     :return:
         Noised form data
     """
+    randomness = get_randomness_stream(form, seed)
 
     for noise_type in NOISE_TYPES:
         noise_configuration = configuration[form][noise_type]
         if isinstance(noise_type, RowNoiseType):
             # Apply row noise
-            form_data = noise_type(form_data, noise_configuration)
+            form_data = noise_type(form_data, noise_configuration, randomness)
 
         elif isinstance(noise_type, ColumnNoiseType):
             # Apply column noise to each column as appropriate
@@ -40,7 +45,9 @@ def noise_form(
                     continue
 
                 column_configuration = noise_configuration[column]
-                form_data[column] = noise_type(form_data[column], column_configuration)
+                form_data[column] = noise_type(
+                    form_data[column], column_configuration, randomness
+                )
         else:
             raise TypeError(
                 f"Invalid noise type. Allowed types are {RowNoiseType} and "
