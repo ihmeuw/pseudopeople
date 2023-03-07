@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import NamedTuple
 
-from pseudo_people import noise_functions
-from pseudo_people.entity_types import ColumnNoiseType, RowNoiseType
+from pseudopeople import noise_functions
+from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 
 
 class Form(Enum):

@@ -10,6 +10,7 @@ def omit_rows(
 
     :param form_data:
     :param configuration:
+    :param randomness_stream:
     :return:
     """
     # todo actually omit rows

@@ -1,9 +1,9 @@
 import pandas as pd
 from vivarium import ConfigTree
 
-from pseudo_people.entities import NOISE_TYPES, Form
-from pseudo_people.entity_types import ColumnNoiseType, RowNoiseType
-from pseudo_people.utilities import get_randomness_stream
+from pseudopeople.entities import NOISE_TYPES, Form
+from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
+from pseudopeople.utilities import get_randomness_stream
 
 
 def noise_form(

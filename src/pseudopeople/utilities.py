@@ -1,7 +1,7 @@
 import pandas as pd
 from vivarium.framework.randomness import RandomnessStream
 
-from pseudo_people.entities import Form
+from pseudopeople.entities import Form
 
 
 def get_randomness_stream(form: Form, seed: int) -> RandomnessStream:
