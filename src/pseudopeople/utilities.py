@@ -3,7 +3,7 @@ from typing import Any, Union
 import numpy as np
 import pandas as pd
 
-from vivarium.framework.randomness import Array, RandomnessStream, random
+from vivarium.framework.randomness import RandomnessStream, random
 
 from pseudopeople.entities import Form
 
@@ -13,10 +13,10 @@ def get_randomness_stream(form: Form, seed: int) -> RandomnessStream:
 
 
 def vectorized_choice(
-    options: Array,
+    options: Union[pd.Series, np.array],
     n_to_choose: int,
     randomness_stream: RandomnessStream = None,
-    weights: Array = None,
+    weights: Union[pd.Series, np.array] = None,
     additional_key: Any = None,
     random_seed: int = None,
 ):

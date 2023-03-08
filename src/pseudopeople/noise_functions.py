@@ -1,6 +1,6 @@
 import pandas as pd
 from vivarium import ConfigTree
-from vivarium.framework.randomness import filter_by_rate, RandomnessStream
+from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.utilities import (
     vectorized_choice,
