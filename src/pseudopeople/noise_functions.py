@@ -2,6 +2,11 @@ import pandas as pd
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
+from pseudopeople.utilities import (
+    filter_by_rate,
+    vectorized_choicem,
+)
+
 
 def omit_rows(
     form_data: pd.DataFrame, configuration: float, randomness_stream: RandomnessStream
@@ -35,11 +40,14 @@ def generate_nicknames(
     column: pd.Series, configuration: ConfigTree, randomness_stream: RandomnessStream
 ) -> pd.Series:
     """
+    Function to noise eligible names so "nicknames" are used in forms instead of an individual's "real" name.
 
-    :param column:
-    :param configuration:
-    :param randomness_stream:
+    :param column:  Column containing names to be noised with alternative nicknames
+    :param configuration:  ConfigTree object containing level at which to noise column
+    :param randomness_stream:  RandomnessStream object to utilize Vivarium common random numbers.
+
     :return:
+    Series containing names that have been noised at the provided level.
     """
     # todo actually generate nicknames
     return column
