@@ -1,11 +1,11 @@
 import pandas as pd
 from vivarium import ConfigTree
-from vivarium.framework.randomness import RandomnessStream
+from vivarium.framework.randomness import filter_by_rate, RandomnessStream
 
 from pseudopeople.utilities import (
-    filter_by_rate,
-    vectorized_choicem,
+    vectorized_choice,
 )
+from pseudopeople.constants import paths
 
 
 def omit_rows(
@@ -49,7 +49,33 @@ def generate_nicknames(
     :return:
     Series containing names that have been noised at the provided level.
     """
-    # todo actually generate nicknames
+    # Load and format nicknames dataset
+    nicknames = pd.read_csv(paths.NICKNAMES_DATA, header=None)
+    nicknames = nicknames.apply(lambda x: x.astype(str).str.title()).set_index(0)
+
+    # Find individuals eligible to use nicknames
+    eligible_for_noise_idx = column.index[column.isin(nicknames.index)]
+    l_names = len(column.loc[eligible_for_noise_idx].unique())
+    # TODO: replace with configuration
+    p = 0.5
+    p_name = 0.5 / l_names
+
+    # Cycle through unique list of names and pick which nickname to use
+    # TODO: Import vectorized choice
+    # Take length of unique values of column and noise that level for each name
+    for name in column.loc[eligible_for_noise_idx].unique():
+        sims_to_noise_idx = randomness_stream.filter_by_rate(
+            column.index[column == name],
+            rate=list(p_name),
+            additional_key=f"{name}_noise_filter",
+        )
+        column.loc[sims_to_noise_idx] = vectorized_choice(
+            options=nicknames.loc[nicknames.index == name].values,
+            n_to_choose=len(sims_to_noise_idx),
+            randomness_stream=randomness_stream,
+            additional_key=f"{name}_nickname",
+        ).to_numpy()
+
     return column
 
 
