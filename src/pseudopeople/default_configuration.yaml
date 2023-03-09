@@ -1,0 +1,200 @@
+# Default noising configuration
+# structure follows:
+#   Row noise: `form.noise_type`
+#   Column-wise parameters: `form.noise_type.column.noise_parameter`
+
+decennial_census:
+    omission: 0.0145
+    duplication: 0.05
+    nickname:
+        first_name:
+            row_noise_level: 0.01
+    fake_names:
+        first_name:
+            row_noise_level: 0.01
+    missing_data:
+        first_name:
+            row_noise_level: 0.01
+        age:
+            row_noise_level: 0.01
+        zipcode:
+            row_noise_level: 0.01
+    phonetic:
+        first_name:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+    ocr:
+        first_name:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+        age:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+    typographic:
+        first_name:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+        age:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+        zipcode:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+    zipcode_miswriting:
+        zipcode:
+            row_noise_level: 0.01
+            zipcode_miswriting: [0.04, 0.04, 0.2, 0.36, 0.36]
+    age_miswriting:
+        age:
+            row_noise_level: 0.01
+            age_miswriting: [1, -1]
+
+
+
+
+
+american_communities_survey:
+    omission: 0.0145
+    duplication: 0.05
+    nickname:
+        first_name:
+            row_noise_level: 0.01
+    fake_names:
+        first_name:
+            row_noise_level: 0.01
+    missing_data:
+        first_name:
+            row_noise_level: 0.01
+        age:
+            row_noise_level: 0.01
+        zipcode:
+            row_noise_level: 0.01
+    phonetic:
+        first_name:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+    ocr:
+        first_name:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+        age:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+    typographic:
+        first_name:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+        age:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+        zipcode:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+    zipcode_miswriting:
+        zipcode:
+            row_noise_level: 0.01
+            zipcode_miswriting: [0.04, 0.04, 0.2, 0.36, 0.36]
+    age_miswriting:
+        age:
+            row_noise_level: 0.01
+            age_miswriting: [1, -1]
+
+current_population_survey:
+    omission: 0.2905
+    duplication: 0.05
+    nickname:
+        first_name:
+            row_noise_level: 0.01
+    fake_names:
+        first_name:
+            row_noise_level: 0.01
+    missing_data:
+        first_name:
+            row_noise_level: 0.01
+        age:
+            row_noise_level: 0.01
+        zipcode:
+            row_noise_level: 0.01
+    phonetic:
+        first_name:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+    ocr:
+        first_name:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+        age:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+    typographic:
+        first_name:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+        age:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+        zipcode:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+    zipcode_miswriting:
+        zipcode:
+            row_noise_level: 0.01
+            zipcode_miswriting: [0.04, 0.04, 0.2, 0.36, 0.36]
+    age_miswriting:
+        age:
+            row_noise_level: 0.01
+            age_miswriting: [1, -1]
+
+
+women_infants_and_children:
+    omission: 0.0
+    duplication: 0.05
+    nickname:
+        first_name:
+            row_noise_level: 0.01
+    fake_names:
+        first_name:
+            row_noise_level: 0.01
+    missing_data:
+        first_name:
+            row_noise_level: 0.01
+        age:
+            row_noise_level: 0.01
+        zipcode:
+            row_noise_level: 0.01
+    phonetic:
+        first_name:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+    ocr:
+        first_name:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+        age:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+    typographic:
+        first_name:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+        age:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+        zipcode:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+    zipcode_miswriting:
+        zipcode:
+            row_noise_level: 0.01
+            zipcode_miswriting: [0.04, 0.04, 0.2, 0.36, 0.36]
+    age_miswriting:
+        age:
+            row_noise_level: 0.01
+            age_miswriting: [1, -1]
+
+# TODO: add the rest of observers/forms with RT input
+#social_security:
+#
+#taxes_w2_and_1099:
+#
+#taxes_1040:
