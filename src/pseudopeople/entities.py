@@ -5,6 +5,7 @@ from pseudopeople import noise_functions
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 
 
+# todo: is "form" the right word? Ask RT
 class Form(Enum):
     CENSUS = "decennial_census"
     ACS = "american_communities_survey"
@@ -20,7 +21,9 @@ class __Columns(NamedTuple):
     MIDDLE_INITIAL: str = "middle_initial"
     LAST_NAME: str = "last_name"
     STREET_NAME: str = "street_name"
+    ZIP_CODE: str = "zipcode"
     CITY: str = "city"
+    AGE: str = "age"
     # todo finish filling in columns
 
 
@@ -43,6 +46,21 @@ class __NoiseTypes(NamedTuple):
     )
     PHONETIC: ColumnNoiseType = ColumnNoiseType(
         "phonetic", noise_functions.generate_phonetic_errors
+    )
+    MISSING_DATA: ColumnNoiseType = ColumnNoiseType(
+        # todo: implement the noise fn
+        "missing_data",
+        lambda: (_ for _ in ()).throw(NotImplemented("TBD!")),
+    )
+    TYPOGRAPHIC: ColumnNoiseType = ColumnNoiseType(
+        # todo: implement the noise fn
+        "typographic",
+        lambda: (_ for _ in ()).throw(NotImplemented("TBD!")),
+    )
+    OCR: ColumnNoiseType = ColumnNoiseType(
+        # todo: implement the noise fn
+        "ocr",
+        lambda: (_ for _ in ()).throw(NotImplemented("TBD!")),
     )
 
 
