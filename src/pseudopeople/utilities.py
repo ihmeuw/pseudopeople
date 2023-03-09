@@ -12,10 +12,13 @@ def get_randomness_stream(form: Form, seed: int) -> RandomnessStream:
 
 
 def get_default_configuration() -> ConfigTree:
+    import pseudopeople
+
     default_config_layers = [
         "base",
     ]
     noising_configuration = ConfigTree(layers=default_config_layers)
-    yaml_path = Path("default_configuration.yaml")
+    BASE_DIR = Path(pseudopeople.__file__).resolve().parent
+    yaml_path = BASE_DIR / "default_configuration.yaml"
     noising_configuration.update(yaml_path, layer="base")
     return noising_configuration
