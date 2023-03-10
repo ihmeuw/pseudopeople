@@ -51,24 +51,27 @@ def generate_nicknames(
     """
 
     # Load and format nicknames dataset
-    nicknames = pd.read_csv(paths.NICKNAMES_DATA, header=None)
+    nicknames = pd.read_csv(paths.NICKNAMES_DATA, header=None, keep_default_na=False)
     nicknames = nicknames.apply(lambda x: x.astype(str).str.title()).set_index(0)
 
     # Find individuals eligible to use nicknames
+    # TODO: fix for configuration
+    noise_level = configuration.row_noise_level
     eligible_for_noise_idx = column.index[column.isin(nicknames.index)]
-    # TODO: Get ConfigTree value here
-    noise_level = configuration.form.row_noise_level.column.value
+    nicknames_idx = randomness_stream.filter_for_probability(
+        eligible_for_noise_idx,
+        probability=noise_level,
+        additional_key="nickname_noise_filter",
+    )
 
     # Cycle through all possible nicknames and pick simulants who use a nickname.
-    for name in column.loc[eligible_for_noise_idx].unique():
-        sims_to_noise_idx = randomness_stream.filter_for_probability(
-            column.index[column == name],
-            probability=noise_level,
-            additional_key=f"{name}_noise_filter",
-        )
-        column.loc[sims_to_noise_idx] = vectorized_choice(
-            options=nicknames.loc[nicknames.index == name].values,
-            n_to_choose=len(sims_to_noise_idx),
+    # TODO: update vectorized choice to be completely vectorized
+    for name in column.loc[nicknames_idx].unique():
+        name_idx = column.index[column == name]
+        to_noise_idx = nicknames_idx.intersection(name_idx)
+        column.loc[to_noise_idx] = vectorized_choice(
+            options=nicknames.loc[name].values,
+            n_to_choose=len(to_noise_idx),
             randomness_stream=randomness_stream,
             additional_key=f"{name}_nickname",
         )
