@@ -50,7 +50,7 @@ class __NoiseTypes(NamedTuple):
     MISSING_DATA: ColumnNoiseType = ColumnNoiseType(
         # todo: implement the noise fn
         "missing_data",
-        lambda: (_ for _ in ()).throw(NotImplemented("TBD!")),
+        noise_functions.missing_data,
     )
     TYPOGRAPHIC: ColumnNoiseType = ColumnNoiseType(
         # todo: implement the noise fn
