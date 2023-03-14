@@ -46,7 +46,7 @@ def noise_form(
 
                 column_configuration = noise_configuration[column]
                 form_data[column] = noise_type(
-                    form_data[column], column_configuration, randomness
+                    form_data[column], column_configuration, randomness, column
                 )
         else:
             raise TypeError(

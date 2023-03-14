@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable
+from typing import Any, Callable
 
 import pandas as pd
 from vivarium import ConfigTree
@@ -41,17 +41,19 @@ class ColumnNoiseType:
     "phonetic").
 
     The noise function takes as input a Series, the ConfigTree object for this
-    ColumnNoise operation, and a RandomnessStream for controlling randomness. It
-    applies the noising operation to the Series and returns the modified Series.
+    ColumnNoise operation, a RandomnessStream for controlling randomness, and
+    an additional key for the RandomnessStream. It applies the noising operation
+    to the Series and returns the modified Series.
     """
 
     name: str
-    noise_function: Callable[[pd.Series, ConfigTree, RandomnessStream], pd.Series]
+    noise_function: Callable[[pd.Series, ConfigTree, RandomnessStream, Any], pd.Series]
 
     def __call__(
         self,
         column: pd.Series,
         configuration: ConfigTree,
         randomness_stream: RandomnessStream,
+        additional_key: Any,
     ) -> pd.Series:
-        return self.noise_function(column, configuration, randomness_stream)
+        return self.noise_function(column, configuration, randomness_stream, additional_key)
