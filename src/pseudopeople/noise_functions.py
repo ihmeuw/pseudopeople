@@ -6,13 +6,17 @@ from vivarium.framework.randomness import RandomnessStream
 
 
 def omit_rows(
-    form_data: pd.DataFrame, configuration: float, randomness_stream: RandomnessStream
+    form_data: pd.DataFrame,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
 ) -> pd.DataFrame:
     """
 
     :param form_data:
     :param configuration:
     :param randomness_stream:
+    :param additional_key: Key for RandomnessStream
     :return:
     """
     # todo actually omit rows
@@ -20,13 +24,17 @@ def omit_rows(
 
 
 def duplicate_rows(
-    form_data: pd.DataFrame, configuration: float, randomness_stream: RandomnessStream
+    form_data: pd.DataFrame,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
 ) -> pd.DataFrame:
     """
 
     :param form_data:
     :param configuration:
     :param randomness_stream:
+    :param additional_key: Key for RandomnessStream
     :return:
     """
     # todo actually duplicate rows
@@ -34,13 +42,17 @@ def duplicate_rows(
 
 
 def generate_nicknames(
-    column: pd.Series, configuration: ConfigTree, randomness_stream: RandomnessStream
+    column: pd.Series,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
 ) -> pd.Series:
     """
 
     :param column:
     :param configuration:
     :param randomness_stream:
+    :param additional_key: Key for RandomnessStream
     :return:
     """
     # todo actually generate nicknames
@@ -48,13 +60,17 @@ def generate_nicknames(
 
 
 def generate_fake_names(
-    column: pd.Series, configuration: ConfigTree, randomness_stream: RandomnessStream
+    column: pd.Series,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
 ) -> pd.Series:
     """
 
     :param column:
     :param configuration:
     :param randomness_stream:
+    :param additional_key: Key for RandomnessStream
     :return:
     """
     # todo actually generate fake names
@@ -62,13 +78,17 @@ def generate_fake_names(
 
 
 def generate_phonetic_errors(
-    column: pd.Series, configuration: ConfigTree, randomness_stream: RandomnessStream
+    column: pd.Series,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
 ) -> pd.Series:
     """
 
     :param column:
     :param configuration:
     :param randomness_stream:
+    :param additional_key: Key for RandomnessStream
     :return:
     """
     # todo actually generate fake names
@@ -82,7 +102,7 @@ def missing_data(
     additional_key: Any,
 ) -> pd.Series:
     """
-    Function that takes a column and blanks out a configurable portion of it's data to be missing.
+    Function that takes a column and blanks out a configurable portion of its data to be missing.
 
     :param column:  pd.Series of data
     :param configuration: ConfigTree with rate at which to blank the data in column.
@@ -102,6 +122,42 @@ def missing_data(
     )
     column.loc[to_noise_idx] = ""
 
+    return column
+
+
+def generate_typographical_errors(
+    column: pd.Series,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
+) -> pd.Series:
+    """
+
+    :param column:
+    :param configuration:
+    :param randomness_stream:
+    :param additional_key: Key for RandomnessStream
+    :return:
+    """
+    # todo actually generate typographical errors
+    return column
+
+
+def generate_ocr_errors(
+    column: pd.Series,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
+) -> pd.Series:
+    """
+
+    :param column:
+    :param configuration:
+    :param randomness_stream:
+    :param additional_key: Key for RandomnessStream
+    :return:
+    """
+    # todo actually generate OCR errors
     return column
 
 

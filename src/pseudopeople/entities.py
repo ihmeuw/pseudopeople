@@ -48,19 +48,17 @@ class __NoiseTypes(NamedTuple):
         "phonetic", noise_functions.generate_phonetic_errors
     )
     MISSING_DATA: ColumnNoiseType = ColumnNoiseType(
-        # todo: implement the noise fn
         "missing_data",
         noise_functions.missing_data,
     )
     TYPOGRAPHIC: ColumnNoiseType = ColumnNoiseType(
-        # todo: implement the noise fn
         "typographic",
-        lambda: (_ for _ in ()).throw(NotImplemented("TBD!")),
+        noise_functions.generate_typographical_errors,
     )
     OCR: ColumnNoiseType = ColumnNoiseType(
         # todo: implement the noise fn
         "ocr",
-        lambda: (_ for _ in ()).throw(NotImplemented("TBD!")),
+        noise_functions.generate_ocr_errors,
     )
 
 

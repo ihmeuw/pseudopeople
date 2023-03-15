@@ -21,15 +21,18 @@ class RowNoiseType:
     """
 
     name: str
-    noise_function: Callable[[pd.DataFrame, float, RandomnessStream], pd.DataFrame]
+    noise_function: Callable[[pd.DataFrame, float, RandomnessStream, str], pd.DataFrame]
 
     def __call__(
         self,
         form_data: pd.DataFrame,
         configuration: float,
         randomness_stream: RandomnessStream,
+        additional_key: str,
     ) -> pd.DataFrame:
-        return self.noise_function(form_data, configuration, randomness_stream)
+        return self.noise_function(
+            form_data, configuration, randomness_stream, additional_key
+        )
 
 
 @dataclass
