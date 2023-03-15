@@ -21,10 +21,15 @@ def generate_decennial_census(path: Union[Path, str]):
     return noise_form(Form.CENSUS, data, configuration, seed=0)  # XXX: what is seed here?
 
 
-# Testing
+# Manual testing helper
 if __name__ == "__main__":
     args = sys.argv[1:]
     if len(args) == 1:
         my_path = Path(args[0])
+        src = pd.read_csv(my_path)
         out = generate_decennial_census(my_path)
+        diff = src[
+            ~src.astype(str).apply(tuple, 1).isin(out.astype(str).apply(tuple, 1))
+        ]  # get all changed rows
         print(out.head())
+        print(diff)
