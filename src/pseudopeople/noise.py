@@ -1,3 +1,16 @@
+"""
+================
+   Noise Form
+================
+
+A function that will noise data based on a user's configuration.
+
+This function is the core of Pseudopeople, which takes in a pd.DataFrame, or form
+data and will add noise to both rows and columns based on the configured values
+provided by the user.  First, the Form will be noised for missing data and have
+rows in each columns changed to null values.  Then, the form data will be noised
+by column and row for each type of additional noise type.
+"""
 import pandas as pd
 from vivarium import ConfigTree
 
