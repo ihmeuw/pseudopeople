@@ -17,7 +17,7 @@ def generate_decennial_census(path: Union[Path, str], seed: int = 0):
     Generates a noised decennial census data from un-noised data.
 
     :param path: A path to the un-noised source census data
-    :param seed: An integer seed for reproducing randomness
+    :param seed: An integer seed for randomness
     :return: A pd.DataFrame of noised census data
     """
     configuration = get_default_configuration()
