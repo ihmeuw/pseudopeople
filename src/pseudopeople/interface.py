@@ -9,9 +9,10 @@ from pseudopeople.noise import noise_form
 from pseudopeople.utilities import get_default_configuration
 
 
-# TODO: add year as parameter to select the year of the decennial census to generate
-# TODO: add default path: have the package install the small data in a known location and then to make this
-#  parameter optional, with the default being the location of the small data that is installed with the package
+# TODO: add year as parameter to select the year of the decennial census to generate (MIC-3909)
+# TODO: add default path: have the package install the small data in a known location and then
+#  to make this parameter optional, with the default being the location of the small data that
+#  is installed with the package (MIC-3884)
 def generate_decennial_census(path: Union[Path, str], seed: int = 0):
     """
     Generates a noised decennial census data from un-noised data.
