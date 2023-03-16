@@ -42,8 +42,7 @@ def noise_form(
             columns_to_noise = [
                 col
                 for col in noise_configuration
-                if col in form_data.columns
-                and noise_type.name in noise_configuration[col]
+                if col in form_data.columns and noise_type.name in noise_configuration[col]
             ]
             # Apply column noise to each column as appropriate
             for column in columns_to_noise:
