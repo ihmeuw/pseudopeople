@@ -14,6 +14,6 @@ Submitting Changes
   PRs to land a single large feature.
 - Larger changes should be discussed in the project's GitHub issues page.
 - New features and significant bug fixes should be documented in the changelog.
-- You must have legal permission to distribute any code you contribute to ``pseudo_people``, and it
+- You must have legal permission to distribute any code you contribute to ``pseudopeople``, and it
   must be available under the BSD-3 license.
 

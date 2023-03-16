@@ -8,5 +8,5 @@ include README.rst
 recursive-include docs *
 prune docs/_build
 
-recursive-include src/pseudo_people *.py *.yaml
+recursive-include src/pseudopeople *.py *.yaml
 recursive-include tests *.py *txt *.yaml
