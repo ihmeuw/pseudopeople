@@ -7,7 +7,7 @@ from vivarium.framework.randomness import RandomnessStream
 
 def omit_rows(
     form_data: pd.DataFrame,
-    configuration: ConfigTree,
+    configuration: float,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
@@ -23,7 +23,7 @@ def omit_rows(
 
 def duplicate_rows(
     form_data: pd.DataFrame,
-    configuration: ConfigTree,
+    configuration: float,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
