@@ -9,14 +9,12 @@ def omit_rows(
     form_data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
-    additional_key: Any,
 ) -> pd.DataFrame:
     """
 
     :param form_data:
     :param configuration:
     :param randomness_stream:
-    :param additional_key: Key for RandomnessStream
     :return:
     """
     # todo actually omit rows
@@ -27,14 +25,12 @@ def duplicate_rows(
     form_data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
-    additional_key: Any,
 ) -> pd.DataFrame:
     """
 
     :param form_data:
     :param configuration:
     :param randomness_stream:
-    :param additional_key: Key for RandomnessStream
     :return:
     """
     # todo actually duplicate rows

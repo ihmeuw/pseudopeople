@@ -32,21 +32,18 @@ def noise_form(
     """
     randomness = get_randomness_stream(form, seed)
 
+    noise_configuration = configuration[form.value]
     for noise_type in NOISE_TYPES:
-        noise_configuration = configuration[form.value]
         if isinstance(noise_type, RowNoiseType):
             # Apply row noise
-            print(noise_type.name)
-            form_data = noise_type(
-                form_data, noise_configuration, randomness, noise_type.name
-            )
+            form_data = noise_type(form_data, noise_configuration, randomness)
 
         elif isinstance(noise_type, ColumnNoiseType):
             columns_to_noise = [
                 col
-                for col in configuration[form.value].keys()
+                for col in configuration[form.value]
                 if col in form_data.columns
-                and noise_type.name in configuration[form.value][col].to_dict().keys()
+                and noise_type.name in configuration[form.value][col]
             ]
             # Apply column noise to each column as appropriate
             for column in columns_to_noise:

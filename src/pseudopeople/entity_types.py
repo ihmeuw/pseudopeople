@@ -28,11 +28,8 @@ class RowNoiseType:
         form_data: pd.DataFrame,
         configuration: float,
         randomness_stream: RandomnessStream,
-        additional_key: str,
     ) -> pd.DataFrame:
-        return self.noise_function(
-            form_data, configuration, randomness_stream, additional_key
-        )
+        return self.noise_function(form_data, configuration, randomness_stream)
 
 
 @dataclass
