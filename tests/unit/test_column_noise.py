@@ -1,21 +1,18 @@
-import pytest
-
 import numpy as np
 import pandas as pd
+import pytest
 from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.noise_functions import (
-    generate_nicknames,
     generate_fake_names,
+    generate_nicknames,
     generate_phonetic_errors,
     missing_data,
 )
 from pseudopeople.utilities import get_default_configuration
 
 RANDOMNESS = RandomnessStream(
-    key="test_column_noise",
-    clock=lambda: pd.Timestamp("2020-09-01"),
-    seed=0
+    key="test_column_noise", clock=lambda: pd.Timestamp("2020-09-01"), seed=0
 )
 
 
@@ -35,7 +32,7 @@ def test_missing_data(string_series, default_configuration):
     noised_data = missing_data(string_series, config, RANDOMNESS, "test_missing_data")
     expected_noise = config["row_noise_level"]
     actual_noise = (noised_data == "").mean()
-    
+
     assert np.isclose(expected_noise, actual_noise, rtol=0.02)
 
 

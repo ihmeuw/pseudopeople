@@ -1,9 +1,8 @@
 import pytest
+from vivarium.config_tree import ConfigTree
 
 from pseudopeople.entities import Form
 from pseudopeople.utilities import get_default_configuration
-
-from vivarium.config_tree import ConfigTree
 
 
 def test_default_configuration():
