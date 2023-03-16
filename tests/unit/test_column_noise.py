@@ -28,6 +28,7 @@ def default_configuration():
 
 
 def test_missing_data(string_series, default_configuration):
+    # TODO: [MIC-3910] Use custom config (MIC-3866)
     config = default_configuration["decennial_census"]["zipcode"]["missing_data"]
     noised_data = missing_data(string_series, config, RANDOMNESS, "test_missing_data")
     expected_noise = config["row_noise_level"]
