@@ -14,3 +14,4 @@ Python package where you'll build your model components.
    :maxdepth: 2
    :glob:
 
+    *
