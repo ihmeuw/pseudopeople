@@ -11,7 +11,7 @@ Before digging into the tutorials, please walk through the
 Python package where you'll build your model components.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :glob:
 
     *
