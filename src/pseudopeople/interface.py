@@ -14,19 +14,19 @@ from pseudopeople.utilities import get_configuration
 #  to make this parameter optional, with the default being the location of the small data that
 #  is installed with the package (MIC-3884)
 def generate_decennial_census(
-    path: Union[Path, str], seed: int = 0, override: Union[Path, str] = None
+    path: Union[Path, str], seed: int = 0, configuration: Union[Path, str] = None
 ):
     """
     Generates a noised decennial census data from un-noised data.
 
     :param path: A path to the un-noised source census data
     :param seed: An integer seed for randomness
-    :param override: (optional) A path to a configuration YAML file to override default configuration
+    :param configuration: (optional) A path to a configuration YAML file to modify default values
     :return: A pd.DataFrame of noised census data
     """
-    configuration = get_configuration(override)
+    configuration_tree = get_configuration(configuration)
     data = pd.read_csv(path)
-    return noise_form(Form.CENSUS, data, configuration, seed)
+    return noise_form(Form.CENSUS, data, configuration_tree, seed)
 
 
 # Manual testing helper
