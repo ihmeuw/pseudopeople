@@ -6,10 +6,7 @@ import pandas as pd
 
 from pseudopeople.entities import Form
 from pseudopeople.noise import noise_form
-from pseudopeople.utilities import (
-    get_default_configuration,
-    update_configuration_with_yaml,
-)
+from pseudopeople.utilities import get_configuration
 
 
 # TODO: add year as parameter to select the year of the decennial census to generate (MIC-3909)
@@ -24,12 +21,10 @@ def generate_decennial_census(
 
     :param path: A path to the un-noised source census data
     :param seed: An integer seed for randomness
-    :param override: A path to a configuration YAML file to override default configuration
+    :param override: (optional) A path to a configuration YAML file to override default configuration
     :return: A pd.DataFrame of noised census data
     """
-    configuration = get_default_configuration()
-    if override:
-        configuration = update_configuration_with_yaml(configuration, override)
+    configuration = get_configuration(override)
     data = pd.read_csv(path)
     return noise_form(Form.CENSUS, data, configuration, seed)
 
