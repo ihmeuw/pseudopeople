@@ -9,7 +9,7 @@ from pseudopeople.noise_functions import (
     generate_phonetic_errors,
     missing_data,
 )
-from pseudopeople.utilities import get_default_configuration
+from pseudopeople.utilities import get_configuration
 
 RANDOMNESS = RandomnessStream(
     key="test_column_noise", clock=lambda: pd.Timestamp("2020-09-01"), seed=0
@@ -24,7 +24,7 @@ def string_series():
 
 @pytest.fixture(scope="module")
 def default_configuration():
-    return get_default_configuration()
+    return get_configuration()
 
 
 def test_missing_data(string_series, default_configuration):
