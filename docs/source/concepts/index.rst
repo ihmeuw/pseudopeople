@@ -8,10 +8,6 @@ the Pseudopeople framework.
 
 .. toctree::
    :glob:
-   :maxdepth: 2
+   :maxdepth: 1
 
-   installation
-   tutorials/index
-   concepts/index
-   api_reference/index
-   glossary
+   *
