@@ -7,3 +7,4 @@ API Reference
    :maxdepth: 2
    :glob:
 
+   *

@@ -11,5 +11,6 @@ census-scale data-set written using standard
 
    installation
    tutorials/index
+   concepts/index
    api_reference/index
    glossary
