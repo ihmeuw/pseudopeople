@@ -4,7 +4,7 @@
 Getting Started
 ===============
 
-We're about to walk through the basic structure nad functionality of ``pseudopeople``.
+We're about to walk through the basic structure and functionality of ``pseudopeople``.
 
 ..
    Update this file.
