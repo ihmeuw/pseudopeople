@@ -1,1 +1,1 @@
-.. automodule:: pseudopoeople.interface
+.. automodule:: pseudopeople.interface
