@@ -7,6 +7,7 @@ from pseudopeople.interface import generate_decennial_census
 def test_noise_census():
     pass
 
+
 @pytest.mark.skip(reason="TODO")
 def test_noise_acs():
     pass
