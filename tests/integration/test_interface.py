@@ -1,20 +1,11 @@
 import pytest
 
-
-@pytest.mark.skip(reason="TODO")
-def test_noise_order():
-    """From docs: "Noising should be applied in the following order: omissions, duplications,
-    missing data, incorrect selection, copy from w/in household, month and day
-    swaps, zip code miswriting, age miswriting, numeric miswriting, nicknames,
-    fake names, phonetic, OCR, typographic"
-    """
-    pass
+from pseudopeople.interface import generate_decennial_census
 
 
 @pytest.mark.skip(reason="TODO")
 def test_noise_census():
     pass
-
 
 @pytest.mark.skip(reason="TODO")
 def test_noise_acs():

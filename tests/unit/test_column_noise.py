@@ -5,9 +5,9 @@ from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.noise_functions import (
     generate_fake_names,
+    generate_missing_data,
     generate_nicknames,
     generate_phonetic_errors,
-    missing_data,
 )
 from pseudopeople.utilities import get_configuration
 
@@ -30,11 +30,19 @@ def default_configuration():
 def test_missing_data(string_series, default_configuration):
     # TODO: [MIC-3910] Use custom config (MIC-3866)
     config = default_configuration["decennial_census"]["zipcode"]["missing_data"]
-    noised_data = missing_data(string_series, config, RANDOMNESS, "test_missing_data")
+    noised_data = generate_missing_data(
+        string_series, config, RANDOMNESS, "test_missing_data"
+    )
     expected_noise = config["row_noise_level"]
     actual_noise = (noised_data == "").mean()
 
+    # Check for expected noise level
     assert np.isclose(expected_noise, actual_noise, rtol=0.02)
+
+    # Check that un-noised values are unchanged
+    not_noised_idx = noised_data.index[noised_data != ""]
+    assert "" not in noised_data[not_noised_idx].values
+    assert (string_series[not_noised_idx] == noised_data[not_noised_idx]).all()
 
 
 @pytest.mark.skip(reason="TODO")
