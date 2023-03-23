@@ -60,8 +60,10 @@ def test_generate_decennial_census(
         if col in config:
             actual_noise_rate = (common_data[col] != common_noised_data[col]).mean()
             noise_types = [k for k in config[col]]
-            noise_rates = [config[col][noise_type]["row_noise_level"] for noise_type in noise_types]
-            expected_noise_rate = 1 - np.prod([1-x for x in noise_rates])
+            noise_rates = [
+                config[col][noise_type]["row_noise_level"] for noise_type in noise_types
+            ]
+            expected_noise_rate = 1 - np.prod([1 - x for x in noise_rates])
             assert np.isclose(actual_noise_rate, expected_noise_rate, rtol=0.07)
         else:
             assert (common_data[col] == common_noised_data[col]).all()
