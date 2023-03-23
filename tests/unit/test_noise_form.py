@@ -12,7 +12,7 @@ from pseudopeople.noise import NOISE_TYPES, noise_form
 
 @pytest.fixture(scope="module")
 def dummy_data():
-    """Create a two-coumn dummy dataset"""
+    """Create a two-column dummy dataset"""
     random.seed(0)
     num_rows = 1_000_000
     return pd.DataFrame(
