@@ -37,6 +37,114 @@ def duplicate_rows(
     return form_data
 
 
+def generate_incorrect_selections(
+    form_data: pd.DataFrame,
+    configuration: float,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
+) -> pd.DataFrame:
+    """
+
+    :param form_data:
+    :param configuration:
+    :param randomness_stream:
+    :param additional_key: Key for RandomnessStream
+    :return:
+    """
+    # todo actually duplicate rows
+    return form_data
+
+
+def generate_within_household_copies(
+    form_data: pd.DataFrame,
+    configuration: float,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
+) -> pd.DataFrame:
+    """
+
+    :param form_data:
+    :param configuration:
+    :param randomness_stream:
+    :param additional_key: Key for RandomnessStream
+    :return:
+    """
+    # todo actually duplicate rows
+    return form_data
+
+
+def swap_months_and_days(
+    form_data: pd.DataFrame,
+    configuration: float,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
+) -> pd.DataFrame:
+    """
+
+    :param form_data:
+    :param configuration:
+    :param randomness_stream:
+    :param additional_key: Key for RandomnessStream
+    :return:
+    """
+    # todo actually duplicate rows
+    return form_data
+
+
+def miswrite_zip_codes(
+    form_data: pd.DataFrame,
+    configuration: float,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
+) -> pd.DataFrame:
+    """
+
+    :param form_data:
+    :param configuration:
+    :param randomness_stream:
+    :param additional_key: Key for RandomnessStream
+    :return:
+    """
+    # todo actually duplicate rows
+    return form_data
+
+
+def miswrite_ages(
+    form_data: pd.DataFrame,
+    configuration: float,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
+) -> pd.DataFrame:
+    """
+
+    :param form_data:
+    :param configuration:
+    :param randomness_stream:
+    :param additional_key: Key for RandomnessStream
+    :return:
+    """
+    # todo actually duplicate rows
+    return form_data
+
+
+def miswrite_numerics(
+    form_data: pd.DataFrame,
+    configuration: float,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
+) -> pd.DataFrame:
+    """
+
+    :param form_data:
+    :param configuration:
+    :param randomness_stream:
+    :param additional_key: Key for RandomnessStream
+    :return:
+    """
+    # todo actually duplicate rows
+    return form_data
+
+
 def generate_nicknames(
     column: pd.Series,
     configuration: ConfigTree,
@@ -91,7 +199,7 @@ def generate_phonetic_errors(
     return column
 
 
-def missing_data(
+def generate_missing_data(
     column: pd.Series,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
