@@ -5,14 +5,17 @@ from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.noise_functions import (
     generate_fake_names,
+    generate_missing_data,
     generate_nicknames,
     generate_phonetic_errors,
-    missing_data,
 )
 from pseudopeople.utilities import get_configuration
 
-RANDOMNESS = RandomnessStream(
+RANDOMNESS0 = RandomnessStream(
     key="test_column_noise", clock=lambda: pd.Timestamp("2020-09-01"), seed=0
+)
+RANDOMNESS1 = RandomnessStream(
+    key="test_column_noise", clock=lambda: pd.Timestamp("2020-09-01"), seed=1
 )
 
 
@@ -27,14 +30,34 @@ def default_configuration():
     return get_configuration()
 
 
-def test_missing_data(string_series, default_configuration):
+def test_generate_missing_data(string_series, default_configuration):
     # TODO: [MIC-3910] Use custom config (MIC-3866)
     config = default_configuration["decennial_census"]["zipcode"]["missing_data"]
-    noised_data = missing_data(string_series, config, RANDOMNESS, "test_missing_data")
+    noised_data = generate_missing_data(
+        string_series, config, RANDOMNESS0, "test_missing_data"
+    )
+    noised_data_same_seed = generate_missing_data(
+        string_series, config, RANDOMNESS0, "test_missing_data"
+    )
+    noised_data_different_seed = generate_missing_data(
+        string_series, config, RANDOMNESS1, "test_missing_data"
+    )
+
+    # Confirm same randomness stream provides same results
+    assert (noised_data == noised_data_same_seed).all()
+
+    # Confirm different streams provide different results
+    assert (noised_data != noised_data_different_seed).any()
+
+    # Check for expected noise level
     expected_noise = config["row_noise_level"]
     actual_noise = (noised_data == "").mean()
-
     assert np.isclose(expected_noise, actual_noise, rtol=0.02)
+
+    # Check that un-noised values are unchanged
+    not_noised_idx = noised_data.index[noised_data != ""]
+    assert "" not in noised_data[not_noised_idx].values
+    assert (string_series[not_noised_idx] == noised_data[not_noised_idx]).all()
 
 
 @pytest.mark.skip(reason="TODO")
