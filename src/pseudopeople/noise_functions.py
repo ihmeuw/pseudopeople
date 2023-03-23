@@ -4,6 +4,8 @@ import pandas as pd
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
+from pseudopeople.constants import paths
+
 
 def omit_rows(
     form_data: pd.DataFrame,
