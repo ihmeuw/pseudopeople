@@ -49,7 +49,7 @@ def generate_incorrect_selections(
     """
     Function that takes a categorical series and applies noise so some values has been replace with other options from
     a list.
-    
+
     :param column:  A categorical pd.Series
     :param configuration: ConfigTree with rate at which to blank the data in column.
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
