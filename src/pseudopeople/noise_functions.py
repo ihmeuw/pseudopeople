@@ -44,7 +44,7 @@ def generate_incorrect_selections(
     configuration: float,
     randomness_stream: RandomnessStream,
     additional_key: Any,
-) -> pd.DataFrame:
+) -> pd.Series:
     """
 
     :param form_data:
