@@ -56,7 +56,7 @@ def generate_incorrect_selections(
     :param additional_key: Key for RandomnessStream
     :returns: pd.Series where data has been noised with other values from a list of possibilities
     """
-    # todo actually duplicate rows
+
     column = column.copy()
     col = column.name
     incorrect_selections = pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
