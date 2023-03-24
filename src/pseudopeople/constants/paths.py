@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pseudopeople
 
-
 BASE_DIR = Path(pseudopeople.__file__).resolve().parent
 DATA_ROOT = BASE_DIR / "data"
 

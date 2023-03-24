@@ -5,9 +5,10 @@ import pandas as pd
 import pytest
 from vivarium.config_tree import ConfigTree
 
-from pseudopeople.entities import Form
 from pseudopeople.interface import generate_decennial_census
-from pseudopeople.noise import NOISE_TYPES, noise_form
+from pseudopeople.noise import noise_form
+from pseudopeople.noise_entities import NOISE_TYPES
+from pseudopeople.schema_entities import Form
 
 
 @pytest.fixture(scope="module")
