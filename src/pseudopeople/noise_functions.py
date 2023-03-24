@@ -5,6 +5,7 @@ from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.constants import paths
+from pseudopeople.utilities import vectorized_choice
 
 
 def omit_rows(
@@ -40,21 +41,43 @@ def duplicate_rows(
 
 
 def generate_incorrect_selections(
-    form_data: pd.DataFrame,
-    configuration: float,
+    column: pd.Series,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
     additional_key: Any,
 ) -> pd.Series:
     """
 
-    :param form_data:
+    :param column:
     :param configuration:
     :param randomness_stream:
     :param additional_key: Key for RandomnessStream
     :return:
     """
     # todo actually duplicate rows
-    return form_data
+    column = column.copy()
+    col = column.name
+    incorrect_selections = pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
+
+    # Get possible noise values
+    # todo: Update with exclusive resampling when vectorized_choice is improved
+    options = incorrect_selections.loc[incorrect_selections[col].notna(), col]
+    noise_level = configuration.row_noise_level
+
+    # Select indices to noise and noise data
+    to_noise_idx = randomness_stream.filter_for_probability(
+        column.index,
+        probability=noise_level,
+        additional_key=f"{additional_key}_{col}_incorrect_select_filter",
+    )
+    column[to_noise_idx] = vectorized_choice(
+        options=options,
+        n_to_choose=len(to_noise_idx),
+        randomness_stream=randomness_stream,
+        additional_key=f"{additional_key}_{col}_incorrect_select_choice",
+    )
+
+    return column
 
 
 def generate_within_household_copies(

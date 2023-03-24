@@ -1,4 +1,4 @@
-state,relationship_to_household_head,sex,race_ethnicity,is_w2,event_type
+state,relation_to_household_head,sex,race_ethnicity,is_w2,event_type
 AL,Reference person,Female,White,True,creation
 AK,Opp-sex spouse,Male,Black,False,death
 AZ,Opp-sex partner,,Asian,,

@@ -5,6 +5,7 @@ from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.noise_functions import (
     generate_fake_names,
+    generate_incorrect_selections,
     generate_missing_data,
     generate_nicknames,
     generate_phonetic_errors,
@@ -23,6 +24,13 @@ RANDOMNESS1 = RandomnessStream(
 def string_series():
     num_simulants = 1_000_000
     return pd.Series([str(x) for x in range(num_simulants)])
+
+
+@pytest.fixture(scope="module")
+def categorical_series():
+    return pd.Series(
+        ["CA", "WA", "FL", "OR", "CO", "TX", "NY", "VA", "AZ", "MA"] * 100_000, name="state"
+    )
 
 
 @pytest.fixture(scope="module")
@@ -60,9 +68,37 @@ def test_generate_missing_data(string_series, default_configuration):
     assert (string_series[not_noised_idx] == noised_data[not_noised_idx]).all()
 
 
-@pytest.mark.skip(reason="TODO")
-def test_incorrect_selection():
-    pass
+def test_incorrect_selection(categorical_series, default_configuration):
+    config = default_configuration["decennial_census"]["state"]["incorrect_selection"]
+    noised_data = generate_incorrect_selections(
+        categorical_series, config, RANDOMNESS0, "test_incorrect_select"
+    )
+    noised_data_same_seed = generate_incorrect_selections(
+        categorical_series, config, RANDOMNESS0, "test_incorrect_select"
+    )
+    noised_data_different_seed = generate_incorrect_selections(
+        categorical_series, config, RANDOMNESS1, "test_incorrect_select"
+    )
+
+    # Confirm same randomness stream provides same results
+    assert (noised_data == noised_data_same_seed).all()
+
+    # Confirm different streams provide different results
+    assert (noised_data != noised_data_different_seed).any()
+
+    # Check for expected noise level
+    expected_noise = config["row_noise_level"]
+    # todo: Update when generate_incorrect_selection uses exclusive resampling
+    # Get real expected noise to account for possibility of noising with original value
+    # Here we have a a possibility of choosing any of the 50 states for our categorical series fixture
+    expected_noise = expected_noise * (1 - 1 / 50)
+    actual_noise = (noised_data != categorical_series).sum() / len(noised_data)
+    assert np.isclose(expected_noise, actual_noise, rtol=0.02)
+
+    # Check that un-noised values are unchanged
+    not_noised_idx = noised_data.index[noised_data == categorical_series]
+    assert (categorical_series[not_noised_idx] == noised_data[not_noised_idx]).all()
+    assert noised_data.isnull().sum() == 0
 
 
 @pytest.mark.skip(reason="TODO")

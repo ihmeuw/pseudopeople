@@ -36,17 +36,25 @@ decennial_census:
     state:
         missing_data:
             row_noise_level: 0.01
+        incorrect_selection:
+            row_noise_level: 0.01
     zipcode:
         missing_data:
             row_noise_level: 0.01
     relation_to_household_head:
         missing_data:
             row_noise_level: 0.01
+        incorrect_selection:
+            row_noise_level: 0.01
     sex:
         missing_data:
             row_noise_level: 0.01
+        incorrect_selection:
+            row_noise_level: 0.01
     race_ethnicity:
         missing_data:
+            row_noise_level: 0.01
+        incorrect_selection:
             row_noise_level: 0.01
     housing_type:
         missing_data:
