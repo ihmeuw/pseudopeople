@@ -4,7 +4,7 @@ from typing import Union
 
 import pandas as pd
 
-from pseudopeople.entities import Form
+from pseudopeople.schema_entities import Form
 from pseudopeople.noise import noise_form
 from pseudopeople.utilities import get_configuration
 

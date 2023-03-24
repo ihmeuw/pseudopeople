@@ -6,7 +6,7 @@ import pandas as pd
 from vivarium.framework.configuration import ConfigTree
 from vivarium.framework.randomness import RandomnessStream, random
 
-from pseudopeople.entities import Form
+from pseudopeople.schema_entities import Form
 
 
 def get_randomness_stream(form: Form, seed: int) -> RandomnessStream:
