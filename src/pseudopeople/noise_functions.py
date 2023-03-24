@@ -47,12 +47,14 @@ def generate_incorrect_selections(
     additional_key: Any,
 ) -> pd.Series:
     """
-
-    :param column:
-    :param configuration:
-    :param randomness_stream:
+    Function that takes a categorical series and applies noise so some values has been replace with other options from
+    a list.
+    
+    :param column:  A categorical pd.Series
+    :param configuration: ConfigTree with rate at which to blank the data in column.
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
     :param additional_key: Key for RandomnessStream
-    :return:
+    :returns: pd.Series where data has been noised with other values from a list of possibilities
     """
     # todo actually duplicate rows
     column = column.copy()
