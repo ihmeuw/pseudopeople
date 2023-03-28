@@ -34,7 +34,7 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     if len(args) == 1:
         my_path = Path(args[0])
-        src = pd.read_csv(my_path)
+        src = pd.read_csv(my_path, dtype=str, keep_default_na=False)
         out = generate_decennial_census(my_path)
         diff = src[
             ~src.astype(str).apply(tuple, 1).isin(out.astype(str).apply(tuple, 1))

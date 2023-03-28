@@ -13,7 +13,7 @@ from pseudopeople.utilities import get_configuration
 def test_generate_decennial_census(
     decennial_census_data_path: Union[Path, str], user_config_path: Union[Path, str]
 ):
-    data = pd.read_csv(decennial_census_data_path, dtype=str)
+    data = pd.read_csv(decennial_census_data_path, dtype=str, keep_default_na=False)
 
     # TODO: Refactor this check into a separate test
     noised_data = generate_decennial_census(
