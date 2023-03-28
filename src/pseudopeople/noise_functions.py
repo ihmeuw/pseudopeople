@@ -250,8 +250,7 @@ def generate_typographical_errors(
     """
     column = column.copy()
     not_missing_idx = column.index[(column.notna()) & (column != "")]
-    # TODO: implement 0-mistyping https://ihme.slack.com/archives/C02KUQ9LX32/p1679955990671519
-    # TODO: implement capital letter noising
+
     with open(paths.QWERTY_ERRORS) as f:
         qwerty_errors = yaml.full_load(f)
 
