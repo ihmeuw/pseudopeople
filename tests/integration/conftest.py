@@ -4,9 +4,6 @@ from string import ascii_lowercase, ascii_uppercase
 
 import pandas as pd
 import pytest
-import yaml
-
-from pseudopeople.utilities import get_configuration
 
 HOUSING_TYPES = [
     "Carceral",
@@ -109,7 +106,7 @@ STATES = [
 
 
 @pytest.fixture(scope="session")
-def dummy_census_data(tmp_path_factory):
+def decennial_census_data_path(tmp_path_factory):
     """Generate a dummy decennial census dataframe, save to a tmpdir, and return that path."""
     random.seed(0)
     num_rows = 100_000
@@ -170,16 +167,3 @@ def dummy_census_data(tmp_path_factory):
     data.to_csv(data_path, index=False)
 
     return data_path
-
-
-@pytest.fixture(scope="module")
-def dummy_config(tmp_path_factory):
-    """This simply copies the default config file to a temp directory
-    to be used as a user-provided config file in integration tests
-    """
-    config = get_configuration().to_dict()  # gets default config
-    config_path = tmp_path_factory.getbasetemp() / "dummy_config.yaml"
-    with open(config_path, "w") as file:
-        yaml.dump(config, file)
-
-    return config_path
