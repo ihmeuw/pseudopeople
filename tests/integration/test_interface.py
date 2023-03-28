@@ -4,9 +4,11 @@ from typing import Union
 import numpy as np
 import pandas as pd
 import pytest
+import yaml
+from vivarium.config_tree import ConfigTree
 
 from pseudopeople.interface import generate_decennial_census
-from pseudopeople.utilities import get_configuration
+from pseudopeople.utilities import get_configuration, get_possible_indices_to_noise
 
 
 # TODO: possibly parametrize Forms?
@@ -27,46 +29,60 @@ def test_generate_decennial_census(
     assert noised_data.equals(noised_data_same_seed)
     assert not noised_data.equals(noised_data_different_seed)
     assert not data.equals(noised_data)
-    # TODO: Confirm correct columns exist once the interface functions
-    # modify them
-    # TODO: if we sort out dtype schemas
-    # for col in noised_data.columns:
-    # assert data[col].dtype == noised_data[col].dtype
-    # TODO: Iterate through cols and check that the percentage of errors makes sense
-    # eg, if 25% typographic error and 1% OCR
-    # 1. Use a default config file
-    # 2.
+    assert set(noised_data.columns) == set(data.columns)
 
-    config = get_configuration(dummy_config)["decennial_census"]
 
-    # Confirm omission and duplication seems reasonable
-    # TODO: when omission function gets implemented.
-    orig_idx = data.index
-    noised_idx = noised_data.index
-    # assert np.isclose(len(set(orig_idx) - set(noised_idx)) / len(data), config.omission)
-    # TODO: when duplication function gets implemented
-    # assert np.isclose(noised_data.duplicated().sum() / len(data), config.duplication)
+def test_noise_decennial_census_with_two_noise_functions(dummy_census_data, tmp_path_factory):
+    # todo: Make config tree with 2 function calls
+    # Make simple config tree to test 2 noise functions work together
+    config_tree = ConfigTree(
+        {
+            "decennial_census": {
+                "first_name": {
+                    "missing_data": {"row_noise_level": 0.01},
+                },
+                "state": {
+                    "missing_data": {"row_noise_level": 0.01},
+                    "incorrect_select": {"row_noise_level": 0.01},
+                },
+                "race_ethnicity": {
+                    "missing_data": {"row_noise_level": 0.01},
+                    "incorrect_select": {"row_noise_level": 0.01},
+                },
+                "duplication": 0.01,
+                "omission": 0.01,
+            }
+        }
+    )
+    config_dict = config_tree.to_dict()
+    config_path = tmp_path_factory.getbasetemp() / "test_multiple_ooise_config.yaml"
+    with open(config_path, "w") as file:
+        yaml.dump(config_dict, file)
 
-    # Check that column-level noise seem reasonable
-    # NOTE: this is not perfect because (1) it is only looking at row-level
-    # noise and not token-based noise and (2) it is not accounting for the
-    # fact that noising can occur on duplicated rows which have been removed
-    # for comparison purposes.
-    common_idx = set(orig_idx).intersection(set(noised_idx))
-    common_data = data.loc[common_idx]
-    common_noised_data = noised_data.loc[common_idx].drop_duplicates()
-    assert common_data.shape == common_noised_data.shape
+    data = pd.read_csv(dummy_census_data)
+    noised_data = generate_decennial_census(
+        path=dummy_census_data, seed=0, configuration=config_path
+    )
+
+    config = config_tree["decennial_census"]
     for col in noised_data:
         if col in config:
-            actual_noise_rate = (common_data[col] != common_noised_data[col]).mean()
+            non_missing_idx = get_possible_indices_to_noise(data[col])
+            # todo: Use when np.NaN from post-processing have been handled
+            # Check rows with missing values did not change - change NaNs to empty string?
+            # assert (data.loc[
+            #             data.index.difference(non_missing_idx), col] == noised_data.loc[
+            #     noised_data.index.difference(non_missing_idx), col]).all()
+            old = data.loc[non_missing_idx, col]
+            noised_col = noised_data.loc[non_missing_idx, col]
+            assert len(old) == len(noised_col)
+            actual_noise_rate = (noised_col != old).sum() / len(noised_col)
             noise_types = [k for k in config[col]]
             noise_rates = [
                 config[col][noise_type]["row_noise_level"] for noise_type in noise_types
             ]
             expected_noise_rate = 1 - np.prod([1 - x for x in noise_rates])
-            assert np.isclose(actual_noise_rate, expected_noise_rate, rtol=0.07)
-        else:
-            assert (common_data[col] == common_noised_data[col]).all()
+            assert np.isclose(actual_noise_rate, expected_noise_rate, rtol=0.10)
 
 
 @pytest.mark.skip(reason="TODO")

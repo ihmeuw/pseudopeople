@@ -67,3 +67,8 @@ def vectorized_choice(
     # for each p_i in probs, count how many elements of cdf for which p_i >= cdf_i
     chosen_indices = np.searchsorted(cdf, probs, side="right")
     return np.take(options, chosen_indices)
+
+
+def get_possible_indices_to_noise(column: pd.Series) -> pd.Index:
+    idx = column.index[(column != "") & (column != np.NaN)]
+    return idx

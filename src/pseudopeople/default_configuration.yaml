@@ -56,7 +56,3 @@ decennial_census:
             row_noise_level: 0.01
         incorrect_selection:
             row_noise_level: 0.01
-    housing_type:
-        missing_data:
-            row_noise_level: 0.01
-

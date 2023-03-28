@@ -5,7 +5,7 @@ from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.constants import paths
-from pseudopeople.utilities import vectorized_choice
+from pseudopeople.utilities import get_possible_indices_to_noise, vectorized_choice
 
 
 def omit_rows(
@@ -65,10 +65,10 @@ def generate_incorrect_selections(
     # todo: Update with exclusive resampling when vectorized_choice is improved
     options = incorrect_selections.loc[incorrect_selections[col].notna(), col]
     noise_level = configuration.row_noise_level
-
+    can_noise_idx = get_possible_indices_to_noise(column)
     # Select indices to noise and noise data
     to_noise_idx = randomness_stream.filter_for_probability(
-        column.index,
+        can_noise_idx,
         probability=noise_level,
         additional_key=f"{additional_key}_{col}_incorrect_select_filter",
     )
