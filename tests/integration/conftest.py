@@ -113,7 +113,7 @@ def decennial_census_data_path(tmp_path_factory):
     data = pd.DataFrame(
         {
             "housing_type": [random.choice(HOUSING_TYPES) for _ in range(num_rows)],
-            "age": [str(random.random() * 100) for _ in range(num_rows)],
+            "age": [str(random.randint(1, 100)) for _ in range(num_rows)],
             "year": [random.choice(["2020", "2030"]) for _ in range(num_rows)],
             "race_ethnicity": [random.choice(RACE_ETHNICITIES) for _ in range(num_rows)],
             "guardian_1": [
@@ -130,7 +130,7 @@ def decennial_census_data_path(tmp_path_factory):
             "relation_to_household_head": [
                 random.choice(RELATIONS_TO_HOUSEHOLD_HEAD) for _ in range(num_rows)
             ],
-            "zipcode": [str(float(random.randint(1, 99999))) for _ in range(num_rows)],
+            "zipcode": [str(random.randint(1, 99999)) for _ in range(num_rows)],
             "date_of_birth": [
                 time.strftime(
                     "%Y-%m-%d",

@@ -56,23 +56,30 @@ def dummy_dataset():
     return pd.DataFrame({"numbers": integer_series, "characters": character_series})
 
 
-def test_generate_missing_data(integer_series, user_config_path):
+def test_generate_missing_data(dummy_dataset, user_config_path):
     config = get_configuration(user_config_path)["decennial_census"]["zipcode"][
         "missing_data"
     ]
+    data = dummy_dataset["numbers"]
     noised_data = _validate_seed_and_noise_data(
-        func=generate_missing_data, column=integer_series, config=config
+        func=generate_missing_data, column=data, config=config
     )
+
+    # Calculate newly missing data, ie data that didn't come in as already missing
+    orig_non_missing_idx = data.index[(data.notna()) & (data != "")]
+    newly_missing_idx = noised_data.index[
+        (noised_data.index.isin(orig_non_missing_idx)) & (noised_data == "")
+    ]
 
     # Check for expected noise level
     expected_noise = config["row_noise_level"]
-    actual_noise = (noised_data == "").mean()
+    actual_noise = len(newly_missing_idx) / len(orig_non_missing_idx)
     assert np.isclose(expected_noise, actual_noise, rtol=0.02)
 
     # Check that un-noised values are unchanged
     not_noised_idx = noised_data.index[noised_data != ""]
     assert "" not in noised_data[not_noised_idx].values
-    assert (integer_series[not_noised_idx] == noised_data[not_noised_idx]).all()
+    assert (data[not_noised_idx] == noised_data[not_noised_idx]).all()
 
 
 @pytest.mark.skip(reason="TODO")

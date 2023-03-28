@@ -25,7 +25,7 @@ def generate_decennial_census(
     :return: A pd.DataFrame of noised census data
     """
     configuration_tree = get_configuration(configuration)
-    data = pd.read_csv(path)
+    data = pd.read_csv(path, dtype=str, keep_default_na=False)
     return noise_form(Form.CENSUS, data, configuration_tree, seed)
 
 
