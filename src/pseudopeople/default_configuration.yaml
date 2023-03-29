@@ -138,7 +138,7 @@ taxes_w2_and_1099:
     income:
         missing_data:
             row_noise_level: 0.01
-    is_w2:
+    tax_form:
         missing_data:
             row_noise_level: 0.01
         incorrect_selection:
