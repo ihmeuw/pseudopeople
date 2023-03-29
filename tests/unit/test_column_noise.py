@@ -3,13 +3,7 @@ import pandas as pd
 import pytest
 from vivarium.framework.randomness import RandomnessStream
 
-from pseudopeople.noise_functions import (
-    generate_fake_names,
-    generate_incorrect_selections,
-    generate_missing_data,
-    generate_nicknames,
-    generate_phonetic_errors,
-)
+from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.utilities import get_configuration
 
 RANDOMNESS0 = RandomnessStream(
@@ -29,7 +23,7 @@ def string_series():
 @pytest.fixture(scope="module")
 def categorical_series():
     return pd.Series(
-        ["CA", "WA", "FL", "OR", "CO", "TX", "NY", "VA", "AZ", "MA"] * 100_000, name="state"
+        ["CA", "WA", "FL", "OR", "CO", "TX", "NY", "VA", "AZ", "''"] * 100_000, name="state"
     )
 
 
@@ -41,13 +35,13 @@ def default_configuration():
 def test_generate_missing_data(string_series, default_configuration):
     # TODO: [MIC-3910] Use custom config (MIC-3866)
     config = default_configuration["decennial_census"]["zipcode"]["missing_data"]
-    noised_data = generate_missing_data(
+    noised_data = NOISE_TYPES.MISSING_DATA(
         string_series, config, RANDOMNESS0, "test_missing_data"
     )
-    noised_data_same_seed = generate_missing_data(
+    noised_data_same_seed = NOISE_TYPES.MISSING_DATA(
         string_series, config, RANDOMNESS0, "test_missing_data"
     )
-    noised_data_different_seed = generate_missing_data(
+    noised_data_different_seed = NOISE_TYPES.MISSING_DATA(
         string_series, config, RANDOMNESS1, "test_missing_data"
     )
 
@@ -70,13 +64,13 @@ def test_generate_missing_data(string_series, default_configuration):
 
 def test_incorrect_selection(categorical_series, default_configuration):
     config = default_configuration["decennial_census"]["state"]["incorrect_selection"]
-    noised_data = generate_incorrect_selections(
+    noised_data = NOISE_TYPES.INCORRECT_SELECTION(
         categorical_series, config, RANDOMNESS0, "test_incorrect_select"
     )
-    noised_data_same_seed = generate_incorrect_selections(
+    noised_data_same_seed = NOISE_TYPES.INCORRECT_SELECTION(
         categorical_series, config, RANDOMNESS0, "test_incorrect_select"
     )
-    noised_data_different_seed = generate_incorrect_selections(
+    noised_data_different_seed = NOISE_TYPES.INCORRECT_SELECTION(
         categorical_series, config, RANDOMNESS1, "test_incorrect_select"
     )
 
@@ -92,13 +86,12 @@ def test_incorrect_selection(categorical_series, default_configuration):
     # Get real expected noise to account for possibility of noising with original value
     # Here we have a a possibility of choosing any of the 50 states for our categorical series fixture
     expected_noise = expected_noise * (1 - 1 / 50)
-    actual_noise = (noised_data != categorical_series).sum() / len(noised_data)
+    actual_noise = (noised_data != categorical_series).mean()
     assert np.isclose(expected_noise, actual_noise, rtol=0.02)
 
-    # Check that un-noised values are unchanged
-    not_noised_idx = noised_data.index[noised_data == categorical_series]
-    assert (categorical_series[not_noised_idx] == noised_data[not_noised_idx]).all()
-    assert noised_data.isnull().sum() == 0
+    original_empty_idx = categorical_series.index[categorical_series == ""]
+    noised_empty_idx = noised_data.index[noised_data == ""]
+    pd.testing.assert_index_equal(original_empty_idx, noised_empty_idx)
 
 
 @pytest.mark.skip(reason="TODO")

@@ -5,6 +5,8 @@ import pandas as pd
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
+from pseudopeople.utilities import get_to_noise_idx
+
 
 @dataclass
 class RowNoiseType:
@@ -56,4 +58,13 @@ class ColumnNoiseType:
         randomness_stream: RandomnessStream,
         additional_key: Any,
     ) -> pd.Series:
-        return self.noise_function(column, configuration, randomness_stream, additional_key)
+        column = column.copy()
+        noise_level = configuration.row_noise_level
+        to_noise_idx = get_to_noise_idx(
+            column, noise_level, randomness_stream, f"{self.name}_{additional_key}"
+        )
+        column.loc[to_noise_idx] = self.noise_function(
+            column.loc[to_noise_idx], configuration, randomness_stream, additional_key
+        )
+
+        return column

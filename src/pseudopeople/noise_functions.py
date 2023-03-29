@@ -5,7 +5,7 @@ from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.constants import paths
-from pseudopeople.utilities import get_possible_indices_to_noise, vectorized_choice
+from pseudopeople.utilities import vectorized_choice
 
 
 def omit_rows(
@@ -42,7 +42,7 @@ def duplicate_rows(
 
 def generate_incorrect_selections(
     column: pd.Series,
-    configuration: ConfigTree,
+    _: ConfigTree,
     randomness_stream: RandomnessStream,
     additional_key: Any,
 ) -> pd.Series:
@@ -51,35 +51,26 @@ def generate_incorrect_selections(
     a list.
 
     :param column:  A categorical pd.Series
-    :param configuration: ConfigTree with rate at which to blank the data in column.
+    :param _: ConfigTree with rate at which to blank the data in column.
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
     :param additional_key: Key for RandomnessStream
     :returns: pd.Series where data has been noised with other values from a list of possibilities
     """
 
-    column = column.copy()
     col = column.name
-    incorrect_selections = pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
+    selection_options = pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
 
     # Get possible noise values
     # todo: Update with exclusive resampling when vectorized_choice is improved
-    options = incorrect_selections.loc[incorrect_selections[col].notna(), col]
-    noise_level = configuration.row_noise_level
-    can_noise_idx = get_possible_indices_to_noise(column)
-    # Select indices to noise and noise data
-    to_noise_idx = randomness_stream.filter_for_probability(
-        can_noise_idx,
-        probability=noise_level,
-        additional_key=f"{additional_key}_{col}_incorrect_select_filter",
-    )
-    column[to_noise_idx] = vectorized_choice(
+    options = selection_options.loc[selection_options[col].notna(), col]
+    new_values = vectorized_choice(
         options=options,
-        n_to_choose=len(to_noise_idx),
+        n_to_choose=len(column),
         randomness_stream=randomness_stream,
         additional_key=f"{additional_key}_{col}_incorrect_select_choice",
-    )
+    ).to_numpy()
 
-    return column
+    return pd.Series(new_values, index=column.index)
 
 
 def generate_within_household_copies(
@@ -226,34 +217,15 @@ def generate_phonetic_errors(
     return column
 
 
-def generate_missing_data(
-    column: pd.Series,
-    configuration: ConfigTree,
-    randomness_stream: RandomnessStream,
-    additional_key: Any,
-) -> pd.Series:
+def generate_missing_data(column: pd.Series, *_: Any) -> pd.Series:
     """
-    Function that takes a column and blanks out a configurable portion of its data to be missing.
+    Function that takes a column and blanks out all values.
 
     :param column:  pd.Series of data
-    :param configuration: ConfigTree with rate at which to blank the data in column.
-    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
-    :param additional_key: Key for RandomnessStream
-    :returns: pd.Series of column with configured amount of data missing as an empty string.
+    :returns: pd.Series of empty strings with the index of column.
     """
 
-    # Avoid SettingWithCopyWarning
-    column = column.copy()
-    noise_level = configuration.row_noise_level
-    # Get rows to noise
-    to_noise_idx = randomness_stream.filter_for_probability(
-        column.index,
-        probability=noise_level,
-        additional_key=f"{additional_key}_missing_data_filter",
-    )
-    column.loc[to_noise_idx] = ""
-
-    return column
+    return pd.Series("", index=column.index)
 
 
 def generate_typographical_errors(
