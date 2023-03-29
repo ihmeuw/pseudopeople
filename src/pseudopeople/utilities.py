@@ -90,7 +90,10 @@ def get_to_noise_idx(
     randomness_stream: RandomnessStream,
     additional_key: Any,
 ) -> pd.Index:
-
+    """
+    Function that takes a series and returns a pd.Index that chosen by Vivarium Common Random Number to be noised.
+    """
+    
     # Get rows to noise
     not_empty_idx = column.index[(column != "") & (column.notna())]
     to_noise_idx = randomness_stream.filter_for_probability(
