@@ -8,4 +8,4 @@ from pseudopeople.__about__ import (
     __uri__,
     __version__,
 )
-from pseudopeople.interface import generate_decennial_census
+from pseudopeople.interface import generate_decennial_census, generate_w2

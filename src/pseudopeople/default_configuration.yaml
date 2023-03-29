@@ -9,30 +9,66 @@ decennial_census:
     first_name:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     middle_initial:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     last_name:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     age:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     date_of_birth:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     street_number:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     street_name:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     unit_number:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     city:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     state:
         missing_data:
             row_noise_level: 0.01
@@ -41,6 +77,10 @@ decennial_census:
     zipcode:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     relation_to_household_head:
         missing_data:
             row_noise_level: 0.01
@@ -55,4 +95,80 @@ decennial_census:
         missing_data:
             row_noise_level: 0.01
         incorrect_selection:
+            row_noise_level: 0.01
+
+taxes_w2_and_1099:
+    omission: 0.0145
+    duplication: 0.05
+    age:
+        missing_data:
+            row_noise_level: 0.01
+    date_of_birth:
+        missing_data:
+            row_noise_level: 0.01
+    employer_city:
+        missing_data:
+            row_noise_level: 0.01
+    employer_id:
+        missing_data:
+            row_noise_level: 0.01
+    employer_name:
+        missing_data:
+            row_noise_level: 0.01
+    employer_state:
+        missing_data:
+            row_noise_level: 0.01
+        incorrect_selection:
+            row_noise_level: 0.01
+    employer_street_name:
+        missing_data:
+            row_noise_level: 0.01
+    employer_street_number:
+        missing_data:
+            row_noise_level: 0.01
+    employer_unit_number:
+        missing_data:
+            row_noise_level: 0.01
+    employer_zipcode:
+        missing_data:
+            row_noise_level: 0.01
+    first_name:
+        missing_data:
+            row_noise_level: 0.01
+    income:
+        missing_data:
+            row_noise_level: 0.01
+    is_w2:
+        missing_data:
+            row_noise_level: 0.01
+        incorrect_selection:
+            row_noise_level: 0.01
+    last_name:
+        missing_data:
+            row_noise_level: 0.01
+    mailing_address_city:
+        missing_data:
+            row_noise_level: 0.01
+    mailing_address_state:
+        missing_data:
+            row_noise_level: 0.01
+        incorrect_selection:
+            row_noise_level: 0.01
+    mailing_address_street_name:
+        missing_data:
+            row_noise_level: 0.01
+    mailing_address_street_number:
+        missing_data:
+            row_noise_level: 0.01
+    mailing_address_unit_number:
+        missing_data:
+            row_noise_level: 0.01
+    mailing_address_zipcode:
+        missing_data:
+            row_noise_level: 0.01
+    middle_initial:
+        missing_data:
+            row_noise_level: 0.01
+    ssn:
+        missing_data:
             row_noise_level: 0.01

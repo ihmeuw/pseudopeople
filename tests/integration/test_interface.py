@@ -9,17 +9,19 @@ from pseudopeople.interface import generate_decennial_census
 
 # TODO: possibly parametrize Forms?
 def test_generate_decennial_census(
-    dummy_census_data: Union[Path, str], dummy_config: Union[Path, str]
+    decennial_census_data_path: Union[Path, str], user_config_path: Union[Path, str]
 ):
-    data = pd.read_csv(dummy_census_data)
+    data = pd.read_csv(decennial_census_data_path, dtype=str, keep_default_na=False)
+
+    # TODO: Refactor this check into a separate test
     noised_data = generate_decennial_census(
-        path=dummy_census_data, seed=0, configuration=dummy_config
+        path=decennial_census_data_path, seed=0, configuration=user_config_path
     )
     noised_data_same_seed = generate_decennial_census(
-        path=dummy_census_data, seed=0, configuration=dummy_config
+        path=decennial_census_data_path, seed=0, configuration=user_config_path
     )
     noised_data_different_seed = generate_decennial_census(
-        path=dummy_census_data, seed=1, configuration=dummy_config
+        path=decennial_census_data_path, seed=1, configuration=user_config_path
     )
 
     assert noised_data.equals(noised_data_same_seed)
