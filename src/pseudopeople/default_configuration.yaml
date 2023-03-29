@@ -51,4 +51,72 @@ decennial_census:
     housing_type:
         missing_data:
             row_noise_level: 0.01
-
+taxes_w2_and_1099:
+    omission: 0.0145
+    duplication: 0.05
+    age:
+        missing_data:
+            row_noise_level: 0.01
+    date_of_birth:
+        missing_data:
+            row_noise_level: 0.01
+    employer_city:
+        missing_data:
+            row_noise_level: 0.01
+    employer_id:
+        missing_data:
+            row_noise_level: 0.01
+    employer_name:
+        missing_data:
+            row_noise_level: 0.01
+    employer_state:
+        missing_data:
+            row_noise_level: 0.01
+    employer_street_name:
+        missing_data:
+            row_noise_level: 0.01
+    employer_street_number:
+        missing_data:
+            row_noise_level: 0.01
+    employer_unit_number:
+        missing_data:
+            row_noise_level: 0.01
+    employer_zipcode:
+        missing_data:
+            row_noise_level: 0.01
+    first_name:
+        missing_data:
+            row_noise_level: 0.01
+    income:
+        missing_data:
+            row_noise_level: 0.01
+    is_w2:
+        missing_data:
+            row_noise_level: 0.01
+    last_name:
+        missing_data:
+            row_noise_level: 0.01
+    mailing_address_city:
+        missing_data:
+            row_noise_level: 0.01
+    mailing_address_state:
+        missing_data:
+            row_noise_level: 0.01
+    mailing_address_street_name:
+        missing_data:
+            row_noise_level: 0.01
+    mailing_address_street_number:
+        missing_data:
+            row_noise_level: 0.01
+    mailing_address_unit_number:
+        missing_data:
+            row_noise_level: 0.01
+    mailing_address_zipcode:
+        missing_data:
+            row_noise_level: 0.01
+    middle_initial:
+        missing_data:
+            row_noise_level: 0.01
+    ssn:
+        missing_data:
+            row_noise_level: 0.01
