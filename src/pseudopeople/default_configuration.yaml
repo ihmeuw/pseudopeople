@@ -9,36 +9,76 @@ decennial_census:
     first_name:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     middle_initial:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     last_name:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     age:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     date_of_birth:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     street_number:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     street_name:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     unit_number:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     city:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     state:
         missing_data:
             row_noise_level: 0.01
     zipcode:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     relation_to_household_head:
         missing_data:
             row_noise_level: 0.01
