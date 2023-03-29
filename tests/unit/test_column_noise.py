@@ -34,9 +34,10 @@ RANDOMNESS1 = RandomnessStream(
 def dummy_dataset():
     # Add a column of integer strings
     num_simulants = 100_000
+    dummy_idx = pd.Index(range(num_simulants))
     integer_series = pd.Series([str(x) for x in range(num_simulants)])
     # Add missing data from `generate_missing_data` function
-    missing_idx = pd.Index([x for x in integer_series.index if x % 3 == 0])
+    missing_idx = pd.Index([x for x in dummy_idx if x % 3 == 0])
     integer_series.loc[missing_idx] = ""
 
     # Add a column of character strings
@@ -50,7 +51,6 @@ def dummy_dataset():
         ]
     )
     # Add missing data from `generate_missing_data` function
-    missing_idx = pd.Index([x for x in character_series.index if x % 3 == 0])
     character_series.loc[missing_idx] = ""
 
     return pd.DataFrame({"numbers": integer_series, "characters": character_series})
