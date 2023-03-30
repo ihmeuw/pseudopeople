@@ -72,6 +72,8 @@ decennial_census:
     state:
         missing_data:
             row_noise_level: 0.01
+        incorrect_selection:
+            row_noise_level: 0.01
     zipcode:
         missing_data:
             row_noise_level: 0.01
@@ -82,15 +84,19 @@ decennial_census:
     relation_to_household_head:
         missing_data:
             row_noise_level: 0.01
+        incorrect_selection:
+            row_noise_level: 0.01
     sex:
         missing_data:
+            row_noise_level: 0.01
+        incorrect_selection:
             row_noise_level: 0.01
     race_ethnicity:
         missing_data:
             row_noise_level: 0.01
-    housing_type:
-        missing_data:
+        incorrect_selection:
             row_noise_level: 0.01
+
 taxes_w2_and_1099:
     omission: 0.0145
     duplication: 0.05
@@ -111,6 +117,8 @@ taxes_w2_and_1099:
             row_noise_level: 0.01
     employer_state:
         missing_data:
+            row_noise_level: 0.01
+        incorrect_selection:
             row_noise_level: 0.01
     employer_street_name:
         missing_data:
@@ -133,6 +141,8 @@ taxes_w2_and_1099:
     tax_form:
         missing_data:
             row_noise_level: 0.01
+        incorrect_selection:
+            row_noise_level: 0.01
     last_name:
         missing_data:
             row_noise_level: 0.01
@@ -141,6 +151,8 @@ taxes_w2_and_1099:
             row_noise_level: 0.01
     mailing_address_state:
         missing_data:
+            row_noise_level: 0.01
+        incorrect_selection:
             row_noise_level: 0.01
     mailing_address_street_name:
         missing_data:

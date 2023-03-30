@@ -7,6 +7,7 @@ from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.constants import paths
+from pseudopeople.utilities import vectorized_choice
 
 
 def omit_rows(
@@ -42,21 +43,36 @@ def duplicate_rows(
 
 
 def generate_incorrect_selections(
-    form_data: pd.DataFrame,
-    configuration: float,
+    column: pd.Series,
+    _: ConfigTree,
     randomness_stream: RandomnessStream,
     additional_key: Any,
-) -> pd.DataFrame:
+) -> pd.Series:
+    """
+    Function that takes a categorical series and applies noise so some values has been replace with other options from
+    a list.
+
+    :param column:  A categorical pd.Series
+    :param _: ConfigTree with rate at which to blank the data in column.
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
+    :param additional_key: Key for RandomnessStream
+    :returns: pd.Series where data has been noised with other values from a list of possibilities
     """
 
-    :param form_data:
-    :param configuration:
-    :param randomness_stream:
-    :param additional_key: Key for RandomnessStream
-    :return:
-    """
-    # todo actually duplicate rows
-    return form_data
+    col = column.name
+    selection_options = pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
+
+    # Get possible noise values
+    # todo: Update with exclusive resampling when vectorized_choice is improved
+    options = selection_options.loc[selection_options[col].notna(), col]
+    new_values = vectorized_choice(
+        options=options,
+        n_to_choose=len(column),
+        randomness_stream=randomness_stream,
+        additional_key=f"{additional_key}_{col}_incorrect_select_choice",
+    ).to_numpy()
+
+    return pd.Series(new_values, index=column.index)
 
 
 def generate_within_household_copies(
@@ -203,34 +219,15 @@ def generate_phonetic_errors(
     return column
 
 
-def generate_missing_data(
-    column: pd.Series,
-    configuration: ConfigTree,
-    randomness_stream: RandomnessStream,
-    additional_key: Any,
-) -> pd.Series:
+def generate_missing_data(column: pd.Series, *_: Any) -> pd.Series:
     """
-    Function that takes a column and blanks out a configurable portion of its data to be missing.
+    Function that takes a column and blanks out all values.
 
     :param column:  pd.Series of data
-    :param configuration: ConfigTree with rate at which to blank the data in column.
-    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
-    :param additional_key: Key for RandomnessStream
-    :returns: pd.Series of column with configured amount of data missing as an empty string.
+    :returns: pd.Series of empty strings with the index of column.
     """
 
-    # Avoid SettingWithCopyWarning
-    column = column.copy()
-    to_noise_idx = _get_to_noise_idx(
-        column,
-        configuration,
-        randomness_stream,
-        additional_key,
-        context_key="missing_data_filter",
-    )
-    column.loc[to_noise_idx] = ""
-
-    return column
+    return pd.Series("", index=column.index)
 
 
 def generate_typographical_errors(
@@ -248,8 +245,6 @@ def generate_typographical_errors(
     :param additional_key: Key for RandomnessStream
     :returns: pd.Series of column with noised data
     """
-    column = column.copy()
-    not_missing_idx = column.index[(column.notna()) & (column != "")]
 
     with open(paths.QWERTY_ERRORS) as f:
         qwerty_errors = yaml.full_load(f)
@@ -278,15 +273,8 @@ def generate_typographical_errors(
     token_noise_level = configuration.token_noise_level
     include_original_token_level = configuration.include_original_token_level
 
-    to_noise_idx = _get_to_noise_idx(
-        column.loc[not_missing_idx],
-        configuration,
-        randomness_stream,
-        additional_key,
-        context_key="typographical_noise_filter",
-    )
     rng = np.random.default_rng(seed=randomness_stream.seed)
-    for idx in to_noise_idx:
+    for idx in column.index:
         noised_value = keyboard_corrupt(
             column[idx],
             token_noise_level,

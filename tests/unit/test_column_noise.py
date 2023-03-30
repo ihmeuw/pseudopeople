@@ -6,20 +6,7 @@ import pandas as pd
 import pytest
 from vivarium.framework.randomness import RandomnessStream
 
-from pseudopeople.noise_functions import (
-    generate_fake_names,
-    generate_incorrect_selections,
-    generate_missing_data,
-    generate_nicknames,
-    generate_ocr_errors,
-    generate_phonetic_errors,
-    generate_typographical_errors,
-    generate_within_household_copies,
-    miswrite_ages,
-    miswrite_numerics,
-    miswrite_zipcodes,
-    swap_months_and_days,
-)
+from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.utilities import get_configuration
 
 RANDOMNESS0 = RandomnessStream(
@@ -39,7 +26,6 @@ def dummy_dataset():
     # Add missing data from `generate_missing_data` function
     missing_idx = pd.Index([x for x in dummy_idx if x % 3 == 0])
     integer_series.loc[missing_idx] = ""
-
     # Add a column of character strings
     str_length = 6
     character_series = pd.Series(
@@ -56,13 +42,36 @@ def dummy_dataset():
     return pd.DataFrame({"numbers": integer_series, "characters": character_series})
 
 
-def test_generate_missing_data(dummy_dataset, user_config_path):
-    config = get_configuration(user_config_path)["decennial_census"]["zipcode"][
-        "missing_data"
-    ]
+@pytest.fixture(scope="module")
+def categorical_series():
+    return pd.Series(
+        ["CA", "WA", "FL", "OR", "CO", "TX", "NY", "VA", "AZ", "''"] * 100_000, name="state"
+    )
+
+
+@pytest.fixture(scope="module")
+def default_configuration():
+    return get_configuration()
+
+
+def test_generate_missing_data(dummy_dataset):
+
+    config = get_configuration()
+    config.update(
+        {
+            "decennial_census": {
+                "zipcode": {
+                    "missing_data": {
+                        "row_noise_level": 0.25,
+                    },
+                },
+            },
+        }
+    )
+    config = config["decennial_census"]["zipcode"]["missing_data"]
     data = dummy_dataset["numbers"]
     noised_data = _validate_seed_and_noise_data(
-        func=generate_missing_data, column=data, config=config
+        noise_type=NOISE_TYPES.MISSING_DATA, column=data, config=config
     )
 
     # Calculate newly missing data, ie data that didn't come in as already missing
@@ -82,9 +91,24 @@ def test_generate_missing_data(dummy_dataset, user_config_path):
     assert (data[not_noised_idx] == noised_data[not_noised_idx]).all()
 
 
-@pytest.mark.skip(reason="TODO")
-def test_generate_incorrect_selections():
-    pass
+def test_incorrect_selection(categorical_series, default_configuration):
+    config = default_configuration["decennial_census"]["state"]["incorrect_selection"]
+    noised_data = _validate_seed_and_noise_data(
+        noise_type=NOISE_TYPES.INCORRECT_SELECTION, column=categorical_series, config=config
+    )
+
+    # Check for expected noise level
+    expected_noise = config["row_noise_level"]
+    # todo: Update when generate_incorrect_selection uses exclusive resampling
+    # Get real expected noise to account for possibility of noising with original value
+    # Here we have a a possibility of choosing any of the 50 states for our categorical series fixture
+    expected_noise = expected_noise * (1 - 1 / 50)
+    actual_noise = (noised_data != categorical_series).mean()
+    assert np.isclose(expected_noise, actual_noise, rtol=0.02)
+
+    original_empty_idx = categorical_series.index[categorical_series == ""]
+    noised_empty_idx = noised_data.index[noised_data == ""]
+    pd.testing.assert_index_equal(original_empty_idx, noised_empty_idx)
 
 
 @pytest.mark.skip(reason="TODO")
@@ -157,7 +181,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
     )
     config = config["decennial_census"][column]["typographic"]
     noised_data = _validate_seed_and_noise_data(
-        func=generate_typographical_errors, column=data, config=config
+        noise_type=NOISE_TYPES.TYPOGRAPHIC, column=data, config=config
     )
 
     not_missing_idx = data.index[(data.notna()) & (data != "")]
@@ -200,11 +224,13 @@ def test_generate_typographical_errors(dummy_dataset, column):
 
 
 # TODO: refactor this into its own test parameterized by noise functions
-def _validate_seed_and_noise_data(func, column, config):
+def _validate_seed_and_noise_data(noise_type, column, config):
     """Confirms randomness stream behavior and returns the noised data"""
-    noised_data = func(column, config, RANDOMNESS0, f"test_{func.__name__}")
-    noised_data_same_seed = func(column, config, RANDOMNESS0, f"test_{func.__name__}")
-    noised_data_different_seed = func(column, config, RANDOMNESS1, f"test_{func.__name__}")
+    noised_data = noise_type(column, config, RANDOMNESS0, f"test_{noise_type.name}")
+    noised_data_same_seed = noise_type(column, config, RANDOMNESS0, f"test_{noise_type.name}")
+    noised_data_different_seed = noise_type(
+        column, config, RANDOMNESS1, f"test_{noise_type.name}"
+    )
 
     assert (noised_data != column).any()
     assert (noised_data == noised_data_same_seed).all()

@@ -1,12 +1,10 @@
 from pathlib import Path
 from typing import Union
 
-import numpy as np
 import pandas as pd
 import pytest
 
 from pseudopeople.interface import generate_decennial_census
-from pseudopeople.utilities import get_configuration
 
 
 # TODO: possibly parametrize Forms?
