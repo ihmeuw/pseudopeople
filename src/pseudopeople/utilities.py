@@ -3,7 +3,6 @@ from typing import Any, Union
 
 import numpy as np
 import pandas as pd
-import yaml
 from vivarium.framework.configuration import ConfigTree
 from vivarium.framework.randomness import RandomnessStream, random
 
@@ -84,7 +83,7 @@ def vectorized_choice(
     return np.take(options, chosen_indices)
 
 
-def get_to_noise_idx(
+def get_index_to_noise(
     column: pd.Series,
     noise_level: float,
     randomness_stream: RandomnessStream,
