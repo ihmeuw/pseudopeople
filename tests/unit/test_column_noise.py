@@ -55,7 +55,7 @@ def default_configuration():
 
 
 def test_generate_missing_data(dummy_dataset):
-    # TODO: [MIC-3910] Use custom config (MIC-3866)
+
     config = get_configuration()
     config.update(
         {

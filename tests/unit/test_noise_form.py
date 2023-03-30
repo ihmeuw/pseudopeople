@@ -1,5 +1,4 @@
 import random
-from enum import Enum
 from string import ascii_lowercase
 from typing import NamedTuple
 
@@ -19,7 +18,7 @@ from pseudopeople.schema_entities import Form
 def dummy_data():
     """Create a two-column dummy dataset"""
     random.seed(0)
-    num_rows = 100_000
+    num_rows = 1_000_000
     return pd.DataFrame(
         {
             "numbers": [str(x) for x in range(num_rows)],
