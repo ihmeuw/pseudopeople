@@ -92,7 +92,9 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
     # Mock the noise_functions functions so that they are not actually called and
     # return the original one-column dataframe (so that it doesn't become a mock
     # object itself after the first mocked function is applied.)
-    mocker.patch("pseudopeople.entity_types.get_to_noise_idx", return_value=dummy_data.index)
+    mocker.patch(
+        "pseudopeople.entity_types.get_index_to_noise", return_value=dummy_data.index
+    )
     for field in NOISE_TYPES._fields:
         mock_return = (
             dummy_data[["numbers"]]
@@ -106,13 +108,7 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
             ),
             field,
         )
-        # if isinstance(field, ColumnNoiseType):
-        #     mock.attach_mock(
-        #         mocker.patch(
-        #             f"pseudopeople.noise.NOISE_TYPES.{field}.noise_function.get_to_noise_idx",
-        #             return_value=dummy_data.index
-        #         )
-        #     )
+
     # FIXME: would be better to mock the form instead of using census
     noise_form(Form.CENSUS, dummy_data, dummy_config_noise_numbers, 0)
 
