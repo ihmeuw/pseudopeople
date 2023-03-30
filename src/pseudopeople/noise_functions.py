@@ -302,18 +302,3 @@ def generate_ocr_errors(
     """
     # todo actually generate OCR errors
     return column
-
-
-####################
-# HELPER FUNCTIONS #
-####################
-def _get_to_noise_idx(column, configuration, randomness_stream, additional_key, context_key):
-    noise_level = configuration.row_noise_level
-    # Get rows to noise
-    to_noise_idx = randomness_stream.filter_for_probability(
-        column.index,
-        probability=noise_level,
-        additional_key=f"{additional_key}_{context_key}",
-    )
-
-    return to_noise_idx
