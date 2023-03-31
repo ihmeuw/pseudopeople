@@ -34,6 +34,11 @@ decennial_census:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        age_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            possible_perturbations: [1, -1]
+            possible_perturbation_levels: []  # uniform distribution
     date_of_birth:
         missing_data:
             row_noise_level: 0.01

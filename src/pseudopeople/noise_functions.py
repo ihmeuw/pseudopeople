@@ -12,7 +12,7 @@ from pseudopeople.utilities import vectorized_choice
 
 def omit_rows(
     form_data: pd.DataFrame,
-    configuration: float,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
@@ -28,7 +28,7 @@ def omit_rows(
 
 def duplicate_rows(
     form_data: pd.DataFrame,
-    configuration: float,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
@@ -76,93 +76,124 @@ def generate_incorrect_selections(
 
 
 def generate_within_household_copies(
-    form_data: pd.DataFrame,
-    configuration: float,
+    column: pd.Series,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
     additional_key: Any,
-) -> pd.DataFrame:
+) -> pd.Series:
     """
 
-    :param form_data:
+    :param column:
     :param configuration:
     :param randomness_stream:
     :param additional_key: Key for RandomnessStream
     :return:
     """
     # todo actually duplicate rows
-    return form_data
+    return column
 
 
 def swap_months_and_days(
-    form_data: pd.DataFrame,
-    configuration: float,
+    column: pd.Series,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
     additional_key: Any,
-) -> pd.DataFrame:
+) -> pd.Series:
     """
 
-    :param form_data:
+    :param column:
     :param configuration:
     :param randomness_stream:
     :param additional_key: Key for RandomnessStream
     :return:
     """
     # todo actually duplicate rows
-    return form_data
+    return column
 
 
 def miswrite_zipcodes(
-    form_data: pd.DataFrame,
-    configuration: float,
+    column: pd.Series,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
     additional_key: Any,
-) -> pd.DataFrame:
+) -> pd.Series:
     """
 
-    :param form_data:
+    :param column:
     :param configuration:
     :param randomness_stream:
     :param additional_key: Key for RandomnessStream
     :return:
     """
     # todo actually duplicate rows
-    return form_data
+    return column
 
 
 def miswrite_ages(
-    form_data: pd.DataFrame,
-    configuration: float,
+    column: pd.Series,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
     additional_key: Any,
-) -> pd.DataFrame:
-    """
+) -> pd.Series:
+    """Function to mis-write ages based on perturbation parameters included in
+    the config file.
 
-    :param form_data:
-    :param configuration:
-    :param randomness_stream:
-    :param additional_key: Key for RandomnessStream
+    :param column: pd.Series of ages
+    :param configuration: ConfigTree
+    :param randomness_stream: Vivarium RandomnessStream
+    :param additional_key: additional key used for randomness_stream calls
     :return:
     """
-    # todo actually duplicate rows
-    return form_data
+    possible_perturbations = configuration.possible_perturbations
+    perturbation_levels = configuration.possible_perturbation_levels
+    if not perturbation_levels:
+        perturbation_levels = None
+    # TODO: Move all these checks upfront
+    if perturbation_levels:
+        if sum(perturbation_levels) != 1:
+            # TODO: Consider adding flexibility here since vectorized_choice will scale.
+            raise ValueError(
+                "The provided possible_perturbation_levels must sum to 1 but they "
+                f"currently sum to {sum(perturbation_levels)}: {perturbation_levels}"
+            )
+        if len(perturbation_levels) != len(possible_perturbations):
+            raise ValueError(
+                f"The provided possible perturbation_levels ({perturbation_levels}) must be the "
+                f"same length as the provided perturbation probabilities ({possible_perturbations})"
+            )
+    perturbations = vectorized_choice(
+        options=possible_perturbations,
+        weights=perturbation_levels,
+        n_to_choose=len(column),
+        randomness_stream=randomness_stream,
+        additional_key=f"{additional_key}_{column.name}_miswrite_ages",
+    )
+    df = pd.DataFrame({"original_age": column})
+    df["age"] = df["original_age"].astype(float).astype(int) + perturbations
+    # Reflect negative values to positive
+    df.loc[df["age"] < 0, "age"] = -1 * df["age"]
+    # If new age == original age, subtract 1
+    df.loc[df["age"] == df["original_age"], "age"] -= 1
+
+    return df["age"].astype(str)
 
 
 def miswrite_numerics(
-    form_data: pd.DataFrame,
-    configuration: float,
+    column: pd.Series,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
     additional_key: Any,
-) -> pd.DataFrame:
+) -> pd.Series:
     """
 
-    :param form_data:
+    :param column:
     :param configuration:
     :param randomness_stream:
     :param additional_key: Key for RandomnessStream
     :return:
     """
     # todo actually duplicate rows
-    return form_data
+    return column
 
 
 def generate_nicknames(
@@ -250,7 +281,12 @@ def generate_typographical_errors(
         qwerty_errors = yaml.full_load(f)
 
     def keyboard_corrupt(truth, corrupted_pr, addl_pr, rng):
-        """Abie's implementation of typographical noising"""
+        """For each string, loop through each character and determine if
+        it is to be corrupted. If so, uniformly choose from the appropriate
+        values to mis-type. Also determine which mis-typed characters should
+        include the original value and, if it does, include the original value
+        after the mis-typed value
+        """
         err = ""
         i = 0
         while i < len(truth):

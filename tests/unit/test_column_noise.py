@@ -20,7 +20,7 @@ RANDOMNESS1 = RandomnessStream(
 @pytest.fixture(scope="module")
 def dummy_dataset():
     # Add a column of integer strings
-    num_simulants = 100_000
+    num_simulants = 1_000_000
     dummy_idx = pd.Index(range(num_simulants))
     integer_series = pd.Series([str(x) for x in range(num_simulants)])
     # Add missing data from `generate_missing_data` function
@@ -49,14 +49,13 @@ def categorical_series():
     )
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def default_configuration():
     return get_configuration()
 
 
-def test_generate_missing_data(dummy_dataset):
-
-    config = get_configuration()
+def test_generate_missing_data(dummy_dataset, default_configuration):
+    config = default_configuration["decennial_census"]["zipcode"]["missing_data"]
     config.update(
         {
             "decennial_census": {
@@ -68,7 +67,6 @@ def test_generate_missing_data(dummy_dataset):
             },
         }
     )
-    config = config["decennial_census"]["zipcode"]["missing_data"]
     data = dummy_dataset["numbers"]
     noised_data = _validate_seed_and_noise_data(
         noise_type=NOISE_TYPES.MISSING_DATA, column=data, config=config
@@ -126,9 +124,146 @@ def test_miswrite_zipcodes():
     pass
 
 
-@pytest.mark.skip(reason="TODO")
-def test_miswrite_ages():
-    pass
+def test_miswrite_ages(dummy_dataset, default_configuration):
+    """Test that miswritten ages are appropriately handled, including
+    no perturbation probabilities defaults to uniform distribution,
+    perturbation probabilities"""
+    config = default_configuration["decennial_census"]["age"]["age_miswriting"]
+    data = dummy_dataset.rename(columns={"numbers": "age"})["age"]
+
+    # Convert to realistic age
+    maximum_age = 120
+    data = data.apply(pd.to_numeric, args=("coerce",))
+    data = data / data.max() * (maximum_age + 1)
+    data[data.isna()] = -1  # temp nan
+    data = data.astype(int).astype(str)
+    data[data == "-1"] = ""
+    noised_data = _validate_seed_and_noise_data(
+        noise_type=NOISE_TYPES.AGE_MISWRITING, column=data, config=config
+    )
+
+    # Check for expected noise level
+    not_missing_idx = data.index[data != ""]
+    expected_noise = config["row_noise_level"]
+    # todo: Update when generate_incorrect_selection uses exclusive resampling
+    actual_noise = (noised_data[not_missing_idx] != data[not_missing_idx]).mean()
+    # NOTE: we increase the relative tolerance a bit here because the expected
+    # noise calculated above does not account for the fact that if a perturbed
+    # age ends up being the same as the original age, then 1 is subtracted.
+    assert np.isclose(expected_noise, actual_noise, rtol=0.03)
+
+    # Check that missing data remains missing
+    original_missing_idx = data.index[data == ""]
+    noised_missing_idx = noised_data.index[noised_data == ""]
+    pd.testing.assert_index_equal(original_missing_idx, noised_missing_idx)
+
+    # Check that there are no negative ages generated
+    assert noised_data[not_missing_idx].astype(int).min() >= 0
+
+
+def test_miswrite_ages_uniform_probabilities(default_configuration):
+    """Test that an empty list passed in for probabilities results in uniform"""
+    num_rows = 1_000_000
+    age = 25
+    perturbations = [-2, -1, 1]
+
+    config = default_configuration["decennial_census"]["age"]["age_miswriting"]
+    config.update(
+        {
+            "row_noise_level": 1,
+            "possible_perturbations": perturbations,
+        },
+    )
+
+    data = pd.Series([str(age)] * num_rows)
+    noised_data = NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
+    expected_noise = 1 / len(perturbations)
+    for perturbed_age in [str(x + 25) for x in perturbations]:
+        actual_noise = (noised_data == perturbed_age).mean()
+        assert np.isclose(actual_noise, expected_noise, rtol=0.01)
+
+
+def test_miswrite_ages_provided_probabilities(default_configuration):
+    """Test that provided age perturation probabilites are handled"""
+    num_rows = 1_000_000
+    age = 25
+    perturbations = [-1, 1]
+    probabilities = [0.1, 0.9]
+
+    config = default_configuration["decennial_census"]["age"]["age_miswriting"]
+    config.update(
+        {
+            "row_noise_level": 1,
+            "possible_perturbations": perturbations,
+            "possible_perturbation_levels": probabilities,
+        },
+    )
+
+    data = pd.Series([str(age)] * num_rows)
+    noised_data = NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
+    for i in range(len(perturbations)):
+        expected_noise = probabilities[i]
+        perturbed_age = str(age + perturbations[i])
+        actual_noise = (noised_data == perturbed_age).mean()
+        assert np.isclose(actual_noise, expected_noise, rtol=0.01)
+
+
+def test_miswrite_ages_handles_perturbation_to_same_age(default_configuration):
+    """Tests an edge case. It's possible that after an age is perturbed it ends
+    up being the original age. In that case, subtract 1. eg, an age of 1 that is
+    perturbed becomes -1. But we cannot have negative so we flip the sign to +1.
+    But that's the same as the original age and so should become 1-1=0.
+    """
+    num_rows = 100
+    age = 1
+    perturbations = [-1]
+
+    config = default_configuration["decennial_census"]["age"]["age_miswriting"]
+    config.update(
+        {
+            "row_noise_level": 1,
+            "possible_perturbations": perturbations,
+        },
+    )
+
+    data = pd.Series([str(age)] * num_rows)
+    noised_data = NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
+
+    assert (noised_data == "0").all()
+
+
+def test_miswrite_ages_fails_if_bad_probs(default_configuration):
+    """Test that runtimerrors if probs do not add up to 1"""
+    probabilities = [0.1, 0.8]  # does not sum to 1
+
+    config = default_configuration["decennial_census"]["age"]["age_miswriting"]
+    config.update(
+        {
+            "possible_perturbation_levels": probabilities,
+        },
+    )
+
+    data = pd.Series(["dummy"])
+    with pytest.raises(Exception):
+        NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
+
+
+def test_miswrite_ages_fails_if_incorrect_number_of_probs(default_configuration):
+    """Test that runtimerrors if the length of the provided probabilies does
+    not match the length of the possible perturbations
+    """
+    probabilities = [0.1, 0.2, 0.7]  # default perturbations are [-1, 1]
+
+    config = default_configuration["decennial_census"]["age"]["age_miswriting"]
+    config.update(
+        {
+            "possible_perturbation_levels": probabilities,
+        },
+    )
+
+    data = pd.Series(["dummy"])
+    with pytest.raises(Exception):
+        NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
 
 
 @pytest.mark.skip(reason="TODO")
@@ -163,9 +298,9 @@ def test_generate_ocr_errors():
         "characters",
     ],
 )
-def test_generate_typographical_errors(dummy_dataset, column):
+def test_generate_typographical_errors(dummy_dataset, column, default_configuration):
     data = dummy_dataset[column]
-    config = get_configuration()
+    config = default_configuration
     config.update(
         {
             "decennial_census": {

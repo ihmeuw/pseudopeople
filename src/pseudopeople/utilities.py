@@ -65,6 +65,8 @@ def vectorized_choice(
     if weights is None:
         n = len(options)
         weights = np.ones(n) / n
+    if isinstance(weights, list):
+        weights = np.array(weights)
     # for each of n_to_choose, sample uniformly between 0 and 1
     index = pd.Index(np.arange(n_to_choose))
     if randomness_stream is None:
@@ -75,7 +77,7 @@ def vectorized_choice(
         probs = randomness_stream.get_draw(index, additional_key=additional_key)
 
     # build cdf based on weights
-    pmf = weights / weights.sum()
+    pmf = weights / sum(weights)
     cdf = np.cumsum(pmf)
 
     # for each p_i in probs, count how many elements of cdf for which p_i >= cdf_i
