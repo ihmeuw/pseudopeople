@@ -5,31 +5,6 @@ from pseudopeople import noise_functions
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 
 
-# todo: is "form" the right word? Ask RT
-class Form(Enum):
-    CENSUS = "decennial_census"
-    ACS = "american_communities_survey"
-    CPS = "current_population_survey"
-    WIC = "women_infants_and_children"
-    SSA = "social_security"
-    TAX_W2_1099 = "taxes_w2_and_1099"
-    TAX_1040 = "taxes_1040"
-
-
-class __Columns(NamedTuple):
-    FIRST_NAME: str = "first_name"
-    MIDDLE_INITIAL: str = "middle_initial"
-    LAST_NAME: str = "last_name"
-    STREET_NAME: str = "street_name"
-    ZIP_CODE: str = "zipcode"
-    CITY: str = "city"
-    AGE: str = "age"
-    # todo finish filling in columns
-
-
-COLUMNS = __Columns()
-
-
 class __NoiseTypes(NamedTuple):
     """Container for all noise types in the order in which they should be applied:
     omissions, duplications, missing data, incorrect selection, copy from w/in
@@ -54,7 +29,7 @@ class __NoiseTypes(NamedTuple):
         "month_day_swap", noise_functions.swap_months_and_days
     )
     ZIP_CODE_MISWRITING: ColumnNoiseType = ColumnNoiseType(
-        "zipcode_miswriting", noise_functions.miswrite_zip_codes
+        "zipcode_miswriting", noise_functions.miswrite_zipcodes
     )
     AGE_MISWRITING: ColumnNoiseType = ColumnNoiseType(
         "age_miswriting", noise_functions.miswrite_ages

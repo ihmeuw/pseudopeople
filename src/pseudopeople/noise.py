@@ -14,8 +14,9 @@ by column and row for each type of additional noise type.
 import pandas as pd
 from vivarium import ConfigTree
 
-from pseudopeople.entities import NOISE_TYPES, Form
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
+from pseudopeople.noise_entities import NOISE_TYPES
+from pseudopeople.schema_entities import Form
 from pseudopeople.utilities import get_randomness_stream
 
 
