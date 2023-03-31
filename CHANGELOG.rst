@@ -1,4 +1,4 @@
-**0.1.0 - 03/31/23**
+**0.2.0 - 03/31/23**
 
  - Implemented W2/1099 forms
  - Implemented typographic noise function
