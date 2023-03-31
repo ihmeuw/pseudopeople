@@ -1,3 +1,9 @@
+**0.2.0 - 03/31/23**
+
+ - Implemented W2/1099 forms
+ - Implemented typographic noise function
+ - Implemented incorrect selection noise function
+
 **0.1.0 - 03/23/23**
 
  - Initial release
