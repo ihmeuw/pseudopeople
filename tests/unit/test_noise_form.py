@@ -176,7 +176,6 @@ def test_correct_forms_are_used(func, form, mocker):
 
 
 def test_two_noise_functions_are_independent(mocker):
-
     # Make simple config tree to test 2 noise functions work together
     config_tree = ConfigTree(
         {
