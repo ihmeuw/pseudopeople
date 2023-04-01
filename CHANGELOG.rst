@@ -1,3 +1,7 @@
+**0.2.1 - 03/31/23**
+
+ - Fix bug preventing generation of W2/1099 forms
+
 **0.2.0 - 03/31/23**
 
  - Implemented W2/1099 forms
