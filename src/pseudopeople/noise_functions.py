@@ -61,9 +61,8 @@ def generate_incorrect_selections(
 
     selection_type = {
         "employer_state": "state",
-        "mailing_address_state": "state"
+        "mailing_address_state": "state",
     }.get(str(column.name), column.name)
-
 
     selection_options = pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
 
