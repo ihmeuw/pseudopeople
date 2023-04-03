@@ -11,7 +11,7 @@ from pseudopeople.utilities import vectorized_choice
 
 
 def omit_rows(
-    form_data: pd.DataFrame,
+    form_data: float,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
@@ -27,7 +27,7 @@ def omit_rows(
 
 
 def duplicate_rows(
-    form_data: pd.DataFrame,
+    form_data: float,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
@@ -148,38 +148,21 @@ def miswrite_ages(
     :param additional_key: additional key used for randomness_stream calls
     :return:
     """
-    possible_perturbations = configuration.possible_perturbations
-    perturbation_levels = configuration.possible_perturbation_levels
-    if not perturbation_levels:
-        perturbation_levels = None
-    # TODO: Move all these checks upfront
-    if perturbation_levels:
-        if sum(perturbation_levels) != 1:
-            # TODO: Consider adding flexibility here since vectorized_choice will scale.
-            raise ValueError(
-                "The provided possible_perturbation_levels must sum to 1 but they "
-                f"currently sum to {sum(perturbation_levels)}: {perturbation_levels}"
-            )
-        if len(perturbation_levels) != len(possible_perturbations):
-            raise ValueError(
-                f"The provided possible perturbation_levels ({perturbation_levels}) must be the "
-                f"same length as the provided perturbation probabilities ({possible_perturbations})"
-            )
+    possible_perturbations = configuration.possible_perturbations.to_dict()
     perturbations = vectorized_choice(
-        options=possible_perturbations,
-        weights=perturbation_levels,
+        options=list(possible_perturbations.keys()),
+        weights=list(possible_perturbations.values()),
         n_to_choose=len(column),
         randomness_stream=randomness_stream,
         additional_key=f"{additional_key}_{column.name}_miswrite_ages",
     )
-    df = pd.DataFrame({"original_age": column})
-    df["age"] = df["original_age"].astype(float).astype(int) + perturbations
+    new_values = column.astype(float).astype(int) + perturbations
     # Reflect negative values to positive
-    df.loc[df["age"] < 0, "age"] = -1 * df["age"]
+    new_values[new_values < 0] = -1 * new_values
     # If new age == original age, subtract 1
-    df.loc[df["age"] == df["original_age"], "age"] -= 1
+    new_values[new_values == column.astype(int)] -= 1
 
-    return df["age"].astype(str)
+    return new_values.astype(str)
 
 
 def miswrite_numerics(
@@ -272,7 +255,7 @@ def generate_typographical_errors(
     additional_key: Any,
 ) -> pd.Series:
     """Function that takes a column and applies noise to the string values
-    representative of keyboard mis-typing.
+    representative of keyboard mistyping.
 
     :param column:  pd.Series of data
     :param configuration: ConfigTree object containing noising parameters
@@ -287,9 +270,9 @@ def generate_typographical_errors(
     def keyboard_corrupt(truth, corrupted_pr, addl_pr, rng):
         """For each string, loop through each character and determine if
         it is to be corrupted. If so, uniformly choose from the appropriate
-        values to mis-type. Also determine which mis-typed characters should
+        values to mistype. Also determine which mistyped characters should
         include the original value and, if it does, include the original value
-        after the mis-typed value
+        after the mistyped value
         """
         err = ""
         i = 0

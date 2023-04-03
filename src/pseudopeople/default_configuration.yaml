@@ -37,8 +37,7 @@ decennial_census:
         age_miswriting:
             row_noise_level: 0.01
             token_noise_level: 0.1
-            possible_perturbations: [1, -1]
-            possible_perturbation_levels: []  # uniform distribution
+            possible_perturbations: {1: 0.5, -1: 0.5}
     date_of_birth:
         missing_data:
             row_noise_level: 0.01
@@ -108,18 +107,42 @@ taxes_w2_and_1099:
     age:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
+        age_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            possible_perturbations: {1: 0.5, -1: 0.5}
     date_of_birth:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     employer_city:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     employer_id:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     employer_name:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     employer_state:
         missing_data:
             row_noise_level: 0.01
@@ -128,21 +151,45 @@ taxes_w2_and_1099:
     employer_street_name:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     employer_street_number:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     employer_unit_number:
         missing_data:
             row_noise_level: 0.01
-    employer_zipcode:
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
+    employer_zipcode:   # TODO: CONFIRM WITH RG
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     first_name:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     income:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     tax_form:
         missing_data:
             row_noise_level: 0.01
@@ -151,9 +198,17 @@ taxes_w2_and_1099:
     last_name:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     mailing_address_city:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     mailing_address_state:
         missing_data:
             row_noise_level: 0.01
@@ -162,18 +217,49 @@ taxes_w2_and_1099:
     mailing_address_street_name:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     mailing_address_street_number:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     mailing_address_unit_number:
         missing_data:
             row_noise_level: 0.01
-    mailing_address_zipcode:
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
+    mailing_address_zipcode:  # TODO: CONFIRM WITH RG
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
+    mailing_address_po_box:
+        missing_data:
+            row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     middle_initial:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
     ssn:
         missing_data:
             row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
