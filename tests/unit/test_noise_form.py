@@ -168,7 +168,7 @@ def test_correct_forms_are_used(func, form, mocker):
     """Test that each interface noise function uses the correct form"""
     if func == "todo":
         pytest.skip(reason=f"TODO: implement function for {form.value} form")
-    mock = mocker.patch("pseudopeople.interface.noise_form")
+    mock = mocker.patch("pseudopeople.interface.generate_form")
     mocker.patch("pseudopeople.interface.pd")
     _ = func("dummy/path")
 
