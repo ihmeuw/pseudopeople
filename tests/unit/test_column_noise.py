@@ -188,7 +188,6 @@ def test_miswrite_numerics(string_series):
     for i in range(6):  # "a1b2c3"
         if i % 2 == 0:
             assert (data[alt_str].str[i] == noised_data[alt_str].str[i]).all()
-            assert (noised_data[alt_str].str[i].str.isalpha()).all()
         else:
             assert np.isclose(
                 expected_noise,
@@ -200,7 +199,6 @@ def test_miswrite_numerics(string_series):
     for i in range(7):  # "Unit 1A"
         if i == 4:
             assert (data[unit_number].str[i] == noised_data[unit_number].str[i]).all()
-            assert (noised_data[unit_number].str[i].str.isspace()).all()
         elif i == 5:
             assert np.isclose(
                 expected_noise,
@@ -210,12 +208,10 @@ def test_miswrite_numerics(string_series):
             assert (noised_data[unit_number].str[i].str.isdigit()).all()
         else:
             assert (data[unit_number].str[i] == noised_data[unit_number].str[i]).all()
-            assert (noised_data[unit_number].str[i].str.isalpha()).all()
 
     for i in range(9):  # "100000.00"
         if i == 6:
             assert (data[income].str[i] == noised_data[income].str[i]).all()
-            assert (noised_data[income].str[i] == ".").all()
         else:
             assert np.isclose(
                 expected_noise,
@@ -227,7 +223,6 @@ def test_miswrite_numerics(string_series):
     for i in range(10):  # "12/31/2020"
         if i in [2, 5]:
             assert (data[date_of_birth].str[i] == noised_data[date_of_birth].str[i]).all()
-            assert (noised_data[date_of_birth].str[i] == "/").all()
         else:
             assert np.isclose(
                 expected_noise,
@@ -239,7 +234,6 @@ def test_miswrite_numerics(string_series):
     for i in range(11):  # "123-45-6789"
         if i in [3, 6]:
             assert (data[ssn].str[i] == noised_data[ssn].str[i]).all()
-            assert (noised_data[ssn].str[i] == "-").all()
         else:
             assert np.isclose(
                 expected_noise,
