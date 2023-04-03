@@ -52,8 +52,8 @@ def categorical_series():
 @pytest.fixture(scope="module")
 def string_series():
     return pd.Series(
-        ["1A", "1234", "12/01/2020", "a1b2c3", "100000.00", "123-45-6789", ""] * 100_000,
-        name="state",
+        ["Unit 1A", "1234", "12/31/2020", "a1b2c3", "100000.00", "123-45-6789", ""] * 100_000,
+        name="random_strings",
     )
 
 
@@ -165,27 +165,17 @@ def test_miswrite_numerics(string_series):
     )
 
     # Get masks for helper groups, each string in categorical string purpose is to mimic possible string types
-    empty_str = data.str.len() == 0
-    unit_number = data.str.len() == 2
-    id_number = data.str.len() == 4
-    alt_str = data.str.len() == 6
-    income = data.str.len() == 9
-    date_of_birth = data.str.len() == 10
-    ssn = data.str.len() == 11
-    expected_noise = p_row_noise * p_token_noise * 0.9
+    empty_str = data == ""
+    unit_number = data == "Unit 1A"
+    id_number = data == "1234"
+    alt_str = data == "a1b2c3"
+    income = data == "100000.00"
+    date_of_birth = data == "12/31/2020"
+    ssn = data == "123-45-6789"
+    expected_noise = p_row_noise * p_token_noise
 
-    # CHeck empty strings havent changed
+    # Check empty strings havent changed
     assert (noised_data[empty_str] == "").all()
-
-    for i in range(2):  # "1A"
-        if i == 0:
-            assert np.isclose(
-                expected_noise,
-                (data[unit_number].str[i] != noised_data[unit_number].str[i]).mean(),
-                rtol=0.02,
-            )
-        else:
-            assert (data[unit_number].str[i] == noised_data[unit_number].str[i]).all()
 
     for i in range(4):  # "1234"
         assert np.isclose(
@@ -193,46 +183,70 @@ def test_miswrite_numerics(string_series):
             (data[id_number].str[i] != noised_data[id_number].str[i]).mean(),
             rtol=0.02,
         )
+        assert (noised_data[id_number].str[i].str.isdigit()).all()
 
     for i in range(6):  # "a1b2c3"
         if i % 2 == 0:
             assert (data[alt_str].str[i] == noised_data[alt_str].str[i]).all()
+            assert (noised_data[alt_str].str[i].str.isalpha()).all()
         else:
             assert np.isclose(
                 expected_noise,
                 (data[alt_str].str[i] != noised_data[alt_str].str[i]).mean(),
                 rtol=0.02,
             )
+            assert (noised_data[alt_str].str[i].str.isdigit()).all()
+
+    for i in range(7):  # "Unit 1A"
+        if i == 4:
+            assert (data[unit_number].str[i] == noised_data[unit_number].str[i]).all()
+            assert (noised_data[unit_number].str[i].str.isspace()).all()
+        elif i == 5:
+            assert np.isclose(
+                expected_noise,
+                (data[unit_number].str[i] != noised_data[unit_number].str[i]).mean(),
+                rtol=0.02,
+            )
+            assert (noised_data[unit_number].str[i].str.isdigit()).all()
+        else:
+            assert (data[unit_number].str[i] == noised_data[unit_number].str[i]).all()
+            assert (noised_data[unit_number].str[i].str.isalpha()).all()
 
     for i in range(9):  # "100000.00"
         if i == 6:
             assert (data[income].str[i] == noised_data[income].str[i]).all()
+            assert (noised_data[income].str[i] == ".").all()
         else:
             assert np.isclose(
                 expected_noise,
                 (data[income].str[i] != noised_data[income].str[i]).mean(),
                 rtol=0.02,
             )
+            assert (noised_data[income].str[i].str.isdigit()).all()
 
-    for i in range(10):  # "12/01/2020"
+    for i in range(10):  # "12/31/2020"
         if i in [2, 5]:
             assert (data[date_of_birth].str[i] == noised_data[date_of_birth].str[i]).all()
+            assert (noised_data[date_of_birth].str[i] == "/").all()
         else:
             assert np.isclose(
                 expected_noise,
                 (data[date_of_birth].str[i] != noised_data[date_of_birth].str[i]).mean(),
                 rtol=0.02,
             )
+            assert (noised_data[date_of_birth].str[i].str.isdigit()).all()
 
     for i in range(11):  # "123-45-6789"
         if i in [3, 6]:
             assert (data[ssn].str[i] == noised_data[ssn].str[i]).all()
+            assert (noised_data[ssn].str[i] == "-").all()
         else:
             assert np.isclose(
                 expected_noise,
                 (data[ssn].str[i] != noised_data[ssn].str[i]).mean(),
-                rtol=0.03,
+                rtol=0.02,
             )
+            assert (noised_data[ssn].str[i].str.isdigit()).all()
 
 
 @pytest.mark.skip(reason="TODO")

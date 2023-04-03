@@ -193,6 +193,10 @@ taxes_w2_and_1099:
         numeric_miswriting:
             row_noise_level: 0.01
             token_noise_level: 0.1
+    mailing_address_po_box:
+        missing_data:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     mailing_address_zipcode:
         missing_data:
             row_noise_level: 0.01

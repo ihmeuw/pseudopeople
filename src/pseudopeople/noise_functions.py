@@ -164,20 +164,17 @@ def miswrite_numerics(
     returns: pd.Series with some numeric values experiencing noise.
     """
 
-    token_noise_level = configuration.token_noise_level
+    token_noise_level = (
+        configuration.token_noise_level * 1 / 0.9
+    )  # This is fix to not replace with the original token
     rng = np.random.default_rng(randomness_stream.seed)
     column = column.astype(str)
     longest_str = column.str.len().max()
     same_len_col = column.str.pad(longest_str, side="right")
-    series_of_lists = same_len_col.str.split("")
-    str_df = pd.DataFrame.from_dict(
-        dict(zip(series_of_lists.index, series_of_lists.values))
-    ).T
-    str_df = str_df.drop(columns=[0, len(str_df.columns) - 1])
-    str_df.columns = list(range(len(str_df.columns)))
-    is_number = str_df.copy()
-    for col in str_df.columns:
-        is_number[col] = is_number[col].str.isdigit()
+    is_number = pd.concat(
+        [same_len_col.str[i].str.isdigit() for i in range(longest_str)], axis=1
+    )
+    is_number.columns = list(range(len(is_number.columns)))
 
     replace = (rng.random(is_number.shape) < token_noise_level) & is_number
     random_digits = rng.choice(list("0123456789"), is_number.shape)
