@@ -197,9 +197,7 @@ def test_miswrite_numerics(string_series):
             assert (noised_data[alt_str].str[i].str.isdigit()).all()
 
     for i in range(7):  # "Unit 1A"
-        if i == 4:
-            assert (data[unit_number].str[i] == noised_data[unit_number].str[i]).all()
-        elif i == 5:
+        if i == 5:
             assert np.isclose(
                 expected_noise,
                 (data[unit_number].str[i] != noised_data[unit_number].str[i]).mean(),

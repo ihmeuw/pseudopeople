@@ -165,9 +165,7 @@ def miswrite_numerics(
     """
 
     # This is a fix to not replacing the original token for noise options
-    token_noise_level = (
-        configuration.token_noise_level / 0.9
-    )  # This is fix to not replace with the original token
+    token_noise_level = configuration.token_noise_level / 0.9
     rng = np.random.default_rng(randomness_stream.seed)
     column = column.astype(str)
     longest_str = column.str.len().max()
