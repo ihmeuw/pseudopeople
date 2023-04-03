@@ -49,7 +49,6 @@ def categorical_series():
     )
 
 
-
 def test_generate_missing_data(dummy_dataset):
     config = get_configuration()["decennial_census"]["zipcode"]["missing_data"]
     config.update(
