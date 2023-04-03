@@ -59,17 +59,21 @@ def generate_incorrect_selections(
     :returns: pd.Series where data has been noised with other values from a list of possibilities
     """
 
-    col = column.name
+    selection_type = {
+        "employer_state": "state",
+        "mailing_address_state": "state",
+    }.get(str(column.name), column.name)
+
     selection_options = pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
 
     # Get possible noise values
     # todo: Update with exclusive resampling when vectorized_choice is improved
-    options = selection_options.loc[selection_options[col].notna(), col]
+    options = selection_options.loc[selection_options[selection_type].notna(), selection_type]
     new_values = vectorized_choice(
         options=options,
         n_to_choose=len(column),
         randomness_stream=randomness_stream,
-        additional_key=f"{additional_key}_{col}_incorrect_select_choice",
+        additional_key=f"{additional_key}_{column.name}_incorrect_select_choice",
     ).to_numpy()
 
     return pd.Series(new_values, index=column.index)

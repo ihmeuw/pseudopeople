@@ -54,8 +54,8 @@ def default_configuration():
     return get_configuration()
 
 
-def test_generate_missing_data(dummy_dataset, default_configuration):
-    config = default_configuration["decennial_census"]["zipcode"]["missing_data"]
+def test_generate_missing_data(dummy_dataset):
+    config = get_configuration()
     config.update(
         {
             "decennial_census": {
