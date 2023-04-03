@@ -7,6 +7,7 @@ class Form(Enum):
     """
     Enum containing all supported forms.
     """
+
     CENSUS = "decennial_census"
     ACS = "american_communities_survey"
     CPS = "current_population_survey"
