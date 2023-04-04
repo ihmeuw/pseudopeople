@@ -63,7 +63,6 @@ def default_configuration():
 
 
 def test_generate_missing_data(dummy_dataset):
-
     config = get_configuration()
     config.update(
         {
