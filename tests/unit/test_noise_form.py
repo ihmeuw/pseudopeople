@@ -169,7 +169,7 @@ def test_correct_forms_are_used(func, form, mocker):
     if func == "todo":
         pytest.skip(reason=f"TODO: implement function for {form.value} form")
     mock = mocker.patch("pseudopeople.interface.noise_form")
-    mocker.patch("pseudopeople.interface.pd")
+    mocker.patch("pseudopeople.interface.pd.read_csv")
     _ = func("dummy/path")
 
     assert mock.call_args[0][0] == form

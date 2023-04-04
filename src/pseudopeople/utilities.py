@@ -13,11 +13,11 @@ def get_randomness_stream(form: Form, seed: int) -> RandomnessStream:
     return RandomnessStream(form.value, lambda: pd.Timestamp("2020-04-01"), seed)
 
 
-def get_configuration(user_yaml_path: Union[Path, str] = None) -> ConfigTree:
+def get_configuration(user_configuration: Union[Path, str, dict] = None) -> ConfigTree:
     """
     Gets a noising configuration ConfigTree, optionally overridden by a user-provided YAML.
 
-    :param user_yaml_path: A path to the YAML file defining user overrides for the defaults
+    :param user_configuration: A dictionary or path to the YAML file defining user overrides for the defaults
     :return: a ConfigTree object of the noising configuration
     """
     import pseudopeople
@@ -30,8 +30,8 @@ def get_configuration(user_yaml_path: Union[Path, str] = None) -> ConfigTree:
         data=Path(pseudopeople.__file__).resolve().parent / "default_configuration.yaml",
         layers=default_config_layers,
     )
-    if user_yaml_path:
-        noising_configuration.update(user_yaml_path, layer="user")
+    if user_configuration:
+        noising_configuration.update(user_configuration, layer="user")
     return noising_configuration
 
 
@@ -45,7 +45,7 @@ def vectorized_choice(
 ):
     """
     Function that takes a list of options and uses Vivarium common random numbers framework to make a given number
-    of razndom choice selections.
+    of random choice selections.
 
     :param options: List and series of possible values to choose
     :param n_to_choose: Number of choices to make, the length of the returned array of values
