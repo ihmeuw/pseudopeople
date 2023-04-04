@@ -84,7 +84,7 @@ def test_generate_missing_data(dummy_dataset):
     # Calculate newly missing data, ie data that didn't come in as already missing
     orig_non_missing_idx = data.index[(data.notna()) & (data != "")]
     newly_missing_idx = noised_data.index[
-        (noised_data.index.isin(orig_non_missing_idx)) & (noised_data == "")
+        (noised_data.index.isin(orig_non_missing_idx)) & (noised_data.isna())
     ]
 
     # Check for expected noise level
@@ -93,8 +93,7 @@ def test_generate_missing_data(dummy_dataset):
     assert np.isclose(expected_noise, actual_noise, rtol=0.02)
 
     # Check that un-noised values are unchanged
-    not_noised_idx = noised_data.index[noised_data != ""]
-    assert "" not in noised_data[not_noised_idx].values
+    not_noised_idx = noised_data.index[noised_data.notna()]
     assert (data[not_noised_idx] == noised_data[not_noised_idx]).all()
 
 
@@ -337,7 +336,11 @@ def _validate_seed_and_noise_data(noise_type, column, config):
     )
 
     assert (noised_data != column).any()
-    assert (noised_data == noised_data_same_seed).all()
+    assert (noised_data.isna() == noised_data_same_seed.isna()).all()
+    assert (
+        noised_data[noised_data.notna()]
+        == noised_data_same_seed[noised_data_same_seed.notna()]
+    ).all()
     assert (noised_data != noised_data_different_seed).any()
 
     return noised_data

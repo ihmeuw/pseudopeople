@@ -23,7 +23,7 @@ class RowNoiseType:
     """
 
     name: str
-    noise_function: Callable[[pd.DataFrame, float, RandomnessStream, str], pd.DataFrame]
+    noise_function: Callable[[pd.DataFrame, float, RandomnessStream], pd.DataFrame]
 
     def __call__(
         self,
@@ -63,8 +63,8 @@ class ColumnNoiseType:
         to_noise_idx = get_index_to_noise(
             column, noise_level, randomness_stream, f"{self.name}_{additional_key}"
         )
-        column.loc[to_noise_idx] = self.noise_function(
+        noised_data = self.noise_function(
             column.loc[to_noise_idx], configuration, randomness_stream, additional_key
         )
-
+        column.loc[to_noise_idx] = noised_data
         return column
