@@ -14,7 +14,7 @@ def get_randomness_stream(form: Form, seed: int) -> RandomnessStream:
     return RandomnessStream(form.value, lambda: pd.Timestamp("2020-04-01"), seed)
 
 
-def get_configuration(user_config: Union[Path, str, Dict] = None) -> ConfigTree:
+def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> ConfigTree:
     """
     Gets a noising configuration ConfigTree, optionally overridden by a user-provided YAML.
 
@@ -31,13 +31,13 @@ def get_configuration(user_config: Union[Path, str, Dict] = None) -> ConfigTree:
         data=Path(pseudopeople.__file__).resolve().parent / "default_configuration.yaml",
         layers=default_config_layers,
     )
-    if user_config:
-        if isinstance(user_config, (Path, str)):
-            with open(user_config, "r") as f:
+    if user_configuration:
+        if isinstance(user_configuration, (Path, str)):
+            with open(user_configuration, "r") as f:
                 # TODO: Do we need to support other filetypes that yaml?
-                user_config = yaml.full_load(f)
-        user_config = format_user_configuration(user_config, noising_configuration)
-        noising_configuration.update(user_config, layer="user")
+                user_configuration = yaml.full_load(f)
+        user_configuration = format_user_configuration(user_configuration, noising_configuration)
+        noising_configuration.update(user_configuration, layer="user")
 
     validate_noising_configuration(noising_configuration)
 
@@ -131,7 +131,7 @@ def vectorized_choice(
 ):
     """
     Function that takes a list of options and uses Vivarium common random numbers framework to make a given number
-    of razndom choice selections.
+    of random choice selections.
 
     :param options: List and series of possible values to choose
     :param n_to_choose: Number of choices to make, the length of the returned array of values
