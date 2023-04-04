@@ -41,6 +41,9 @@ decennial_census:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     street_number:
         missing_data:
             row_noise_level: 0.01
@@ -48,6 +51,9 @@ decennial_census:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     street_name:
         missing_data:
             row_noise_level: 0.01
@@ -62,6 +68,9 @@ decennial_census:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     city:
         missing_data:
             row_noise_level: 0.01
@@ -114,6 +123,9 @@ taxes_w2_and_1099:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     employer_city:
         missing_data:
             row_noise_level: 0.01
@@ -128,6 +140,9 @@ taxes_w2_and_1099:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     employer_name:
         missing_data:
             row_noise_level: 0.01
@@ -154,6 +169,9 @@ taxes_w2_and_1099:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     employer_unit_number:
         missing_data:
             row_noise_level: 0.01
@@ -161,6 +179,9 @@ taxes_w2_and_1099:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     employer_zipcode:
         missing_data:
             row_noise_level: 0.01
@@ -182,6 +203,9 @@ taxes_w2_and_1099:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     tax_form:
         missing_data:
             row_noise_level: 0.01
@@ -220,6 +244,9 @@ taxes_w2_and_1099:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     mailing_address_unit_number:
         missing_data:
             row_noise_level: 0.01
@@ -227,6 +254,13 @@ taxes_w2_and_1099:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+    mailing_address_po_box:
+        missing_data:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     mailing_address_zipcode:
         missing_data:
             row_noise_level: 0.01
@@ -553,3 +587,6 @@ social_security:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1

@@ -152,21 +152,46 @@ def miswrite_ages(
 
 
 def miswrite_numerics(
-    form_data: pd.DataFrame,
-    configuration: float,
+    column: pd.Series,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
     additional_key: Any,
-) -> pd.DataFrame:
+) -> pd.Series:
+    """
+    Function that noises numeric characters in a series.
+
+    :param column: A pd.Series
+    :param configuration: ConfigTree object containing noise level
+    :param randomness_stream: RandomnessStream for CRN framework.
+    :param additional_key: Key for RandomnessStream
+
+    returns: pd.Series with some numeric values experiencing noise.
     """
 
-    :param form_data:
-    :param configuration:
-    :param randomness_stream:
-    :param additional_key: Key for RandomnessStream
-    :return:
-    """
-    # todo actually duplicate rows
-    return form_data
+    # This is a fix to not replacing the original token for noise options
+    token_noise_level = configuration.token_noise_level / 0.9
+    rng = np.random.default_rng(randomness_stream.seed)
+    column = column.astype(str)
+    longest_str = column.str.len().max()
+    same_len_col = column.str.pad(longest_str, side="right")
+    is_number = pd.concat(
+        [same_len_col.str[i].str.isdigit() for i in range(longest_str)], axis=1
+    )
+
+    replace = (rng.random(is_number.shape) < token_noise_level) & is_number
+    random_digits = rng.choice(list("0123456789"), is_number.shape)
+
+    # Choose and replace values for a noised series
+    noised_column = pd.Series("", index=column.index)
+    digits = []
+    for i in range(len(is_number.columns)):
+        digit = np.where(replace.iloc[:, i], random_digits[:, i], same_len_col.str[i])
+        digit = pd.Series(digit, index=column.index, name=column.name)
+        digits.append(digit)
+        noised_column = noised_column + digits[i]
+    noised_column.str.strip()
+
+    return noised_column
 
 
 def generate_nicknames(
