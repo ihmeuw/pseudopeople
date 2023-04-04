@@ -17,7 +17,7 @@ def get_configuration(user_configuration: Union[Path, str, dict] = None) -> Conf
     """
     Gets a noising configuration ConfigTree, optionally overridden by a user-provided YAML.
 
-    :param user_configuration: A path to the YAML file defining user overrides for the defaults
+    :param user_configuration: A dictionary or path to the YAML file defining user overrides for the defaults
     :return: a ConfigTree object of the noising configuration
     """
     import pseudopeople
@@ -45,7 +45,7 @@ def vectorized_choice(
 ):
     """
     Function that takes a list of options and uses Vivarium common random numbers framework to make a given number
-    of razndom choice selections.
+    of random choice selections.
 
     :param options: List and series of possible values to choose
     :param n_to_choose: Number of choices to make, the length of the returned array of values
