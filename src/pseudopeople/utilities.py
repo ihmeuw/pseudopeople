@@ -34,7 +34,6 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
     if user_configuration:
         if isinstance(user_configuration, (Path, str)):
             with open(user_configuration, "r") as f:
-                # TODO: Do we need to support other filetypes that yaml?
                 user_configuration = yaml.full_load(f)
         user_configuration = format_user_configuration(
             user_configuration, noising_configuration
