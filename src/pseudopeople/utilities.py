@@ -48,30 +48,43 @@ def format_user_configuration(user_dict: Dict, default_config) -> Dict:
     """Formats the user's configuration file as necessary so it can properly
     update noising configuration to be used
     """
-    user_dict = _change_age_miswriting_perturbations_to_dict(user_dict, default_config)
+    user_dict = _format_age_miswriting_perturbations(user_dict, default_config)
 
     return user_dict
 
 
-def _change_age_miswriting_perturbations_to_dict(
-    user_dict: Dict, default_config: ConfigTree
-) -> Dict:
+def _format_age_miswriting_perturbations(user_dict: Dict, default_config: ConfigTree) -> Dict:
     # Format any age perturbation lists as a dictionary with uniform probabilites
-    # TODO: Should we allow for a user to provide a partial dictionary path to update everything at once?
-    key = "possible_perturbations"
-    for k, v in user_dict.items():
-        if isinstance(v, dict):
-            _change_age_miswriting_perturbations_to_dict(v, default_config[k])
-        elif k == key:
-            perturbations_dict = {}
-            # Replace default configuration with 0 probabilities
-            for k0 in default_config[k]:
-                perturbations_dict[k0] = 0
-            # Add user keys with uniform probabilities
-            uniform_prob = 1 / len(v)
-            for x in v:
-                perturbations_dict[x] = uniform_prob
-            user_dict[k] = perturbations_dict
+    for form in user_dict:
+        user_perturbations = (
+            user_dict[form]
+            .get("age", {})
+            .get("age_miswriting", {})
+            .get("possible_perturbations", {})
+        )
+        if not user_perturbations:
+            break
+        formatted = {}
+        default_perturbations = default_config[form]["age"]["age_miswriting"][
+            "possible_perturbations"
+        ]
+        # Replace default configuration with 0 probabilities
+        for perturbation in default_perturbations:
+            formatted[perturbation] = 0
+        if isinstance(user_perturbations, list):
+            # Add user perturbations with uniform probabilities
+            uniform_prob = 1 / len(user_perturbations)
+            for perturbation in user_perturbations:
+                formatted[perturbation] = uniform_prob
+        elif isinstance(user_perturbations, dict):
+            for perturbation, prob in user_perturbations.items():
+                formatted[perturbation] = prob
+        else:
+            raise NotImplementedError(
+                "age.age_miswriting.possible_perturbations can only be a list or dict, "
+                f"received type {type(user_perturbations)}"
+            )
+        user_dict[form]["age"]["age_miswriting"]["possible_perturbations"] = formatted
 
     return user_dict
 
