@@ -18,7 +18,7 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
     """
     Gets a noising configuration ConfigTree, optionally overridden by a user-provided YAML.
 
-    :param user_config: A path to the YAML file or a dictionary defining user overrides for the defaults
+    :param user_configuration: A path to the YAML file or a dictionary defining user overrides for the defaults
     :return: a ConfigTree object of the noising configuration
     """
     import pseudopeople
