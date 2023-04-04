@@ -6,28 +6,18 @@
 decennial_census:
     omission: 0.0145
     duplication: 0.05
-    first_name:
-        missing_data:
-            row_noise_level: 0.01
-        typographic:
-            row_noise_level: 0.01
-            token_noise_level: 0.1
-            include_original_token_level: 0.1
-    middle_initial:
-        missing_data:
-            row_noise_level: 0.01
-        typographic:
-            row_noise_level: 0.01
-            token_noise_level: 0.1
-            include_original_token_level: 0.1
-    last_name:
-        missing_data:
-            row_noise_level: 0.01
-        typographic:
-            row_noise_level: 0.01
-            token_noise_level: 0.1
-            include_original_token_level: 0.1
     age:
+        missing_data:
+            row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
+        age_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            possible_perturbations: {1: 0.5, -1: 0.5}
+    city:
         missing_data:
             row_noise_level: 0.01
         typographic:
@@ -44,52 +34,32 @@ decennial_census:
         numeric_miswriting:
             row_noise_level: 0.01
             token_noise_level: 0.1
-    street_number:
+    first_name:
         missing_data:
             row_noise_level: 0.01
         typographic:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
-        numeric_miswriting:
-            row_noise_level: 0.01
-            token_noise_level: 0.1
-    street_name:
+    last_name:
         missing_data:
             row_noise_level: 0.01
         typographic:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
-    unit_number:
+    middle_initial:
         missing_data:
             row_noise_level: 0.01
         typographic:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
-        numeric_miswriting:
-            row_noise_level: 0.01
-            token_noise_level: 0.1
-    city:
-        missing_data:
-            row_noise_level: 0.01
-        typographic:
-            row_noise_level: 0.01
-            token_noise_level: 0.1
-            include_original_token_level: 0.1
-    state:
+    race_ethnicity:
         missing_data:
             row_noise_level: 0.01
         incorrect_selection:
             row_noise_level: 0.01
-    zipcode:
-        missing_data:
-            row_noise_level: 0.01
-        typographic:
-            row_noise_level: 0.01
-            token_noise_level: 0.1
-            include_original_token_level: 0.1
     relation_to_household_head:
         missing_data:
             row_noise_level: 0.01
@@ -100,11 +70,45 @@ decennial_census:
             row_noise_level: 0.01
         incorrect_selection:
             row_noise_level: 0.01
-    race_ethnicity:
+    state:
         missing_data:
             row_noise_level: 0.01
         incorrect_selection:
             row_noise_level: 0.01
+    street_name:
+        missing_data:
+            row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
+    street_number:
+        missing_data:
+            row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+    unit_number:
+        missing_data:
+            row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+    zipcode:
+        missing_data:
+            row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
 
 taxes_w2_and_1099:
     omission: 0.0
@@ -116,6 +120,10 @@ taxes_w2_and_1099:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        age_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            possible_perturbations: {1: 0.5, -1: 0.5}
     date_of_birth:
         missing_data:
             row_noise_level: 0.01
@@ -206,11 +214,6 @@ taxes_w2_and_1099:
         numeric_miswriting:
             row_noise_level: 0.01
             token_noise_level: 0.1
-    tax_form:
-        missing_data:
-            row_noise_level: 0.01
-        incorrect_selection:
-            row_noise_level: 0.01
     last_name:
         missing_data:
             row_noise_level: 0.01
@@ -261,6 +264,13 @@ taxes_w2_and_1099:
         missing_data:
             row_noise_level: 0.01
             token_noise_level: 0.1
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     mailing_address_zipcode:
         missing_data:
             row_noise_level: 0.01
@@ -282,6 +292,15 @@ taxes_w2_and_1099:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+    tax_form:
+        missing_data:
+            row_noise_level: 0.01
+        incorrect_selection:
+            row_noise_level: 0.01
+
 american_communities_survey:
     omission: 0.0145
     duplication: 0.05
@@ -292,6 +311,10 @@ american_communities_survey:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        age_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            possible_perturbations: {1: 0.5, -1: 0.5}
     city:
         missing_data:
             row_noise_level: 0.01
@@ -306,6 +329,9 @@ american_communities_survey:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     first_name:
         missing_data:
             row_noise_level: 0.01
@@ -320,6 +346,17 @@ american_communities_survey:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+    mailing_address_po_box:
+        missing_data:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     middle_initial:
         missing_data:
             row_noise_level: 0.01
@@ -351,6 +388,9 @@ american_communities_survey:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     unit_number:
         missing_data:
             row_noise_level: 0.01
@@ -358,6 +398,9 @@ american_communities_survey:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     zipcode:
         missing_data:
             row_noise_level: 0.01
@@ -365,6 +408,7 @@ american_communities_survey:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+
 current_population_survey:
     omission: 0.2905
     duplication: 0.05
@@ -375,6 +419,10 @@ current_population_survey:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        age_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            possible_perturbations: {1: 0.5, -1: 0.5}
     city:
         missing_data:
             row_noise_level: 0.01
@@ -389,6 +437,9 @@ current_population_survey:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     first_name:
         missing_data:
             row_noise_level: 0.01
@@ -403,6 +454,17 @@ current_population_survey:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+    mailing_address_po_box:
+        missing_data:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     middle_initial:
         missing_data:
             row_noise_level: 0.01
@@ -434,6 +496,9 @@ current_population_survey:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     unit_number:
         missing_data:
             row_noise_level: 0.01
@@ -441,6 +506,9 @@ current_population_survey:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     zipcode:
         missing_data:
             row_noise_level: 0.01
@@ -459,6 +527,10 @@ women_infants_and_children:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        age_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            possible_perturbations: {1: 0.5, -1: 0.5}
     city:
         missing_data:
             row_noise_level: 0.01
@@ -473,6 +545,9 @@ women_infants_and_children:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     first_name:
         missing_data:
             row_noise_level: 0.01
@@ -487,6 +562,17 @@ women_infants_and_children:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+    mailing_address_po_box:
+        missing_data:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     middle_initial:
         missing_data:
             row_noise_level: 0.01
@@ -523,6 +609,9 @@ women_infants_and_children:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     unit_number:
         missing_data:
             row_noise_level: 0.01
@@ -530,6 +619,9 @@ women_infants_and_children:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     zipcode:
         missing_data:
             row_noise_level: 0.01
@@ -537,9 +629,21 @@ women_infants_and_children:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+
 social_security:
     omission: 0.0
     duplication: 0.05
+    age:
+        missing_data:
+            row_noise_level: 0.01
+        typographic:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            include_original_token_level: 0.1
+        age_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
+            possible_perturbations: {1: 0.5, -1: 0.5}
     date_of_birth:
         missing_data:
             row_noise_level: 0.01
@@ -547,6 +651,9 @@ social_security:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     event_date:
         missing_data:
             row_noise_level: 0.01
@@ -554,6 +661,9 @@ social_security:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        numeric_miswriting:
+            row_noise_level: 0.01
+            token_noise_level: 0.1
     event_type:
         missing_data:
             row_noise_level: 0.01

@@ -113,11 +113,7 @@ def decennial_census_data_path(tmp_path_factory):
     data = pd.DataFrame(
         {
             "housing_type": [random.choice(HOUSING_TYPES) for _ in range(num_rows)],
-            # TODO: Currently ages are actually floats but a followup pr will ensure ints
-            "age": [
-                str(random.randint(1, 100) + round(random.random(), 6))
-                for _ in range(num_rows)
-            ],
+            "age": [str(random.randint(1, 100)) for _ in range(num_rows)],
             "year": [random.choice(["2020", "2030"]) for _ in range(num_rows)],
             "race_ethnicity": [random.choice(RACE_ETHNICITIES) for _ in range(num_rows)],
             "guardian_1": [
@@ -134,9 +130,7 @@ def decennial_census_data_path(tmp_path_factory):
             "relation_to_household_head": [
                 random.choice(RELATIONS_TO_HOUSEHOLD_HEAD) for _ in range(num_rows)
             ],
-            # TODO: currently zipcodes are floats (and thus not zero-padded);
-            # a followup PR will convert to 5-digit integer strings
-            "zipcode": [str(random.randint(1, 99999)) + ".0" for _ in range(num_rows)],
+            "zipcode": [str(random.randint(1, 99999)).zfill(5) for _ in range(num_rows)],
             "date_of_birth": [
                 time.strftime(
                     "%Y-%m-%d",
