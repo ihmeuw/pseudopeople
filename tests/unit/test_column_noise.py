@@ -20,7 +20,7 @@ RANDOMNESS1 = RandomnessStream(
 @pytest.fixture(scope="module")
 def dummy_dataset():
     # Add a column of integer strings
-    num_simulants = 100_000
+    num_simulants = 1_000_000
     dummy_idx = pd.Index(range(num_simulants))
     integer_series = pd.Series([str(x) for x in range(num_simulants)])
     # Add missing data from `generate_missing_data` function
@@ -76,7 +76,7 @@ def test_generate_missing_data(dummy_dataset):
     # Check for expected noise level
     expected_noise = config["row_noise_level"]
     actual_noise = len(newly_missing_idx) / len(orig_non_missing_idx)
-    assert np.isclose(expected_noise, actual_noise, rtol=0.04)
+    assert np.isclose(expected_noise, actual_noise, rtol=0.02)
 
     # Check that un-noised values are unchanged
     not_noised_idx = noised_data.index[noised_data != ""]
@@ -140,7 +140,6 @@ def test_miswrite_ages_default_config(dummy_dataset):
     # Check for expected noise level
     not_missing_idx = data.index[data != ""]
     expected_noise = config["row_noise_level"]
-    # todo: Update when generate_incorrect_selection uses exclusive resampling
     actual_noise = (noised_data[not_missing_idx] != data[not_missing_idx]).mean()
     # NOTE: we increase the relative tolerance a bit here because the expected
     # noise calculated above does not account for the fact that if a perturbed
@@ -243,7 +242,7 @@ def test_miswrite_ages_flips_negative_to_positive():
     """Test that any ages perturbed to <0 are reflected to positive values"""
     num_rows = 100
     age = 3
-    perturbations = [-5]  # This will cause -2 and should flip to +2
+    perturbations = [-7]  # This will cause -4 and should flip to +4
 
     config = get_configuration(
         {
@@ -261,7 +260,7 @@ def test_miswrite_ages_flips_negative_to_positive():
     data = pd.Series([str(age)] * num_rows)
     noised_data = NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
 
-    assert (noised_data == "2").all()
+    assert (noised_data == "4").all()
 
 
 @pytest.mark.skip(reason="TODO")

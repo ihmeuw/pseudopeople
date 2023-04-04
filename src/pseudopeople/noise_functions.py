@@ -158,7 +158,7 @@ def miswrite_ages(
     )
     new_values = column.astype(float).astype(int) + perturbations
     # Reflect negative values to positive
-    new_values[new_values < 0] = -1 * new_values
+    new_values[new_values < 0] *= -1
     # If new age == original age, subtract 1
     new_values[new_values == column.astype(int)] -= 1
 

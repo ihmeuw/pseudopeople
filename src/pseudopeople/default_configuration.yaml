@@ -169,7 +169,7 @@ taxes_w2_and_1099:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
-    employer_zipcode:   # TODO: CONFIRM WITH RG
+    employer_zipcode:
         missing_data:
             row_noise_level: 0.01
         typographic:
@@ -235,7 +235,7 @@ taxes_w2_and_1099:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
-    mailing_address_zipcode:  # TODO: CONFIRM WITH RG
+    mailing_address_zipcode:
         missing_data:
             row_noise_level: 0.01
         typographic:

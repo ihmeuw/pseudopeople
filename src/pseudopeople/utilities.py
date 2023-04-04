@@ -63,7 +63,7 @@ def _format_age_miswriting_perturbations(user_dict: Dict, default_config: Config
             .get("possible_perturbations", {})
         )
         if not user_perturbations:
-            break
+            continue
         formatted = {}
         default_perturbations = default_config[form]["age"]["age_miswriting"][
             "possible_perturbations"
