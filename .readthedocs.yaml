@@ -5,7 +5,7 @@ version: 2
 # Configure the python version and environment construction run before
 # docs are built.
 build:
-  os: ubuntu-20.04
+  os: ubuntu-latest
   tools:
     python: "3.10"
 python:
