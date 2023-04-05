@@ -19,13 +19,15 @@ RANDOMNESS1 = RandomnessStream(
 
 @pytest.fixture(scope="module")
 def dummy_dataset():
-    # Add a column of integer strings
-    num_simulants = 100_000
+    num_simulants = 1_000_000
     dummy_idx = pd.Index(range(num_simulants))
+
+    # Add a column of integer strings
     integer_series = pd.Series([str(x) for x in range(num_simulants)])
     # Add missing data from `generate_missing_data` function
     missing_idx = pd.Index([x for x in dummy_idx if x % 3 == 0])
     integer_series.loc[missing_idx] = ""
+
     # Add a column of character strings
     str_length = 6
     character_series = pd.Series(
@@ -39,7 +41,42 @@ def dummy_dataset():
     # Add missing data from `generate_missing_data` function
     character_series.loc[missing_idx] = ""
 
-    return pd.DataFrame({"numbers": integer_series, "characters": character_series})
+    # Add a categorical series state column
+    states_list = ["CA", "WA", "FL", "OR", "CO", "TX", "NY", "VA", "AZ", "''"]
+    states = pd.Series(states_list * int(num_simulants / len(states_list)))
+
+    # Add age col by converting integer_series
+    maximum_age = 120
+    ages = integer_series.apply(pd.to_numeric, args=("coerce",))
+    ages = ages / ages.max() * (maximum_age + 1)
+    ages[ages.isna()] = -1  # temp nan
+    ages = ages.astype(int).astype(str)
+    ages[ages == "-1"] = ""
+
+    # Add a string_series column of mixed letters and numbers
+    string_list = [
+        "foo1",
+        "bar2",
+        "baz3",
+        "Unit 1A",
+        "1234",
+        "12/31/2020",
+        "a1b2c3",
+        "100000.00",
+        "123-45-6789",
+        "",
+    ]
+    string_series = pd.Series(string_list * int(num_simulants / len(string_list)))
+
+    return pd.DataFrame(
+        {
+            "numbers": integer_series,
+            "characters": character_series,
+            "state": states,
+            "age": ages,
+            "string_series": string_series,
+        }
+    )
 
 
 @pytest.fixture(scope="module")
@@ -68,7 +105,7 @@ def default_configuration():
 
 
 def test_generate_missing_data(dummy_dataset):
-    config = get_configuration()
+    config = get_configuration()["decennial_census"]["zipcode"]["missing_data"]
     config.update(
         {
             "decennial_census": {
@@ -80,16 +117,13 @@ def test_generate_missing_data(dummy_dataset):
             },
         }
     )
-    config = config["decennial_census"]["zipcode"]["missing_data"]
     data = dummy_dataset["numbers"]
-    noised_data = _validate_seed_and_noise_data(
-        noise_type=NOISE_TYPES.MISSING_DATA, column=data, config=config
-    )
+    noised_data = NOISE_TYPES.MISSING_DATA(data, config, RANDOMNESS0, "test")
 
     # Calculate newly missing data, ie data that didn't come in as already missing
     orig_non_missing_idx = data.index[(data.notna()) & (data != "")]
     newly_missing_idx = noised_data.index[
-        (noised_data.index.isin(orig_non_missing_idx)) & (noised_data == "")
+        (noised_data.index.isin(orig_non_missing_idx)) & (noised_data.isna())
     ]
 
     # Check for expected noise level
@@ -98,15 +132,14 @@ def test_generate_missing_data(dummy_dataset):
     assert np.isclose(expected_noise, actual_noise, rtol=0.02)
 
     # Check that un-noised values are unchanged
-    not_noised_idx = noised_data.index[noised_data != ""]
-    assert "" not in noised_data[not_noised_idx].values
+    not_noised_idx = noised_data.index[noised_data.notna()]
     assert (data[not_noised_idx] == noised_data[not_noised_idx]).all()
 
 
-def test_incorrect_selection(categorical_series, default_configuration):
-    config = default_configuration["decennial_census"]["state"]["incorrect_selection"]
-    noised_data = _validate_seed_and_noise_data(
-        noise_type=NOISE_TYPES.INCORRECT_SELECTION, column=categorical_series, config=config
+def test_incorrect_selection(categorical_series):
+    config = get_configuration()["decennial_census"]["state"]["incorrect_selection"]
+    noised_data = NOISE_TYPES.INCORRECT_SELECTION(
+        categorical_series, config, RANDOMNESS0, "test"
     )
 
     # Check for expected noise level
@@ -187,9 +220,138 @@ def test_miswrite_zipcodes(zipcodes):
             )
 
 
-@pytest.mark.skip(reason="TODO")
-def test_miswrite_ages():
-    pass
+def test_miswrite_ages_default_config(dummy_dataset):
+    """Test that miswritten ages are appropriately handled, including
+    no perturbation probabilities defaults to uniform distribution,
+    perturbation probabilities"""
+    config = get_configuration()["decennial_census"]["age"]["age_miswriting"]
+    data = dummy_dataset["age"]
+    noised_data = NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
+
+    # Check for expected noise level
+    not_missing_idx = data.index[data != ""]
+    expected_noise = config["row_noise_level"]
+    actual_noise = (noised_data[not_missing_idx] != data[not_missing_idx]).mean()
+    # NOTE: we increase the relative tolerance a bit here because the expected
+    # noise calculated above does not account for the fact that if a perturbed
+    # age ends up being the same as the original age, then 1 is subtracted.
+    assert np.isclose(expected_noise, actual_noise, rtol=0.03)
+
+    # Check that missing data remains missing
+    original_missing_idx = data.index[data == ""]
+    noised_missing_idx = noised_data.index[noised_data == ""]
+    pd.testing.assert_index_equal(original_missing_idx, noised_missing_idx)
+
+    # Check that there are no negative ages generated
+    assert noised_data[not_missing_idx].astype(int).min() >= 0
+
+
+def test_miswrite_ages_uniform_probabilities():
+    """Test that a list of perturbations passed in results in uniform probabilities"""
+    num_rows = 100_000
+    original_age = 25
+    perturbations = [-2, -1, 1]
+
+    config = get_configuration(
+        {
+            "decennial_census": {
+                "age": {
+                    "age_miswriting": {
+                        "row_noise_level": 1,
+                        "possible_perturbations": perturbations,
+                    },
+                },
+            },
+        },
+    )["decennial_census"]["age"]["age_miswriting"]
+
+    data = pd.Series([str(original_age)] * num_rows)
+    noised_data = NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
+    expected_noise = 1 / len(perturbations)
+    for perturbation in perturbations:
+        actual_noise = (noised_data.astype(int) - original_age == perturbation).mean()
+        assert np.isclose(actual_noise, expected_noise, rtol=0.01)
+
+
+def test_miswrite_ages_provided_probabilities():
+    """Test that provided age perturation probabilites are handled"""
+    num_rows = 100_000
+    original_age = 25
+    perturbations = {-1: 0.1, 1: 0.9}
+
+    config = get_configuration(
+        {
+            "decennial_census": {
+                "age": {
+                    "age_miswriting": {
+                        "row_noise_level": 1,
+                        "possible_perturbations": perturbations,
+                    },
+                },
+            },
+        },
+    )["decennial_census"]["age"]["age_miswriting"]
+
+    data = pd.Series([str(original_age)] * num_rows)
+    noised_data = NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
+    for perturbation in perturbations:
+        expected_noise = perturbations[perturbation]
+        actual_noise = (noised_data.astype(int) - original_age == perturbation).mean()
+        assert np.isclose(actual_noise, expected_noise, rtol=0.01)
+
+
+def test_miswrite_ages_handles_perturbation_to_same_age():
+    """Tests an edge case. It's possible that after an age is perturbed it ends
+    up being the original age. In that case, subtract 1. eg, an age of 1 that is
+    perturbed -2 becomes -1. But we cannot have negative so we flip the sign to +1.
+    But that's the same as the original age and so should become 1-1=0.
+    """
+    num_rows = 100
+    age = 1
+    perturbations = [-2]  # This will cause -1 which will be flipped to +1
+
+    config = get_configuration(
+        {
+            "decennial_census": {
+                "age": {
+                    "age_miswriting": {
+                        "row_noise_level": 1,
+                        "possible_perturbations": perturbations,
+                    },
+                },
+            },
+        },
+    )["decennial_census"]["age"]["age_miswriting"]
+
+    data = pd.Series([str(age)] * num_rows)
+    noised_data = NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
+
+    assert (noised_data == "0").all()
+
+
+def test_miswrite_ages_flips_negative_to_positive():
+    """Test that any ages perturbed to <0 are reflected to positive values"""
+    num_rows = 100
+    age = 3
+    perturbations = [-7]  # This will cause -4 and should flip to +4
+
+    config = get_configuration(
+        {
+            "decennial_census": {
+                "age": {
+                    "age_miswriting": {
+                        "row_noise_level": 1,
+                        "possible_perturbations": perturbations,
+                    },
+                },
+            },
+        },
+    )["decennial_census"]["age"]["age_miswriting"]
+
+    data = pd.Series([str(age)] * num_rows)
+    noised_data = NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
+
+    assert (noised_data == "4").all()
 
 
 def test_miswrite_numerics(string_series):
@@ -213,9 +375,7 @@ def test_miswrite_numerics(string_series):
     p_row_noise = config.row_noise_level
     p_token_noise = config.token_noise_level
     data = string_series
-    noised_data = _validate_seed_and_noise_data(
-        noise_type=NOISE_TYPES.NUMERIC_MISWRITING, column=data, config=config
-    )
+    noised_data = NOISE_TYPES.NUMERIC_MISWRITING(data, config, RANDOMNESS0, "test")
 
     # Get masks for helper groups, each string in categorical string purpose is to mimic possible string types
     empty_str = data == ""
@@ -338,9 +498,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
         }
     )
     config = config["decennial_census"][column]["typographic"]
-    noised_data = _validate_seed_and_noise_data(
-        noise_type=NOISE_TYPES.TYPOGRAPHIC, column=data, config=config
-    )
+    noised_data = NOISE_TYPES.TYPOGRAPHIC(data, config, RANDOMNESS0, "test")
 
     not_missing_idx = data.index[(data.notna()) & (data != "")]
     check_original = data.loc[not_missing_idx]
@@ -376,22 +534,46 @@ def test_generate_typographical_errors(dummy_dataset, column):
     ).all()
 
 
-####################
-# HELPER FUNCTIONS #
-####################
+@pytest.mark.parametrize(
+    "noise_type, data_col, form, form_col",
+    [
+        (NOISE_TYPES.MISSING_DATA, "numbers", "decennial_census", "zipcode"),
+        (NOISE_TYPES.INCORRECT_SELECTION, "state", "decennial_census", "state"),
+        (NOISE_TYPES.COPY_FROM_WITHIN_HOUSEHOLD, "todo", "todo", "todo"),
+        (NOISE_TYPES.MONTH_DAY_SWAP, "todo", "todo", "todo"),
+        (NOISE_TYPES.ZIP_CODE_MISWRITING, "todo", "todo", "todo"),
+        (NOISE_TYPES.AGE_MISWRITING, "age", "decennial_census", "age"),
+        (
+            NOISE_TYPES.NUMERIC_MISWRITING,
+            "string_series",
+            "decennial_census",
+            "street_number",
+        ),
+        (NOISE_TYPES.NICKNAME, "todo", "todo", "todo"),
+        (NOISE_TYPES.FAKE_NAME, "todo", "todo", "todo"),
+        (NOISE_TYPES.PHONETIC, "todo", "todo", "todo"),
+        (NOISE_TYPES.OCR, "todo", "todo", "todo"),
+        (NOISE_TYPES.TYPOGRAPHIC, "numbers", "decennial_census", "zipcode"),
+        (NOISE_TYPES.TYPOGRAPHIC, "characters", "decennial_census", "street_name"),
+    ],
+)
+def test_seeds_behave_as_expected(noise_type, data_col, form, form_col, dummy_dataset):
+    """Tests that different seeds produce different results and the same seed
+    produces the same results
+    """
+    noise = noise_type.name
+    if data_col == "todo":
+        pytest.skip(reason=f"TODO: implement for function {noise}")
+    config = get_configuration()[form][form_col][noise]
+    data = dummy_dataset[data_col]
+    noised_data = noise_type(data, config, RANDOMNESS0, f"test_{noise}")
+    noised_data_same_seed = noise_type(data, config, RANDOMNESS0, f"test_{noise}")
+    noised_data_different_seed = noise_type(data, config, RANDOMNESS1, f"test_{noise}")
 
-
-# TODO: refactor this into its own test parameterized by noise functions
-def _validate_seed_and_noise_data(noise_type, column, config):
-    """Confirms randomness stream behavior and returns the noised data"""
-    noised_data = noise_type(column, config, RANDOMNESS0, f"test_{noise_type.name}")
-    noised_data_same_seed = noise_type(column, config, RANDOMNESS0, f"test_{noise_type.name}")
-    noised_data_different_seed = noise_type(
-        column, config, RANDOMNESS1, f"test_{noise_type.name}"
-    )
-
-    assert (noised_data != column).any()
-    assert (noised_data == noised_data_same_seed).all()
+    assert (noised_data != data).any()
+    assert (noised_data.isna() == noised_data_same_seed.isna()).all()
+    assert (
+        noised_data[noised_data.notna()]
+        == noised_data_same_seed[noised_data_same_seed.notna()]
+    ).all()
     assert (noised_data != noised_data_different_seed).any()
-
-    return noised_data

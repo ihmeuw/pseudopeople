@@ -33,7 +33,9 @@ def _generate_form(
     if isinstance(source, pd.DataFrame):
         data = source
     else:
-        data = pd.read_csv(source, dtype=str, keep_default_na=False)
+        data = pd.read_hdf(source)
+        if not isinstance(data, pd.DataFrame):
+            raise TypeError(f"File located at {source} must contain a pandas DataFrame.")
     return noise_form(form, data, configuration_tree, seed)
 
 

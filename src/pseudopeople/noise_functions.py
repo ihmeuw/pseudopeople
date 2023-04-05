@@ -11,8 +11,8 @@ from pseudopeople.utilities import vectorized_choice
 
 
 def omit_rows(
-    form_data: pd.DataFrame,
-    configuration: float,
+    form_data: float,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
@@ -27,8 +27,8 @@ def omit_rows(
 
 
 def duplicate_rows(
-    form_data: pd.DataFrame,
-    configuration: float,
+    form_data: float,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
@@ -80,39 +80,39 @@ def generate_incorrect_selections(
 
 
 def generate_within_household_copies(
-    form_data: pd.DataFrame,
-    configuration: float,
+    column: pd.Series,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
     additional_key: Any,
-) -> pd.DataFrame:
+) -> pd.Series:
     """
 
-    :param form_data:
+    :param column:
     :param configuration:
     :param randomness_stream:
     :param additional_key: Key for RandomnessStream
     :return:
     """
     # todo actually duplicate rows
-    return form_data
+    return column
 
 
 def swap_months_and_days(
-    form_data: pd.DataFrame,
-    configuration: float,
+    column: pd.Series,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
     additional_key: Any,
-) -> pd.DataFrame:
+) -> pd.Series:
     """
 
-    :param form_data:
+    :param column:
     :param configuration:
     :param randomness_stream:
     :param additional_key: Key for RandomnessStream
     :return:
     """
     # todo actually duplicate rows
-    return form_data
+    return column
 
 
 def miswrite_zipcodes(
@@ -156,21 +156,35 @@ def miswrite_zipcodes(
 
 
 def miswrite_ages(
-    form_data: pd.DataFrame,
-    configuration: float,
+    column: pd.Series,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
     additional_key: Any,
-) -> pd.DataFrame:
-    """
+) -> pd.Series:
+    """Function to mis-write ages based on perturbation parameters included in
+    the config file.
 
-    :param form_data:
-    :param configuration:
-    :param randomness_stream:
-    :param additional_key: Key for RandomnessStream
+    :param column: pd.Series of ages
+    :param configuration: ConfigTree
+    :param randomness_stream: Vivarium RandomnessStream
+    :param additional_key: additional key used for randomness_stream calls
     :return:
     """
-    # todo actually duplicate rows
-    return form_data
+    possible_perturbations = configuration.possible_perturbations.to_dict()
+    perturbations = vectorized_choice(
+        options=list(possible_perturbations.keys()),
+        weights=list(possible_perturbations.values()),
+        n_to_choose=len(column),
+        randomness_stream=randomness_stream,
+        additional_key=f"{additional_key}_{column.name}_miswrite_ages",
+    )
+    new_values = column.astype(float).astype(int) + perturbations
+    # Reflect negative values to positive
+    new_values[new_values < 0] *= -1
+    # If new age == original age, subtract 1
+    new_values[new_values == column.astype(int)] -= 1
+
+    return new_values.astype(str)
 
 
 def miswrite_numerics(
@@ -278,7 +292,7 @@ def generate_missing_data(column: pd.Series, *_: Any) -> pd.Series:
     :returns: pd.Series of empty strings with the index of column.
     """
 
-    return pd.Series("", index=column.index)
+    return pd.Series(pd.NA, index=column.index)
 
 
 def generate_typographical_errors(
@@ -288,7 +302,7 @@ def generate_typographical_errors(
     additional_key: Any,
 ) -> pd.Series:
     """Function that takes a column and applies noise to the string values
-    representative of keyboard mis-typing.
+    representative of keyboard mistyping.
 
     :param column:  pd.Series of data
     :param configuration: ConfigTree object containing noising parameters
@@ -301,7 +315,12 @@ def generate_typographical_errors(
         qwerty_errors = yaml.full_load(f)
 
     def keyboard_corrupt(truth, corrupted_pr, addl_pr, rng):
-        """Abie's implementation of typographical noising"""
+        """For each string, loop through each character and determine if
+        it is to be corrupted. If so, uniformly choose from the appropriate
+        values to mistype. Also determine which mistyped characters should
+        include the original value and, if it does, include the original value
+        after the mistyped value
+        """
         err = ""
         i = 0
         while i < len(truth):
@@ -325,6 +344,7 @@ def generate_typographical_errors(
     include_original_token_level = configuration.include_original_token_level
 
     rng = np.random.default_rng(seed=randomness_stream.seed)
+    column = column.astype(str)
     for idx in column.index:
         noised_value = keyboard_corrupt(
             column[idx],
