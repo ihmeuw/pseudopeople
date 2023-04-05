@@ -1,3 +1,10 @@
+**0.3.0 - 04/04/23**
+
+ - Implement numeric miswriting noise function
+ - Implement age miswriting noise function
+ - Implement additional forms: ACS, CPS, WIC, and SSA
+ - Read data in from HDF files instead of CSV files
+
 **0.2.1 - 03/31/23**
 
  - Fix bug preventing generation of W2/1099 forms
