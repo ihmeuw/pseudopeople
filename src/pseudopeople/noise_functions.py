@@ -133,18 +133,20 @@ def miswrite_zipcodes(
 
     str_len = column.str.len()
     if (str_len != 5).sum() > 0:
-        raise ValueError("Zipcode data contains zipcodes that are not 5 digits long. Please check input data.")
+        raise ValueError(
+            "Zipcode data contains zipcodes that are not 5 digits long. Please check input data."
+        )
 
     rng = np.random.default_rng(randomness_stream.seed)
     shape = (len(column), 5)
 
     # Get configuration values for each piece of 5 digit zipcode
-    first2_prob = configuration.first_two_digits_noise_level
-    middle_prob = configuration.middle_digit_noise_level
-    last2_prob = configuration.last_two_digits_noise_level
+    first2_prob = configuration.first_two_digits_noise_leveL / 0.9
+    middle_prob = configuration.middle_digit_noise_leveL / 0.9
+    last2_prob = configuration.last_two_digits_noise_leveL / 0.9
     threshold = np.array([2 * [first2_prob] + [middle_prob] + 2 * [last2_prob]])
     replace = rng.random(shape) < threshold
-    random_digits = rng.choice(list('0123456789'), shape)
+    random_digits = rng.choice(list("0123456789"), shape)
     digits = []
     for i in range(5):
         digit = np.where(replace[:, i], random_digits[:, i], column.str[i])
