@@ -119,7 +119,7 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
         "INCORRECT_SELECTION",
         "COPY_FROM_WITHIN_HOUSEHOLD",
         "MONTH_DAY_SWAP",
-        "ZIP_CODE_MISWRITING",
+        "ZIPCODE_MISWRITING",
         "AGE_MISWRITING",
         "NUMERIC_MISWRITING",
         "NICKNAME",

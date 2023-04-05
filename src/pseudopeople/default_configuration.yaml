@@ -109,6 +109,11 @@ decennial_census:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        zipcode_miswriting:
+            row_noise_level: 0.01
+            first_two_digits_noise_level: 0.04
+            middle_digit_noise_level: 0.2
+            last_two_digits_noise_level: 0.36
 
 taxes_w2_and_1099:
     omission: 0.0
@@ -197,6 +202,11 @@ taxes_w2_and_1099:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        zipcode_miswriting:
+            row_noise_level: 0.01
+            first_two_digits_noise_level: 0.04
+            middle_digit_noise_level: 0.2
+            last_two_digits_noise_level: 0.36
     first_name:
         missing_data:
             row_noise_level: 0.01
@@ -278,6 +288,11 @@ taxes_w2_and_1099:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        zipcode_miswriting:
+            row_noise_level: 0.01
+            first_two_digits_noise_level: 0.04
+            middle_digit_noise_level: 0.2
+            last_two_digits_noise_level: 0.36
     middle_initial:
         missing_data:
             row_noise_level: 0.01
@@ -408,6 +423,11 @@ american_communities_survey:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        zipcode_miswriting:
+            row_noise_level: 0.01
+            first_two_digits_noise_level: 0.04
+            middle_digit_noise_level: 0.2
+            last_two_digits_noise_level: 0.36
 
 current_population_survey:
     omission: 0.2905
@@ -516,6 +536,11 @@ current_population_survey:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        zipcode_miswriting:
+            row_noise_level: 0.01
+            first_two_digits_noise_level: 0.04
+            middle_digit_noise_level: 0.2
+            last_two_digits_noise_level: 0.36
 
 women_infants_and_children:
     omission: 0.0
@@ -629,6 +654,11 @@ women_infants_and_children:
             row_noise_level: 0.01
             token_noise_level: 0.1
             include_original_token_level: 0.1
+        zipcode_miswriting:
+            row_noise_level: 0.01
+            first_two_digits_noise_level: 0.04
+            middle_digit_noise_level: 0.2
+            last_two_digits_noise_level: 0.36
 
 social_security:
     omission: 0.0

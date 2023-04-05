@@ -67,7 +67,8 @@ def dummy_dataset():
         "",
     ]
     string_series = pd.Series(string_list * int(num_simulants / len(string_list)))
-
+    zipcodes = ["12345", "98765", "02468", "13579", ""]
+    zipcode_series = pd.Series(zipcodes * int(num_simulants / len(zipcodes)))
     return pd.DataFrame(
         {
             "numbers": integer_series,
@@ -75,6 +76,7 @@ def dummy_dataset():
             "state": states,
             "age": ages,
             "string_series": string_series,
+            "zipcode": zipcode_series,
         }
     )
 
@@ -156,9 +158,55 @@ def test_swap_months_and_days():
     pass
 
 
-@pytest.mark.skip(reason="TODO")
-def test_miswrite_zipcodes():
-    pass
+def test_miswrite_zipcodes(dummy_dataset):
+    config = get_configuration()
+    config.update(
+        {
+            "decennial_census": {
+                "zipcode": {
+                    "zipcode_miswriting": {
+                        "row_noise_level": 0.5,
+                        "first_two_digits_noise_level": 0.3,
+                        "middle_digit_noise_level": 0.4,
+                        "last_two_digits_noise_level": 0.5,
+                    },
+                },
+            },
+        }
+    )
+    config = config["decennial_census"]["zipcode"]["zipcode_miswriting"]
+
+    # Get configuration values for each piece of 5 digit zipcode
+    row_noise_level = config.row_noise_level
+    first2_prob = config.first_two_digits_noise_level
+    middle_prob = config.middle_digit_noise_level
+    last2_prob = config.last_two_digits_noise_level
+    data = dummy_dataset["zipcode"]
+    noised_data = NOISE_TYPES.ZIPCODE_MISWRITING(data, config, RANDOMNESS0, "test_zipcode")
+
+    # Confirm missing data remains missing
+    orig_missing = data == ""
+    assert (noised_data[orig_missing] == "").all()
+    # Check noise for each digits position matches expected noise
+    for i in range(2):
+        assert np.isclose(
+            first2_prob * row_noise_level,
+            (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).mean(),
+            rtol=0.02,
+        )
+
+    assert np.isclose(
+        middle_prob * row_noise_level,
+        (data[~orig_missing].str[2] != noised_data[~orig_missing].str[2]).mean(),
+        rtol=0.02,
+    )
+
+    for i in range(3, 5):
+        assert np.isclose(
+            last2_prob * row_noise_level,
+            (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).mean(),
+            rtol=0.02,
+        )
 
 
 def test_miswrite_ages_default_config(dummy_dataset):
@@ -482,7 +530,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
         (NOISE_TYPES.INCORRECT_SELECTION, "state", "decennial_census", "state"),
         (NOISE_TYPES.COPY_FROM_WITHIN_HOUSEHOLD, "todo", "todo", "todo"),
         (NOISE_TYPES.MONTH_DAY_SWAP, "todo", "todo", "todo"),
-        (NOISE_TYPES.ZIP_CODE_MISWRITING, "todo", "todo", "todo"),
+        (NOISE_TYPES.ZIPCODE_MISWRITING, "zipcode", "decennial_census", "zipcode"),
         (NOISE_TYPES.AGE_MISWRITING, "age", "decennial_census", "age"),
         (
             NOISE_TYPES.NUMERIC_MISWRITING,
