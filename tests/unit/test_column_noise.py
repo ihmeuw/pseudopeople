@@ -171,9 +171,9 @@ def test_miswrite_zipcodes(dummy_dataset):
                 "zipcode": {
                     "zipcode_miswriting": {
                         "row_noise_level": 0.5,
-                        "first_two_digits_noise_leveL": 0.3,
-                        "middle_digit_noise_leveL": 0.4,
-                        "last_two_digits_noise_leveL": 0.5,
+                        "first_two_digits_noise_level": 0.3,
+                        "middle_digit_noise_level": 0.4,
+                        "last_two_digits_noise_level": 0.5,
                     },
                 },
             },
@@ -183,9 +183,9 @@ def test_miswrite_zipcodes(dummy_dataset):
 
     # Get configuration values for each piece of 5 digit zipcode
     row_noise_level = config.row_noise_level
-    first2_prob = config.first_two_digits_noise_leveL
-    middle_prob = config.middle_digit_noise_leveL
-    last2_prob = config.last_two_digits_noise_leveL
+    first2_prob = config.first_two_digits_noise_level
+    middle_prob = config.middle_digit_noise_level
+    last2_prob = config.last_two_digits_noise_level
     data = dummy_dataset["zipcode"]
     noised_data = NOISE_TYPES.ZIPCODE_MISWRITING(data, config, RANDOMNESS0, "test_zipcode")
 
@@ -193,25 +193,25 @@ def test_miswrite_zipcodes(dummy_dataset):
     orig_missing = data == ""
     assert (noised_data[orig_missing] == "").all()
     # Check noise for each digits position matches expected noise
-    for i in range(5):  # "12345"
-        if i < 2:
-            assert np.isclose(
-                first2_prob * row_noise_level,
-                (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).mean(),
-                rtol=0.02,
-            )
-        elif i == 2:
-            assert np.isclose(
-                middle_prob * row_noise_level,
-                (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).mean(),
-                rtol=0.02,
-            )
-        else:
-            assert np.isclose(
-                last2_prob * row_noise_level,
-                (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).mean(),
-                rtol=0.02,
-            )
+    for i in range(2):
+        assert np.isclose(
+            first2_prob * row_noise_level,
+            (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).mean(),
+            rtol=0.02,
+        )
+
+    assert np.isclose(
+        middle_prob * row_noise_level,
+        (data[~orig_missing].str[2] != noised_data[~orig_missing].str[2]).mean(),
+        rtol=0.02,
+    )
+
+    for i in range(3, 5):
+        assert np.isclose(
+            last2_prob * row_noise_level,
+            (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).mean(),
+            rtol=0.02,
+        )
 
 
 def test_miswrite_ages_default_config(dummy_dataset):
@@ -459,6 +459,7 @@ def test_generate_fake_names():
     # todo: test blanks remain blank
     # todo: test new values
     # todo: equal across fake values
+    pass
 
 
 @pytest.mark.skip(reason="TODO")
