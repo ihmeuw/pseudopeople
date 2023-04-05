@@ -1,0 +1,21 @@
+# This is the version for the readthedocs configuration. Version 2 ignores
+# web-based configuration and uses everything from this file.
+version: 2
+
+# Configure the python version and environment construction run before
+# docs are built.
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.10"
+python:
+  install:
+      # This runs pip install .[docs] from the project root.
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs
+
+# Doc builds will fail if there are any warnings
+sphinx:
+  fail_on_warning: true
