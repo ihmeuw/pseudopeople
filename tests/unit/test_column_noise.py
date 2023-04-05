@@ -455,7 +455,10 @@ def test_generate_nicknames():
 
 @pytest.mark.skip(reason="TODO")
 def test_generate_fake_names():
-    pass
+    # todo: get dummydata with fake names columns
+    # todo: test blanks remain blank
+    # todo: test new values
+    # todo: equal across fake values
 
 
 @pytest.mark.skip(reason="TODO")
