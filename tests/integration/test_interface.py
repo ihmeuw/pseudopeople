@@ -11,17 +11,17 @@ from pseudopeople.interface import generate_decennial_census
 def test_generate_decennial_census(
     decennial_census_data_path: Union[Path, str], user_config_path: Union[Path, str]
 ):
-    data = pd.read_csv(decennial_census_data_path, dtype=str, keep_default_na=False)
+    data = pd.read_hdf(decennial_census_data_path)
 
     # TODO: Refactor this check into a separate test
     noised_data = generate_decennial_census(
-        path=decennial_census_data_path, seed=0, configuration=user_config_path
+        source=decennial_census_data_path, seed=0, configuration=user_config_path
     )
     noised_data_same_seed = generate_decennial_census(
-        path=decennial_census_data_path, seed=0, configuration=user_config_path
+        source=decennial_census_data_path, seed=0, configuration=user_config_path
     )
     noised_data_different_seed = generate_decennial_census(
-        path=decennial_census_data_path, seed=1, configuration=user_config_path
+        source=decennial_census_data_path, seed=1, configuration=user_config_path
     )
 
     assert noised_data.equals(noised_data_same_seed)

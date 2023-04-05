@@ -1,8 +1,9 @@
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Dict, Union
 
 import numpy as np
 import pandas as pd
+import yaml
 from vivarium.framework.configuration import ConfigTree
 from vivarium.framework.randomness import RandomnessStream, random
 
@@ -13,11 +14,11 @@ def get_randomness_stream(form: Form, seed: int) -> RandomnessStream:
     return RandomnessStream(form.value, lambda: pd.Timestamp("2020-04-01"), seed)
 
 
-def get_configuration(user_yaml_path: Union[Path, str] = None) -> ConfigTree:
+def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> ConfigTree:
     """
     Gets a noising configuration ConfigTree, optionally overridden by a user-provided YAML.
 
-    :param user_yaml_path: A path to the YAML file defining user overrides for the defaults
+    :param user_configuration: A path to the YAML file or a dictionary defining user overrides for the defaults
     :return: a ConfigTree object of the noising configuration
     """
     import pseudopeople
@@ -30,9 +31,95 @@ def get_configuration(user_yaml_path: Union[Path, str] = None) -> ConfigTree:
         data=Path(pseudopeople.__file__).resolve().parent / "default_configuration.yaml",
         layers=default_config_layers,
     )
-    if user_yaml_path:
-        noising_configuration.update(user_yaml_path, layer="user")
+    if user_configuration:
+        if isinstance(user_configuration, (Path, str)):
+            with open(user_configuration, "r") as f:
+                user_configuration = yaml.full_load(f)
+        user_configuration = format_user_configuration(
+            user_configuration, noising_configuration
+        )
+        noising_configuration.update(user_configuration, layer="user")
+
+    validate_noising_configuration(noising_configuration)
+
     return noising_configuration
+
+
+def format_user_configuration(user_dict: Dict, default_config) -> Dict:
+    """Formats the user's configuration file as necessary so it can properly
+    update noising configuration to be used
+    """
+    user_dict = _format_age_miswriting_perturbations(user_dict, default_config)
+
+    return user_dict
+
+
+def _format_age_miswriting_perturbations(user_dict: Dict, default_config: ConfigTree) -> Dict:
+    # Format any age perturbation lists as a dictionary with uniform probabilites
+    for form in user_dict:
+        user_perturbations = (
+            user_dict[form]
+            .get("age", {})
+            .get("age_miswriting", {})
+            .get("possible_perturbations", {})
+        )
+        if not user_perturbations:
+            continue
+        formatted = {}
+        default_perturbations = default_config[form]["age"]["age_miswriting"][
+            "possible_perturbations"
+        ]
+        # Replace default configuration with 0 probabilities
+        for perturbation in default_perturbations:
+            formatted[perturbation] = 0
+        if isinstance(user_perturbations, list):
+            # Add user perturbations with uniform probabilities
+            uniform_prob = 1 / len(user_perturbations)
+            for perturbation in user_perturbations:
+                formatted[perturbation] = uniform_prob
+        elif isinstance(user_perturbations, dict):
+            for perturbation, prob in user_perturbations.items():
+                formatted[perturbation] = prob
+        else:
+            raise NotImplementedError(
+                "age.age_miswriting.possible_perturbations can only be a list or dict, "
+                f"received type {type(user_perturbations)}"
+            )
+        user_dict[form]["age"]["age_miswriting"]["possible_perturbations"] = formatted
+
+    return user_dict
+
+
+def validate_noising_configuration(config: ConfigTree) -> None:
+    """Perform various validation checks on the final noising ConfigTree object"""
+    _validate_age_miswriting(config)
+
+
+def _validate_age_miswriting(config: ConfigTree) -> None:
+    possible_perturbations = extract_values(config, "possible_perturbations")
+    for form_perturbations in possible_perturbations:
+        form_perturbations_dict = form_perturbations.to_dict()
+        if 0 in form_perturbations_dict:
+            # TODO: Find a way to report specific location in config file
+            raise ValueError("Cannot include 0 in age_miswriting.possible_perturbations")
+        if sum(form_perturbations_dict.values()) != 1:
+            raise ValueError(
+                "The provided possible_perturbation probabilities must sum to 1 but they "
+                f"currently sum to {sum(form_perturbations_dict.values())}: {form_perturbations_dict}",
+            )
+
+
+def extract_values(config: Union[ConfigTree, Dict], key: str):
+    """Extract values with a specific key from a dict or configtree"""
+    results = []
+    for k, v in config.items():
+        if k == key:
+            results.append(v)
+        if isinstance(v, (dict, ConfigTree)):
+            for result in extract_values(v, key):
+                results.append(result)
+
+    return results
 
 
 def vectorized_choice(
@@ -45,7 +132,7 @@ def vectorized_choice(
 ):
     """
     Function that takes a list of options and uses Vivarium common random numbers framework to make a given number
-    of razndom choice selections.
+    of random choice selections.
 
     :param options: List and series of possible values to choose
     :param n_to_choose: Number of choices to make, the length of the returned array of values
@@ -65,6 +152,8 @@ def vectorized_choice(
     if weights is None:
         n = len(options)
         weights = np.ones(n) / n
+    if isinstance(weights, list):
+        weights = np.array(weights)
     # for each of n_to_choose, sample uniformly between 0 and 1
     index = pd.Index(np.arange(n_to_choose))
     if randomness_stream is None:
