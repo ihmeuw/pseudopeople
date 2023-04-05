@@ -20,7 +20,7 @@ RANDOMNESS1 = RandomnessStream(
 @pytest.fixture(scope="module")
 def dummy_dataset():
     # Add a column of integer strings
-    num_simulants = 100_000
+    num_simulants = 1_000_000
     dummy_idx = pd.Index(range(num_simulants))
     integer_series = pd.Series([str(x) for x in range(num_simulants)])
     # Add missing data from `generate_missing_data` function
@@ -57,13 +57,8 @@ def string_series():
     )
 
 
-@pytest.fixture(scope="module")
-def default_configuration():
-    return get_configuration()
-
-
 def test_generate_missing_data(dummy_dataset):
-    config = get_configuration()
+    config = get_configuration()["decennial_census"]["zipcode"]["missing_data"]
     config.update(
         {
             "decennial_census": {
@@ -75,7 +70,6 @@ def test_generate_missing_data(dummy_dataset):
             },
         }
     )
-    config = config["decennial_census"]["zipcode"]["missing_data"]
     data = dummy_dataset["numbers"]
     noised_data = _validate_seed_and_noise_data(
         noise_type=NOISE_TYPES.MISSING_DATA, column=data, config=config
@@ -97,8 +91,8 @@ def test_generate_missing_data(dummy_dataset):
     assert (data[not_noised_idx] == noised_data[not_noised_idx]).all()
 
 
-def test_incorrect_selection(categorical_series, default_configuration):
-    config = default_configuration["decennial_census"]["state"]["incorrect_selection"]
+def test_incorrect_selection(categorical_series):
+    config = get_configuration()["decennial_census"]["state"]["incorrect_selection"]
     noised_data = _validate_seed_and_noise_data(
         noise_type=NOISE_TYPES.INCORRECT_SELECTION, column=categorical_series, config=config
     )
@@ -132,9 +126,148 @@ def test_miswrite_zipcodes():
     pass
 
 
-@pytest.mark.skip(reason="TODO")
-def test_miswrite_ages():
-    pass
+def test_miswrite_ages_default_config(dummy_dataset):
+    """Test that miswritten ages are appropriately handled, including
+    no perturbation probabilities defaults to uniform distribution,
+    perturbation probabilities"""
+    config = get_configuration()["decennial_census"]["age"]["age_miswriting"]
+    data = dummy_dataset.rename(columns={"numbers": "age"})["age"]
+
+    # Convert to realistic age
+    maximum_age = 120
+    data = data.apply(pd.to_numeric, args=("coerce",))
+    data = data / data.max() * (maximum_age + 1)
+    data[data.isna()] = -1  # temp nan
+    data = data.astype(int).astype(str)
+    data[data == "-1"] = ""
+    noised_data = _validate_seed_and_noise_data(
+        noise_type=NOISE_TYPES.AGE_MISWRITING, column=data, config=config
+    )
+
+    # Check for expected noise level
+    not_missing_idx = data.index[data != ""]
+    expected_noise = config["row_noise_level"]
+    actual_noise = (noised_data[not_missing_idx] != data[not_missing_idx]).mean()
+    # NOTE: we increase the relative tolerance a bit here because the expected
+    # noise calculated above does not account for the fact that if a perturbed
+    # age ends up being the same as the original age, then 1 is subtracted.
+    assert np.isclose(expected_noise, actual_noise, rtol=0.03)
+
+    # Check that missing data remains missing
+    original_missing_idx = data.index[data == ""]
+    noised_missing_idx = noised_data.index[noised_data == ""]
+    pd.testing.assert_index_equal(original_missing_idx, noised_missing_idx)
+
+    # Check that there are no negative ages generated
+    assert noised_data[not_missing_idx].astype(int).min() >= 0
+
+
+def test_miswrite_ages_uniform_probabilities():
+    """Test that a list of perturbations passed in results in uniform probabilities"""
+    num_rows = 100_000
+    original_age = 25
+    perturbations = [-2, -1, 1]
+
+    config = get_configuration(
+        {
+            "decennial_census": {
+                "age": {
+                    "age_miswriting": {
+                        "row_noise_level": 1,
+                        "possible_perturbations": perturbations,
+                    },
+                },
+            },
+        },
+    )["decennial_census"]["age"]["age_miswriting"]
+
+    data = pd.Series([str(original_age)] * num_rows)
+    noised_data = NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
+    expected_noise = 1 / len(perturbations)
+    for perturbation in perturbations:
+        actual_noise = (noised_data.astype(int) - original_age == perturbation).mean()
+        assert np.isclose(actual_noise, expected_noise, rtol=0.01)
+
+
+def test_miswrite_ages_provided_probabilities():
+    """Test that provided age perturation probabilites are handled"""
+    num_rows = 100_000
+    original_age = 25
+    perturbations = {-1: 0.1, 1: 0.9}
+
+    config = get_configuration(
+        {
+            "decennial_census": {
+                "age": {
+                    "age_miswriting": {
+                        "row_noise_level": 1,
+                        "possible_perturbations": perturbations,
+                    },
+                },
+            },
+        },
+    )["decennial_census"]["age"]["age_miswriting"]
+
+    data = pd.Series([str(original_age)] * num_rows)
+    noised_data = NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
+    for perturbation in perturbations:
+        expected_noise = perturbations[perturbation]
+        actual_noise = (noised_data.astype(int) - original_age == perturbation).mean()
+        assert np.isclose(actual_noise, expected_noise, rtol=0.01)
+
+
+def test_miswrite_ages_handles_perturbation_to_same_age():
+    """Tests an edge case. It's possible that after an age is perturbed it ends
+    up being the original age. In that case, subtract 1. eg, an age of 1 that is
+    perturbed -2 becomes -1. But we cannot have negative so we flip the sign to +1.
+    But that's the same as the original age and so should become 1-1=0.
+    """
+    num_rows = 100
+    age = 1
+    perturbations = [-2]  # This will cause -1 which will be flipped to +1
+
+    config = get_configuration(
+        {
+            "decennial_census": {
+                "age": {
+                    "age_miswriting": {
+                        "row_noise_level": 1,
+                        "possible_perturbations": perturbations,
+                    },
+                },
+            },
+        },
+    )["decennial_census"]["age"]["age_miswriting"]
+
+    data = pd.Series([str(age)] * num_rows)
+    noised_data = NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
+
+    assert (noised_data == "0").all()
+
+
+def test_miswrite_ages_flips_negative_to_positive():
+    """Test that any ages perturbed to <0 are reflected to positive values"""
+    num_rows = 100
+    age = 3
+    perturbations = [-7]  # This will cause -4 and should flip to +4
+
+    config = get_configuration(
+        {
+            "decennial_census": {
+                "age": {
+                    "age_miswriting": {
+                        "row_noise_level": 1,
+                        "possible_perturbations": perturbations,
+                    },
+                },
+            },
+        },
+    )["decennial_census"]["age"]["age_miswriting"]
+
+    data = pd.Series([str(age)] * num_rows)
+    noised_data = NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
+
+    assert (noised_data == "4").all()
 
 
 def test_miswrite_numerics(string_series):

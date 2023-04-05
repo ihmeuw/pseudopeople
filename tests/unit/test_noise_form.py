@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 from vivarium.config_tree import ConfigTree
 
-from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
+from pseudopeople.entity_types import ColumnNoiseType
 from pseudopeople.interface import generate_decennial_census
 from pseudopeople.noise import noise_form
 from pseudopeople.noise_entities import NOISE_TYPES

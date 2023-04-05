@@ -15,13 +15,13 @@ def test_generate_decennial_census(
 
     # TODO: Refactor this check into a separate test
     noised_data = generate_decennial_census(
-        path=decennial_census_data_path, seed=0, configuration=user_config_path
+        source=decennial_census_data_path, seed=0, configuration=user_config_path
     )
     noised_data_same_seed = generate_decennial_census(
-        path=decennial_census_data_path, seed=0, configuration=user_config_path
+        source=decennial_census_data_path, seed=0, configuration=user_config_path
     )
     noised_data_different_seed = generate_decennial_census(
-        path=decennial_census_data_path, seed=1, configuration=user_config_path
+        source=decennial_census_data_path, seed=1, configuration=user_config_path
     )
 
     assert noised_data.equals(noised_data_same_seed)
