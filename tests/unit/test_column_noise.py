@@ -514,7 +514,7 @@ def test_seeds_behave_as_expected(noise_type, data_col, form, form_col, dummy_da
     assert (noised_data != data).any()
     assert (noised_data.isna() == noised_data_same_seed.isna()).all()
     assert (
-            noised_data[noised_data.notna()]
-            == noised_data_same_seed[noised_data_same_seed.notna()]
+        noised_data[noised_data.notna()]
+        == noised_data_same_seed[noised_data_same_seed.notna()]
     ).all()
     assert (noised_data != noised_data_different_seed).any()
