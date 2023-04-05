@@ -58,6 +58,11 @@ def string_series():
 
 
 @pytest.fixture(scope="module")
+def zipcodes():
+    return pd.Series(["12345", "98765", "02468", "13579", ""] * 100_100)
+
+
+@pytest.fixture(scope="module")
 def default_configuration():
     return get_configuration()
 
@@ -129,8 +134,57 @@ def test_swap_months_and_days():
 
 
 @pytest.mark.skip(reason="TODO")
-def test_miswrite_zipcodes():
-    pass
+def test_miswrite_zipcodes(zipcodes):
+    config = get_configuration()
+    config.update(
+        {
+            "decennial_census": {
+                "zipcode": {
+                    "zipcode_miswriting": {
+                        "row_noise_level": 0.4,
+                        #"token_noise_level": 0.5,
+                        "first_two_digits_noise_leveL": 0.1,
+                        "middle_digit_noise_leveL": 0.5,
+                        "last_two_digits_noise_leveL": 0.5,
+                    },
+                },
+            },
+        }
+    )
+    config = config["decennial_census"]["zipcode"]["zipcode_miswriting"]
+
+    # Get configuration values for each piece of 5 digit zipcode
+    first2_prob = config.first_two_digits_noise_level
+    middle_prob = config.middle_digit_noise_level
+    last2_prob = config.last_two_digits_noise_level
+    data = zipcodes
+    noised_data = _validate_seed_and_noise_data(
+        noise_type=NOISE_TYPES.NUMERIC_MISWRITING, column=data, config=config
+    )
+
+    # Confirm missing data remains missing
+    orig_missing = data == ""
+    assert (noised_data[orig_missing] == "").all()
+    # Check noise for each digits position matches expected noise
+    for i in range(6):  # "12345"
+        if i < 2:
+            assert np.isclose(
+                first2_prob,
+                (data.str[i] != noised_data.str[i]).mean(),
+                rtol=0.02,
+            )
+        elif i == 2:
+            assert np.isclose(
+                middle_prob,
+                (data.str[i] != noised_data.str[i]).mean(),
+                rtol=0.02,
+            )
+        else:
+            assert np.isclose(
+                last2_prob,
+                (data.str[i] != noised_data.str[i]).mean(),
+                rtol=0.02,
+            )
 
 
 @pytest.mark.skip(reason="TODO")
