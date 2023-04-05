@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 from vivarium.config_tree import ConfigTree
 
-from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
+from pseudopeople.entity_types import ColumnNoiseType
 from pseudopeople.interface import generate_decennial_census
 from pseudopeople.noise import noise_form
 from pseudopeople.noise_entities import NOISE_TYPES
@@ -169,7 +169,7 @@ def test_correct_forms_are_used(func, form, mocker):
     if func == "todo":
         pytest.skip(reason=f"TODO: implement function for {form.value} form")
     mock = mocker.patch("pseudopeople.interface.noise_form")
-    mocker.patch("pseudopeople.interface.pd.read_csv")
+    mocker.patch("pseudopeople.interface.pd.read_hdf", return_value=pd.DataFrame())
     _ = func("dummy/path")
 
     assert mock.call_args[0][0] == form

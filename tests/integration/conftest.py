@@ -163,7 +163,7 @@ def decennial_census_data_path(tmp_path_factory):
         }
     )
 
-    data_path = tmp_path_factory.getbasetemp() / "dummy_data.csv"
-    data.to_csv(data_path, index=False)
+    data_path = tmp_path_factory.getbasetemp() / "dummy_data.hdf"
+    data.to_hdf(data_path, "data")
 
     return data_path
