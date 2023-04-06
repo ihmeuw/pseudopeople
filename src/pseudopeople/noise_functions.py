@@ -6,8 +6,8 @@ import yaml
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
-from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.constants import paths
+from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.utilities import vectorized_choice
 
 
@@ -74,7 +74,7 @@ def generate_incorrect_selections(
         options=options,
         n_to_choose=len(column),
         randomness_stream=randomness_stream,
-        additional_key=f"{additional_key}_{column.name}_incorrect_select_choice",
+        additional_key=f"{additional_key}_incorrect_select_choice",
     ).to_numpy()
 
     return pd.Series(new_values, index=column.index)
@@ -272,17 +272,15 @@ def generate_fake_names(
     name = column.name
     fake_first = fake_first_names()
     fake_last = fake_last_names()
-    fake_names = {"first_name": fake_first,
-                  "last_name": fake_last
-                  }
+    fake_names = {"first_name": fake_first, "last_name": fake_last}
     options = fake_names[name]
 
     new_values = vectorized_choice(
         options=options,
         n_to_choose=len(column),
         randomness_stream=randomness_stream,
-        additional_key=f"{additional_key}_{column.name}_fake_names",
-    ).to_numpy()
+        additional_key=f"{additional_key}_fake_names",
+    )
     return pd.Series(new_values, index=column.index)
 
 

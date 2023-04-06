@@ -185,10 +185,11 @@ H AGE
 OF THE HOME"""
 
 
-def fake_first_names(case='upper'):
+def fake_first_names(case="upper"):
     fake_names = getattr(_fake_first_name_string, case)()
-    return fake_names.split('\n')
+    return fake_names.split("\n")
 
-def fake_last_names(case='upper'):
+
+def fake_last_names(case="upper"):
     fake_names = getattr(_fake_last_name_string, case)()
-    return fake_names.split('\n')
+    return fake_names.split("\n")
