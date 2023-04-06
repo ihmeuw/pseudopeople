@@ -11,8 +11,8 @@ from pseudopeople.utilities import vectorized_choice
 
 
 def omit_rows(
-    form_data: float,
-    configuration: ConfigTree,
+    form_data: pd.DataFrame,
+    configuration: float,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
@@ -27,8 +27,8 @@ def omit_rows(
 
 
 def duplicate_rows(
-    form_data: float,
-    configuration: ConfigTree,
+    form_data: pd.DataFrame,
+    configuration: float,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
