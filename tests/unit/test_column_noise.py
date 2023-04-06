@@ -570,7 +570,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
     p_token_noise = config.token_noise_level
     str_lengths = check_original.str.len()  # pd.Series
     p_token_not_noised = 1 - p_token_noise
-    p_strings_not_noised = p_token_not_noised ** str_lengths  # pd.Series
+    p_strings_not_noised = p_token_not_noised**str_lengths  # pd.Series
     p_strings_noised = 1 - p_strings_not_noised  # pd.Series
     expected_noise = p_row_noise * p_strings_noised.mean()
     actual_noise = (check_noised != check_original).mean()
@@ -581,7 +581,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
     p_include_original_token = config.include_original_token_level
     p_token_does_not_increase_string_length = 1 - p_token_noise * p_include_original_token
     p_strings_do_not_increase_length = (
-        p_token_does_not_increase_string_length ** str_lengths
+        p_token_does_not_increase_string_length**str_lengths
     )  # pd.Series
     p_strings_increase_length = 1 - p_strings_do_not_increase_length  # pd.Series
     expected_changed_length = p_row_noise * p_strings_increase_length.mean()
