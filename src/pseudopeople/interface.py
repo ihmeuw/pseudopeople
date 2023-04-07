@@ -4,9 +4,9 @@ from typing import Union
 
 import pandas as pd
 
+from pseudopeople.configuration import get_configuration
 from pseudopeople.noise import noise_form
 from pseudopeople.schema_entities import FORMS
-from pseudopeople.configuration import get_configuration
 
 
 def _generate_form(

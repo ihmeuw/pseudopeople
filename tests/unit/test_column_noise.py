@@ -6,8 +6,8 @@ import pandas as pd
 import pytest
 from vivarium.framework.randomness import RandomnessStream
 
-from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.configuration import get_configuration
+from pseudopeople.noise_entities import NOISE_TYPES
 
 RANDOMNESS0 = RandomnessStream(
     key="test_column_noise", clock=lambda: pd.Timestamp("2020-09-01"), seed=0

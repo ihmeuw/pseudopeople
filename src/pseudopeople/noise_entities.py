@@ -14,8 +14,12 @@ class __NoiseTypes(NamedTuple):
     in the "baseline" ConfigTree layer.
     """
 
-    OMISSION: RowNoiseType = RowNoiseType("omission", noise_functions.omit_rows, is_implemented=False)  # TODO
-    DUPLICATION: RowNoiseType = RowNoiseType("duplication", noise_functions.duplicate_rows, is_implemented=False)  # TODO
+    OMISSION: RowNoiseType = RowNoiseType(
+        "omission", noise_functions.omit_rows, is_implemented=False
+    )  # TODO
+    DUPLICATION: RowNoiseType = RowNoiseType(
+        "duplication", noise_functions.duplicate_rows, is_implemented=False
+    )  # TODO
     MISSING_DATA: ColumnNoiseType = ColumnNoiseType(
         "missing_data",
         noise_functions.generate_missing_data,
@@ -27,10 +31,14 @@ class __NoiseTypes(NamedTuple):
         token_noise_level=None,
     )
     COPY_FROM_WITHIN_HOUSEHOLD: ColumnNoiseType = ColumnNoiseType(
-        "copy_from_within_household", noise_functions.generate_within_household_copies, is_implemented=False,
+        "copy_from_within_household",
+        noise_functions.generate_within_household_copies,
+        is_implemented=False,
     )  # TODO
     MONTH_DAY_SWAP: ColumnNoiseType = ColumnNoiseType(
-        "month_day_swap", noise_functions.swap_months_and_days, is_implemented=False,
+        "month_day_swap",
+        noise_functions.swap_months_and_days,
+        is_implemented=False,
     )  # TODO
     ZIPCODE_MISWRITING: ColumnNoiseType = ColumnNoiseType(
         "zipcode_miswriting", noise_functions.miswrite_zipcodes
@@ -45,16 +53,24 @@ class __NoiseTypes(NamedTuple):
         "numeric_miswriting", noise_functions.miswrite_numerics
     )
     NICKNAME: ColumnNoiseType = ColumnNoiseType(
-        "nickname", noise_functions.generate_nicknames, is_implemented=False,
+        "nickname",
+        noise_functions.generate_nicknames,
+        is_implemented=False,
     )  # TODO
     FAKE_NAME: ColumnNoiseType = ColumnNoiseType(
-        "fake_names", noise_functions.generate_fake_names, is_implemented=False,
+        "fake_names",
+        noise_functions.generate_fake_names,
+        is_implemented=False,
     )  # TODO
     PHONETIC: ColumnNoiseType = ColumnNoiseType(
-        "phonetic", noise_functions.generate_phonetic_errors, is_implemented=False,
+        "phonetic",
+        noise_functions.generate_phonetic_errors,
+        is_implemented=False,
     )  # TODO
     OCR: ColumnNoiseType = ColumnNoiseType(
-        "ocr", noise_functions.generate_ocr_errors, is_implemented=False,
+        "ocr",
+        noise_functions.generate_ocr_errors,
+        is_implemented=False,
     )  # TODO
     TYPOGRAPHIC: ColumnNoiseType = ColumnNoiseType(
         "typographic",

@@ -1,7 +1,9 @@
 from pathlib import Path
+from typing import Dict, NamedTuple, Union
+
 import yaml
 from vivarium.config_tree import ConfigTree
-from typing import Dict, Union, NamedTuple
+
 from pseudopeople.schema_entities import FORMS
 
 
@@ -9,6 +11,7 @@ class Keys(NamedTuple):
     """NamedTuple containing all key names used in the configuration file
     NOTE: 'additional_parameters' is actually a dict with its own key-values defined
     """
+
     ROW_NOISE = "row_noise"
     OMISSION = "omission"
     DUPLICATION = "duplication"
@@ -17,7 +20,7 @@ class Keys(NamedTuple):
     TOKEN_NOISE_LEVEL = "token_noise_level"
     ADDITIONAL_PARAMETERS = "additional_parameters"
 
-    
+
 # Define non-baseline default items
 # NOTE: default values are defined in entity_types.RowNoiseType and entity_types.ColumnNoiseType
 DEFAULT_NOISE_VALUES = {
@@ -69,7 +72,9 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
             if not row_noise.is_implemented:
                 continue
             if row_noise.noise_level is not None:
-                baseline_dict[form.name][Keys.ROW_NOISE][row_noise.name] = row_noise.noise_level
+                baseline_dict[form.name][Keys.ROW_NOISE][
+                    row_noise.name
+                ] = row_noise.noise_level
         for column in form.columns:
             if not column.is_implemented:
                 continue
@@ -79,18 +84,24 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
                     continue
                 baseline_dict[form.name][Keys.COLUMN_NOISE][column.name][noise_type.name] = {}
                 if noise_type.row_noise_level is not None:
-                    baseline_dict[form.name][Keys.COLUMN_NOISE][column.name][noise_type.name][Keys.ROW_NOISE_LEVEL] = noise_type.row_noise_level
+                    baseline_dict[form.name][Keys.COLUMN_NOISE][column.name][noise_type.name][
+                        Keys.ROW_NOISE_LEVEL
+                    ] = noise_type.row_noise_level
                 if noise_type.token_noise_level is not None:
-                    baseline_dict[form.name][Keys.COLUMN_NOISE][column.name][noise_type.name][Keys.TOKEN_NOISE_LEVEL] = noise_type.token_noise_level
+                    baseline_dict[form.name][Keys.COLUMN_NOISE][column.name][noise_type.name][
+                        Keys.TOKEN_NOISE_LEVEL
+                    ] = noise_type.token_noise_level
                 if noise_type.additional_parameters is not None:
                     for key, value in noise_type.additional_parameters.items():
-                        baseline_dict[form.name][Keys.COLUMN_NOISE][column.name][noise_type.name][key] = value
+                        baseline_dict[form.name][Keys.COLUMN_NOISE][column.name][
+                            noise_type.name
+                        ][key] = value
         # Clean up empty layers that had no chance to `continue` out of a loop
         if not baseline_dict[form.name][Keys.ROW_NOISE]:
             del baseline_dict[form.name][Keys.ROW_NOISE]
         if not baseline_dict[form.name][Keys.COLUMN_NOISE]:
             del baseline_dict[form.name][Keys.COLUMN_NOISE]
-    
+
     noising_configuration.update(baseline_dict, layer="baseline")
 
     # Update configuration with non-baseline default values
@@ -152,7 +163,9 @@ def _format_age_miswriting_perturbations(user_dict: Dict, default_config: Config
                 "age.age_miswriting.possible_perturbations can only be a list or dict, "
                 f"received type {type(user_perturbations)}"
             )
-        user_dict[form]["column_noise"]["age"]["age_miswriting"]["possible_perturbations"] = formatted
+        user_dict[form]["column_noise"]["age"]["age_miswriting"][
+            "possible_perturbations"
+        ] = formatted
 
     return user_dict
 
@@ -161,7 +174,6 @@ def validate_noising_configuration(config: ConfigTree) -> None:
     """Perform various validation checks on the final noising ConfigTree object"""
     _validate_age_miswriting(config)
     # TODO: validate omissions = [0, 0.5]
-
 
 
 def _validate_age_miswriting(config: ConfigTree) -> None:

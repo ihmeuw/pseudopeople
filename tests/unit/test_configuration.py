@@ -31,14 +31,14 @@ def test_get_default_configuration(mocker):
     """Tests that the default configuration can be retrieved."""
     mock = mocker.patch("pseudopeople.configuration.ConfigTree")
     _ = get_configuration()
-    mock.assert_called_once_with(layers=['baseline', 'default', 'user'])
+    mock.assert_called_once_with(layers=["baseline", "default", "user"])
 
 
 def test_get_configuration_with_user_override(user_configuration_yaml, mocker):
     """Tests that the default configuration get updated when a user configuration is supplied."""
     mock = mocker.patch("pseudopeople.configuration.ConfigTree")
     _ = get_configuration(user_configuration_yaml)
-    mock.assert_called_once_with(layers=['baseline', 'default', 'user'])
+    mock.assert_called_once_with(layers=["baseline", "default", "user"])
     update_calls = [
         call
         for call in mock.mock_calls
@@ -109,8 +109,12 @@ def test_format_miswrite_ages(user_config_type, tmp_path):
             yaml.dump(user_config, file)
         user_config = filepath
 
-    new_dict = get_configuration(user_config).decennial_census.column_noise.age.age_miswriting.to_dict()
-    default_dict = get_configuration().decennial_census.column_noise.age.age_miswriting.to_dict()
+    new_dict = get_configuration(
+        user_config
+    ).decennial_census.column_noise.age.age_miswriting.to_dict()
+    default_dict = (
+        get_configuration().decennial_census.column_noise.age.age_miswriting.to_dict()
+    )
     assert default_dict["row_noise_level"] == new_dict["row_noise_level"]
     # check that 1 got replaced with 0 probability
     assert new_dict["possible_perturbations"][1] == 0

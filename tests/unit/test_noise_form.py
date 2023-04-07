@@ -237,10 +237,18 @@ def test_two_noise_functions_are_independent(mocker):
     )
 
     # Get config values for testing
-    col1_expected_abc_proportion = config_tree.decennial_census.column_noise.fake_column_one.alpha.row_noise_level
-    col2_expected_abc_proportion = config_tree.decennial_census.column_noise.fake_column_two.alpha.row_noise_level
-    col1_expected_123_proportion = config_tree.decennial_census.column_noise.fake_column_one.beta.row_noise_level
-    col2_expected_123_proportion = config_tree.decennial_census.column_noise.fake_column_two.beta.row_noise_level
+    col1_expected_abc_proportion = (
+        config_tree.decennial_census.column_noise.fake_column_one.alpha.row_noise_level
+    )
+    col2_expected_abc_proportion = (
+        config_tree.decennial_census.column_noise.fake_column_two.alpha.row_noise_level
+    )
+    col1_expected_123_proportion = (
+        config_tree.decennial_census.column_noise.fake_column_one.beta.row_noise_level
+    )
+    col2_expected_123_proportion = (
+        config_tree.decennial_census.column_noise.fake_column_two.beta.row_noise_level
+    )
 
     assert np.isclose(
         noised_data["fake_column_one"].str.contains("abc").mean(),

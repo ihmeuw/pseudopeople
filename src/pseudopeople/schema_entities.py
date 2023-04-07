@@ -1,6 +1,7 @@
-from typing import NamedTuple, Tuple
-from pseudopeople.noise_entities import NOISE_TYPES, RowNoiseType, ColumnNoiseType
 from dataclasses import dataclass
+from typing import NamedTuple, Tuple
+
+from pseudopeople.noise_entities import NOISE_TYPES, ColumnNoiseType, RowNoiseType
 
 
 @dataclass
@@ -215,5 +216,6 @@ class __Forms(NamedTuple):
         "taxes_1040",
         is_implemented=False,
     )  # TODO
+
 
 FORMS = __Forms()
