@@ -30,12 +30,27 @@ def _generate_form(
         Noised form data
     """
     configuration_tree = get_configuration(configuration)
+    if isinstance(source, str):
+        source = Path(source)
     if isinstance(source, pd.DataFrame):
         data = source
+    elif isinstance(source, Path):
+        if source.suffix == ".hdf":
+            data = pd.read_hdf(source)
+            if not isinstance(data, pd.DataFrame):
+                raise TypeError(f"File located at {source} must contain a pandas DataFrame.")
+        elif source.suffix == ".parquet":
+            data = pd.read_parquet(source)
+        else:
+            raise ValueError(
+                "Source path must either be a .hdf or a .parquet file. Provided "
+                f"{source.suffix}"
+            )
     else:
-        data = pd.read_hdf(source)
-        if not isinstance(data, pd.DataFrame):
-            raise TypeError(f"File located at {source} must contain a pandas DataFrame.")
+        raise TypeError(
+            f"Source {source} must be either a pandas DataFrame or a path to a "
+            "file containing a pandas DataFrame."
+        )
     return noise_form(form, data, configuration_tree, seed)
 
 
