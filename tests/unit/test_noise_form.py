@@ -8,7 +8,14 @@ import pytest
 from vivarium.config_tree import ConfigTree
 
 from pseudopeople.entity_types import ColumnNoiseType
-from pseudopeople.interface import generate_decennial_census
+from pseudopeople.interface import (
+    generate_american_communities_survey,
+    generate_current_population_survey,
+    generate_decennial_census,
+    generate_social_security,
+    generate_taxes_w2_and_1099,
+    generate_women_infants_and_children,
+)
 from pseudopeople.noise import noise_form
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import Form
@@ -156,11 +163,11 @@ def test_columns_noised(dummy_data):
     "func, form",
     [
         (generate_decennial_census, Form.CENSUS),
-        ("todo", Form.ACS),
-        ("todo", Form.CPS),
-        ("todo", Form.WIC),
-        ("todo", Form.SSA),
-        ("todo", Form.TAX_W2_1099),
+        (generate_american_communities_survey, Form.ACS),
+        (generate_current_population_survey, Form.CPS),
+        (generate_women_infants_and_children, Form.WIC),
+        (generate_social_security, Form.SSA),
+        (generate_taxes_w2_and_1099, Form.TAX_W2_1099),
         ("todo", Form.TAX_1040),
     ],
 )
@@ -170,7 +177,7 @@ def test_correct_forms_are_used(func, form, mocker):
         pytest.skip(reason=f"TODO: implement function for {form.value} form")
     mock = mocker.patch("pseudopeople.interface.noise_form")
     mocker.patch("pseudopeople.interface.pd.read_hdf", return_value=pd.DataFrame())
-    _ = func("dummy/path")
+    _ = func("dummy/path.hdf")
 
     assert mock.call_args[0][0] == form
 

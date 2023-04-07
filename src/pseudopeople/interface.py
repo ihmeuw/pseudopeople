@@ -14,7 +14,7 @@ def _generate_form(
     source: Union[Path, str, pd.DataFrame],
     seed: int,
     configuration: Union[Path, str, dict],
-):
+) -> pd.DataFrame:
     """
     Helper for generating noised forms from clean data.
 
@@ -27,15 +27,30 @@ def _generate_form(
     :param configuration:
         Object to configure noise levels
     :return:
-        Noised form data
+        Noised form data in a pd.DataFrame
     """
     configuration_tree = get_configuration(configuration)
+    if isinstance(source, str):
+        source = Path(source)
     if isinstance(source, pd.DataFrame):
         data = source
-    else:
-        data = pd.read_hdf(source)
+    elif isinstance(source, Path):
+        if source.suffix == ".hdf":
+            data = pd.read_hdf(source)
+        elif source.suffix == ".parquet":
+            data = pd.read_parquet(source)
+        else:
+            raise ValueError(
+                "Source path must either be a .hdf or a .parquet file. Provided "
+                f"{source.suffix}"
+            )
         if not isinstance(data, pd.DataFrame):
             raise TypeError(f"File located at {source} must contain a pandas DataFrame.")
+    else:
+        raise TypeError(
+            f"Source {source} must be either a pandas DataFrame or a path to a "
+            "file containing a pandas DataFrame."
+        )
     return noise_form(form, data, configuration_tree, seed)
 
 
@@ -47,7 +62,7 @@ def generate_decennial_census(
     source: Union[Path, str, pd.DataFrame],
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
-):
+) -> pd.DataFrame:
     """
     Generates noised decennial census data from un-noised data.
 
@@ -63,7 +78,7 @@ def generate_american_communities_survey(
     source: Union[Path, str, pd.DataFrame],
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
-):
+) -> pd.DataFrame:
     """
     Generates noised American Communities Survey (ACS) data from un-noised data.
 
@@ -79,7 +94,7 @@ def generate_current_population_survey(
     source: Union[Path, str, pd.DataFrame],
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
-):
+) -> pd.DataFrame:
     """
     Generates noised Current Population Survey (CPS) data from un-noised data.
 
@@ -95,7 +110,7 @@ def generate_taxes_w2_and_1099(
     source: Union[Path, str, pd.DataFrame],
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
-):
+) -> pd.DataFrame:
     """
     Generates noised W2 and 1099 data from un-noised data.
 
@@ -111,7 +126,7 @@ def generate_women_infants_and_children(
     source: Union[Path, str, pd.DataFrame],
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
-):
+) -> pd.DataFrame:
     """
     Generates noised Women Infants and Children (WIC) data from un-noised data.
 
@@ -127,7 +142,7 @@ def generate_social_security(
     source: Union[Path, str, pd.DataFrame],
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
-):
+) -> pd.DataFrame:
     """
     Generates noised Social Security (SSA) data from un-noised data.
 

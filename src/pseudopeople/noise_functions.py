@@ -12,8 +12,8 @@ from pseudopeople.utilities import vectorized_choice
 
 
 def omit_rows(
-    form_data: float,
-    configuration: ConfigTree,
+    form_data: pd.DataFrame,
+    configuration: float,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
@@ -28,8 +28,8 @@ def omit_rows(
 
 
 def duplicate_rows(
-    form_data: float,
-    configuration: ConfigTree,
+    form_data: pd.DataFrame,
+    configuration: float,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
@@ -132,6 +132,7 @@ def miswrite_zipcodes(
     :return: pd.Series of noised zipcodes
     """
 
+    column = column.astype(str)
     str_len = column.str.len()
     if (str_len != 5).sum() > 0:
         raise ValueError(
@@ -210,7 +211,8 @@ def miswrite_numerics(
 
     returns: pd.Series with some numeric values experiencing noise.
     """
-
+    if column.empty:
+        return column
     # This is a fix to not replacing the original token for noise options
     token_noise_level = configuration.token_noise_level / 0.9
     rng = np.random.default_rng(randomness_stream.seed)
