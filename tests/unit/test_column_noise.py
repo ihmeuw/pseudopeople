@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 from vivarium.framework.randomness import RandomnessStream
 
+from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.utilities import get_configuration
 
@@ -69,6 +70,17 @@ def dummy_dataset():
     string_series = pd.Series(string_list * int(num_simulants / len(string_list)))
     zipcodes = ["12345", "98765", "02468", "13579", ""]
     zipcode_series = pd.Series(zipcodes * int(num_simulants / len(zipcodes)))
+    first_names = [
+        "first name",
+        "another first name",
+        "other first name",
+        "oother other first name",
+        "",
+    ]
+    first_name_series = pd.Series(first_names * int(num_simulants / len(first_names)))
+    last_names = ["A last name", "another last name", "other last name", "last name", ""]
+    last_name_series = pd.Series(last_names * int(num_simulants / len(last_names)))
+
     return pd.DataFrame(
         {
             "numbers": integer_series,
@@ -77,6 +89,8 @@ def dummy_dataset():
             "age": ages,
             "string_series": string_series,
             "zipcode": zipcode_series,
+            "first_name": first_name_series,
+            "last_name": last_name_series,
         }
     )
 
@@ -448,9 +462,62 @@ def test_generate_nicknames():
     pass
 
 
-@pytest.mark.skip(reason="TODO")
-def test_generate_fake_names():
-    pass
+def test_generate_fake_names(dummy_dataset):
+    """
+    Function to test that fake names are noised and replace raw values at a configured percentage
+    """
+    config = get_configuration()
+    config.update(
+        {
+            "decennial_census": {
+                "first_name": {
+                    "fake_names": {
+                        "row_noise_level": 0.4,
+                    },
+                },
+                "last_name": {"fake_names": {"row_noise_level": 0.5}},
+            },
+        }
+    )
+    first_name_config = config.decennial_census.first_name.fake_names
+    last_name_config = config.decennial_census.last_name.fake_names
+
+    # For this test, using the dummy_dataset fixture the "string_series" column will be used as both names columns
+    # This will help demonstrate that the additional key is working correctly
+    first_name_data = dummy_dataset["string_series"]
+    first_name_data = first_name_data.rename("first_name")
+    last_name_data = dummy_dataset["string_series"]
+    last_name_data = last_name_data.rename("last_name")
+    noised_first_names = NOISE_TYPES.FAKE_NAME(
+        first_name_data, first_name_config, RANDOMNESS0, "test_fake_names"
+    )
+    noised_last_names = NOISE_TYPES.FAKE_NAME(
+        last_name_data, last_name_config, RANDOMNESS0, "test_fake_names "
+    )
+
+    # Check missing are unchanged
+    orig_missing = first_name_data == ""
+    assert (first_name_data[orig_missing] == noised_first_names[orig_missing]).all()
+    assert (last_name_data[orig_missing] == noised_last_names[orig_missing]).all()
+    # todo: equal across fake values
+    # Check noised values
+    assert np.isclose(
+        first_name_config.row_noise_level,
+        (first_name_data[~orig_missing] != noised_first_names[~orig_missing]).mean(),
+        rtol=0.02,
+    )
+    assert np.isclose(
+        last_name_config.row_noise_level,
+        (last_name_data[~orig_missing] != noised_last_names[~orig_missing]).mean(),
+        rtol=0.02,
+    )
+    # Get raw fake names lists to check noised values
+    fake_first = fake_first_names
+    fake_last = fake_last_names
+    assert (
+        noised_first_names.loc[noised_first_names != first_name_data].isin(fake_first).all()
+    )
+    assert noised_last_names.loc[noised_last_names != last_name_data].isin(fake_last).all()
 
 
 @pytest.mark.skip(reason="TODO")
@@ -539,7 +606,8 @@ def test_generate_typographical_errors(dummy_dataset, column):
             "street_number",
         ),
         (NOISE_TYPES.NICKNAME, "todo", "todo", "todo"),
-        (NOISE_TYPES.FAKE_NAME, "todo", "todo", "todo"),
+        (NOISE_TYPES.FAKE_NAME, "first_name", "decennial_census", "first_name"),
+        (NOISE_TYPES.FAKE_NAME, "last_name", "decennial_census", "last_name"),
         (NOISE_TYPES.PHONETIC, "todo", "todo", "todo"),
         (NOISE_TYPES.OCR, "todo", "todo", "todo"),
         (NOISE_TYPES.TYPOGRAPHIC, "numbers", "decennial_census", "zipcode"),
@@ -566,3 +634,11 @@ def test_seeds_behave_as_expected(noise_type, data_col, form, form_col, dummy_da
         == noised_data_same_seed[noised_data_same_seed.notna()]
     ).all()
     assert (noised_data != noised_data_different_seed).any()
+
+    # Check that we are in fact getting differnt noised values
+    noised = noised_data.loc[noised_data != data].reset_index(drop=True)
+    noised_different_seed = noised_data_different_seed.loc[
+        noised_data_different_seed != data
+    ].reset_index(drop=True)
+    shortest = min(len(noised), len(noised_different_seed))
+    assert (noised.iloc[:shortest] != noised_different_seed.iloc[:shortest]).any()

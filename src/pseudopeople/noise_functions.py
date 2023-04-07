@@ -7,6 +7,7 @@ from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.constants import paths
+from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.utilities import vectorized_choice
 
 
@@ -73,7 +74,7 @@ def generate_incorrect_selections(
         options=options,
         n_to_choose=len(column),
         randomness_stream=randomness_stream,
-        additional_key=f"{additional_key}_{column.name}_incorrect_select_choice",
+        additional_key=f"{additional_key}_incorrect_select_choice",
     ).to_numpy()
 
     return pd.Series(new_values, index=column.index)
@@ -258,20 +259,31 @@ def generate_nicknames(
 
 def generate_fake_names(
     column: pd.Series,
-    configuration: ConfigTree,
+    _: ConfigTree,
     randomness_stream: RandomnessStream,
     additional_key: Any,
 ) -> pd.Series:
     """
 
-    :param column:
-    :param configuration:
-    :param randomness_stream:
+    :param column: pd.Series of names
+    :param _:  ConfigTree object with noise level values
+    :param randomness_stream:  RandomnessStream instance of vivarium
     :param additional_key: Key for RandomnessStream
     :return:
     """
-    # todo actually generate fake names
-    return column
+    name = column.name
+    fake_first = fake_first_names
+    fake_last = fake_last_names
+    fake_names = {"first_name": fake_first, "last_name": fake_last}
+    options = fake_names[name]
+
+    new_values = vectorized_choice(
+        options=options,
+        n_to_choose=len(column),
+        randomness_stream=randomness_stream,
+        additional_key=f"{additional_key}_fake_names",
+    )
+    return pd.Series(new_values, index=column.index)
 
 
 def generate_phonetic_errors(
