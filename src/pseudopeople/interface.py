@@ -37,8 +37,6 @@ def _generate_form(
     elif isinstance(source, Path):
         if source.suffix == ".hdf":
             data = pd.read_hdf(source)
-            if not isinstance(data, pd.DataFrame):
-                raise TypeError(f"File located at {source} must contain a pandas DataFrame.")
         elif source.suffix == ".parquet":
             data = pd.read_parquet(source)
         else:
@@ -46,6 +44,8 @@ def _generate_form(
                 "Source path must either be a .hdf or a .parquet file. Provided "
                 f"{source.suffix}"
             )
+        if not isinstance(data, pd.DataFrame):
+            raise TypeError(f"File located at {source} must contain a pandas DataFrame.")
     else:
         raise TypeError(
             f"Source {source} must be either a pandas DataFrame or a path to a "
