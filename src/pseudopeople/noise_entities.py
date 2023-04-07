@@ -41,7 +41,8 @@ class __NoiseTypes(NamedTuple):
         is_implemented=False,
     )  # TODO
     ZIPCODE_MISWRITING: ColumnNoiseType = ColumnNoiseType(
-        "zipcode_miswriting", noise_functions.miswrite_zipcodes,
+        "zipcode_miswriting",
+        noise_functions.miswrite_zipcodes,
         token_noise_level=None,
         additional_parameters={
             "first_two_digits_noise_level": 0.04,
