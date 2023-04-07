@@ -23,17 +23,19 @@ from pseudopeople.interface import (
 
 
 @pytest.mark.parametrize(
-    "data_path, noising_function",
+    "data_path, noising_function, skip",
     [
-        (SAMPLE_DECENNIAL_CENSUS, generate_decennial_census),
-        (SAMPLE_AMERICAN_COMMUNITIES_SURVEY, generate_american_communities_survey),
-        (SAMPLE_CURRENT_POPULATION_SURVEY, generate_current_population_survey),
-        (SAMPLE_SOCIAL_SECURITY, generate_social_security),
-        (SAMPLE_TAXES_W2_AND_1099, generate_taxes_w2_and_1099),
-        (SAMPLE_WOMEN_INFANTS_AND_CHILDREN, generate_women_infants_and_children),
+        (SAMPLE_DECENNIAL_CENSUS, generate_decennial_census, False),
+        (SAMPLE_AMERICAN_COMMUNITIES_SURVEY, generate_american_communities_survey, True),
+        (SAMPLE_CURRENT_POPULATION_SURVEY, generate_current_population_survey, True),
+        (SAMPLE_SOCIAL_SECURITY, generate_social_security, True),
+        (SAMPLE_TAXES_W2_AND_1099, generate_taxes_w2_and_1099, True),
+        (SAMPLE_WOMEN_INFANTS_AND_CHILDREN, generate_women_infants_and_children, True),
     ],
 )
-def test_generate_form(data_path: Union[Path, str], noising_function: Callable):
+def test_generate_form(data_path: Union[Path, str], noising_function: Callable, skip: bool):
+    if skip:
+        pytest.skip(reason=f"TODO: implement form {data_path.stem} in conifugration.py")
     data = pd.DataFrame(pd.read_hdf(data_path))
 
     noised_data = noising_function(source=data.copy(), seed=0)

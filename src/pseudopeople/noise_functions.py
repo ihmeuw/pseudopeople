@@ -119,7 +119,7 @@ def miswrite_zipcodes(
     column: pd.Series,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
-    additional_key: Any,
+    _: Any,
 ) -> pd.Series:
     """
     Function that noises a 5 digit zipcode
@@ -127,7 +127,6 @@ def miswrite_zipcodes(
     :param column: A pd.Series of 5 digit zipcodes as strings
     :param configuration:  Config tree object at column node.
     :param randomness_stream:  RandomnessStream object from Vivarium framework
-    :param additional_key: Key for RandomnessStream
     :return: pd.Series of noised zipcodes
     """
 
