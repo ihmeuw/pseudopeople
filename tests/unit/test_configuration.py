@@ -3,11 +3,10 @@ from pathlib import Path
 import pandas as pd
 import pytest
 import yaml
-from vivarium.config_tree import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
 import pseudopeople
-from pseudopeople.utilities import get_configuration
+from pseudopeople.configuration import get_configuration
 
 RANDOMNESS0 = RandomnessStream(
     key="test_column_noise", clock=lambda: pd.Timestamp("2020-09-01"), seed=0
@@ -28,24 +27,18 @@ def user_configuration_yaml(tmp_path):
     return user_config_path
 
 
-def test_get_configuration(mocker):
+def test_get_default_configuration(mocker):
     """Tests that the default configuration can be retrieved."""
-    mock = mocker.patch("pseudopeople.utilities.ConfigTree")
+    mock = mocker.patch("pseudopeople.configuration.ConfigTree")
     _ = get_configuration()
-    mock.assert_called_once_with(
-        data=Path(pseudopeople.__file__).resolve().parent / "default_configuration.yaml",
-        layers=["base", "user"],
-    )
+    mock.assert_called_once_with(layers=['baseline', 'default', 'user'])
 
 
 def test_get_configuration_with_user_override(user_configuration_yaml, mocker):
     """Tests that the default configuration get updated when a user configuration is supplied."""
-    mock = mocker.patch("pseudopeople.utilities.ConfigTree")
+    mock = mocker.patch("pseudopeople.configuration.ConfigTree")
     _ = get_configuration(user_configuration_yaml)
-    mock.assert_called_once_with(
-        data=Path(pseudopeople.__file__).resolve().parent / "default_configuration.yaml",
-        layers=["base", "user"],
-    )
+    mock.assert_called_once_with(layers=['baseline', 'default', 'user'])
     update_calls = [
         call
         for call in mock.mock_calls
@@ -61,10 +54,12 @@ def test_validate_miswrite_ages_fails_if_includes_0():
         get_configuration(
             {
                 "decennial_census": {
-                    "age": {
-                        "age_miswriting": {
-                            "row_noise_level": 1,
-                            "possible_perturbations": perturbations,
+                    "column_noise": {
+                        "age": {
+                            "age_miswriting": {
+                                "row_noise_level": 1,
+                                "possible_perturbations": perturbations,
+                            },
                         },
                     },
                 },
@@ -80,9 +75,11 @@ def test_validate_miswrite_ages_if_probabilities_do_not_add_to_1():
         get_configuration(
             {
                 "decennial_census": {
-                    "age": {
-                        "age_miswriting": {
-                            "possible_perturbations": perturbations,
+                    "column_noise": {
+                        "age": {
+                            "age_miswriting": {
+                                "possible_perturbations": perturbations,
+                            },
                         },
                     },
                 },
@@ -97,9 +94,11 @@ def test_format_miswrite_ages(user_config_type, tmp_path):
     """
     user_config = {
         "decennial_census": {
-            "age": {
-                "age_miswriting": {
-                    "possible_perturbations": [-2, -1, 2],
+            "column_noise": {
+                "age": {
+                    "age_miswriting": {
+                        "possible_perturbations": [-2, -1, 2],
+                    },
                 },
             },
         },
@@ -110,10 +109,9 @@ def test_format_miswrite_ages(user_config_type, tmp_path):
             yaml.dump(user_config, file)
         user_config = filepath
 
-    new_dict = get_configuration(user_config).decennial_census.age.age_miswriting.to_dict()
-    default_dict = get_configuration().decennial_census.age.age_miswriting.to_dict()
+    new_dict = get_configuration(user_config).decennial_census.column_noise.age.age_miswriting.to_dict()
+    default_dict = get_configuration().decennial_census.column_noise.age.age_miswriting.to_dict()
     assert default_dict["row_noise_level"] == new_dict["row_noise_level"]
-    assert default_dict["token_noise_level"] == new_dict["token_noise_level"]
     # check that 1 got replaced with 0 probability
     assert new_dict["possible_perturbations"][1] == 0
     # check that others have 1/3 probability

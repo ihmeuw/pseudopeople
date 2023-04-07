@@ -7,7 +7,7 @@ import pytest
 from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.utilities import get_configuration
+from pseudopeople.configuration import get_configuration
 
 RANDOMNESS0 = RandomnessStream(
     key="test_column_noise", clock=lambda: pd.Timestamp("2020-09-01"), seed=0
@@ -97,13 +97,15 @@ def string_series():
 
 
 def test_generate_missing_data(dummy_dataset):
-    config = get_configuration()["decennial_census"]["zipcode"]["missing_data"]
+    config = get_configuration().decennial_census.column_noise.zipcode.missing_data
     config.update(
         {
             "decennial_census": {
-                "zipcode": {
-                    "missing_data": {
-                        "row_noise_level": 0.25,
+                "column_noise": {
+                    "zipcode": {
+                        "missing_data": {
+                            "row_noise_level": 0.25,
+                        },
                     },
                 },
             },
@@ -129,7 +131,7 @@ def test_generate_missing_data(dummy_dataset):
 
 
 def test_incorrect_selection(categorical_series):
-    config = get_configuration()["decennial_census"]["state"]["incorrect_selection"]
+    config = get_configuration().decennial_census.column_noise.state.incorrect_selection
     noised_data = NOISE_TYPES.INCORRECT_SELECTION(
         categorical_series, config, RANDOMNESS0, "test"
     )
@@ -213,7 +215,7 @@ def test_miswrite_ages_default_config(dummy_dataset):
     """Test that miswritten ages are appropriately handled, including
     no perturbation probabilities defaults to uniform distribution,
     perturbation probabilities"""
-    config = get_configuration()["decennial_census"]["age"]["age_miswriting"]
+    config = get_configuration().decennial_census.column_noise.age.age_miswriting
     data = dummy_dataset["age"]
     noised_data = NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
 
@@ -244,15 +246,17 @@ def test_miswrite_ages_uniform_probabilities():
     config = get_configuration(
         {
             "decennial_census": {
-                "age": {
-                    "age_miswriting": {
-                        "row_noise_level": 1,
-                        "possible_perturbations": perturbations,
+                "column_noise": {
+                    "age": {
+                        "age_miswriting": {
+                            "row_noise_level": 1,
+                            "possible_perturbations": perturbations,
+                        },
                     },
                 },
             },
         },
-    )["decennial_census"]["age"]["age_miswriting"]
+    ).decennial_census.column_noise.age.age_miswriting
 
     data = pd.Series([str(original_age)] * num_rows)
     noised_data = NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
@@ -271,15 +275,17 @@ def test_miswrite_ages_provided_probabilities():
     config = get_configuration(
         {
             "decennial_census": {
-                "age": {
-                    "age_miswriting": {
-                        "row_noise_level": 1,
-                        "possible_perturbations": perturbations,
+                "column_noise": {
+                    "age": {
+                        "age_miswriting": {
+                            "row_noise_level": 1,
+                            "possible_perturbations": perturbations,
+                        },
                     },
                 },
             },
         },
-    )["decennial_census"]["age"]["age_miswriting"]
+    ).decennial_census.column_noise.age.age_miswriting
 
     data = pd.Series([str(original_age)] * num_rows)
     noised_data = NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
@@ -302,15 +308,17 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
     config = get_configuration(
         {
             "decennial_census": {
-                "age": {
-                    "age_miswriting": {
-                        "row_noise_level": 1,
-                        "possible_perturbations": perturbations,
+                "column_noise": {
+                    "age": {
+                        "age_miswriting": {
+                            "row_noise_level": 1,
+                            "possible_perturbations": perturbations,
+                        },
                     },
                 },
             },
         },
-    )["decennial_census"]["age"]["age_miswriting"]
+    ).decennial_census.column_noise.age.age_miswriting
 
     data = pd.Series([str(age)] * num_rows)
     noised_data = NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
@@ -327,15 +335,17 @@ def test_miswrite_ages_flips_negative_to_positive():
     config = get_configuration(
         {
             "decennial_census": {
-                "age": {
-                    "age_miswriting": {
-                        "row_noise_level": 1,
-                        "possible_perturbations": perturbations,
+                "column_noise": {
+                    "age": {
+                        "age_miswriting": {
+                            "row_noise_level": 1,
+                            "possible_perturbations": perturbations,
+                        },
                     },
                 },
             },
         },
-    )["decennial_census"]["age"]["age_miswriting"]
+    ).decennial_census.column_noise.age.age_miswriting
 
     data = pd.Series([str(age)] * num_rows)
     noised_data = NOISE_TYPES.AGE_MISWRITING(data, config, RANDOMNESS0, "test")
@@ -351,16 +361,18 @@ def test_miswrite_numerics(string_series):
     config.update(
         {
             "decennial_census": {
-                "street_number": {
-                    "numeric_miswriting": {
-                        "row_noise_level": 0.4,
-                        "token_noise_level": 0.5,
+                "column_noise": {
+                    "street_number": {
+                        "numeric_miswriting": {
+                            "row_noise_level": 0.4,
+                            "token_noise_level": 0.5,
+                        },
                     },
                 },
             },
         }
     )
-    config = config["decennial_census"]["street_number"]["numeric_miswriting"]
+    config = config.decennial_census.column_noise.street_number.numeric_miswriting
     p_row_noise = config.row_noise_level
     p_token_noise = config.token_noise_level
     data = string_series
@@ -476,17 +488,19 @@ def test_generate_typographical_errors(dummy_dataset, column):
     config.update(
         {
             "decennial_census": {
-                column: {
-                    "typographic": {
-                        "row_noise_level": 0.1,
-                        "token_noise_level": 0.1,
-                        "include_original_token_level": 0.1,
+                "column_noise": {
+                    column: {
+                        "typographic": {
+                            "row_noise_level": 0.1,
+                            "token_noise_level": 0.1,
+                            "include_original_token_level": 0.1,
+                        },
                     },
                 },
             },
         }
     )
-    config = config["decennial_census"][column]["typographic"]
+    config = config.decennial_census.column_noise[column].typographic
     noised_data = NOISE_TYPES.TYPOGRAPHIC(data, config, RANDOMNESS0, "test")
 
     not_missing_idx = data.index[(data.notna()) & (data != "")]
@@ -553,7 +567,7 @@ def test_seeds_behave_as_expected(noise_type, data_col, form, form_col, dummy_da
     noise = noise_type.name
     if data_col == "todo":
         pytest.skip(reason=f"TODO: implement for function {noise}")
-    config = get_configuration()[form][form_col][noise]
+    config = get_configuration()[form].column_noise[form_col][noise]
     data = dummy_dataset[data_col]
     noised_data = noise_type(data, config, RANDOMNESS0, f"test_{noise}")
     noised_data_same_seed = noise_type(data, config, RANDOMNESS0, f"test_{noise}")

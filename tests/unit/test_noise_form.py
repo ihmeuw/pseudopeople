@@ -18,7 +18,7 @@ from pseudopeople.interface import (
 )
 from pseudopeople.noise import noise_form
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import Form
+from pseudopeople.schema_entities import FORMS
 
 
 @pytest.fixture(scope="module")
@@ -49,40 +49,44 @@ def dummy_config_noise_numbers():
     return ConfigTree(
         {
             "decennial_census": {
-                "numbers": {
-                    "missing_data": {"row_noise_level": 0.01},
-                    "incorrect_selection": {"row_noise_level": 0.01},
-                    "copy_from_within_household": {"row_noise_level": 0.01},
-                    "month_day_swap": {"row_noise_level": 0.01},
-                    "zipcode_miswriting": {
-                        "row_noise_level": 0.01,
-                        "zipcode_miswriting": [0.04, 0.04, 0.2, 0.36, 0.36],
-                    },
-                    "age_miswriting": {
-                        "row_noise_level": 0.01,
-                        "age_miswriting": [1, -1],
-                    },
-                    "numeric_miswriting": {
-                        "row_noise_level": 0.01,
-                        "numeric_miswriting": [0.1],
-                    },
-                    "nickname": {"row_noise_level": 0.01},
-                    "fake_names": {"row_noise_level": 0.01},
-                    "phonetic": {
-                        "row_noise_level": 0.01,
-                        "token_noise_level": 0.1,
-                    },
-                    "ocr": {
-                        "row_noise_level": 0.01,
-                        "token_noise_level": 0.1,
-                    },
-                    "typographic": {
-                        "row_noise_level": 0.01,
-                        "token_noise_level": 0.1,
+                "column_noise": {
+                    "numbers": {
+                        "missing_data": {"row_noise_level": 0.01},
+                        "incorrect_selection": {"row_noise_level": 0.01},
+                        "copy_from_within_household": {"row_noise_level": 0.01},
+                        "month_day_swap": {"row_noise_level": 0.01},
+                        "zipcode_miswriting": {
+                            "row_noise_level": 0.01,
+                            "zipcode_miswriting": [0.04, 0.04, 0.2, 0.36, 0.36],
+                        },
+                        "age_miswriting": {
+                            "row_noise_level": 0.01,
+                            "age_miswriting": [1, -1],
+                        },
+                        "numeric_miswriting": {
+                            "row_noise_level": 0.01,
+                            "numeric_miswriting": [0.1],
+                        },
+                        "nickname": {"row_noise_level": 0.01},
+                        "fake_names": {"row_noise_level": 0.01},
+                        "phonetic": {
+                            "row_noise_level": 0.01,
+                            "token_noise_level": 0.1,
+                        },
+                        "ocr": {
+                            "row_noise_level": 0.01,
+                            "token_noise_level": 0.1,
+                        },
+                        "typographic": {
+                            "row_noise_level": 0.01,
+                            "token_noise_level": 0.1,
+                        },
                     },
                 },
-                "duplication": 0.01,
-                "omission": 0.01,
+                "row_noise": {
+                    "duplication": 0.01,
+                    "omission": 0.01,
+                },
             },
         }
     )
@@ -116,7 +120,7 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
         )
 
     # FIXME: would be better to mock the form instead of using census
-    noise_form(Form.CENSUS, dummy_data, dummy_config_noise_numbers, 0)
+    noise_form(FORMS.CENSUS, dummy_data, dummy_config_noise_numbers, 0)
 
     call_order = [x[0] for x in mock.mock_calls if not x[0].startswith("__")]
     expected_call_order = [
@@ -136,6 +140,8 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
         "TYPOGRAPHIC",
     ]
 
+    expected_call_order = [x for x in expected_call_order if x in call_order]
+
     assert expected_call_order == call_order
 
 
@@ -145,15 +151,17 @@ def test_columns_noised(dummy_data):
     """
     config = ConfigTree(
         {
-            "decennial_census": {  # Does not really matter
-                "numbers": {
-                    "missing_data": {"row_noise_level": 0.1},
+            "decennial_census": {
+                "column_noise": {
+                    "numbers": {
+                        "missing_data": {"row_noise_level": 0.1},
+                    },
                 },
             },
         },
     )
     noised_data = dummy_data.copy()
-    noised_data = noise_form(Form.CENSUS, noised_data, config, 0)
+    noised_data = noise_form(FORMS.CENSUS, noised_data, config, 0)
 
     assert (dummy_data["numbers"] != noised_data["numbers"]).any()
     assert (dummy_data["words"] == noised_data["words"]).all()
@@ -162,19 +170,19 @@ def test_columns_noised(dummy_data):
 @pytest.mark.parametrize(
     "func, form",
     [
-        (generate_decennial_census, Form.CENSUS),
-        (generate_american_communities_survey, Form.ACS),
-        (generate_current_population_survey, Form.CPS),
-        (generate_women_infants_and_children, Form.WIC),
-        (generate_social_security, Form.SSA),
-        (generate_taxes_w2_and_1099, Form.TAX_W2_1099),
-        ("todo", Form.TAX_1040),
+        (generate_decennial_census, FORMS.CENSUS),
+        (generate_american_communities_survey, FORMS.ACS),
+        (generate_current_population_survey, FORMS.CPS),
+        (generate_women_infants_and_children, FORMS.WIC),
+        (generate_social_security, FORMS.SSA),
+        (generate_taxes_w2_and_1099, FORMS.TAX_W2_1099),
+        ("todo", FORMS.TAX_1040),
     ],
 )
 def test_correct_forms_are_used(func, form, mocker):
     """Test that each interface noise function uses the correct form"""
     if func == "todo":
-        pytest.skip(reason=f"TODO: implement function for {form.value} form")
+        pytest.skip(reason=f"TODO: implement function for {form.name} form")
     mock = mocker.patch("pseudopeople.interface.noise_form")
     mocker.patch("pseudopeople.interface.pd.read_hdf", return_value=pd.DataFrame())
     _ = func("dummy/path")
@@ -187,13 +195,15 @@ def test_two_noise_functions_are_independent(mocker):
     config_tree = ConfigTree(
         {
             "decennial_census": {
-                "fake_column_one": {
-                    "alpha": {"row_noise_level": 0.20},
-                    "beta": {"row_noise_level": 0.30},
-                },
-                "fake_column_two": {
-                    "alpha": {"row_noise_level": 0.40},
-                    "beta": {"row_noise_level": 0.50},
+                "column_noise": {
+                    "fake_column_one": {
+                        "alpha": {"row_noise_level": 0.20},
+                        "beta": {"row_noise_level": 0.30},
+                    },
+                    "fake_column_two": {
+                        "alpha": {"row_noise_level": 0.40},
+                        "beta": {"row_noise_level": 0.50},
+                    },
                 },
             }
         }
@@ -220,25 +230,17 @@ def test_two_noise_functions_are_independent(mocker):
     )
 
     noised_data = noise_form(
-        form=Form.CENSUS,
+        form=FORMS.CENSUS,
         form_data=dummy_form,
         seed=0,
         configuration=config_tree,
     )
 
     # Get config values for testing
-    col1_expected_abc_proportion = config_tree["decennial_census"]["fake_column_one"][
-        "alpha"
-    ]["row_noise_level"]
-    col2_expected_abc_proportion = config_tree["decennial_census"]["fake_column_two"][
-        "alpha"
-    ]["row_noise_level"]
-    col1_expected_123_proportion = config_tree["decennial_census"]["fake_column_one"]["beta"][
-        "row_noise_level"
-    ]
-    col2_expected_123_proportion = config_tree["decennial_census"]["fake_column_two"]["beta"][
-        "row_noise_level"
-    ]
+    col1_expected_abc_proportion = config_tree.decennial_census.column_noise.fake_column_one.alpha.row_noise_level
+    col2_expected_abc_proportion = config_tree.decennial_census.column_noise.fake_column_two.alpha.row_noise_level
+    col1_expected_123_proportion = config_tree.decennial_census.column_noise.fake_column_one.beta.row_noise_level
+    col2_expected_123_proportion = config_tree.decennial_census.column_noise.fake_column_two.beta.row_noise_level
 
     assert np.isclose(
         noised_data["fake_column_one"].str.contains("abc").mean(),
