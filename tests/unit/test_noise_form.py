@@ -108,7 +108,7 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
     for field in NOISE_TYPES._fields:
         mock_return = (
             dummy_data[["numbers"]]
-            if field in ["OMISSION", "DUPLICATION"]
+            if field in ["omission", "duplication"]
             else dummy_data["numbers"]
         )
         mock.attach_mock(
@@ -120,24 +120,24 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
         )
 
     # FIXME: would be better to mock the form instead of using census
-    noise_form(FORMS.CENSUS, dummy_data, dummy_config_noise_numbers, 0)
+    noise_form(FORMS.census, dummy_data, dummy_config_noise_numbers, 0)
 
     call_order = [x[0] for x in mock.mock_calls if not x[0].startswith("__")]
     expected_call_order = [
-        "OMISSION",
-        "DUPLICATION",
-        "MISSING_DATA",
-        "INCORRECT_SELECTION",
-        "COPY_FROM_WITHIN_HOUSEHOLD",
-        "MONTH_DAY_SWAP",
-        "ZIPCODE_MISWRITING",
-        "AGE_MISWRITING",
-        "NUMERIC_MISWRITING",
-        "NICKNAME",
-        "FAKE_NAME",
-        "PHONETIC",
-        "OCR",
-        "TYPOGRAPHIC",
+        "omission",
+        "duplication",
+        "missing_data",
+        "incorrect_selection",
+        "copy_from_within_household",
+        "month_day_swap",
+        "zipcode_miswriting",
+        "age_miswriting",
+        "numeric_miswriting",
+        "nickname",
+        "fake_name",
+        "phonetic",
+        "ocr",
+        "typographic",
     ]
 
     expected_call_order = [x for x in expected_call_order if x in call_order]
@@ -161,7 +161,7 @@ def test_columns_noised(dummy_data):
         },
     )
     noised_data = dummy_data.copy()
-    noised_data = noise_form(FORMS.CENSUS, noised_data, config, 0)
+    noised_data = noise_form(FORMS.census, noised_data, config, 0)
 
     assert (dummy_data["numbers"] != noised_data["numbers"]).any()
     assert (dummy_data["words"] == noised_data["words"]).all()
@@ -170,13 +170,13 @@ def test_columns_noised(dummy_data):
 @pytest.mark.parametrize(
     "func, form",
     [
-        (generate_decennial_census, FORMS.CENSUS),
-        (generate_american_communities_survey, FORMS.ACS),
-        (generate_current_population_survey, FORMS.CPS),
-        (generate_women_infants_and_children, FORMS.WIC),
-        (generate_social_security, FORMS.SSA),
-        (generate_taxes_w2_and_1099, FORMS.TAX_W2_1099),
-        ("todo", FORMS.TAX_1040),
+        (generate_decennial_census, FORMS.census),
+        (generate_american_communities_survey, FORMS.acs),
+        (generate_current_population_survey, FORMS.cps),
+        (generate_women_infants_and_children, FORMS.wic),
+        (generate_social_security, FORMS.ssa),
+        (generate_taxes_w2_and_1099, FORMS.tax_w2_1099),
+        ("todo", FORMS.tax_1040),
     ],
 )
 def test_correct_forms_are_used(func, form, mocker):
@@ -230,7 +230,7 @@ def test_two_noise_functions_are_independent(mocker):
     )
 
     noised_data = noise_form(
-        form=FORMS.CENSUS,
+        form=FORMS.census,
         form_data=dummy_form,
         seed=0,
         configuration=config_tree,

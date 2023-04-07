@@ -5,7 +5,7 @@ from pseudopeople.noise_entities import NOISE_TYPES, ColumnNoiseType, RowNoiseTy
 
 
 @dataclass
-class Column:
+class NoisedColumn:
     name: str
     noise_types: Tuple[ColumnNoiseType]
     is_implemented: bool = True
@@ -15,149 +15,149 @@ class NoisedColumns:
     """Container that contains information about columns and their related
     noising functions"""
 
-    AGE: Column = Column(
+    age: NoisedColumn = NoisedColumn(
         "age",
         (
-            NOISE_TYPES.MISSING_DATA,
-            NOISE_TYPES.COPY_FROM_WITHIN_HOUSEHOLD,
-            NOISE_TYPES.AGE_MISWRITING,
-            NOISE_TYPES.OCR,
-            NOISE_TYPES.TYPOGRAPHIC,
+            NOISE_TYPES.missing_data,
+            NOISE_TYPES.copy_from_within_household,
+            NOISE_TYPES.age_miswriting,
+            NOISE_TYPES.ocr,
+            NOISE_TYPES.typographic,
         ),
     )
-    CITY: Column = Column(
+    city: NoisedColumn = NoisedColumn(
         "city",
         (
-            NOISE_TYPES.MISSING_DATA,
-            NOISE_TYPES.PHONETIC,
-            NOISE_TYPES.OCR,
-            NOISE_TYPES.TYPOGRAPHIC,
+            NOISE_TYPES.missing_data,
+            NOISE_TYPES.phonetic,
+            NOISE_TYPES.ocr,
+            NOISE_TYPES.typographic,
         ),
     )
-    DOB: Column = Column(
+    dob: NoisedColumn = NoisedColumn(
         "date_of_birth",
         (
-            NOISE_TYPES.MISSING_DATA,
-            NOISE_TYPES.COPY_FROM_WITHIN_HOUSEHOLD,
-            NOISE_TYPES.MONTH_DAY_SWAP,
-            NOISE_TYPES.NUMERIC_MISWRITING,
-            NOISE_TYPES.OCR,
-            NOISE_TYPES.TYPOGRAPHIC,
+            NOISE_TYPES.missing_data,
+            NOISE_TYPES.copy_from_within_household,
+            NOISE_TYPES.month_day_swap,
+            NOISE_TYPES.numeric_miswriting,
+            NOISE_TYPES.ocr,
+            NOISE_TYPES.typographic,
         ),
     )
-    EMPLOYER_CITY: str = "employer_city"
-    EMPLOYER_ID: str = "employer_id"
-    EMPLOYER_NAME: str = "employer_name"
-    EMPLOYER_STATE: str = "employer_state"
-    EMPLOYER_STREET_NAME: str = "employer_street_name"
-    EMPLOYER_STREET_NUMBER: str = "employer_street_number"
-    EMPLOYER_UNIT_NUMBER: str = "employer_unit_number"
-    EMPLOYER_ZIPCODE: str = "employer_zipcode"
-    FIRST_NAME: Column = Column(
+    employer_city: str = "employer_city"
+    employer_id: str = "employer_id"
+    employer_name: str = "employer_name"
+    employer_state: str = "employer_state"
+    employer_street_name: str = "employer_street_name"
+    employer_street_number: str = "employer_street_number"
+    employer_unit_number: str = "employer_unit_number"
+    employer_zipcode: str = "employer_zipcode"
+    first_name: NoisedColumn = NoisedColumn(
         "first_name",
         (
-            NOISE_TYPES.MISSING_DATA,
-            NOISE_TYPES.NICKNAME,
-            NOISE_TYPES.FAKE_NAME,
-            NOISE_TYPES.PHONETIC,
-            NOISE_TYPES.OCR,
-            NOISE_TYPES.TYPOGRAPHIC,
+            NOISE_TYPES.missing_data,
+            NOISE_TYPES.nickname,
+            NOISE_TYPES.fake_name,
+            NOISE_TYPES.phonetic,
+            NOISE_TYPES.ocr,
+            NOISE_TYPES.typographic,
         ),
     )
-    INCOME: str = "income"
-    ITIN: str = "itin"
-    LAST_NAME: Column = Column(
+    income: str = "income"
+    itin: str = "itin"
+    last_name: NoisedColumn = NoisedColumn(
         "last_name",
         (
-            NOISE_TYPES.MISSING_DATA,
-            NOISE_TYPES.FAKE_NAME,
-            NOISE_TYPES.PHONETIC,
-            NOISE_TYPES.OCR,
-            NOISE_TYPES.TYPOGRAPHIC,
+            NOISE_TYPES.missing_data,
+            NOISE_TYPES.fake_name,
+            NOISE_TYPES.phonetic,
+            NOISE_TYPES.ocr,
+            NOISE_TYPES.typographic,
         ),
     )
-    MAILING_CITY: str = "mailing_address_city"
-    MAILING_PO_BOX: str = "mailing_address_po_box"
-    MAILING_STATE: str = "mailing_address_state"
-    MAILING_STREET_NAME: str = "mailing_address_street_name"
-    MAILING_STREET_NUMBER: str = "mailing_address_street_number"
-    MAILING_UNIT_NUMBER: str = "mailing_address_unit_number"
-    MAILING_ZIPCODE: str = "mailing_address_zipcode"
-    MIDDLE_INITIAL: Column = Column(
+    mailing_city: str = "mailing_address_city"
+    mailing_po_box: str = "mailing_address_po_box"
+    mailing_state: str = "mailing_address_state"
+    mailing_street_name: str = "mailing_address_street_name"
+    mailing_street_number: str = "mailing_address_street_number"
+    mailing_unit_number: str = "mailing_address_unit_number"
+    mailing_zipcode: str = "mailing_address_zipcode"
+    middle_initial: NoisedColumn = NoisedColumn(
         "middle_initial",
         (
-            NOISE_TYPES.MISSING_DATA,
-            NOISE_TYPES.PHONETIC,
-            NOISE_TYPES.OCR,
-            NOISE_TYPES.TYPOGRAPHIC,
+            NOISE_TYPES.missing_data,
+            NOISE_TYPES.phonetic,
+            NOISE_TYPES.ocr,
+            NOISE_TYPES.typographic,
         ),
     )
-    RACE_ETHNICITY: Column = Column(
+    race_ethnicity: NoisedColumn = NoisedColumn(
         "race_ethnicity",
         (
-            NOISE_TYPES.MISSING_DATA,
-            NOISE_TYPES.INCORRECT_SELECTION,
+            NOISE_TYPES.missing_data,
+            NOISE_TYPES.incorrect_selection,
         ),
     )
-    RELATION_TO_HOUSEHOLD_HEAD: Column = Column(
+    relation_to_household_head: NoisedColumn = NoisedColumn(
         "relation_to_household_head",
         (
-            NOISE_TYPES.MISSING_DATA,
-            NOISE_TYPES.INCORRECT_SELECTION,
+            NOISE_TYPES.missing_data,
+            NOISE_TYPES.incorrect_selection,
         ),
     )
-    SEX: Column = Column(
+    sex: NoisedColumn = NoisedColumn(
         "sex",
         (
-            NOISE_TYPES.MISSING_DATA,
-            NOISE_TYPES.INCORRECT_SELECTION,
+            NOISE_TYPES.missing_data,
+            NOISE_TYPES.incorrect_selection,
         ),
     )
-    SSA_EVENT_DATE: str = "event_date"
-    SSA_EVENT_TYPE: str = "event_type"
-    SSN: str = "ssn"
-    STATE: Column = Column(
+    ssa_event_date: str = "event_date"
+    ssa_event_type: str = "event_type"
+    ssn: str = "ssn"
+    state: NoisedColumn = NoisedColumn(
         "state",
         (
-            NOISE_TYPES.MISSING_DATA,
-            NOISE_TYPES.INCORRECT_SELECTION,
+            NOISE_TYPES.missing_data,
+            NOISE_TYPES.incorrect_selection,
         ),
     )
-    STREET_NAME: Column = Column(
+    street_name: NoisedColumn = NoisedColumn(
         "street_name",
         (
-            NOISE_TYPES.MISSING_DATA,
-            NOISE_TYPES.PHONETIC,
-            NOISE_TYPES.OCR,
-            NOISE_TYPES.TYPOGRAPHIC,
+            NOISE_TYPES.missing_data,
+            NOISE_TYPES.phonetic,
+            NOISE_TYPES.ocr,
+            NOISE_TYPES.typographic,
         ),
     )
-    STREET_NUMBER: Column = Column(
+    street_number: NoisedColumn = NoisedColumn(
         "street_number",
         (
-            NOISE_TYPES.MISSING_DATA,
-            NOISE_TYPES.NUMERIC_MISWRITING,
-            NOISE_TYPES.OCR,
-            NOISE_TYPES.TYPOGRAPHIC,
+            NOISE_TYPES.missing_data,
+            NOISE_TYPES.numeric_miswriting,
+            NOISE_TYPES.ocr,
+            NOISE_TYPES.typographic,
         ),
     )
-    TAX_FORM: str = "tax_form"
-    UNIT_NUMBER: Column = Column(
+    tax_form: str = "tax_form"
+    unit_number: NoisedColumn = NoisedColumn(
         "unit_number",
         (
-            NOISE_TYPES.MISSING_DATA,
-            NOISE_TYPES.NUMERIC_MISWRITING,
-            NOISE_TYPES.OCR,
-            NOISE_TYPES.TYPOGRAPHIC,
+            NOISE_TYPES.missing_data,
+            NOISE_TYPES.numeric_miswriting,
+            NOISE_TYPES.ocr,
+            NOISE_TYPES.typographic,
         ),
     )
-    ZIPCODE: Column = Column(
+    zipcode: NoisedColumn = NoisedColumn(
         "zipcode",
         (
-            NOISE_TYPES.MISSING_DATA,
-            NOISE_TYPES.ZIPCODE_MISWRITING,
-            NOISE_TYPES.OCR,
-            NOISE_TYPES.TYPOGRAPHIC,
+            NOISE_TYPES.missing_data,
+            NOISE_TYPES.zipcode_miswriting,
+            NOISE_TYPES.ocr,
+            NOISE_TYPES.typographic,
         ),
     )
 
@@ -165,54 +165,54 @@ class NoisedColumns:
 @dataclass
 class Form:
     name: str
-    columns: Tuple[Column] = None
-    row_noise_types: Tuple[RowNoiseType] = (NOISE_TYPES.OMISSION, NOISE_TYPES.DUPLICATION)
+    columns: Tuple[NoisedColumn] = None
+    row_noise_types: Tuple[RowNoiseType] = (NOISE_TYPES.omission, NOISE_TYPES.duplication)
     is_implemented: bool = True
 
 
 class __Forms(NamedTuple):
     """NamedTuple that contains information about forms and their related columns"""
 
-    CENSUS: Form = Form(
+    census: Form = Form(
         "decennial_census",
         columns=(
-            NoisedColumns.FIRST_NAME,
-            NoisedColumns.MIDDLE_INITIAL,
-            NoisedColumns.LAST_NAME,
-            NoisedColumns.AGE,
-            NoisedColumns.DOB,
-            NoisedColumns.STREET_NUMBER,
-            NoisedColumns.STREET_NAME,
-            NoisedColumns.UNIT_NUMBER,
-            NoisedColumns.CITY,
-            NoisedColumns.STATE,
-            NoisedColumns.ZIPCODE,
-            NoisedColumns.RELATION_TO_HOUSEHOLD_HEAD,
-            NoisedColumns.SEX,
-            NoisedColumns.RACE_ETHNICITY,
+            NoisedColumns.first_name,
+            NoisedColumns.middle_initial,
+            NoisedColumns.last_name,
+            NoisedColumns.age,
+            NoisedColumns.dob,
+            NoisedColumns.street_number,
+            NoisedColumns.street_name,
+            NoisedColumns.unit_number,
+            NoisedColumns.city,
+            NoisedColumns.state,
+            NoisedColumns.zipcode,
+            NoisedColumns.relation_to_household_head,
+            NoisedColumns.sex,
+            NoisedColumns.race_ethnicity,
         ),
     )
-    ACS: Form = Form(
+    acs: Form = Form(
         "american_communities_survey",
         is_implemented=False,
     )  # TODO
-    CPS: Form = Form(
+    cps: Form = Form(
         "current_population_survey",
         is_implemented=False,
     )  # TODO
-    WIC: Form = Form(
+    wic: Form = Form(
         "women_infants_and_children",
         is_implemented=False,
     )  # TODO
-    SSA: Form = Form(
+    ssa: Form = Form(
         "social_security",
         is_implemented=False,
     )  # TODO
-    TAX_W2_1099: Form = Form(
+    tax_w2_1099: Form = Form(
         "taxes_w2_and_1099",
         is_implemented=False,
     )  # TODO
-    TAX_1040: Form = Form(
+    tax_1040: Form = Form(
         "taxes_1040",
         is_implemented=False,
     )  # TODO
