@@ -110,11 +110,6 @@ def string_series():
     )
 
 
-@pytest.fixture(scope="module")
-def default_configuration():
-    return get_configuration()
-
-
 def test_generate_missing_data(dummy_dataset):
     config = get_configuration()["decennial_census"]["zipcode"]["missing_data"]
     config.update(
@@ -517,8 +512,8 @@ def test_generate_fake_names(dummy_dataset):
         rtol=0.02,
     )
     # Get raw fake names lists to check noised values
-    fake_first = fake_first_names()
-    fake_last = fake_last_names()
+    fake_first = fake_first_names
+    fake_last = fake_last_names
     assert (
         noised_first_names.loc[noised_first_names != first_name_data].isin(fake_first).all()
     )

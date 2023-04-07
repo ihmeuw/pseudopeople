@@ -270,8 +270,8 @@ def generate_fake_names(
     :return:
     """
     name = column.name
-    fake_first = fake_first_names()
-    fake_last = fake_last_names()
+    fake_first = fake_first_names
+    fake_last = fake_last_names
     fake_names = {"first_name": fake_first, "last_name": fake_last}
     options = fake_names[name]
 
