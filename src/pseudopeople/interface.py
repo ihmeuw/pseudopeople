@@ -6,11 +6,11 @@ import pandas as pd
 
 from pseudopeople.configuration import get_configuration
 from pseudopeople.noise import noise_form
-from pseudopeople.schema_entities import FORMS
+from pseudopeople.schema_entities import FORMS, Form
 
 
 def _generate_form(
-    form: FORMS,
+    form: Form,
     source: Union[Path, str, pd.DataFrame],
     seed: int,
     configuration: Union[Path, str, dict],

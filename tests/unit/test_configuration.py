@@ -18,8 +18,8 @@ def user_configuration_yaml(tmp_path):
     user_config_path = Path(f"{tmp_path}/test_configuration.yaml")
     config = {
         "decennial_census": {
-            "omission": 0.05,
-            "first_name": {"nickname": {"row_noise_level": 0.05}},
+            "row_noise": {"omission": {"probability": 0.05}},
+            "column_noise": {"first_name": {"nickname": {"row_noise_level": 0.05}}},
         }
     }
     with open(user_config_path, "w") as file:

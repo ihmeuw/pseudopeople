@@ -8,38 +8,43 @@ from pseudopeople.schema_entities import FORMS
 
 
 class Keys(NamedTuple):
-    """NamedTuple containing all key names used in the configuration file
+    """NamedTuple containing all non-form standard/repeatedkey names used in the configuration file
     NOTE: 'additional_parameters' is actually a dict with its own key-values defined
     """
 
-    ROW_NOISE = "row_noise"
-    OMISSION = "omission"
-    DUPLICATION = "duplication"
-    COLUMN_NOISE = "column_noise"
-    ROW_NOISE_LEVEL = "row_noise_level"
-    TOKEN_NOISE_LEVEL = "token_noise_level"
-    ADDITIONAL_PARAMETERS = "additional_parameters"
+    row_noise = "row_noise"  # second layer, eg <form>: row_noise: {...}
+    column_noise = "column_noise"  # second layer, eg <form>: column_noise: {...}
+    probability = "probability"
+    row_noise_level = "row_noise_level"
+    token_noise_level = "token_noise_level"
+    additional_parameters = "additional_parameters"
+    omission = "omission"
 
 
 # Define non-baseline default items
 # NOTE: default values are defined in entity_types.RowNoiseType and entity_types.ColumnNoiseType
 DEFAULT_NOISE_VALUES = {
-    # TODO: Uncomment when omission gets implemented
-    # FORMS.CENSUS.name: {
-    #     Keys.ROW_NOISE: {
-    #         Keys.OMISSION: 0.0145,
-    #     },
-    # },
-    # FORMS.ACS.name: {
-    #     Keys.ROW_NOISE: {
-    #         Keys.OMISSION: 0.0145,
-    #     },
-    # },
-    # FORMS.CPS.name: {
-    #     Keys.ROW_NOISE: {
-    #         Keys.OMISSION: 0.2905,
-    #     },
-    # },
+    FORMS.census.name: {
+        Keys.row_noise: {
+            Keys.omission: {
+                Keys.probability: 0.0145,
+            }
+        },
+    },
+    FORMS.acs.name: {
+        Keys.row_noise: {
+            Keys.omission: {
+                Keys.probability: 0.0145,
+            },
+        },
+    },
+    FORMS.cps.name: {
+        Keys.row_noise: {
+            Keys.omission: {
+                Keys.probability: 0.2905,
+            },
+        },
+    },
 }
 
 
@@ -62,46 +67,50 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
 
     # Instantiate the configuration file with baseline values
     baseline_dict = {}
+    
+    # Loop through each form
     for form in FORMS:
-        if not form.is_implemented:
-            continue
-        baseline_dict[form.name] = {}
-        baseline_dict[form.name][Keys.ROW_NOISE] = {}
-        baseline_dict[form.name][Keys.COLUMN_NOISE] = {}
+        form_dict = {}
+        row_noise_dict = {}
+        column_dict = {}
+
+        # Loop through row noise types
         for row_noise in form.row_noise_types:
-            if not row_noise.is_implemented:
-                continue
+            row_noise_type_dict = {}
             if row_noise.noise_level is not None:
-                baseline_dict[form.name][Keys.ROW_NOISE][
-                    row_noise.name
-                ] = row_noise.noise_level
+                row_noise_type_dict[Keys.probability] = row_noise.noise_level
+            if row_noise_type_dict:
+                row_noise_dict[row_noise.name] = row_noise_type_dict
+        
+        # Loop through columns and their applicable column noise types
         for column in form.columns:
-            if not column.is_implemented:
-                continue
-            baseline_dict[form.name][Keys.COLUMN_NOISE][column.name] = {}
+            column_noise_dict = {}
             for noise_type in column.noise_types:
-                if not noise_type.is_implemented:
-                    continue
-                baseline_dict[form.name][Keys.COLUMN_NOISE][column.name][noise_type.name] = {}
+                column_noise_type_dict = {}
                 if noise_type.row_noise_level is not None:
-                    baseline_dict[form.name][Keys.COLUMN_NOISE][column.name][noise_type.name][
-                        Keys.ROW_NOISE_LEVEL
-                    ] = noise_type.row_noise_level
+                    column_noise_type_dict[Keys.row_noise_level] = noise_type.row_noise_level
                 if noise_type.token_noise_level is not None:
-                    baseline_dict[form.name][Keys.COLUMN_NOISE][column.name][noise_type.name][
-                        Keys.TOKEN_NOISE_LEVEL
-                    ] = noise_type.token_noise_level
+                    column_noise_type_dict[Keys.token_noise_level] = noise_type.token_noise_level
                 if noise_type.additional_parameters is not None:
                     for key, value in noise_type.additional_parameters.items():
-                        baseline_dict[form.name][Keys.COLUMN_NOISE][column.name][
-                            noise_type.name
-                        ][key] = value
-        # Clean up empty layers that had no chance to `continue` out of a loop
-        if not baseline_dict[form.name][Keys.ROW_NOISE]:
-            del baseline_dict[form.name][Keys.ROW_NOISE]
-        if not baseline_dict[form.name][Keys.COLUMN_NOISE]:
-            del baseline_dict[form.name][Keys.COLUMN_NOISE]
+                        column_noise_type_dict[key] = value
+                if column_noise_type_dict:
+                    column_noise_dict[noise_type.name] = column_noise_type_dict
+            if column_noise_dict:
+                column_dict[column.name] = column_noise_dict
+        
+        # Compile 
+        if row_noise_dict:
+            form_dict[Keys.row_noise] = row_noise_dict
+        if column_dict:
+            form_dict[Keys.column_noise] = column_dict
 
+        # Add the form's dictionary to baseline
+        if form_dict:
+            baseline_dict[form.name] = form_dict
+                    
+
+        
     noising_configuration.update(baseline_dict, layer="baseline")
 
     # Update configuration with non-baseline default values

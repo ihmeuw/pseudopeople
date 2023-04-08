@@ -25,12 +25,11 @@ class RowNoiseType:
     name: str
     noise_function: Callable[[pd.DataFrame, float, RandomnessStream], pd.DataFrame]
     noise_level: float = 0.0
-    is_implemented: bool = True
 
     def __call__(
         self,
         form_data: pd.DataFrame,
-        configuration: float,
+        configuration: ConfigTree,
         randomness_stream: RandomnessStream,
     ) -> pd.DataFrame:
         return self.noise_function(form_data, configuration, randomness_stream)
@@ -55,7 +54,6 @@ class ColumnNoiseType:
     row_noise_level: float = 0.01
     token_noise_level: float = 0.1
     additional_parameters: Dict = None
-    is_implemented: bool = True
 
     def __call__(
         self,

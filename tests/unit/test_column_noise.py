@@ -542,8 +542,8 @@ def test_generate_typographical_errors(dummy_dataset, column):
     [
         (NOISE_TYPES.missing_data, "numbers", "decennial_census", "zipcode"),
         (NOISE_TYPES.incorrect_selection, "state", "decennial_census", "state"),
-        (NOISE_TYPES.copy_from_within_household, "todo", "todo", "todo"),
-        (NOISE_TYPES.month_day_swap, "todo", "todo", "todo"),
+        ("NOISE_TYPES.copy_from_within_household", "todo", "todo", "todo"),
+        ("NOISE_TYPES.month_day_swap", "todo", "todo", "todo"),
         (NOISE_TYPES.zipcode_miswriting, "zipcode", "decennial_census", "zipcode"),
         (NOISE_TYPES.age_miswriting, "age", "decennial_census", "age"),
         (
@@ -552,10 +552,10 @@ def test_generate_typographical_errors(dummy_dataset, column):
             "decennial_census",
             "street_number",
         ),
-        (NOISE_TYPES.nickname, "todo", "todo", "todo"),
-        (NOISE_TYPES.fake_name, "todo", "todo", "todo"),
-        (NOISE_TYPES.phonetic, "todo", "todo", "todo"),
-        (NOISE_TYPES.ocr, "todo", "todo", "todo"),
+        ("NOISE_TYPES.nickname", "todo", "todo", "todo"),
+        ("NOISE_TYPES.fake_name", "todo", "todo", "todo"),
+        ("NOISE_TYPES.phonetic", "todo", "todo", "todo"),
+        ("NOISE_TYPES.ocr", "todo", "todo", "todo"),
         (NOISE_TYPES.typographic, "numbers", "decennial_census", "zipcode"),
         (NOISE_TYPES.typographic, "characters", "decennial_census", "street_name"),
     ],
@@ -564,9 +564,9 @@ def test_seeds_behave_as_expected(noise_type, data_col, form, form_col, dummy_da
     """Tests that different seeds produce different results and the same seed
     produces the same results
     """
-    noise = noise_type.name
     if data_col == "todo":
-        pytest.skip(reason=f"TODO: implement for function {noise}")
+        pytest.skip(reason=f"TODO: implement for {noise_type}")
+    noise = noise_type.name
     config = get_configuration()[form].column_noise[form_col][noise]
     data = dummy_dataset[data_col]
     noised_data = noise_type(data, config, RANDOMNESS0, f"test_{noise}")

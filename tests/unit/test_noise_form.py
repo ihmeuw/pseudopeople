@@ -84,8 +84,12 @@ def dummy_config_noise_numbers():
                     },
                 },
                 "row_noise": {
-                    "duplication": 0.01,
-                    "omission": 0.01,
+                    "duplication": {
+                        "probability": 0.01,
+                    },
+                    "omission": {
+                        "probability": 0.01,
+                    },
                 },
             },
         }
@@ -176,13 +180,13 @@ def test_columns_noised(dummy_data):
         (generate_women_infants_and_children, FORMS.wic),
         (generate_social_security, FORMS.ssa),
         (generate_taxes_w2_and_1099, FORMS.tax_w2_1099),
-        ("todo", FORMS.tax_1040),
+        ("todo", "FORMS.tax_1040"),
     ],
 )
 def test_correct_forms_are_used(func, form, mocker):
     """Test that each interface noise function uses the correct form"""
     if func == "todo":
-        pytest.skip(reason=f"TODO: implement function for {form.name} form")
+        pytest.skip(reason=f"TODO: implement function for form {form}")
     mock = mocker.patch("pseudopeople.interface.noise_form")
     mocker.patch("pseudopeople.interface.pd.read_hdf", return_value=pd.DataFrame())
     _ = func("dummy/path")

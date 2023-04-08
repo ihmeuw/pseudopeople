@@ -1,6 +1,6 @@
 import pytest
 
-from pseudopeople.noise_functions import duplicate_rows, omit_rows
+from pseudopeople.noise_functions import omit_rows
 
 
 @pytest.mark.skip(reason="TODO")
