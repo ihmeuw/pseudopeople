@@ -62,7 +62,12 @@ class ColumnNoiseType:
         randomness_stream: RandomnessStream,
         additional_key: Any,
     ) -> pd.Series:
-        column = column.copy()
+        # TODO: this is a temporary hack to account for all string columns having been made categorical
+        #  We should record expected output dtype in the columns data structure
+        if column.dtype.name == "category":
+            column = column.astype(str)
+        else:
+            column = column.copy()
         noise_level = configuration.row_noise_level
         to_noise_idx = get_index_to_noise(
             column, noise_level, randomness_stream, f"{self.name}_{additional_key}"

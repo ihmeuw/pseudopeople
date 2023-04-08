@@ -57,10 +57,10 @@ class __NoiseTypes(NamedTuple):
     #     "nickname",
     #     noise_functions.generate_nicknames,
     # )
-    # fake_name: ColumnNoiseType = ColumnNoiseType(
-    #     "fake_names",
-    #     noise_functions.generate_fake_names,
-    # )
+    fake_name: ColumnNoiseType = ColumnNoiseType(
+        "fake_names",
+        noise_functions.generate_fake_names,
+    )
     # phonetic: ColumnNoiseType = ColumnNoiseType(
     #     "phonetic",
     #     noise_functions.generate_phonetic_errors,
