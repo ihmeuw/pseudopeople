@@ -67,7 +67,7 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
 
     # Instantiate the configuration file with baseline values
     baseline_dict = {}
-    
+
     # Loop through each form
     for form in FORMS:
         form_dict = {}
@@ -81,7 +81,7 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
                 row_noise_type_dict[Keys.probability] = row_noise.noise_level
             if row_noise_type_dict:
                 row_noise_dict[row_noise.name] = row_noise_type_dict
-        
+
         # Loop through columns and their applicable column noise types
         for column in form.columns:
             column_noise_dict = {}
@@ -90,7 +90,9 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
                 if noise_type.row_noise_level is not None:
                     column_noise_type_dict[Keys.row_noise_level] = noise_type.row_noise_level
                 if noise_type.token_noise_level is not None:
-                    column_noise_type_dict[Keys.token_noise_level] = noise_type.token_noise_level
+                    column_noise_type_dict[
+                        Keys.token_noise_level
+                    ] = noise_type.token_noise_level
                 if noise_type.additional_parameters is not None:
                     for key, value in noise_type.additional_parameters.items():
                         column_noise_type_dict[key] = value
@@ -98,8 +100,8 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
                     column_noise_dict[noise_type.name] = column_noise_type_dict
             if column_noise_dict:
                 column_dict[column.name] = column_noise_dict
-        
-        # Compile 
+
+        # Compile
         if row_noise_dict:
             form_dict[Keys.row_noise] = row_noise_dict
         if column_dict:
@@ -108,9 +110,7 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
         # Add the form's dictionary to baseline
         if form_dict:
             baseline_dict[form.name] = form_dict
-                    
 
-        
     noising_configuration.update(baseline_dict, layer="baseline")
 
     # Update configuration with non-baseline default values

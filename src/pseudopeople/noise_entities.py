@@ -51,7 +51,8 @@ class __NoiseTypes(NamedTuple):
         additional_parameters={"possible_perturbations": {-1: 0.5, 1: 0.5}},
     )
     numeric_miswriting: ColumnNoiseType = ColumnNoiseType(
-        "numeric_miswriting", noise_functions.miswrite_numerics,
+        "numeric_miswriting",
+        noise_functions.miswrite_numerics,
     )
     # nickname: ColumnNoiseType = ColumnNoiseType(
     #     "nickname",
