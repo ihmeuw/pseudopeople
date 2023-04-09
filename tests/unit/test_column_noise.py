@@ -482,17 +482,19 @@ def test_generate_fake_names(dummy_dataset):
     config.update(
         {
             "decennial_census": {
-                "first_name": {
-                    "fake_names": {
-                        "row_noise_level": 0.4,
+                "column_noise": {
+                    "first_name": {
+                        "fake_names": {
+                            "row_noise_level": 0.4,
+                        },
                     },
+                    "last_name": {"fake_names": {"row_noise_level": 0.5}},
                 },
-                "last_name": {"fake_names": {"row_noise_level": 0.5}},
             },
         }
     )
-    first_name_config = config.decennial_census.first_name.fake_names
-    last_name_config = config.decennial_census.last_name.fake_names
+    first_name_config = config.decennial_census.column_noise.first_name.fake_names
+    last_name_config = config.decennial_census.column_noise.last_name.fake_names
 
     # For this test, using the dummy_dataset fixture the "string_series" column will be used as both names columns
     # This will help demonstrate that the additional key is working correctly
@@ -500,10 +502,10 @@ def test_generate_fake_names(dummy_dataset):
     first_name_data = first_name_data.rename("first_name")
     last_name_data = dummy_dataset["string_series"]
     last_name_data = last_name_data.rename("last_name")
-    noised_first_names = NOISE_TYPES.FAKE_NAME(
+    noised_first_names = NOISE_TYPES.fake_name(
         first_name_data, first_name_config, RANDOMNESS0, "test_fake_names"
     )
-    noised_last_names = NOISE_TYPES.FAKE_NAME(
+    noised_last_names = NOISE_TYPES.fake_name(
         last_name_data, last_name_config, RANDOMNESS0, "test_fake_names "
     )
 

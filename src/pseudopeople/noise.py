@@ -50,7 +50,11 @@ def noise_form(
     for noise_type in NOISE_TYPES:
         if isinstance(noise_type, RowNoiseType):
             # Apply row noise
-            form_data = noise_type(form_data, noise_configuration, randomness)
+            form_data = noise_type(
+                form_data,
+                noise_configuration.row_noise[noise_type.name],
+                randomness,
+            )
 
         elif isinstance(noise_type, ColumnNoiseType):
             columns_to_noise = [
