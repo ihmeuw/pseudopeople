@@ -4,7 +4,7 @@
  - Implement zipcode miswriting function
  - Implement fake name noise function
  - Add sample data to package
- - Support reading parquet files
+ - Support parquet files
 
 **0.3.0 - 04/04/23**
 
