@@ -14,6 +14,7 @@ by column and row for each type of additional noise type.
 import pandas as pd
 from vivarium import ConfigTree
 
+from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import Form
@@ -49,7 +50,10 @@ def noise_form(
     noise_configuration = configuration[form.name]
     for noise_type in NOISE_TYPES:
         if isinstance(noise_type, RowNoiseType):
-            if noise_configuration.to_dict().get("row_noise"):
+            if (
+                Keys.ROW_NOISE in noise_configuration
+                and noise_type.name in noise_configuration.row_noise
+            ):
                 # Apply row noise
                 form_data = noise_type(
                     form_data,
