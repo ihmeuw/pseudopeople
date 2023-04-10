@@ -7,12 +7,13 @@ from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.constants import paths
+from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.utilities import vectorized_choice
 
 
 def omit_rows(
-    form_data: float,
-    configuration: ConfigTree,
+    form_data: pd.DataFrame,
+    configuration: float,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
@@ -27,8 +28,8 @@ def omit_rows(
 
 
 def duplicate_rows(
-    form_data: float,
-    configuration: ConfigTree,
+    form_data: pd.DataFrame,
+    configuration: float,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
@@ -73,7 +74,7 @@ def generate_incorrect_selections(
         options=options,
         n_to_choose=len(column),
         randomness_stream=randomness_stream,
-        additional_key=f"{additional_key}_{column.name}_incorrect_select_choice",
+        additional_key=f"{additional_key}_incorrect_select_choice",
     ).to_numpy()
 
     return pd.Series(new_values, index=column.index)
@@ -122,15 +123,44 @@ def miswrite_zipcodes(
     additional_key: Any,
 ) -> pd.Series:
     """
+    Function that noises a 5 digit zipcode
 
-    :param column:
-    :param configuration:
-    :param randomness_stream:
+    :param column: A pd.Series of 5 digit zipcodes as strings
+    :param configuration:  Config tree object at column node.
+    :param randomness_stream:  RandomnessStream object from Vivarium framework
     :param additional_key: Key for RandomnessStream
-    :return:
+    :return: pd.Series of noised zipcodes
     """
-    # todo actually duplicate rows
-    return column
+
+    column = column.astype(str)
+    str_len = column.str.len()
+    if (str_len != 5).sum() > 0:
+        raise ValueError(
+            "Zipcode data contains zipcodes that are not 5 digits long. Please check input data."
+        )
+
+    rng = np.random.default_rng(randomness_stream.seed)
+    shape = (len(column), 5)
+
+    # todo: Update when vectorized choice is improved
+    possible_replacements = list("0123456789")
+    # Scale up noise levels to adjust for inclusive sampling with all numbers
+    scaleup_factor = 1 / (1 - (1 / len(possible_replacements)))
+    # Get configuration values for each piece of 5 digit zipcode
+    first2_prob = configuration.first_two_digits_noise_level * scaleup_factor
+    middle_prob = configuration.middle_digit_noise_level * scaleup_factor
+    last2_prob = configuration.last_two_digits_noise_level * scaleup_factor
+    threshold = np.array([2 * [first2_prob] + [middle_prob] + 2 * [last2_prob]])
+    replace = rng.random(shape) < threshold
+    random_digits = rng.choice(possible_replacements, shape)
+    digits = []
+    for i in range(5):
+        digit = np.where(replace[:, i], random_digits[:, i], column.str[i])
+        digit = pd.Series(digit, index=column.index, name=column.name)
+        digits.append(digit)
+
+    new_zipcodes = digits[0] + digits[1] + digits[2] + digits[3] + digits[4]
+    return new_zipcodes
 
 
 def miswrite_ages(
@@ -181,7 +211,8 @@ def miswrite_numerics(
 
     returns: pd.Series with some numeric values experiencing noise.
     """
-
+    if column.empty:
+        return column
     # This is a fix to not replacing the original token for noise options
     token_noise_level = configuration.token_noise_level / 0.9
     rng = np.random.default_rng(randomness_stream.seed)
@@ -228,20 +259,31 @@ def generate_nicknames(
 
 def generate_fake_names(
     column: pd.Series,
-    configuration: ConfigTree,
+    _: ConfigTree,
     randomness_stream: RandomnessStream,
     additional_key: Any,
 ) -> pd.Series:
     """
 
-    :param column:
-    :param configuration:
-    :param randomness_stream:
+    :param column: pd.Series of names
+    :param _:  ConfigTree object with noise level values
+    :param randomness_stream:  RandomnessStream instance of vivarium
     :param additional_key: Key for RandomnessStream
     :return:
     """
-    # todo actually generate fake names
-    return column
+    name = column.name
+    fake_first = fake_first_names
+    fake_last = fake_last_names
+    fake_names = {"first_name": fake_first, "last_name": fake_last}
+    options = fake_names[name]
+
+    new_values = vectorized_choice(
+        options=options,
+        n_to_choose=len(column),
+        randomness_stream=randomness_stream,
+        additional_key=f"{additional_key}_fake_names",
+    )
+    return pd.Series(new_values, index=column.index)
 
 
 def generate_phonetic_errors(

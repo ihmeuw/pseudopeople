@@ -34,6 +34,7 @@ if __name__ == "__main__":
         "pandas",
         "pyyaml>=5.1",
         "vivarium",
+        "pyarrow",
     ]
 
     interactive_requirements = [

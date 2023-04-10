@@ -28,7 +28,7 @@ class __NoiseTypes(NamedTuple):
     MONTH_DAY_SWAP: ColumnNoiseType = ColumnNoiseType(
         "month_day_swap", noise_functions.swap_months_and_days
     )
-    ZIP_CODE_MISWRITING: ColumnNoiseType = ColumnNoiseType(
+    ZIPCODE_MISWRITING: ColumnNoiseType = ColumnNoiseType(
         "zipcode_miswriting", noise_functions.miswrite_zipcodes
     )
     AGE_MISWRITING: ColumnNoiseType = ColumnNoiseType(

@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 from vivarium.framework.randomness import RandomnessStream
 
+from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.utilities import get_configuration
 
@@ -67,6 +68,18 @@ def dummy_dataset():
         "",
     ]
     string_series = pd.Series(string_list * int(num_simulants / len(string_list)))
+    zipcodes = ["12345", "98765", "02468", "13579", ""]
+    zipcode_series = pd.Series(zipcodes * int(num_simulants / len(zipcodes)))
+    first_names = [
+        "first name",
+        "another first name",
+        "other first name",
+        "oother other first name",
+        "",
+    ]
+    first_name_series = pd.Series(first_names * int(num_simulants / len(first_names)))
+    last_names = ["A last name", "another last name", "other last name", "last name", ""]
+    last_name_series = pd.Series(last_names * int(num_simulants / len(last_names)))
 
     return pd.DataFrame(
         {
@@ -75,6 +88,9 @@ def dummy_dataset():
             "state": states,
             "age": ages,
             "string_series": string_series,
+            "zipcode": zipcode_series,
+            "first_name": first_name_series,
+            "last_name": last_name_series,
         }
     )
 
@@ -156,9 +172,55 @@ def test_swap_months_and_days():
     pass
 
 
-@pytest.mark.skip(reason="TODO")
-def test_miswrite_zipcodes():
-    pass
+def test_miswrite_zipcodes(dummy_dataset):
+    config = get_configuration()
+    config.update(
+        {
+            "decennial_census": {
+                "zipcode": {
+                    "zipcode_miswriting": {
+                        "row_noise_level": 0.5,
+                        "first_two_digits_noise_level": 0.3,
+                        "middle_digit_noise_level": 0.4,
+                        "last_two_digits_noise_level": 0.5,
+                    },
+                },
+            },
+        }
+    )
+    config = config["decennial_census"]["zipcode"]["zipcode_miswriting"]
+
+    # Get configuration values for each piece of 5 digit zipcode
+    row_noise_level = config.row_noise_level
+    first2_prob = config.first_two_digits_noise_level
+    middle_prob = config.middle_digit_noise_level
+    last2_prob = config.last_two_digits_noise_level
+    data = dummy_dataset["zipcode"]
+    noised_data = NOISE_TYPES.ZIPCODE_MISWRITING(data, config, RANDOMNESS0, "test_zipcode")
+
+    # Confirm missing data remains missing
+    orig_missing = data == ""
+    assert (noised_data[orig_missing] == "").all()
+    # Check noise for each digits position matches expected noise
+    for i in range(2):
+        assert np.isclose(
+            first2_prob * row_noise_level,
+            (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).mean(),
+            rtol=0.02,
+        )
+
+    assert np.isclose(
+        middle_prob * row_noise_level,
+        (data[~orig_missing].str[2] != noised_data[~orig_missing].str[2]).mean(),
+        rtol=0.02,
+    )
+
+    for i in range(3, 5):
+        assert np.isclose(
+            last2_prob * row_noise_level,
+            (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).mean(),
+            rtol=0.02,
+        )
 
 
 def test_miswrite_ages_default_config(dummy_dataset):
@@ -400,9 +462,62 @@ def test_generate_nicknames():
     pass
 
 
-@pytest.mark.skip(reason="TODO")
-def test_generate_fake_names():
-    pass
+def test_generate_fake_names(dummy_dataset):
+    """
+    Function to test that fake names are noised and replace raw values at a configured percentage
+    """
+    config = get_configuration()
+    config.update(
+        {
+            "decennial_census": {
+                "first_name": {
+                    "fake_names": {
+                        "row_noise_level": 0.4,
+                    },
+                },
+                "last_name": {"fake_names": {"row_noise_level": 0.5}},
+            },
+        }
+    )
+    first_name_config = config.decennial_census.first_name.fake_names
+    last_name_config = config.decennial_census.last_name.fake_names
+
+    # For this test, using the dummy_dataset fixture the "string_series" column will be used as both names columns
+    # This will help demonstrate that the additional key is working correctly
+    first_name_data = dummy_dataset["string_series"]
+    first_name_data = first_name_data.rename("first_name")
+    last_name_data = dummy_dataset["string_series"]
+    last_name_data = last_name_data.rename("last_name")
+    noised_first_names = NOISE_TYPES.FAKE_NAME(
+        first_name_data, first_name_config, RANDOMNESS0, "test_fake_names"
+    )
+    noised_last_names = NOISE_TYPES.FAKE_NAME(
+        last_name_data, last_name_config, RANDOMNESS0, "test_fake_names "
+    )
+
+    # Check missing are unchanged
+    orig_missing = first_name_data == ""
+    assert (first_name_data[orig_missing] == noised_first_names[orig_missing]).all()
+    assert (last_name_data[orig_missing] == noised_last_names[orig_missing]).all()
+    # todo: equal across fake values
+    # Check noised values
+    assert np.isclose(
+        first_name_config.row_noise_level,
+        (first_name_data[~orig_missing] != noised_first_names[~orig_missing]).mean(),
+        rtol=0.02,
+    )
+    assert np.isclose(
+        last_name_config.row_noise_level,
+        (last_name_data[~orig_missing] != noised_last_names[~orig_missing]).mean(),
+        rtol=0.02,
+    )
+    # Get raw fake names lists to check noised values
+    fake_first = fake_first_names
+    fake_last = fake_last_names
+    assert (
+        noised_first_names.loc[noised_first_names != first_name_data].isin(fake_first).all()
+    )
+    assert noised_last_names.loc[noised_last_names != last_name_data].isin(fake_last).all()
 
 
 @pytest.mark.skip(reason="TODO")
@@ -482,7 +597,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
         (NOISE_TYPES.INCORRECT_SELECTION, "state", "decennial_census", "state"),
         (NOISE_TYPES.COPY_FROM_WITHIN_HOUSEHOLD, "todo", "todo", "todo"),
         (NOISE_TYPES.MONTH_DAY_SWAP, "todo", "todo", "todo"),
-        (NOISE_TYPES.ZIP_CODE_MISWRITING, "todo", "todo", "todo"),
+        (NOISE_TYPES.ZIPCODE_MISWRITING, "zipcode", "decennial_census", "zipcode"),
         (NOISE_TYPES.AGE_MISWRITING, "age", "decennial_census", "age"),
         (
             NOISE_TYPES.NUMERIC_MISWRITING,
@@ -491,7 +606,8 @@ def test_generate_typographical_errors(dummy_dataset, column):
             "street_number",
         ),
         (NOISE_TYPES.NICKNAME, "todo", "todo", "todo"),
-        (NOISE_TYPES.FAKE_NAME, "todo", "todo", "todo"),
+        (NOISE_TYPES.FAKE_NAME, "first_name", "decennial_census", "first_name"),
+        (NOISE_TYPES.FAKE_NAME, "last_name", "decennial_census", "last_name"),
         (NOISE_TYPES.PHONETIC, "todo", "todo", "todo"),
         (NOISE_TYPES.OCR, "todo", "todo", "todo"),
         (NOISE_TYPES.TYPOGRAPHIC, "numbers", "decennial_census", "zipcode"),
@@ -518,3 +634,11 @@ def test_seeds_behave_as_expected(noise_type, data_col, form, form_col, dummy_da
         == noised_data_same_seed[noised_data_same_seed.notna()]
     ).all()
     assert (noised_data != noised_data_different_seed).any()
+
+    # Check that we are in fact getting differnt noised values
+    noised = noised_data.loc[noised_data != data].reset_index(drop=True)
+    noised_different_seed = noised_data_different_seed.loc[
+        noised_data_different_seed != data
+    ].reset_index(drop=True)
+    shortest = min(len(noised), len(noised_different_seed))
+    assert (noised.iloc[:shortest] != noised_different_seed.iloc[:shortest]).any()
