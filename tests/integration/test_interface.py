@@ -37,7 +37,11 @@ from pseudopeople.interface import (
 def test_generate_form(data_path: Union[Path, str], noising_function: Callable):
     if noising_function == "todo":
         pytest.skip(reason=f"TODO: implement form {data_path}")
-    data = pd.DataFrame(pd.read_hdf(data_path))
+    data_path = Path(data_path)
+    if data_path.suffix == ".hdf":
+        data = pd.read_hdf(data_path)
+    elif data_path.suffix == ".parquet":
+        data = pd.read_parquet(data_path)
 
     noised_data = noising_function(source=data.copy(), seed=0)
     noised_data_same_seed = noising_function(source=data.copy(), seed=0)
