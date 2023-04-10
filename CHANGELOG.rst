@@ -1,3 +1,11 @@
+**0.3.1 - 04/10/23**
+
+ - Build docs to readthedocs
+ - Implement zipcode miswriting function
+ - Implement fake name noise function
+ - Add sample data to package
+ - Support parquet files
+
 **0.3.0 - 04/04/23**
 
  - Implement numeric miswriting noise function
