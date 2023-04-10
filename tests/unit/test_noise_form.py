@@ -68,7 +68,7 @@ def dummy_config_noise_numbers():
                             "numeric_miswriting": [0.1],
                         },
                         "nickname": {"row_noise_level": 0.01},
-                        "fake_names": {"row_noise_level": 0.01},
+                        "fake_name": {"row_noise_level": 0.01},
                         "phonetic": {
                             "row_noise_level": 0.01,
                             "token_noise_level": 0.1,

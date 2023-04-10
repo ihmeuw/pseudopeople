@@ -484,17 +484,17 @@ def test_generate_fake_names(dummy_dataset):
             "decennial_census": {
                 "column_noise": {
                     "first_name": {
-                        "fake_names": {
+                        "fake_name": {
                             "row_noise_level": 0.4,
                         },
                     },
-                    "last_name": {"fake_names": {"row_noise_level": 0.5}},
+                    "last_name": {"fake_name": {"row_noise_level": 0.5}},
                 },
             },
         }
     )
-    first_name_config = config.decennial_census.column_noise.first_name.fake_names
-    last_name_config = config.decennial_census.column_noise.last_name.fake_names
+    first_name_config = config.decennial_census.column_noise.first_name.fake_name
+    last_name_config = config.decennial_census.column_noise.last_name.fake_name
 
     # For this test, using the dummy_dataset fixture the "string_series" column will be used as both names columns
     # This will help demonstrate that the additional key is working correctly

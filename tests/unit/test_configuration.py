@@ -1,16 +1,12 @@
 from pathlib import Path
 
-import pandas as pd
 import pytest
 import yaml
-from vivarium.framework.randomness import RandomnessStream
+from vivarium.config_tree import ConfigTree
 
-import pseudopeople
-from pseudopeople.configuration import get_configuration
-
-RANDOMNESS0 = RandomnessStream(
-    key="test_column_noise", clock=lambda: pd.Timestamp("2020-09-01"), seed=0
-)
+from pseudopeople.configuration import DEFAULT_NOISE_VALUES, get_configuration
+from pseudopeople.noise_entities import NOISE_TYPES
+from pseudopeople.schema_entities import FORMS
 
 
 @pytest.fixture
@@ -32,6 +28,68 @@ def test_get_default_configuration(mocker):
     mock = mocker.patch("pseudopeople.configuration.ConfigTree")
     _ = get_configuration()
     mock.assert_called_once_with(layers=["baseline", "default", "user"])
+
+
+def test_default_configuration_structure():
+    """Test that the default configuration structure is correct"""
+    config = get_configuration()
+    # Check forms
+    assert set(f.name for f in FORMS) == set(config.keys())
+    for form in FORMS:
+        # Check row noise
+        for row_noise in form.row_noise_types:
+            config_probability = config[form.name].row_noise[row_noise.name].probability
+            default_probability = (
+                DEFAULT_NOISE_VALUES.get(form.name, {})
+                .get("row_noise", {})
+                .get(row_noise.name, {})
+                .get("probability", {})
+            )
+            if default_probability:
+                assert config_probability == default_probability
+            else:
+                assert config_probability == getattr(NOISE_TYPES, row_noise.name).probability
+        for col in form.columns:
+            for noise_type in col.noise_types:
+                config_level = config[form.name].column_noise[col.name][noise_type.name]
+                builder_level = getattr(NOISE_TYPES, noise_type.name)
+                if noise_type.row_noise_level:
+                    config_row_noise_level = config_level.row_noise_level
+                    default_row_noise_level = (
+                        DEFAULT_NOISE_VALUES.get(form.name, {})
+                        .get("column_noise", {})
+                        .get(col.name, {})
+                        .get(noise_type.name, {})
+                        .get("row_noise_level", {})
+                    )
+                    if default_row_noise_level:
+                        assert config_row_noise_level == default_row_noise_level
+                    else:
+                        assert config_row_noise_level == builder_level.row_noise_level
+                if noise_type.token_noise_level:
+                    config_token_noise_level = config_level.token_noise_level
+                    default_token_noise_level = (
+                        DEFAULT_NOISE_VALUES.get(form.name, {})
+                        .get("column_noise", {})
+                        .get(col.name, {})
+                        .get(noise_type.name, {})
+                        .get("token_noise_level", {})
+                    )
+                    if default_token_noise_level:
+                        assert config_token_noise_level == default_token_noise_level
+                    else:
+                        assert config_token_noise_level == builder_level.token_noise_level
+                if noise_type.additional_parameters:
+                    # FIXME: add default check
+
+                    for key, value in noise_type.additional_parameters.items():
+                        config_value = config_level[key]
+                        if isinstance(config_value, float):
+                            assert config_value == value
+                        elif isinstance(config_value, ConfigTree):
+                            assert config_level[key].to_dict() == value
+                        else:
+                            raise AttributeError
 
 
 def test_get_configuration_with_user_override(user_configuration_yaml, mocker):

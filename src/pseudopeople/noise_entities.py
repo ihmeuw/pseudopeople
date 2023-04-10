@@ -59,7 +59,7 @@ class __NoiseTypes(NamedTuple):
     #     noise_functions.generate_nicknames,
     # )
     fake_name: ColumnNoiseType = ColumnNoiseType(
-        "fake_names",
+        "fake_name",
         noise_functions.generate_fake_names,
     )
     # phonetic: ColumnNoiseType = ColumnNoiseType(
