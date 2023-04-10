@@ -53,7 +53,7 @@ class ColumnNoiseType:
     noise_function: Callable[[pd.Series, ConfigTree, RandomnessStream, Any], pd.Series]
     row_noise_level: float = 0.01
     token_noise_level: float = 0.1
-    additional_parameters: Dict = None
+    additional_parameters: Dict[str, Any] = None
 
     def __call__(
         self,

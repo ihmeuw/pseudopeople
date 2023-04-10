@@ -129,22 +129,20 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
     call_order = [x[0] for x in mock.mock_calls if not x[0].startswith("__")]
     expected_call_order = [
         "omission",
-        "duplication",
+        # "duplication",
         "missing_data",
         "incorrect_selection",
-        "copy_from_within_household",
-        "month_day_swap",
+        # "copy_from_within_household",
+        # "month_day_swap",
         "zipcode_miswriting",
         "age_miswriting",
         "numeric_miswriting",
-        "nickname",
+        # "nickname",
         "fake_name",
-        "phonetic",
-        "ocr",
+        # "phonetic",
+        # "ocr",
         "typographic",
     ]
-
-    expected_call_order = [x for x in expected_call_order if x in call_order]
 
     assert expected_call_order == call_order
 
