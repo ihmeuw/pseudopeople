@@ -154,11 +154,6 @@ def test_columns_noised(dummy_data):
     config = ConfigTree(
         {
             "decennial_census": {
-                "row_noise": {
-                    "omission": {
-                        "probability": 0.0,
-                    },
-                },
                 "column_noise": {
                     "numbers": {
                         "missing_data": {"row_noise_level": 0.1},

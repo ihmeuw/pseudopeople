@@ -74,7 +74,7 @@ def dummy_dataset():
         "first name",
         "another first name",
         "other first name",
-        "oother other first name",
+        "other other first name",
         "",
     ]
     first_name_series = pd.Series(first_names * int(num_simulants / len(first_names)))
@@ -651,7 +651,7 @@ def test_seeds_behave_as_expected(noise_type, data_col, form, form_col, dummy_da
     ).all()
     assert (noised_data != noised_data_different_seed).any()
 
-    # Check that we are in fact getting differnt noised values
+    # Check that we are in fact getting different noised values
     noised = noised_data.loc[noised_data != data].reset_index(drop=True)
     noised_different_seed = noised_data_different_seed.loc[
         noised_data_different_seed != data

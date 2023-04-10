@@ -1,47 +1,46 @@
 from pathlib import Path
-from typing import Dict, NamedTuple, Union
+from typing import Dict, Union
 
 import yaml
 from vivarium.config_tree import ConfigTree
 
-from pseudopeople.schema_entities import FORMS
+from pseudopeople.schema_entities import FORMS, NOISE_TYPES
 
 
-class Keys(NamedTuple):
-    """NamedTuple containing all non-form standard/repeatedkey names used in the configuration file
+class Keys:
+    """Container for all non-form standard/repeated key names used in the configuration file
     NOTE: 'additional_parameters' is actually a dict with its own key-values defined
     """
 
-    row_noise = "row_noise"  # second layer, eg <form>: row_noise: {...}
-    column_noise = "column_noise"  # second layer, eg <form>: column_noise: {...}
-    probability = "probability"
-    row_noise_level = "row_noise_level"
-    token_noise_level = "token_noise_level"
-    additional_parameters = "additional_parameters"
-    omission = "omission"
+    ROW_NOISE = "row_noise"  # second layer, eg <form>: row_noise: {...}
+    COLUMN_NOISE = "column_noise"  # second layer, eg <form>: column_noise: {...}
+    PROBABILITY = "probability"
+    ROW_NOISE_LEVEL = "row_noise_level"
+    TOKEN_NOISE_LEVEL = "token_noise_level"
+    ADDITIONAL_PARAMETERS = "additional_parameters"
 
 
 # Define non-baseline default items
 # NOTE: default values are defined in entity_types.RowNoiseType and entity_types.ColumnNoiseType
 DEFAULT_NOISE_VALUES = {
     FORMS.census.name: {
-        Keys.row_noise: {
-            Keys.omission: {
-                Keys.probability: 0.0145,
+        Keys.ROW_NOISE: {
+            NOISE_TYPES.omission.name: {
+                Keys.PROBABILITY: 0.0145,
             }
         },
     },
     FORMS.acs.name: {
-        Keys.row_noise: {
-            Keys.omission: {
-                Keys.probability: 0.0145,
+        Keys.ROW_NOISE: {
+            NOISE_TYPES.omission.name: {
+                Keys.PROBABILITY: 0.0145,
             },
         },
     },
     FORMS.cps.name: {
-        Keys.row_noise: {
-            Keys.omission: {
-                Keys.probability: 0.2905,
+        Keys.ROW_NOISE: {
+            NOISE_TYPES.omission.name: {
+                Keys.PROBABILITY: 0.2905,
             },
         },
     },
@@ -77,8 +76,8 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
         # Loop through row noise types
         for row_noise in form.row_noise_types:
             row_noise_type_dict = {}
-            if row_noise.noise_level is not None:
-                row_noise_type_dict[Keys.probability] = row_noise.noise_level
+            if row_noise.probability is not None:
+                row_noise_type_dict[Keys.PROBABILITY] = row_noise.probability
             if row_noise_type_dict:
                 row_noise_dict[row_noise.name] = row_noise_type_dict
 
@@ -88,10 +87,10 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
             for noise_type in column.noise_types:
                 column_noise_type_dict = {}
                 if noise_type.row_noise_level is not None:
-                    column_noise_type_dict[Keys.row_noise_level] = noise_type.row_noise_level
+                    column_noise_type_dict[Keys.ROW_NOISE_LEVEL] = noise_type.row_noise_level
                 if noise_type.token_noise_level is not None:
                     column_noise_type_dict[
-                        Keys.token_noise_level
+                        Keys.TOKEN_NOISE_LEVEL
                     ] = noise_type.token_noise_level
                 if noise_type.additional_parameters is not None:
                     for key, value in noise_type.additional_parameters.items():
@@ -103,9 +102,9 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
 
         # Compile
         if row_noise_dict:
-            form_dict[Keys.row_noise] = row_noise_dict
+            form_dict[Keys.ROW_NOISE] = row_noise_dict
         if column_dict:
-            form_dict[Keys.column_noise] = column_dict
+            form_dict[Keys.COLUMN_NOISE] = column_dict
 
         # Add the form's dictionary to baseline
         if form_dict:

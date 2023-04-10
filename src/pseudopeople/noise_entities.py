@@ -40,7 +40,7 @@ class __NoiseTypes(NamedTuple):
         token_noise_level=None,
         additional_parameters={
             "first_two_digits_noise_level": 0.04,
-            "middle_digit_noise_level": 0.2,
+            "middle_digit_noise_level": 0.20,
             "last_two_digits_noise_level": 0.36,
         },
     )
