@@ -85,16 +85,27 @@ def test_default_configuration_structure():
                     else:
                         assert config_token_noise_level == default_token_noise_level
                 if noise_type.additional_parameters:
-                    config_additional_parameters = {k:v for k,v in config_level.to_dict().items() if k not in ["row_noise_level", "token_noise_level"]}
+                    config_additional_parameters = {
+                        k: v
+                        for k, v in config_level.to_dict().items()
+                        if k not in ["row_noise_level", "token_noise_level"]
+                    }
                     default_additional_parameters = (
                         DEFAULT_NOISE_VALUES.get(form.name, {})
                         .get("column_noise", {})
                         .get(col.name, {})
                         .get(noise_type.name, {})
                     )
-                    default_additional_parameters = {k:v for k,v in default_additional_parameters.items() if k not in ["row_noise_level", "token_noise_level"]}
+                    default_additional_parameters = {
+                        k: v
+                        for k, v in default_additional_parameters.items()
+                        if k not in ["row_noise_level", "token_noise_level"]
+                    }
                     if default_additional_parameters == {}:
-                        assert config_additional_parameters == baseline_level.additional_parameters
+                        assert (
+                            config_additional_parameters
+                            == baseline_level.additional_parameters
+                        )
                     else:
                         assert config_additional_parameters == default_additional_parameters
 
