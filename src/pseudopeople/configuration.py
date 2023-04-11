@@ -80,8 +80,6 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
 
         # Loop through columns and their applicable column noise types
         for column in form.columns:
-            if not column.noise_types:
-                continue
             column_noise_dict = {}
             for noise_type in column.noise_types:
                 column_noise_type_dict = {}

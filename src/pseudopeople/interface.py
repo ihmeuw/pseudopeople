@@ -1,4 +1,3 @@
-from datetime import date
 from pathlib import Path
 from typing import Union
 
@@ -68,7 +67,8 @@ def _generate_form(
 
     columns_to_keep = [c for c in form.columns]
     for col in columns_to_keep:
-        data[col.name] = data[col.name].astype(col.dtype)
+        if col.dtype != data[col.name].dtype:
+            data[col.name] = data[col.name].astype(col.dtype)
         if col.dtype == "datetime64[ns]":
             data[col.name] = data[col.name].apply(lambda x: x.date())
 
