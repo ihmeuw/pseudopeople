@@ -1,3 +1,8 @@
+**0.4.0 - 04/11/23**
+ - Generate default configuration instead of maintaining a static file
+ - Read sample data if no data argument is provided
+ - Update sample datasets
+
 **0.3.2 - 04/10/23**
 
  - Update sample datasets

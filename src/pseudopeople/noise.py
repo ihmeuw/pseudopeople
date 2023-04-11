@@ -14,6 +14,7 @@ by column and row for each type of additional noise type.
 import pandas as pd
 from vivarium import ConfigTree
 
+from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import Form
@@ -44,28 +45,38 @@ def noise_form(
     :return:
         Noised form data
     """
-    randomness = get_randomness_stream(form, seed)
+    randomness = get_randomness_stream(form.name, seed)
 
-    noise_configuration = configuration[form.value]
+    noise_configuration = configuration[form.name]
     for noise_type in NOISE_TYPES:
         if isinstance(noise_type, RowNoiseType):
-            # Apply row noise
-            form_data = noise_type(form_data, noise_configuration, randomness)
+            if (
+                Keys.ROW_NOISE in noise_configuration
+                and noise_type.name in noise_configuration.row_noise
+            ):
+                # Apply row noise
+                form_data = noise_type(
+                    form_data,
+                    noise_configuration.row_noise[noise_type.name],
+                    randomness,
+                )
 
         elif isinstance(noise_type, ColumnNoiseType):
-            columns_to_noise = [
-                col
-                for col in noise_configuration
-                if col in form_data.columns and noise_type.name in noise_configuration[col]
-            ]
-            # Apply column noise to each column as appropriate
-            for column in columns_to_noise:
-                form_data[column] = noise_type(
-                    form_data[column],
-                    noise_configuration[column][noise_type.name],
-                    randomness,
-                    column,
-                )
+            if Keys.COLUMN_NOISE in noise_configuration:
+                columns_to_noise = [
+                    col
+                    for col in noise_configuration.column_noise
+                    if col in form_data.columns
+                    and noise_type.name in noise_configuration.column_noise[col]
+                ]
+                # Apply column noise to each column as appropriate
+                for column in columns_to_noise:
+                    form_data[column] = noise_type(
+                        form_data[column],
+                        noise_configuration.column_noise[column][noise_type.name],
+                        randomness,
+                        column,
+                    )
         else:
             raise TypeError(
                 f"Invalid noise type. Allowed types are {RowNoiseType} and "

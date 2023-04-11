@@ -1,7 +1,7 @@
 import pytest
 import yaml
 
-from pseudopeople.utilities import get_configuration
+from pseudopeople.configuration import get_configuration
 
 
 def pytest_addoption(parser):
