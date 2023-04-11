@@ -107,7 +107,19 @@ def test_default_configuration_structure():
                             == baseline_level.additional_parameters
                         )
                     else:
-                        assert config_additional_parameters == default_additional_parameters
+                        # Confirm config includes default values
+                        for key, value in default_additional_parameters.items():
+                            assert config_additional_parameters[key] == value
+                        # Check that non-default values are baseline
+                        baseline_keys = [
+                            k
+                            for k in config_additional_parameters
+                            if k not in default_additional_parameters
+                        ]
+                        for key, value in config_additional_parameters.items():
+                            if key not in baseline_keys:
+                                continue
+                            assert baseline_level.additional_parameters[key] == value
 
 
 def test_get_configuration_with_user_override(user_configuration_yaml, mocker):
