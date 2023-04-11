@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any, Callable, Dict
 
 import pandas as pd
 from vivarium import ConfigTree
@@ -23,12 +23,13 @@ class RowNoiseType:
     """
 
     name: str
-    noise_function: Callable[[pd.DataFrame, float, RandomnessStream], pd.DataFrame]
+    noise_function: Callable[[pd.DataFrame, ConfigTree, RandomnessStream], pd.DataFrame]
+    probability: float = 0.0
 
     def __call__(
         self,
         form_data: pd.DataFrame,
-        configuration: float,
+        configuration: ConfigTree,
         randomness_stream: RandomnessStream,
     ) -> pd.DataFrame:
         return self.noise_function(form_data, configuration, randomness_stream)
@@ -50,6 +51,9 @@ class ColumnNoiseType:
 
     name: str
     noise_function: Callable[[pd.Series, ConfigTree, RandomnessStream, Any], pd.Series]
+    row_noise_level: float = 0.01
+    token_noise_level: float = 0.1
+    additional_parameters: Dict[str, Any] = None
 
     def __call__(
         self,

@@ -4,9 +4,9 @@ from typing import Union
 
 import pandas as pd
 
+from pseudopeople.configuration import get_configuration
 from pseudopeople.noise import noise_form
-from pseudopeople.schema_entities import Form
-from pseudopeople.utilities import get_configuration
+from pseudopeople.schema_entities import FORMS, Form
 
 
 def _generate_form(
@@ -71,7 +71,7 @@ def generate_decennial_census(
     :param configuration: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
     :return: A pd.DataFrame of noised census data
     """
-    return _generate_form(Form.CENSUS, source, seed, configuration)
+    return _generate_form(FORMS.census, source, seed, configuration)
 
 
 def generate_american_communities_survey(
@@ -87,7 +87,7 @@ def generate_american_communities_survey(
     :param configuration: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
     :return: A pd.DataFrame of noised ACS data
     """
-    return _generate_form(Form.ACS, source, seed, configuration)
+    return _generate_form(FORMS.acs, source, seed, configuration)
 
 
 def generate_current_population_survey(
@@ -103,7 +103,7 @@ def generate_current_population_survey(
     :param configuration: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
     :return: A pd.DataFrame of noised CPS data
     """
-    return _generate_form(Form.CPS, source, seed, configuration)
+    return _generate_form(FORMS.cps, source, seed, configuration)
 
 
 def generate_taxes_w2_and_1099(
@@ -119,7 +119,7 @@ def generate_taxes_w2_and_1099(
     :param configuration: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
     :return: A pd.DataFrame of noised W2 and 1099 data
     """
-    return _generate_form(Form.TAX_W2_1099, source, seed, configuration)
+    return _generate_form(FORMS.tax_w2_1099, source, seed, configuration)
 
 
 def generate_women_infants_and_children(
@@ -135,7 +135,7 @@ def generate_women_infants_and_children(
     :param configuration: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
     :return: A pd.DataFrame of noised WIC data
     """
-    return _generate_form(Form.WIC, source, seed, configuration)
+    return _generate_form(FORMS.wic, source, seed, configuration)
 
 
 def generate_social_security(
@@ -151,7 +151,7 @@ def generate_social_security(
     :param configuration: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
     :return: A pd.DataFrame of noised SSA data
     """
-    return _generate_form(Form.SSA, source, seed, configuration)
+    return _generate_form(FORMS.ssa, source, seed, configuration)
 
 
 # Manual testing helper

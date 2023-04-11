@@ -13,7 +13,7 @@ from pseudopeople.utilities import vectorized_choice
 
 def omit_rows(
     form_data: pd.DataFrame,
-    configuration: float,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
@@ -27,20 +27,20 @@ def omit_rows(
     return form_data
 
 
-def duplicate_rows(
-    form_data: pd.DataFrame,
-    configuration: float,
-    randomness_stream: RandomnessStream,
-) -> pd.DataFrame:
-    """
+# def duplicate_rows(
+#     form_data: pd.DataFrame,
+#     configuration: ConfigTree,
+#     randomness_stream: RandomnessStream,
+# ) -> pd.DataFrame:
+#     """
 
-    :param form_data:
-    :param configuration:
-    :param randomness_stream:
-    :return:
-    """
-    # todo actually duplicate rows
-    return form_data
+#     :param form_data:
+#     :param configuration:
+#     :param randomness_stream:
+#     :return:
+#     """
+#     # todo actually duplicate rows
+#     return form_data
 
 
 def generate_incorrect_selections(
@@ -80,47 +80,47 @@ def generate_incorrect_selections(
     return pd.Series(new_values, index=column.index)
 
 
-def generate_within_household_copies(
-    column: pd.Series,
-    configuration: ConfigTree,
-    randomness_stream: RandomnessStream,
-    additional_key: Any,
-) -> pd.Series:
-    """
+# def generate_within_household_copies(
+#     column: pd.Series,
+#     configuration: ConfigTree,
+#     randomness_stream: RandomnessStream,
+#     additional_key: Any,
+# ) -> pd.Series:
+#     """
 
-    :param column:
-    :param configuration:
-    :param randomness_stream:
-    :param additional_key: Key for RandomnessStream
-    :return:
-    """
-    # todo actually duplicate rows
-    return column
+#     :param column:
+#     :param configuration:
+#     :param randomness_stream:
+#     :param additional_key: Key for RandomnessStream
+#     :return:
+#     """
+#     # todo actually duplicate rows
+#     return column
 
 
-def swap_months_and_days(
-    column: pd.Series,
-    configuration: ConfigTree,
-    randomness_stream: RandomnessStream,
-    additional_key: Any,
-) -> pd.Series:
-    """
+# def swap_months_and_days(
+#     column: pd.Series,
+#     configuration: ConfigTree,
+#     randomness_stream: RandomnessStream,
+#     additional_key: Any,
+# ) -> pd.Series:
+#     """
 
-    :param column:
-    :param configuration:
-    :param randomness_stream:
-    :param additional_key: Key for RandomnessStream
-    :return:
-    """
-    # todo actually duplicate rows
-    return column
+#     :param column:
+#     :param configuration:
+#     :param randomness_stream:
+#     :param additional_key: Key for RandomnessStream
+#     :return:
+#     """
+#     # todo actually duplicate rows
+#     return column
 
 
 def miswrite_zipcodes(
     column: pd.Series,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
-    additional_key: Any,
+    _: Any,
 ) -> pd.Series:
     """
     Function that noises a 5 digit zipcode
@@ -128,7 +128,6 @@ def miswrite_zipcodes(
     :param column: A pd.Series of 5 digit zipcodes as strings
     :param configuration:  Config tree object at column node.
     :param randomness_stream:  RandomnessStream object from Vivarium framework
-    :param additional_key: Key for RandomnessStream
     :return: pd.Series of noised zipcodes
     """
 
@@ -239,22 +238,22 @@ def miswrite_numerics(
     return noised_column
 
 
-def generate_nicknames(
-    column: pd.Series,
-    configuration: ConfigTree,
-    randomness_stream: RandomnessStream,
-    additional_key: Any,
-) -> pd.Series:
-    """
+# def generate_nicknames(
+#     column: pd.Series,
+#     configuration: ConfigTree,
+#     randomness_stream: RandomnessStream,
+#     additional_key: Any,
+# ) -> pd.Series:
+#     """
 
-    :param column:
-    :param configuration:
-    :param randomness_stream:
-    :param additional_key: Key for RandomnessStream
-    :return:
-    """
-    # todo actually generate nicknames
-    return column
+#     :param column:
+#     :param configuration:
+#     :param randomness_stream:
+#     :param additional_key: Key for RandomnessStream
+#     :return:
+#     """
+#     # todo actually generate nicknames
+#     return column
 
 
 def generate_fake_names(
@@ -286,22 +285,22 @@ def generate_fake_names(
     return pd.Series(new_values, index=column.index)
 
 
-def generate_phonetic_errors(
-    column: pd.Series,
-    configuration: ConfigTree,
-    randomness_stream: RandomnessStream,
-    additional_key: Any,
-) -> pd.Series:
-    """
+# def generate_phonetic_errors(
+#     column: pd.Series,
+#     configuration: ConfigTree,
+#     randomness_stream: RandomnessStream,
+#     additional_key: Any,
+# ) -> pd.Series:
+#     """
 
-    :param column:
-    :param configuration:
-    :param randomness_stream:
-    :param additional_key: Key for RandomnessStream
-    :return:
-    """
-    # todo actually generate fake names
-    return column
+#     :param column:
+#     :param configuration:
+#     :param randomness_stream:
+#     :param additional_key: Key for RandomnessStream
+#     :return:
+#     """
+#     # todo actually generate fake names
+#     return column
 
 
 def generate_missing_data(column: pd.Series, *_: Any) -> pd.Series:
@@ -377,19 +376,19 @@ def generate_typographical_errors(
     return column
 
 
-def generate_ocr_errors(
-    column: pd.Series,
-    configuration: ConfigTree,
-    randomness_stream: RandomnessStream,
-    additional_key: Any,
-) -> pd.Series:
-    """
+# def generate_ocr_errors(
+#     column: pd.Series,
+#     configuration: ConfigTree,
+#     randomness_stream: RandomnessStream,
+#     additional_key: Any,
+# ) -> pd.Series:
+#     """
 
-    :param column:
-    :param configuration:
-    :param randomness_stream:
-    :param additional_key: Key for RandomnessStream
-    :return:
-    """
-    # todo actually generate OCR errors
-    return column
+#     :param column:
+#     :param configuration:
+#     :param randomness_stream:
+#     :param additional_key: Key for RandomnessStream
+#     :return:
+#     """
+#     # todo actually generate OCR errors
+#     return column

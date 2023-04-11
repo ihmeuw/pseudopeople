@@ -31,9 +31,12 @@ from pseudopeople.interface import (
         (SAMPLE_SOCIAL_SECURITY, generate_social_security),
         (SAMPLE_TAXES_W2_AND_1099, generate_taxes_w2_and_1099),
         (SAMPLE_WOMEN_INFANTS_AND_CHILDREN, generate_women_infants_and_children),
+        ("tax 1040", "todo"),
     ],
 )
 def test_generate_form(data_path: Union[Path, str], noising_function: Callable):
+    if noising_function == "todo":
+        pytest.skip(reason=f"TODO: implement form {data_path}")
     data_path = Path(data_path)
     if data_path.suffix == ".hdf":
         data = pd.read_hdf(data_path)
