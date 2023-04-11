@@ -1,3 +1,4 @@
+from datetime import date
 from pathlib import Path
 from typing import Union
 
@@ -7,7 +8,6 @@ from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
 from pseudopeople.noise import noise_form
 from pseudopeople.schema_entities import FORMS, Form
-from datetime import date
 
 
 def _generate_form(
