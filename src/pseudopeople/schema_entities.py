@@ -7,7 +7,7 @@ from pseudopeople.noise_entities import NOISE_TYPES, ColumnNoiseType, RowNoiseTy
 @dataclass
 class NoisedColumn:
     name: str
-    noise_types: Tuple[ColumnNoiseType]
+    noise_types: Tuple[ColumnNoiseType, ...]
 
 
 class NoisedColumns:
@@ -326,8 +326,8 @@ class NoisedColumns:
 @dataclass
 class Form:
     name: str
-    columns: Tuple[NoisedColumn] = None
-    row_noise_types: Tuple[RowNoiseType] = (
+    columns: Tuple[NoisedColumn, ...] = None
+    row_noise_types: Tuple[RowNoiseType, ...] = (
         NOISE_TYPES.omission,
         # NOISE_TYPES.duplication,
     )

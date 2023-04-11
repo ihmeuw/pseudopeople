@@ -1,10 +1,10 @@
-import sys
 from pathlib import Path
 from typing import Union
 
 import pandas as pd
 
 from pseudopeople.configuration import get_configuration
+from pseudopeople.constants import paths
 from pseudopeople.noise import noise_form
 from pseudopeople.schema_entities import FORMS, Form
 
@@ -30,6 +30,19 @@ def _generate_form(
         Noised form data in a pd.DataFrame
     """
     configuration_tree = get_configuration(configuration)
+    if source is None:
+        # TODO: hard-coding the .parquet extension for now. This will go away
+        #  once we only support passing the root directory of the data.
+        # TODO: we should save outputs of the simulation with filenames that are
+        #  consistent with the names of the forms if possible.
+        form_file_name = {
+            FORMS.acs.name: "household_survey_observer_acs",
+            FORMS.cps.name: "household_survey_observer_cps",
+            FORMS.tax_w2_1099.name: "tax_w2_observer",
+            FORMS.wic.name: "wic_observer",
+        }.get(form.name, f"{form.name}_observer")
+
+        source = paths.SAMPLE_DATA_ROOT / form_file_name / f"{form_file_name}.parquet"
     if isinstance(source, str):
         source = Path(source)
     if isinstance(source, pd.DataFrame):
@@ -59,7 +72,7 @@ def _generate_form(
 #  to make this parameter optional, with the default being the location of the small data that
 #  is installed with the package (MIC-3884)
 def generate_decennial_census(
-    source: Union[Path, str, pd.DataFrame],
+    source: Union[Path, str, pd.DataFrame] = None,
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
 ) -> pd.DataFrame:
@@ -75,7 +88,7 @@ def generate_decennial_census(
 
 
 def generate_american_communities_survey(
-    source: Union[Path, str, pd.DataFrame],
+    source: Union[Path, str, pd.DataFrame] = None,
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
 ) -> pd.DataFrame:
@@ -91,7 +104,7 @@ def generate_american_communities_survey(
 
 
 def generate_current_population_survey(
-    source: Union[Path, str, pd.DataFrame],
+    source: Union[Path, str, pd.DataFrame] = None,
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
 ) -> pd.DataFrame:
@@ -107,7 +120,7 @@ def generate_current_population_survey(
 
 
 def generate_taxes_w2_and_1099(
-    source: Union[Path, str, pd.DataFrame],
+    source: Union[Path, str, pd.DataFrame] = None,
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
 ) -> pd.DataFrame:
@@ -123,7 +136,7 @@ def generate_taxes_w2_and_1099(
 
 
 def generate_women_infants_and_children(
-    source: Union[Path, str, pd.DataFrame],
+    source: Union[Path, str, pd.DataFrame] = None,
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
 ) -> pd.DataFrame:
@@ -139,7 +152,7 @@ def generate_women_infants_and_children(
 
 
 def generate_social_security(
-    source: Union[Path, str, pd.DataFrame],
+    source: Union[Path, str, pd.DataFrame] = None,
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
 ) -> pd.DataFrame:
@@ -152,17 +165,3 @@ def generate_social_security(
     :return: A pd.DataFrame of noised SSA data
     """
     return _generate_form(FORMS.ssa, source, seed, configuration)
-
-
-# Manual testing helper
-if __name__ == "__main__":
-    args = sys.argv[1:]
-    if len(args) == 1:
-        my_path = Path(args[0])
-        src = pd.read_csv(my_path, dtype=str, keep_default_na=False)
-        out = generate_taxes_w2_and_1099(my_path)
-        diff = src[
-            ~src.astype(str).apply(tuple, 1).isin(out.astype(str).apply(tuple, 1))
-        ]  # get all changed rows
-        print(out.head())
-        print(diff)
