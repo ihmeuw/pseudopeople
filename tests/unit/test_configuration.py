@@ -43,16 +43,21 @@ def test_default_configuration_structure():
                 DEFAULT_NOISE_VALUES.get(form.name, {})
                 .get("row_noise", {})
                 .get(row_noise.name, {})
-                .get("probability", {})
+                .get("probability", "no default")
             )
-            if default_probability:
-                assert config_probability == default_probability
-            else:
+            if default_probability == "no default":
                 assert config_probability == getattr(NOISE_TYPES, row_noise.name).probability
+            else:
+                assert config_probability == default_probability
         for col in form.columns:
             for noise_type in col.noise_types:
                 config_level = config[form.name].column_noise[col.name][noise_type.name]
-                builder_level = getattr(NOISE_TYPES, noise_type.name)
+                baseline_level = getattr(NOISE_TYPES, noise_type.name)
+                # FIXME: Is there a way to allow for adding new keys when they
+                # don't exist in baseline? eg the for if loops below depend on their
+                # being row_noise, token_noise, and additional parameters at the
+                # baseline level ('noise_type in col.noise_types')
+                # Would we ever want to allow for adding non-baseline default noise?
                 if noise_type.row_noise_level:
                     config_row_noise_level = config_level.row_noise_level
                     default_row_noise_level = (
@@ -60,12 +65,12 @@ def test_default_configuration_structure():
                         .get("column_noise", {})
                         .get(col.name, {})
                         .get(noise_type.name, {})
-                        .get("row_noise_level", {})
+                        .get("row_noise_level", "no default")
                     )
-                    if default_row_noise_level:
-                        assert config_row_noise_level == default_row_noise_level
+                    if default_row_noise_level == "no default":
+                        assert config_row_noise_level == baseline_level.row_noise_level
                     else:
-                        assert config_row_noise_level == builder_level.row_noise_level
+                        assert config_row_noise_level == default_row_noise_level
                 if noise_type.token_noise_level:
                     config_token_noise_level = config_level.token_noise_level
                     default_token_noise_level = (
@@ -73,23 +78,25 @@ def test_default_configuration_structure():
                         .get("column_noise", {})
                         .get(col.name, {})
                         .get(noise_type.name, {})
-                        .get("token_noise_level", {})
+                        .get("token_noise_level", "no default")
                     )
-                    if default_token_noise_level:
-                        assert config_token_noise_level == default_token_noise_level
+                    if default_token_noise_level == "no default":
+                        assert config_token_noise_level == baseline_level.token_noise_level
                     else:
-                        assert config_token_noise_level == builder_level.token_noise_level
+                        assert config_token_noise_level == default_token_noise_level
                 if noise_type.additional_parameters:
-                    # FIXME: add default check
-
-                    for key, value in noise_type.additional_parameters.items():
-                        config_value = config_level[key]
-                        if isinstance(config_value, float):
-                            assert config_value == value
-                        elif isinstance(config_value, ConfigTree):
-                            assert config_level[key].to_dict() == value
-                        else:
-                            raise AttributeError
+                    config_additional_parameters = {k:v for k,v in config_level.to_dict().items() if k not in ["row_noise_level", "token_noise_level"]}
+                    default_additional_parameters = (
+                        DEFAULT_NOISE_VALUES.get(form.name, {})
+                        .get("column_noise", {})
+                        .get(col.name, {})
+                        .get(noise_type.name, {})
+                    )
+                    default_additional_parameters = {k:v for k,v in default_additional_parameters.items() if k not in ["row_noise_level", "token_noise_level"]}
+                    if default_additional_parameters == {}:
+                        assert config_additional_parameters == baseline_level.additional_parameters
+                    else:
+                        assert config_additional_parameters == default_additional_parameters
 
 
 def test_get_configuration_with_user_override(user_configuration_yaml, mocker):

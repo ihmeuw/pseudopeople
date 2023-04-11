@@ -62,20 +62,21 @@ def noise_form(
                 )
 
         elif isinstance(noise_type, ColumnNoiseType):
-            columns_to_noise = [
-                col
-                for col in noise_configuration.column_noise
-                if col in form_data.columns
-                and noise_type.name in noise_configuration.column_noise[col]
-            ]
-            # Apply column noise to each column as appropriate
-            for column in columns_to_noise:
-                form_data[column] = noise_type(
-                    form_data[column],
-                    noise_configuration.column_noise[column][noise_type.name],
-                    randomness,
-                    column,
-                )
+            if Keys.COLUMN_NOISE in noise_configuration:
+                columns_to_noise = [
+                    col
+                    for col in noise_configuration.column_noise
+                    if col in form_data.columns
+                    and noise_type.name in noise_configuration.column_noise[col]
+                ]
+                # Apply column noise to each column as appropriate
+                for column in columns_to_noise:
+                    form_data[column] = noise_type(
+                        form_data[column],
+                        noise_configuration.column_noise[column][noise_type.name],
+                        randomness,
+                        column,
+                    )
         else:
             raise TypeError(
                 f"Invalid noise type. Allowed types are {RowNoiseType} and "

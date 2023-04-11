@@ -8,16 +8,13 @@ from pseudopeople.schema_entities import FORMS, NOISE_TYPES
 
 
 class Keys:
-    """Container for all non-form standard/repeated key names used in the configuration file
-    NOTE: 'additional_parameters' is actually a dict with its own key-values defined
-    """
+    """Container for all non-form standard/repeated key names used in the configuration file"""
 
     ROW_NOISE = "row_noise"  # second layer, eg <form>: row_noise: {...}
     COLUMN_NOISE = "column_noise"  # second layer, eg <form>: column_noise: {...}
     PROBABILITY = "probability"
     ROW_NOISE_LEVEL = "row_noise_level"
     TOKEN_NOISE_LEVEL = "token_noise_level"
-    ADDITIONAL_PARAMETERS = "additional_parameters"
 
 
 # Define non-baseline default items
