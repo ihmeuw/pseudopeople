@@ -7,6 +7,7 @@ from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
 from pseudopeople.noise import noise_form
 from pseudopeople.schema_entities import FORMS, Form
+from datetime import date
 
 
 def _generate_form(
@@ -64,7 +65,16 @@ def _generate_form(
             f"Source {source} must be either a pandas DataFrame or a path to a "
             "file containing a pandas DataFrame."
         )
-    return noise_form(form, data, configuration_tree, seed)
+
+    columns_to_keep = [c for c in form.columns]
+    for col in columns_to_keep:
+        data[col.name] = data[col.name].astype(col.dtype)
+        if col.dtype == "datetime64[ns]":
+            data[col.name] = data[col.name].apply(lambda x: x.date())
+
+    noised_form = noise_form(form, data, configuration_tree, seed)
+    noised_form = noised_form[[c.name for c in columns_to_keep]]
+    return noised_form
 
 
 # TODO: add year as parameter to select the year of the decennial census to generate (MIC-3909)

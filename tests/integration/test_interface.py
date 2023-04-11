@@ -40,4 +40,6 @@ def test_generate_form(data_dir_name: str, noising_function: Callable):
     assert not data.equals(noised_data)
     assert noised_data.equals(noised_data_same_seed)
     assert not noised_data.equals(noised_data_different_seed)
-    assert set(noised_data.columns) == set(data.columns)
+
+
+# TODO: test dtypes
