@@ -11,6 +11,10 @@ from pseudopeople.noise import noise_form
 from pseudopeople.schema_entities import FORMS, Form
 
 
+def _reformat_columns_for_noising(form: Form, data: pd.DataFrame):
+    # TODO implement
+    ...
+
 def _generate_form(
     form: Form,
     source: Union[Path, str],
@@ -81,7 +85,7 @@ def _generate_form(
         for col in columns_to_keep:
             if col.dtype_name != data[col.name].dtype.name:
                 data[col.name] = data[col.name].astype(col.dtype_name)
-
+        data = _reformat_columns_for_noising(form, data)
         noised_data = noise_form(form, data, configuration_tree, seed)
         noised_data = _extract_columns(columns_to_keep, noised_data)
         noised_form.append(noised_data)
@@ -102,6 +106,7 @@ def _extract_columns(columns_to_keep, noised_form):
     if columns_to_keep:
         noised_form = noised_form[[c.name for c in columns_to_keep]]
     return noised_form
+
 
 
 # TODO: add year as parameter to select the year of the decennial census to generate (MIC-3909)
