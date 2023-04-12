@@ -6,6 +6,7 @@ import yaml
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
+from pseudopeople import schema_entities
 from pseudopeople.constants import paths
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.utilities import vectorized_choice
@@ -131,7 +132,6 @@ def miswrite_zipcodes(
     :return: pd.Series of noised zipcodes
     """
 
-    column = column.astype(str)
     str_len = column.str.len()
     if (str_len != 5).sum() > 0:
         raise ValueError(
@@ -185,20 +185,20 @@ def miswrite_ages(
         randomness_stream=randomness_stream,
         additional_key=f"{additional_key}_{column.name}_miswrite_ages",
     )
-    new_values = column.astype(float).astype(int) + perturbations
+    new_values = column.astype(int) + perturbations
     # Reflect negative values to positive
     new_values[new_values < 0] *= -1
     # If new age == original age, subtract 1
     new_values[new_values == column.astype(int)] -= 1
 
-    return new_values.astype(str)
+    return _coerce_dtype(new_values)
 
 
 def miswrite_numerics(
     column: pd.Series,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
-    additional_key: Any,
+    _: Any,
 ) -> pd.Series:
     """
     Function that noises numeric characters in a series.
@@ -206,7 +206,6 @@ def miswrite_numerics(
     :param column: A pd.Series
     :param configuration: ConfigTree object containing noise level
     :param randomness_stream: RandomnessStream for CRN framework.
-    :param additional_key: Key for RandomnessStream
 
     returns: pd.Series with some numeric values experiencing noise.
     """
@@ -226,7 +225,7 @@ def miswrite_numerics(
     random_digits = rng.choice(list("0123456789"), is_number.shape)
 
     # Choose and replace values for a noised series
-    noised_column = pd.Series("", index=column.index)
+    noised_column = pd.Series("", index=column.index, name=column.name)
     digits = []
     for i in range(len(is_number.columns)):
         digit = np.where(replace.iloc[:, i], random_digits[:, i], same_len_col.str[i])
@@ -235,7 +234,7 @@ def miswrite_numerics(
         noised_column = noised_column + digits[i]
     noised_column.str.strip()
 
-    return noised_column
+    return _coerce_dtype(noised_column)
 
 
 # def generate_nicknames(
@@ -318,7 +317,7 @@ def generate_typographical_errors(
     column: pd.Series,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
-    additional_key: Any,
+    _: Any,
 ) -> pd.Series:
     """Function that takes a column and applies noise to the string values
     representative of keyboard mistyping.
@@ -326,7 +325,6 @@ def generate_typographical_errors(
     :param column:  pd.Series of data
     :param configuration: ConfigTree object containing noising parameters
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN
-    :param additional_key: Key for RandomnessStream
     :returns: pd.Series of column with noised data
     """
 
@@ -373,7 +371,7 @@ def generate_typographical_errors(
         )
         column[idx] = noised_value
 
-    return column
+    return _coerce_dtype(column)
 
 
 # def generate_ocr_errors(
@@ -392,3 +390,18 @@ def generate_typographical_errors(
 #     """
 #     # todo actually generate OCR errors
 #     return column
+
+
+####################
+# HELPER FUNCTIONS #
+####################
+
+
+def _coerce_dtype(new_values):
+    required_dtype = [c.dtype for c in schema_entities.COLUMNS if c.name == new_values.name][
+        0
+    ]
+    if new_values.dtype != required_dtype:
+        new_values = new_values.astype(required_dtype)
+
+    return new_values

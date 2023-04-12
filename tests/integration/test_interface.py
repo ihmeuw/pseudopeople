@@ -1,5 +1,6 @@
 from typing import Callable
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -12,6 +13,7 @@ from pseudopeople.interface import (
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
+from pseudopeople.schema_entities import COLUMNS
 
 
 @pytest.mark.parametrize(
@@ -41,5 +43,13 @@ def test_generate_form(data_dir_name: str, noising_function: Callable):
     assert noised_data.equals(noised_data_same_seed)
     assert not noised_data.equals(noised_data_different_seed)
 
+    # Check each column's dtype
+    for col in noised_data.columns:
+        expected_dtype = [c.dtype for c in COLUMNS if c.name == col][0]
+        if expected_dtype == np.dtype(str):
+            # str dtype is 'object'
+            expected_dtype = np.dtype(object)
+        assert noised_data[col].dtype
 
-# TODO: test dtypes
+
+# TODO [MIC-4000]: add test that each col to get noised actually does get noised

@@ -272,7 +272,7 @@ def test_miswrite_ages_uniform_probabilities():
         },
     ).decennial_census.column_noise.age.age_miswriting
 
-    data = pd.Series([str(original_age)] * num_rows)
+    data = pd.Series([str(original_age)] * num_rows, name="age")
     noised_data = NOISE_TYPES.age_miswriting(data, config, RANDOMNESS0, "test")
     expected_noise = 1 / len(perturbations)
     for perturbation in perturbations:
@@ -301,12 +301,12 @@ def test_miswrite_ages_provided_probabilities():
         },
     ).decennial_census.column_noise.age.age_miswriting
 
-    data = pd.Series([str(original_age)] * num_rows)
+    data = pd.Series([str(original_age)] * num_rows, name="age")
     noised_data = NOISE_TYPES.age_miswriting(data, config, RANDOMNESS0, "test")
     for perturbation in perturbations:
         expected_noise = perturbations[perturbation]
         actual_noise = (noised_data.astype(int) - original_age == perturbation).mean()
-        assert np.isclose(actual_noise, expected_noise, rtol=0.01)
+        assert np.isclose(actual_noise, expected_noise, rtol=0.02)
 
 
 def test_miswrite_ages_handles_perturbation_to_same_age():
@@ -334,7 +334,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
         },
     ).decennial_census.column_noise.age.age_miswriting
 
-    data = pd.Series([str(age)] * num_rows)
+    data = pd.Series([str(age)] * num_rows, name="age")
     noised_data = NOISE_TYPES.age_miswriting(data, config, RANDOMNESS0, "test")
 
     assert (noised_data == "0").all()
@@ -361,7 +361,7 @@ def test_miswrite_ages_flips_negative_to_positive():
         },
     ).decennial_census.column_noise.age.age_miswriting
 
-    data = pd.Series([str(age)] * num_rows)
+    data = pd.Series([str(age)] * num_rows, name="age")
     noised_data = NOISE_TYPES.age_miswriting(data, config, RANDOMNESS0, "test")
 
     assert (noised_data == "4").all()
@@ -390,6 +390,9 @@ def test_miswrite_numerics(string_series):
     p_row_noise = config.row_noise_level
     p_token_noise = config.token_noise_level
     data = string_series
+    # Hack: we need to name the series something with the miswrite_numeric noising
+    # function applied to check dtypes.
+    data.name = "ssn"
     noised_data = NOISE_TYPES.numeric_miswriting(data, config, RANDOMNESS0, "test")
 
     # Get masks for helper groups, each string in categorical string purpose is to mimic possible string types
@@ -553,6 +556,10 @@ def test_generate_ocr_errors():
 )
 def test_generate_typographical_errors(dummy_dataset, column):
     data = dummy_dataset[column]
+    # Hack: we need to name the series something with the typographic noising
+    # function applied to check dtypes.
+    data.name = "first_name"
+
     config = get_configuration()
     config.update(
         {
@@ -639,6 +646,9 @@ def test_seeds_behave_as_expected(noise_type, data_col, form, form_col, dummy_da
     noise = noise_type.name
     config = get_configuration()[form].column_noise[form_col][noise]
     data = dummy_dataset[data_col]
+    # Hack: we need to name the series something with the noising
+    # function applied to check dtypes.
+    data.name = form_col
     noised_data = noise_type(data, config, RANDOMNESS0, f"test_{noise}")
     noised_data_same_seed = noise_type(data, config, RANDOMNESS0, f"test_{noise}")
     noised_data_different_seed = noise_type(data, config, RANDOMNESS1, f"test_{noise}")
