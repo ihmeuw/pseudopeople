@@ -74,3 +74,34 @@ def test_form_filter_by_year(
 
     assert (noised_data[date_column] == 2020).all()
 
+
+def _mock_noise_form(
+    form,
+    form_data: pd.DataFrame,
+    configuration,
+    seed: int,
+):
+    """Mock noise_form that just returns unnoised data"""
+    return form_data
+
+
+@pytest.mark.parametrize(
+    "data_dir_name, noising_function, form",
+    [
+        ("household_survey_observer_acs", generate_american_communities_survey, FORMS.acs),
+        ("household_survey_observer_cps", generate_current_population_survey, FORMS.cps),
+        ("social_security_observer", generate_social_security, FORMS.ssa),
+    ],
+)
+def test_form_filter_by_year_with_full_dates(
+    mocker, data_dir_name: str, noising_function: Callable, form: FORMS
+):
+    with mocker.patch("pseudopeople.interface.noise_form", side_effect=_mock_noise_form):
+        noised_data = noising_function(year=2020)
+
+    dates = pd.DatetimeIndex(noised_data[form.date_column])
+    if form == FORMS.ssa:
+        assert (dates.year <= 2020).all()
+    else:
+        assert (dates.year == 2020).all()
+
