@@ -51,8 +51,8 @@ def _generate_form(
         data = source
     elif isinstance(source, Path):
         if source.suffix == ".hdf":
-            hdf_store = pd.HDFStore(source)
-            data = hdf_store.select("data", where=year_filter["hdf"])
+            with pd.HDFStore(str(source), mode="r") as hdf_store:
+                data = hdf_store.select("data", where=year_filter["hdf"])
             hdf_store.close()
         elif source.suffix == ".parquet":
             data = pq.read_table(source, filters=year_filter["parquet"]).to_pandas()
@@ -87,7 +87,7 @@ def generate_decennial_census(
     source: Union[Path, str, pd.DataFrame] = None,
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
-    year: Union[int, str] = 2020,
+    year: int = 2020,
 ) -> pd.DataFrame:
     """
     Generates noised decennial census data from un-noised data.
@@ -109,7 +109,7 @@ def generate_american_communities_survey(
     source: Union[Path, str, pd.DataFrame] = None,
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
-    year: Union[int, str] = 2020,
+    year: int = 2020,
 ) -> pd.DataFrame:
     """
     Generates noised American Communities Survey (ACS) data from un-noised data.
@@ -129,6 +129,7 @@ def generate_american_communities_survey(
             (FORMS.acs.date_column, ">=", pd.Timestamp(f"{year}-01-01")),
             (FORMS.acs.date_column, "<=", pd.Timestamp(f"{year}-12-31")),
         ]
+        seed = seed * 10_000 + year
     return _generate_form(FORMS.acs, source, seed, configuration, year_filter)
 
 
@@ -136,7 +137,7 @@ def generate_current_population_survey(
     source: Union[Path, str, pd.DataFrame] = None,
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
-    year: Union[int, str] = 2020,
+    year: int = 2020,
 ) -> pd.DataFrame:
     """
     Generates noised Current Population Survey (CPS) data from un-noised data.
@@ -156,6 +157,7 @@ def generate_current_population_survey(
             (FORMS.cps.date_column, ">=", pd.Timestamp(f"{year}-01-01")),
             (FORMS.cps.date_column, "<=", pd.Timestamp(f"{year}-12-31")),
         ]
+        seed = seed * 10_000 + year
     return _generate_form(FORMS.cps, source, seed, configuration, year_filter)
 
 
@@ -163,7 +165,7 @@ def generate_taxes_w2_and_1099(
     source: Union[Path, str, pd.DataFrame] = None,
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
-    year: Union[int, str] = 2020,
+    year: int = 2020,
 ) -> pd.DataFrame:
     """
     Generates noised W2 and 1099 data from un-noised data.
@@ -178,6 +180,7 @@ def generate_taxes_w2_and_1099(
     if year:
         year_filter["hdf"] = [f"{FORMS.tax_w2_1099.date_column} == {year}."]
         year_filter["parquet"] = [(FORMS.tax_w2_1099.date_column, "==", year)]
+        seed = seed * 10_000 + year
     return _generate_form(FORMS.tax_w2_1099, source, seed, configuration, year_filter)
 
 
@@ -185,7 +188,7 @@ def generate_women_infants_and_children(
     source: Union[Path, str, pd.DataFrame] = None,
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
-    year: Union[int, str] = 2020,
+    year: int = 2020,
 ) -> pd.DataFrame:
     """
     Generates noised Women Infants and Children (WIC) data from un-noised data.
@@ -200,6 +203,7 @@ def generate_women_infants_and_children(
     if year:
         year_filter["hdf"] = [f"{FORMS.wic.date_column} == {year}."]
         year_filter["parquet"] = [(FORMS.wic.date_column, "==", year)]
+        seed = seed * 10_000 + year
     return _generate_form(FORMS.wic, source, seed, configuration, year_filter)
 
 
@@ -207,7 +211,7 @@ def generate_social_security(
     source: Union[Path, str, pd.DataFrame] = None,
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
-    year: Union[int, str] = 2020,
+    year: int = 2020,
 ) -> pd.DataFrame:
     """
     Generates noised Social Security (SSA) data from un-noised data.
@@ -224,4 +228,5 @@ def generate_social_security(
         year_filter["parquet"] = [
             (FORMS.ssa.date_column, "<=", pd.Timestamp(f"{year}-12-31"))
         ]
+        seed = seed * 10_000 + year
     return _generate_form(FORMS.ssa, source, seed, configuration, year_filter)
