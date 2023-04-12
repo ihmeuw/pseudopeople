@@ -77,8 +77,8 @@ class ColumnNoiseType:
             column, noise_level, randomness_stream, f"{self.name}_{additional_key}"
         )
         if to_noise_idx.empty:
-            logger.info(
-                f"No cells chosen to noise for noise function {self.name} on column {column.name}."
+            logger.debug(
+                f"No cells chosen to noise for noise function {self.name} on column {column.name}. "
                 "This is likely due to a combination of the configuration noise levels and the input data."
             )
             return column
