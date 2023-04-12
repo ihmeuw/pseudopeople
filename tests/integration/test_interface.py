@@ -13,7 +13,7 @@ from pseudopeople.interface import (
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
-from pseudopeople.schema_entities import COLUMNS
+from pseudopeople.schema_entities import COLUMNS, FORMS
 
 
 @pytest.mark.parametrize(
@@ -51,5 +51,26 @@ def test_generate_form(data_dir_name: str, noising_function: Callable):
             expected_dtype = np.dtype(object)
         assert noised_data[col].dtype == expected_dtype
 
-
 # TODO [MIC-4000]: add test that each col to get noised actually does get noised
+    assert set(noised_data.columns) == set(data.columns)
+
+
+@pytest.mark.parametrize(
+    "data_dir_name, noising_function, date_column",
+    [
+        ("decennial_census_observer", generate_decennial_census, FORMS.census.date_column),
+        ("tax_w2_observer", generate_taxes_w2_and_1099, FORMS.tax_w2_1099.date_column),
+        ("wic_observer", generate_women_infants_and_children, FORMS.wic.date_column),
+        ("tax 1040", "todo", "todo"),
+    ],
+)
+def test_form_filter_by_year(
+    data_dir_name: str, noising_function: Callable, date_column: str
+):
+    if noising_function == "todo":
+        pytest.skip(reason=f"TODO: implement form {data_dir_name}")
+
+    noised_data = noising_function(year=2020)
+
+    assert (noised_data[date_column] == 2020).all()
+
