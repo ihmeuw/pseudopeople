@@ -19,8 +19,6 @@ or build it from source with
 
   ``> python setup.py install``
 
-This will make the ``pseudopeople`` library available to python and install a
-command-line executable called ``...`` that you can use to verify your
-installation with
-
-  ``> ... test``
+Documentation
+======================
+You can view documentation at https://pseudopeople.readthedocs.io/en/latest/
