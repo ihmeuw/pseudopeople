@@ -6,7 +6,6 @@ import yaml
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
-from pseudopeople import schema_entities
 from pseudopeople.constants import paths
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.utilities import vectorized_choice
@@ -78,7 +77,7 @@ def generate_incorrect_selections(
         additional_key=f"{additional_key}_incorrect_select_choice",
     ).to_numpy()
 
-    return pd.Series(new_values, index=column.index)
+    return pd.Series(new_values, index=column.index, name=column.name)
 
 
 # def generate_within_household_copies(
@@ -191,7 +190,7 @@ def miswrite_ages(
     # If new age == original age, subtract 1
     new_values[new_values == column.astype(int)] -= 1
 
-    return _coerce_dtype(new_values)
+    return new_values
 
 
 def miswrite_numerics(
@@ -234,7 +233,7 @@ def miswrite_numerics(
         noised_column = noised_column + digits[i]
     noised_column.str.strip()
 
-    return _coerce_dtype(noised_column)
+    return noised_column
 
 
 # def generate_nicknames(
@@ -281,7 +280,7 @@ def generate_fake_names(
         randomness_stream=randomness_stream,
         additional_key=f"{additional_key}_fake_names",
     )
-    return pd.Series(new_values, index=column.index)
+    return pd.Series(new_values, index=column.index, name=column.name)
 
 
 # def generate_phonetic_errors(
@@ -371,7 +370,7 @@ def generate_typographical_errors(
         )
         column[idx] = noised_value
 
-    return _coerce_dtype(column)
+    return column
 
 
 # def generate_ocr_errors(
@@ -390,18 +389,3 @@ def generate_typographical_errors(
 #     """
 #     # todo actually generate OCR errors
 #     return column
-
-
-####################
-# HELPER FUNCTIONS #
-####################
-
-
-def _coerce_dtype(new_values):
-    required_dtype = [c.dtype for c in schema_entities.COLUMNS if c.name == new_values.name][
-        0
-    ]
-    if new_values.dtype != required_dtype:
-        new_values = new_values.astype(required_dtype)
-
-    return new_values

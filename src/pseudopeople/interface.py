@@ -66,12 +66,10 @@ def _generate_form(
         )
 
     columns_to_keep = [c for c in form.columns]
+    # Coerce dtypes
     for col in columns_to_keep:
-        if col.dtype != data[col.name].dtype:
-            data[col.name] = data[col.name].astype(col.dtype)
-        if col.dtype == "datetime64[ns]":
-            data[col.name] = data[col.name].apply(lambda x: x.date())
-
+        if col.dtype_name != data[col.name].dtype.name:
+            data[col.name] = data[col.name].astype(col.dtype_name)
     noised_form = noise_form(form, data, configuration_tree, seed)
     noised_form = noised_form[[c.name for c in columns_to_keep]]
     return noised_form

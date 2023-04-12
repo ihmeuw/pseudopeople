@@ -336,7 +336,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
     data = pd.Series([str(age)] * num_rows, name="age")
     noised_data = NOISE_TYPES.age_miswriting(data, config, RANDOMNESS0, "test")
 
-    assert (noised_data == "0").all()
+    assert (noised_data == 0).all()
 
 
 def test_miswrite_ages_flips_negative_to_positive():
@@ -363,7 +363,7 @@ def test_miswrite_ages_flips_negative_to_positive():
     data = pd.Series([str(age)] * num_rows, name="age")
     noised_data = NOISE_TYPES.age_miswriting(data, config, RANDOMNESS0, "test")
 
-    assert (noised_data == "4").all()
+    assert (noised_data == 4).all()
 
 
 def test_miswrite_numerics(string_series):

@@ -1,18 +1,22 @@
 from dataclasses import dataclass
 from typing import NamedTuple, Tuple
 
-import numpy as np
-import pandas as pd
-
-from pseudopeople.constants import metadata
 from pseudopeople.noise_entities import NOISE_TYPES, ColumnNoiseType, RowNoiseType
+
+
+class DtypeNames:
+    """Container of expected dtype names"""
+
+    CATEGORICAL = "category"
+    DATETIME = "datetime64[ns]"
+    OBJECT = "object"
 
 
 @dataclass
 class Column:
     name: str
     noise_types: Tuple[ColumnNoiseType, ...] = tuple()
-    dtype: np.dtype = str
+    dtype_name: str = DtypeNames.OBJECT  # string dtype is 'object'
 
 
 class __Columns(NamedTuple):
@@ -80,7 +84,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.missing_data,
             NOISE_TYPES.incorrect_selection,
         ),
-        pd.CategoricalDtype(categories=metadata.STATES),
+        DtypeNames.CATEGORICAL,
     )
     employer_street_name: Column = Column(
         "employer_street_name",
@@ -185,7 +189,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.missing_data,
             NOISE_TYPES.incorrect_selection,
         ),
-        pd.CategoricalDtype(categories=metadata.STATES),
+        DtypeNames.CATEGORICAL,
     )
     mailing_street_name: Column = Column(
         "mailing_address_street_name",
@@ -238,7 +242,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.missing_data,
             NOISE_TYPES.incorrect_selection,
         ),
-        pd.CategoricalDtype(categories=metadata.RACE_ETHNICITIES),
+        DtypeNames.CATEGORICAL,
     )
     relation_to_household_head: Column = Column(
         "relation_to_household_head",
@@ -246,7 +250,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.missing_data,
             NOISE_TYPES.incorrect_selection,
         ),
-        pd.CategoricalDtype(categories=metadata.RELATIONSHIPS),
+        DtypeNames.CATEGORICAL,
     )
     sex: Column = Column(
         "sex",
@@ -254,7 +258,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.missing_data,
             NOISE_TYPES.incorrect_selection,
         ),
-        pd.CategoricalDtype(categories=metadata.SEXES),
+        DtypeNames.CATEGORICAL,
     )
     simulant_id: Column = Column(
         "simulant_id",
@@ -275,7 +279,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.missing_data,
             NOISE_TYPES.incorrect_selection,
         ),
-        pd.CategoricalDtype(categories=metadata.SSA_EVENT_TYPES),
+        DtypeNames.CATEGORICAL,
     )
     ssn: Column = Column(
         "ssn",
@@ -293,7 +297,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.missing_data,
             NOISE_TYPES.incorrect_selection,
         ),
-        pd.CategoricalDtype(categories=metadata.STATES),
+        DtypeNames.CATEGORICAL,
     )
     street_name: Column = Column(
         "street_name",
@@ -315,7 +319,7 @@ class __Columns(NamedTuple):
     )
     survey_date: Column = Column(
         "survey_date",
-        dtype="datetime64[ns]",
+        dtype_name=DtypeNames.DATETIME,
     )
     tax_form: Column = Column(
         "tax_form",
@@ -323,7 +327,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.missing_data,
             NOISE_TYPES.incorrect_selection,
         ),
-        pd.CategoricalDtype(categories=metadata.TAX_FORMS),
+        DtypeNames.CATEGORICAL,
     )
     unit_number: Column = Column(
         "unit_number",

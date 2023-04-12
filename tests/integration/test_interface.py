@@ -45,11 +45,11 @@ def test_generate_form(data_dir_name: str, noising_function: Callable):
 
     # Check each column's dtype
     for col in noised_data.columns:
-        expected_dtype = [c.dtype for c in COLUMNS if c.name == col][0]
+        expected_dtype = [c.dtype_name for c in COLUMNS if c.name == col][0]
         if expected_dtype == np.dtype(str):
             # str dtype is 'object'
             expected_dtype = np.dtype(object)
-        assert noised_data[col].dtype
+        assert noised_data[col].dtype == expected_dtype
 
 
 # TODO [MIC-4000]: add test that each col to get noised actually does get noised
