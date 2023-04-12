@@ -53,6 +53,7 @@ class ColumnNoiseType:
     noise_function: Callable[[pd.Series, ConfigTree, RandomnessStream, Any], pd.Series]
     row_noise_level: float = 0.01
     token_noise_level: float = 0.1
+    noise_level_scaling_function: Callable[[str], float] = lambda x: 1.0
     additional_parameters: Dict[str, Any] = None
 
     def __call__(
@@ -63,12 +64,17 @@ class ColumnNoiseType:
         additional_key: Any,
     ) -> pd.Series:
         column = column.copy()
-        noise_level = configuration.row_noise_level
+        noise_level = configuration.row_noise_level * self.noise_level_scaling_function(
+            column.name
+        )
         to_noise_idx = get_index_to_noise(
             column, noise_level, randomness_stream, f"{self.name}_{additional_key}"
         )
+        if to_noise_idx.empty:
+            return column
         noised_data = self.noise_function(
             column.loc[to_noise_idx], configuration, randomness_stream, additional_key
         )
+
         column.loc[to_noise_idx] = noised_data
         return column

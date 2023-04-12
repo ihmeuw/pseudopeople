@@ -155,7 +155,6 @@ def test_incorrect_selection(categorical_series):
     # todo: Update when generate_incorrect_selection uses exclusive resampling
     # Get real expected noise to account for possibility of noising with original value
     # Here we have a a possibility of choosing any of the 50 states for our categorical series fixture
-    expected_noise = expected_noise * (1 - 1 / 50)
     actual_noise = (noised_data != categorical_series).mean()
     assert np.isclose(expected_noise, actual_noise, rtol=0.02)
 
