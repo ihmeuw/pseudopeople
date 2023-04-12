@@ -96,8 +96,8 @@ def _mock_noise_form(
 def test_form_filter_by_year_with_full_dates(
     mocker, data_dir_name: str, noising_function: Callable, form: FORMS
 ):
-    with mocker.patch("pseudopeople.interface.noise_form", side_effect=_mock_noise_form):
-        noised_data = noising_function(year=2020)
+    mocker.patch("pseudopeople.interface.noise_form", side_effect=_mock_noise_form)
+    noised_data = noising_function(year=2020)
 
     dates = pd.DatetimeIndex(noised_data[form.date_column])
     if form == FORMS.ssa:
