@@ -3,6 +3,7 @@ from typing import Union
 
 import pandas as pd
 from loguru import logger
+import pyarrow.parquet as pq
 
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
@@ -15,6 +16,7 @@ def _generate_form(
     source: Union[Path, str],
     seed: int,
     configuration: Union[Path, str, dict],
+    year_filter: dict,
 ) -> pd.DataFrame:
     """
     Helper for generating noised forms from clean data.
@@ -58,9 +60,10 @@ def _generate_form(
     noised_form = []
     for data_path in data_paths:
         if data_path.suffix == ".hdf":
-            data = pd.read_hdf(data_path)
+            with pd.HDFStore(str(data_path), mode="r") as hdf_store:
+                data = hdf_store.select("data", where=year_filter["hdf"])
         elif data_path.suffix == ".parquet":
-            data = pd.read_parquet(data_path)
+            data = pq.read_table(data_path, filters=year_filter["parquet"]).to_pandas()
         else:
             raise ValueError(
                 "Source path must either be a .hdf or a .parquet file. Provided "
@@ -90,6 +93,7 @@ def generate_decennial_census(
     source: Union[Path, str] = None,
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
+    year: int = 2020,
 ) -> pd.DataFrame:
     """
     Generates noised decennial census data from un-noised data.
@@ -97,15 +101,21 @@ def generate_decennial_census(
     :param source: A path to un-noised source census data
     :param seed: An integer seed for randomness
     :param configuration: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
+    :param year: The year from the data to noise
     :return: A pd.DataFrame of noised census data
     """
-    return _generate_form(FORMS.census, source, seed, configuration)
+    year_filter = {"hdf": None, "parquet": None}
+    if year:
+        year_filter["hdf"] = [f"{FORMS.census.date_column} == {year}."]
+        year_filter["parquet"] = [(FORMS.census.date_column, "==", year)]
+    return _generate_form(FORMS.census, source, seed, configuration, year_filter)
 
 
 def generate_american_communities_survey(
     source: Union[Path, str] = None,
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
+    year: int = 2020,
 ) -> pd.DataFrame:
     """
     Generates noised American Communities Survey (ACS) data from un-noised data.
@@ -113,15 +123,27 @@ def generate_american_communities_survey(
     :param source: A path to un-noised source ACS data
     :param seed: An integer seed for randomness
     :param configuration: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
+    :param year: The year from the data to noise
     :return: A pd.DataFrame of noised ACS data
     """
-    return _generate_form(FORMS.acs, source, seed, configuration)
+    year_filter = {"hdf": None, "parquet": None}
+    if year:
+        year_filter["hdf"] = [
+            f"{FORMS.acs.date_column} >= '{year}-01-01' and {FORMS.acs.date_column} <= '{year}-12-31'"
+        ]
+        year_filter["parquet"] = [
+            (FORMS.acs.date_column, ">=", pd.Timestamp(f"{year}-01-01")),
+            (FORMS.acs.date_column, "<=", pd.Timestamp(f"{year}-12-31")),
+        ]
+        seed = seed * 10_000 + year
+    return _generate_form(FORMS.acs, source, seed, configuration, year_filter)
 
 
 def generate_current_population_survey(
     source: Union[Path, str] = None,
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
+    year: int = 2020,
 ) -> pd.DataFrame:
     """
     Generates noised Current Population Survey (CPS) data from un-noised data.
@@ -129,15 +151,27 @@ def generate_current_population_survey(
     :param source: A path to un-noised source CPS data
     :param seed: An integer seed for randomness
     :param configuration: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
+    :param year: The year from the data to noise
     :return: A pd.DataFrame of noised CPS data
     """
-    return _generate_form(FORMS.cps, source, seed, configuration)
+    year_filter = {"hdf": None, "parquet": None}
+    if year:
+        year_filter["hdf"] = [
+            f"{FORMS.cps.date_column} >= '{year}-01-01' and {FORMS.cps.date_column} <= '{year}-12-31'"
+        ]
+        year_filter["parquet"] = [
+            (FORMS.cps.date_column, ">=", pd.Timestamp(f"{year}-01-01")),
+            (FORMS.cps.date_column, "<=", pd.Timestamp(f"{year}-12-31")),
+        ]
+        seed = seed * 10_000 + year
+    return _generate_form(FORMS.cps, source, seed, configuration, year_filter)
 
 
 def generate_taxes_w2_and_1099(
     source: Union[Path, str] = None,
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
+    year: int = 2020,
 ) -> pd.DataFrame:
     """
     Generates noised W2 and 1099 data from un-noised data.
@@ -145,15 +179,22 @@ def generate_taxes_w2_and_1099(
     :param source: A path to un-noised source W2 and 1099 data
     :param seed: An integer seed for randomness
     :param configuration: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
+    :param year: The year from the data to noise
     :return: A pd.DataFrame of noised W2 and 1099 data
     """
-    return _generate_form(FORMS.tax_w2_1099, source, seed, configuration)
+    year_filter = {"hdf": None, "parquet": None}
+    if year:
+        year_filter["hdf"] = [f"{FORMS.tax_w2_1099.date_column} == {year}."]
+        year_filter["parquet"] = [(FORMS.tax_w2_1099.date_column, "==", year)]
+        seed = seed * 10_000 + year
+    return _generate_form(FORMS.tax_w2_1099, source, seed, configuration, year_filter)
 
 
 def generate_women_infants_and_children(
     source: Union[Path, str] = None,
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
+    year: int = 2020,
 ) -> pd.DataFrame:
     """
     Generates noised Women Infants and Children (WIC) data from un-noised data.
@@ -161,15 +202,22 @@ def generate_women_infants_and_children(
     :param source: A path to un-noised source WIC data
     :param seed: An integer seed for randomness
     :param configuration: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
+    :param year: The year from the data to noise
     :return: A pd.DataFrame of noised WIC data
     """
-    return _generate_form(FORMS.wic, source, seed, configuration)
+    year_filter = {"hdf": None, "parquet": None}
+    if year:
+        year_filter["hdf"] = [f"{FORMS.wic.date_column} == {year}."]
+        year_filter["parquet"] = [(FORMS.wic.date_column, "==", year)]
+        seed = seed * 10_000 + year
+    return _generate_form(FORMS.wic, source, seed, configuration, year_filter)
 
 
 def generate_social_security(
     source: Union[Path, str] = None,
     seed: int = 0,
     configuration: Union[Path, str, dict] = None,
+    year: int = 2020,
 ) -> pd.DataFrame:
     """
     Generates noised Social Security (SSA) data from un-noised data.
@@ -177,6 +225,14 @@ def generate_social_security(
     :param source: A path to un-noised source SSA data
     :param seed: An integer seed for randomness
     :param configuration: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
+    :param year: The year up to which to noise from the data
     :return: A pd.DataFrame of noised SSA data
     """
-    return _generate_form(FORMS.ssa, source, seed, configuration)
+    year_filter = {"hdf": None, "parquet": None}
+    if year:
+        year_filter["hdf"] = [f"{FORMS.ssa.date_column} <= {year}."]
+        year_filter["parquet"] = [
+            (FORMS.ssa.date_column, "<=", pd.Timestamp(f"{year}-12-31"))
+        ]
+        seed = seed * 10_000 + year
+    return _generate_form(FORMS.ssa, source, seed, configuration, year_filter)
