@@ -8,7 +8,7 @@ from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.constants import paths
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
-from pseudopeople.utilities import vectorized_choice
+from pseudopeople.utilities import get_index_to_noise, vectorized_choice
 
 
 def omit_rows(
@@ -18,13 +18,19 @@ def omit_rows(
 ) -> pd.DataFrame:
     """
 
-    :param form_data:
-    :param configuration:
-    :param randomness_stream:
-    :return:
+    :param form_data:  pd.DataFrame of one of the form types used in Pseudopeople
+    :param configuration: ConfigTree object containing noise level values
+    :param randomness_stream: RandomnessStream object to make random selection for noise
+    :return: pd.DataFrame with rows from the original dataframe removed
     """
-    # todo actually omit rows
-    return form_data
+
+    noise_level = configuration.probability
+    to_noise_idx = get_index_to_noise(
+        form_data, noise_level, randomness_stream, "omission_choice"
+    )
+    noised_data = form_data.loc[form_data.index.difference(to_noise_idx)]
+
+    return noised_data
 
 
 # def duplicate_rows(
