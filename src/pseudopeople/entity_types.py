@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict
 
 import pandas as pd
+from loguru import logger
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
@@ -72,6 +73,10 @@ class ColumnNoiseType:
             column, noise_level, randomness_stream, f"{self.name}_{additional_key}"
         )
         if to_noise_idx.empty:
+            logger.debug(
+                f"No cells chosen to noise for noise function {self.name} on column {column.name}. "
+                "This is likely due to a combination of the configuration noise levels and the input data."
+            )
             return column
         noised_data = self.noise_function(
             column.loc[to_noise_idx], configuration, randomness_stream, additional_key
