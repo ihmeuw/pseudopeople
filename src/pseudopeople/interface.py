@@ -75,7 +75,13 @@ def _generate_form(
         if col.dtype_name != data[col.name].dtype.name:
             data[col.name] = data[col.name].astype(col.dtype_name)
     noised_form = noise_form(form, data, configuration_tree, seed)
-    noised_form = noised_form[[c.name for c in columns_to_keep]]
+    noised_form = _extract_columns(columns_to_keep, noised_form)
+    return noised_form
+
+
+def _extract_columns(columns_to_keep, noised_form):
+    if columns_to_keep:
+        noised_form = noised_form[[c.name for c in columns_to_keep]]
     return noised_form
 
 

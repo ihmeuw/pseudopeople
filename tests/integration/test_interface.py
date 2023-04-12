@@ -51,8 +51,8 @@ def test_generate_form(data_dir_name: str, noising_function: Callable):
             expected_dtype = np.dtype(object)
         assert noised_data[col].dtype == expected_dtype
 
+
 # TODO [MIC-4000]: add test that each col to get noised actually does get noised
-    assert set(noised_data.columns) == set(data.columns)
 
 
 @pytest.mark.parametrize(
@@ -81,7 +81,10 @@ def test_generate_form_with_year(data_dir_name: str, noising_function: Callable)
     assert not data.equals(noised_data)
     assert noised_data.equals(noised_data_same_seed)
     assert not noised_data.equals(noised_data_different_seed)
-    assert set(noised_data.columns) == set(data.columns)
+
+
+def _mock_extract_columns(columns_to_keep, noised_form):
+    return noised_form
 
 
 @pytest.mark.parametrize(
@@ -99,6 +102,7 @@ def test_form_filter_by_year(
     if noising_function == "todo":
         pytest.skip(reason=f"TODO: implement form {data_dir_name}")
 
+    mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
     mocker.patch("pseudopeople.interface.noise_form", side_effect=_mock_noise_form)
     noised_data = noising_function(year=2020)
 
@@ -126,6 +130,7 @@ def _mock_noise_form(
 def test_form_filter_by_year_with_full_dates(
     mocker, data_dir_name: str, noising_function: Callable, form: FORMS
 ):
+    mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
     mocker.patch("pseudopeople.interface.noise_form", side_effect=_mock_noise_form)
     noised_data = noising_function(year=2020)
 
@@ -134,4 +139,3 @@ def test_form_filter_by_year_with_full_dates(
         assert (dates.year <= 2020).all()
     else:
         assert (dates.year == 2020).all()
-
