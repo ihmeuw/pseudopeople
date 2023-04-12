@@ -1,6 +1,6 @@
 from typing import NamedTuple
 
-from pseudopeople import noise_functions
+from pseudopeople import noise_functions, utilities
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 
 
@@ -24,6 +24,7 @@ class __NoiseTypes(NamedTuple):
     incorrect_selection: ColumnNoiseType = ColumnNoiseType(
         "incorrect_selection",
         noise_functions.generate_incorrect_selections,
+        noise_level_scaling_function=utilities.noise_scaling_incorrect_selection,
         token_noise_level=None,
     )
     # copy_from_within_household: ColumnNoiseType = ColumnNoiseType(
