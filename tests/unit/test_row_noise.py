@@ -11,7 +11,7 @@ RANDOMNESS = RandomnessStream(
 )
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def dummy_data():
     num_simulants = 1_000_000
     dummy_idx = pd.Index(range(num_simulants))
