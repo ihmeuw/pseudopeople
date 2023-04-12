@@ -6,6 +6,7 @@ from loguru import logger
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
+from pseudopeople import schema_entities
 from pseudopeople.utilities import get_index_to_noise
 
 
@@ -64,12 +65,7 @@ class ColumnNoiseType:
         randomness_stream: RandomnessStream,
         additional_key: Any,
     ) -> pd.Series:
-        # TODO: this is a temporary hack to account for all string columns having been made categorical
-        #  We should record expected output dtype in the columns data structure
-        if column.dtype.name == "category":
-            column = column.astype(str)
-        else:
-            column = column.copy()
+        column = column.copy()
         noise_level = configuration.row_noise_level * self.noise_level_scaling_function(
             column.name
         )
@@ -86,5 +82,10 @@ class ColumnNoiseType:
             column.loc[to_noise_idx], configuration, randomness_stream, additional_key
         )
 
+        # Coerce noised column dtype back to original column's if it's changed
+        if noised_data.dtype.name != column.dtype.name:
+            noised_data = noised_data.astype(column.dtype)
+
         column.loc[to_noise_idx] = noised_data
+
         return column
