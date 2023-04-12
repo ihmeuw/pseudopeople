@@ -356,6 +356,8 @@ COLUMNS = __Columns()
 class Form:
     name: str
     columns: Tuple[Column, ...]  # This defines the output column order
+    date_column: str
+
     row_noise_types: Tuple[RowNoiseType, ...] = (
         NOISE_TYPES.omission,
         # NOISE_TYPES.duplication,
@@ -384,6 +386,7 @@ class __Forms(NamedTuple):
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
         ),
+        date_column="year",
     )
     acs: Form = Form(
         "american_communities_survey",
@@ -405,6 +408,7 @@ class __Forms(NamedTuple):
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
         ),
+        date_column="survey_date",
     )
     cps: Form = Form(
         "current_population_survey",
@@ -426,6 +430,7 @@ class __Forms(NamedTuple):
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
         ),
+        date_column="survey_date",
     )
     wic: Form = Form(
         "women_infants_and_children",
@@ -445,6 +450,7 @@ class __Forms(NamedTuple):
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
         ),
+        date_column="year",
     )
     ssa: Form = Form(
         "social_security",
@@ -458,6 +464,7 @@ class __Forms(NamedTuple):
             COLUMNS.ssa_event_type,
             COLUMNS.ssa_event_date,
         ),
+        date_column="event_date",
     )
     tax_w2_1099: Form = Form(
         "taxes_w2_and_1099",
@@ -487,6 +494,7 @@ class __Forms(NamedTuple):
             COLUMNS.employer_zipcode,
             COLUMNS.tax_form,
         ),
+        date_column="tax_year",
     )
     # tax_1040: Form = Form(
     #     "taxes_1040",
