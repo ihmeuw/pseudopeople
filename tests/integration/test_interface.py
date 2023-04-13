@@ -41,6 +41,10 @@ DATA_COLUMNS = ["year", "event_date", "survey_date", "tax_year"]
 def test_generate_form(
     data_dir_name: str, noising_function: Callable, use_sample_data: bool, tmpdir
 ):
+    """Tests that noised forms are generated and as expected. The 'use_sample_data'
+    parameter determines whether or not to use the sample data (if True) or
+    a non-default root directory with multiple datasets to compile (if False)
+    """
     if noising_function == "todo":
         pytest.skip(reason=f"TODO: implement form {data_dir_name}")
 
