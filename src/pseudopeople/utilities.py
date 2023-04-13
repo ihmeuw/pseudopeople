@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 from vivarium.framework.randomness import RandomnessStream, random
 
+from pseudopeople.constants import paths
+
 
 def get_randomness_stream(form_name: str, seed: int) -> RandomnessStream:
     return RandomnessStream(form_name, lambda: pd.Timestamp("2020-04-01"), seed)
@@ -60,7 +62,7 @@ def vectorized_choice(
 
 
 def get_index_to_noise(
-    column: pd.Series,
+    data: Union[pd.DataFrame, pd.Series],
     noise_level: float,
     randomness_stream: RandomnessStream,
     additional_key: Any,
@@ -70,7 +72,10 @@ def get_index_to_noise(
     """
 
     # Get rows to noise
-    not_empty_idx = column.index[(column != "") & (column.notna())]
+    if isinstance(data, pd.Series):
+        not_empty_idx = data.index[(data != "") & (data.notna())]
+    else:
+        not_empty_idx = data.index
     to_noise_idx = randomness_stream.filter_for_probability(
         not_empty_idx,
         probability=noise_level,
@@ -78,3 +83,23 @@ def get_index_to_noise(
     )
 
     return to_noise_idx
+
+
+def noise_scaling_incorrect_selection(name: str) -> float:
+    """
+    Function to scale noising for incorrect selection to adjust for the possibility of noising with the original values.
+    """
+    selection_type = {
+        "employer_state": "state",
+        "mailing_address_state": "state",
+    }.get(name, name)
+
+    selection_options = pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
+    # Get possible noise values
+    # todo: Update with exclusive resampling when vectorized_choice is improved
+    options = selection_options.loc[selection_options[selection_type].notna(), selection_type]
+
+    # Scale to adjust for possibility of noising with original value
+    noise_scaling_value = 1 / (1 - 1 / len(options))
+
+    return noise_scaling_value

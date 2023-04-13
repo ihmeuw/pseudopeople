@@ -8,7 +8,7 @@ from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.constants import paths
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
-from pseudopeople.utilities import vectorized_choice
+from pseudopeople.utilities import get_index_to_noise, vectorized_choice
 
 
 def omit_rows(
@@ -18,13 +18,19 @@ def omit_rows(
 ) -> pd.DataFrame:
     """
 
-    :param form_data:
-    :param configuration:
-    :param randomness_stream:
-    :return:
+    :param form_data:  pd.DataFrame of one of the form types used in Pseudopeople
+    :param configuration: ConfigTree object containing noise level values
+    :param randomness_stream: RandomnessStream object to make random selection for noise
+    :return: pd.DataFrame with rows from the original dataframe removed
     """
-    # todo actually omit rows
-    return form_data
+
+    noise_level = configuration.probability
+    to_noise_idx = get_index_to_noise(
+        form_data, noise_level, randomness_stream, "omission_choice"
+    )
+    noised_data = form_data.loc[form_data.index.difference(to_noise_idx)]
+
+    return noised_data
 
 
 # def duplicate_rows(
@@ -77,7 +83,7 @@ def generate_incorrect_selections(
         additional_key=f"{additional_key}_incorrect_select_choice",
     ).to_numpy()
 
-    return pd.Series(new_values, index=column.index)
+    return pd.Series(new_values, index=column.index, name=column.name)
 
 
 # def generate_within_household_copies(
@@ -131,7 +137,6 @@ def miswrite_zipcodes(
     :return: pd.Series of noised zipcodes
     """
 
-    column = column.astype(str)
     str_len = column.str.len()
     if (str_len != 5).sum() > 0:
         raise ValueError(
@@ -185,20 +190,20 @@ def miswrite_ages(
         randomness_stream=randomness_stream,
         additional_key=f"{additional_key}_{column.name}_miswrite_ages",
     )
-    new_values = column.astype(float).astype(int) + perturbations
+    new_values = column.astype(int) + perturbations
     # Reflect negative values to positive
     new_values[new_values < 0] *= -1
     # If new age == original age, subtract 1
     new_values[new_values == column.astype(int)] -= 1
 
-    return new_values.astype(str)
+    return new_values
 
 
 def miswrite_numerics(
     column: pd.Series,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
-    additional_key: Any,
+    _: Any,
 ) -> pd.Series:
     """
     Function that noises numeric characters in a series.
@@ -206,7 +211,6 @@ def miswrite_numerics(
     :param column: A pd.Series
     :param configuration: ConfigTree object containing noise level
     :param randomness_stream: RandomnessStream for CRN framework.
-    :param additional_key: Key for RandomnessStream
 
     returns: pd.Series with some numeric values experiencing noise.
     """
@@ -226,7 +230,7 @@ def miswrite_numerics(
     random_digits = rng.choice(list("0123456789"), is_number.shape)
 
     # Choose and replace values for a noised series
-    noised_column = pd.Series("", index=column.index)
+    noised_column = pd.Series("", index=column.index, name=column.name)
     digits = []
     for i in range(len(is_number.columns)):
         digit = np.where(replace.iloc[:, i], random_digits[:, i], same_len_col.str[i])
@@ -282,7 +286,7 @@ def generate_fake_names(
         randomness_stream=randomness_stream,
         additional_key=f"{additional_key}_fake_names",
     )
-    return pd.Series(new_values, index=column.index)
+    return pd.Series(new_values, index=column.index, name=column.name)
 
 
 # def generate_phonetic_errors(
@@ -318,7 +322,7 @@ def generate_typographical_errors(
     column: pd.Series,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
-    additional_key: Any,
+    _: Any,
 ) -> pd.Series:
     """Function that takes a column and applies noise to the string values
     representative of keyboard mistyping.
@@ -326,7 +330,6 @@ def generate_typographical_errors(
     :param column:  pd.Series of data
     :param configuration: ConfigTree object containing noising parameters
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN
-    :param additional_key: Key for RandomnessStream
     :returns: pd.Series of column with noised data
     """
 

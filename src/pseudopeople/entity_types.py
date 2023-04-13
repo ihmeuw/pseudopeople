@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict
 
 import pandas as pd
+from loguru import logger
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
@@ -53,6 +54,7 @@ class ColumnNoiseType:
     noise_function: Callable[[pd.Series, ConfigTree, RandomnessStream, Any], pd.Series]
     row_noise_level: float = 0.01
     token_noise_level: float = 0.1
+    noise_level_scaling_function: Callable[[str], float] = lambda x: 1.0
     additional_parameters: Dict[str, Any] = None
 
     def __call__(
@@ -62,18 +64,27 @@ class ColumnNoiseType:
         randomness_stream: RandomnessStream,
         additional_key: Any,
     ) -> pd.Series:
-        # TODO: this is a temporary hack to account for all string columns having been made categorical
-        #  We should record expected output dtype in the columns data structure
-        if column.dtype.name == "category":
-            column = column.astype(str)
-        else:
-            column = column.copy()
-        noise_level = configuration.row_noise_level
+        column = column.copy()
+        noise_level = configuration.row_noise_level * self.noise_level_scaling_function(
+            column.name
+        )
         to_noise_idx = get_index_to_noise(
             column, noise_level, randomness_stream, f"{self.name}_{additional_key}"
         )
+        if to_noise_idx.empty:
+            logger.debug(
+                f"No cells chosen to noise for noise function {self.name} on column {column.name}. "
+                "This is likely due to a combination of the configuration noise levels and the input data."
+            )
+            return column
         noised_data = self.noise_function(
             column.loc[to_noise_idx], configuration, randomness_stream, additional_key
         )
+
+        # Coerce noised column dtype back to original column's if it has changed
+        if noised_data.dtype.name != column.dtype.name:
+            noised_data = noised_data.astype(column.dtype)
+
         column.loc[to_noise_idx] = noised_data
+
         return column

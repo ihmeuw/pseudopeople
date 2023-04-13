@@ -28,7 +28,7 @@ def dummy_data():
     num_rows = 1_000_000
     return pd.DataFrame(
         {
-            "numbers": [str(x) for x in range(num_rows)],
+            "event_type": [str(x) for x in range(num_rows)],
             "words": [
                 "".join(random.choice(ascii_lowercase) for _ in range(4))
                 for _ in range(num_rows)
@@ -50,7 +50,7 @@ def dummy_config_noise_numbers():
         {
             "decennial_census": {
                 "column_noise": {
-                    "numbers": {
+                    "event_type": {
                         "missing_data": {"row_noise_level": 0.01},
                         "incorrect_selection": {"row_noise_level": 0.01},
                         "copy_from_within_household": {"row_noise_level": 0.01},
@@ -111,9 +111,9 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
     )
     for field in NOISE_TYPES._fields:
         mock_return = (
-            dummy_data[["numbers"]]
-            if field in ["omission", "duplication"]
-            else dummy_data["numbers"]
+            dummy_data[["event_type"]]
+            if field in ["omission", "duplication   "]
+            else dummy_data["event_type"]
         )
         mock.attach_mock(
             mocker.patch(
@@ -155,7 +155,7 @@ def test_columns_noised(dummy_data):
         {
             "decennial_census": {
                 "column_noise": {
-                    "numbers": {
+                    "event_type": {
                         "missing_data": {"row_noise_level": 0.1},
                     },
                 },
@@ -165,7 +165,7 @@ def test_columns_noised(dummy_data):
     noised_data = dummy_data.copy()
     noised_data = noise_form(FORMS.census, noised_data, config, 0)
 
-    assert (dummy_data["numbers"] != noised_data["numbers"]).any()
+    assert (dummy_data["event_type"] != noised_data["event_type"]).any()
     assert (dummy_data["words"] == noised_data["words"]).all()
 
 
@@ -185,9 +185,8 @@ def test_correct_forms_are_used(func, form, mocker):
     """Test that each interface noise function uses the correct form"""
     if func == "todo":
         pytest.skip(reason=f"TODO: implement function for form {form}")
-    mock = mocker.patch("pseudopeople.interface.noise_form")
-    mocker.patch("pseudopeople.interface.pd.read_hdf", return_value=pd.DataFrame())
-    _ = func("dummy/path.hdf")
+    mock = mocker.patch("pseudopeople.interface._generate_form")
+    _ = func()
 
     assert mock.call_args[0][0] == form
 
