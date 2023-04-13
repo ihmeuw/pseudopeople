@@ -66,33 +66,9 @@ def test_generate_form(
     if use_sample_data:
         source = None  # will default to using sample data
     else:
-        # Break sample data into two "seeds" and save to tmpdir
-        outdir = tmpdir.mkdir(data_dir_name)
-        suffix = sample_data_path.suffix
-        split_idx = int(len(data) / 2)
-        if suffix == ".parquet":
-            data[:split_idx].to_parquet(outdir / f"{data_dir_name}_1{suffix}")
-            data[split_idx:].to_parquet(outdir / f"{data_dir_name}_2{suffix}")
-        elif suffix == ".hdf":
-            data[:split_idx].to_hdf(
-                outdir / f"{data_dir_name}_1{suffix}",
-                "data",
-                format="table",
-                complib="bzip2",
-                complevel=9,
-                data_columns=DATA_COLUMNS,
-            )
-            data[split_idx:].to_hdf(
-                outdir / f"{data_dir_name}_2{suffix}",
-                "data",
-                format="table",
-                complib="bzip2",
-                complevel=9,
-                data_columns=DATA_COLUMNS,
-            )
-        else:
-            raise NotImplementedError(f"Requires hdf or parquet, got {suffix}")
-        source = tmpdir
+        source = _generate_non_default_data_root(
+            data_dir_name, tmpdir, sample_data_path, data
+        )
 
     noised_data = noising_function(seed=0, source=source)
     noised_data_same_seed = noising_function(seed=0, source=source)
@@ -109,6 +85,38 @@ def test_generate_form(
             # str dtype is 'object'
             expected_dtype = np.dtype(object)
         assert noised_data[col].dtype == expected_dtype
+
+
+def _generate_non_default_data_root(data_dir_name, tmpdir, sample_data_path, data):
+    """Helper function to break the single sample dataset into two and save
+    out to tmpdir to be used as a non-default 'source' argument
+    """
+    outdir = tmpdir.mkdir(data_dir_name)
+    suffix = sample_data_path.suffix
+    split_idx = int(len(data) / 2)
+    if suffix == ".parquet":
+        data[:split_idx].to_parquet(outdir / f"{data_dir_name}_1{suffix}")
+        data[split_idx:].to_parquet(outdir / f"{data_dir_name}_2{suffix}")
+    elif suffix == ".hdf":
+        data[:split_idx].to_hdf(
+            outdir / f"{data_dir_name}_1{suffix}",
+            "data",
+            format="table",
+            complib="bzip2",
+            complevel=9,
+            data_columns=DATA_COLUMNS,
+        )
+        data[split_idx:].to_hdf(
+            outdir / f"{data_dir_name}_2{suffix}",
+            "data",
+            format="table",
+            complib="bzip2",
+            complevel=9,
+            data_columns=DATA_COLUMNS,
+        )
+    else:
+        raise NotImplementedError(f"Requires hdf or parquet, got {suffix}")
+    return tmpdir
 
 
 # TODO [MIC-4000]: add test that each col to get noised actually does get noised
