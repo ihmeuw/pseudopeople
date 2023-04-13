@@ -2,8 +2,8 @@ from pathlib import Path
 from typing import Union
 
 import pandas as pd
-from loguru import logger
 import pyarrow.parquet as pq
+from loguru import logger
 
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
@@ -58,6 +58,7 @@ def _generate_form(
             "Please provide the path to the unmodified root data directory."
         )
     noised_form = []
+    columns_to_keep = [c for c in form.columns]
     for data_path in data_paths:
         if data_path.suffix == ".hdf":
             with pd.HDFStore(str(data_path), mode="r") as hdf_store:
@@ -75,17 +76,32 @@ def _generate_form(
                 "Please provide the path to the unmodified root data directory."
             )
 
-        columns_to_keep = [c for c in form.columns]
-
-        # Coerce dtypes
+        # Coerce dtypes prior to noising to catch issues early as well as
+        # get most columns away from dtype 'category' and into 'object' (strings)
         for col in columns_to_keep:
             if col.dtype_name != data[col.name].dtype.name:
                 data[col.name] = data[col.name].astype(col.dtype_name)
 
         noised_data = noise_form(form, data, configuration_tree, seed)
-        noised_form.append(noised_data[[c.name for c in columns_to_keep]])
+        noised_data = _extract_columns(columns_to_keep, noised_data)
+        noised_form.append(noised_data)
 
-    return pd.concat(noised_form, ignore_index=True)
+    noised_form = pd.concat(noised_form, ignore_index=True)
+
+    # Known pandas bug: pd.concat does not preserve category dtypes so we coerce
+    # again after concat (https://github.com/pandas-dev/pandas/issues/51362)
+    for col in columns_to_keep:
+        if col.dtype_name != noised_form[col.name].dtype.name:
+            noised_form[col.name] = noised_form[col.name].astype(col.dtype_name)
+
+    return noised_form
+
+
+def _extract_columns(columns_to_keep, noised_form):
+    """Helper function to simplify testing"""
+    if columns_to_keep:
+        noised_form = noised_form[[c.name for c in columns_to_keep]]
+    return noised_form
 
 
 # TODO: add year as parameter to select the year of the decennial census to generate (MIC-3909)

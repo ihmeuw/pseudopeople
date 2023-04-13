@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Callable
 
 import numpy as np
@@ -15,6 +14,9 @@ from pseudopeople.interface import (
     generate_women_infants_and_children,
 )
 from pseudopeople.schema_entities import COLUMNS, FORMS
+
+# TODO: Move into a metadata file and import metadata into prl
+DATA_COLUMNS = ["year", "event_date", "survey_date", "tax_year"]
 
 
 @pytest.mark.parametrize(
@@ -74,6 +76,7 @@ def test_generate_form(
                 format="table",
                 complib="bzip2",
                 complevel=9,
+                data_columns=DATA_COLUMNS,
             )
             data[split_idx:].to_hdf(
                 outdir / f"{data_dir_name}_2{suffix}",
@@ -81,6 +84,7 @@ def test_generate_form(
                 format="table",
                 complib="bzip2",
                 complevel=9,
+                data_columns=DATA_COLUMNS,
             )
         else:
             raise NotImplementedError(f"Requires hdf or parquet, got {suffix}")
