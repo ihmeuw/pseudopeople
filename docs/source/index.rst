@@ -12,6 +12,7 @@ The github repo can be found at: https://github.com/ihmeuw/pseudopeople
    :maxdepth: 2
 
    installation
+   noise_functions/index
    tutorials/index
    concepts/index
    api_reference/index
