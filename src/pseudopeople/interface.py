@@ -110,12 +110,15 @@ def _reformat_dates_for_noising(data: pd.DataFrame):
     if COLUMNS.ssa_event_date.name in data.columns:
         # event_date -> YYYYMMDD
         data[COLUMNS.ssa_event_date.name] = pd.to_datetime(
-            data[COLUMNS.ssa_event_date.name]
+            data[COLUMNS.ssa_event_date.name],
+            format="%Y-%m-%d",
         ).dt.strftime("%Y%m%d")
     if COLUMNS.dob.name in data.columns:
         # date_of_birth -> MM/DD/YYYY
-        data[COLUMNS.dob.name] = pd.to_datetime(data[COLUMNS.dob.name]).dt.strftime(
-            "%m/%d/%Y"
+        data[COLUMNS.dob.name] = pd.to_datetime(
+            data[COLUMNS.dob.name], format="%Y-%m-%d"
+        ).dt.strftime(
+            "%m/%d/%Y",
         )
     return data
 
