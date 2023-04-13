@@ -46,11 +46,10 @@ def _generate_form(
     source = Path(source) / form_file_name
     data_paths = [x for x in source.glob(f"{form_file_name}*")]
     if not data_paths:
-        logger.warning(
+        raise ValueError(
             f"No datasets found at directory {str(source)}. "
             "Please provide the path to the unmodified root data directory."
         )
-        return pd.DataFrame()
     suffix = set(x.suffix for x in data_paths)
     if len(suffix) > 1:
         raise TypeError(
