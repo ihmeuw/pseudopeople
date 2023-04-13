@@ -98,7 +98,7 @@ def _generate_form(
 
 
 def _extract_columns(columns_to_keep, noised_form):
-    """Helper function to simplify testing"""
+    """Helper function for test mocking purposes"""
     if columns_to_keep:
         noised_form = noised_form[[c.name for c in columns_to_keep]]
     return noised_form
