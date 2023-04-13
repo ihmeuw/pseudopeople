@@ -10,6 +10,7 @@ census-scale data-set written using standard
    :maxdepth: 2
 
    installation
+   noise_functions/index
    tutorials/index
    concepts/index
    api_reference/index
