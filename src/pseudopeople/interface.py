@@ -62,7 +62,7 @@ def _generate_form(
         data = _load_data_from_path(data_path, year_filter)
 
         data = _coerce_dtypes(data, form)
-        data = _reformat_dates_for_noising(data)
+        data = _reformat_dates_for_noising(data, form)
         noised_data = noise_form(form, data, configuration_tree, seed)
         noised_data = _extract_columns(form.columns, noised_data)
         noised_form.append(noised_data)
@@ -105,9 +105,9 @@ def _load_data_from_path(data_path: Path, year_filter: Dict):
     return data
 
 
-def _reformat_dates_for_noising(data: pd.DataFrame):
+def _reformat_dates_for_noising(data: pd.DataFrame, form: Form):
     """Formats SSA event_date and dates of birth, so they can be noised."""
-    if COLUMNS.ssa_event_date.name in data.columns:
+    if COLUMNS.ssa_event_date.name in data.columns and form == FORMS.ssa:
         # event_date -> YYYYMMDD
         data[COLUMNS.ssa_event_date.name] = pd.to_datetime(
             data[COLUMNS.ssa_event_date.name],
