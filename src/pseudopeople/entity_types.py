@@ -6,7 +6,6 @@ from loguru import logger
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
-from pseudopeople import schema_entities
 from pseudopeople.utilities import get_index_to_noise
 
 
@@ -82,7 +81,7 @@ class ColumnNoiseType:
             column.loc[to_noise_idx], configuration, randomness_stream, additional_key
         )
 
-        # Coerce noised column dtype back to original column's if it's changed
+        # Coerce noised column dtype back to original column's if it has changed
         if noised_data.dtype.name != column.dtype.name:
             noised_data = noised_data.astype(column.dtype)
 
