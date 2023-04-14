@@ -26,7 +26,6 @@ Here we cover the simulated datasets, which are analogous to 'real world' admini
 
 Decennial Census
 ----------------
-To generate a subset of simulated Census data, you can supply a Census year (i.e., 2020, 2030, 2040), or else use the default configuration. 
 
 
 Household Surveys: American Communities Survey and Current Population Survey
