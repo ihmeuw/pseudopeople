@@ -15,7 +15,7 @@ def user_configuration_yaml(tmp_path):
     config = {
         "decennial_census": {
             "row_noise": {"omission": {"probability": 0.05}},
-            "column_noise": {"first_name": {"nickname": {"row_noise_level": 0.05}}},
+            "column_noise": {"first_name": {"nickname": {Keys.PROBABILITY: 0.05}}},
         }
     }
     with open(user_config_path, "w") as file:
@@ -58,19 +58,19 @@ def test_default_configuration_structure():
                 #  being row_noise, token_noise, and additional parameters at the
                 #  baseline level ('noise_type in col.noise_types')
                 #  Would we ever want to allow for adding non-baseline default noise?
-                if noise_type.row_noise_level:
-                    config_row_noise_level = config_level.row_noise_level
-                    default_row_noise_level = (
+                if noise_type[Keys.PROBABILITY]:
+                    config_probability = config_level[Keys.PROBABILITY]
+                    default_probability = (
                         DEFAULT_NOISE_VALUES.get(form.name, {})
                         .get("column_noise", {})
                         .get(col.name, {})
                         .get(noise_type.name, {})
-                        .get("row_noise_level", "no default")
+                        .get(Keys.PROBABILITY, "no default")
                     )
-                    if default_row_noise_level == "no default":
-                        assert config_row_noise_level == baseline_level.row_noise_level
+                    if default_probability == "no default":
+                        assert config_probability == baseline_level[Keys.PROBABILITY]
                     else:
-                        assert config_row_noise_level == default_row_noise_level
+                        assert config_probability == default_probability
                 if noise_type.token_noise_level:
                     config_token_noise_level = config_level.token_noise_level
                     default_token_noise_level = (
@@ -88,7 +88,7 @@ def test_default_configuration_structure():
                     config_additional_parameters = {
                         k: v
                         for k, v in config_level.to_dict().items()
-                        if k not in ["row_noise_level", "token_noise_level"]
+                        if k not in [Keys.PROBABILITY, "token_noise_level"]
                     }
                     default_additional_parameters = (
                         DEFAULT_NOISE_VALUES.get(form.name, {})
@@ -99,7 +99,7 @@ def test_default_configuration_structure():
                     default_additional_parameters = {
                         k: v
                         for k, v in default_additional_parameters.items()
-                        if k not in ["row_noise_level", "token_noise_level"]
+                        if k not in [Keys.PROBABILITY, "token_noise_level"]
                     }
                     if default_additional_parameters == {}:
                         assert (
@@ -141,7 +141,7 @@ def test_loading_from_yaml(tmp_path):
             Keys.COLUMN_NOISE: {
                 COLUMNS.age.name: {
                     NOISE_TYPES.age_miswriting.name: {
-                        Keys.ROW_NOISE_LEVEL: 0.5,
+                        Keys.PROBABILITY: 0.5,
                     },
                 },
             },
@@ -163,7 +163,7 @@ def test_loading_from_yaml(tmp_path):
         == updated_config[Keys.AGE_MISWRITING_PERTURBATIONS]
     )
     # check that 1 got replaced with 0 probability
-    assert updated_config[Keys.ROW_NOISE_LEVEL] == 0.5
+    assert updated_config[Keys.PROBABILITY] == 0.5
 
 
 @pytest.mark.parametrize(
@@ -277,7 +277,7 @@ def test_validate_miswrite_ages_failures(perturbations, error, match):
                     "column_noise": {
                         "age": {
                             "age_miswriting": {
-                                "row_noise_level": 1,
+                                Keys.PROBABILITY: 1,
                                 "possible_perturbations": perturbations,
                             },
                         },

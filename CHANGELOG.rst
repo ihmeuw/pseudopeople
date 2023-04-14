@@ -1,5 +1,5 @@
 **0.5.0 - 04/13/23**
- - Bugfix to apply incorrect selection noising at the expected probabilility
+ - Bugfix to apply incorrect selection noising at the expected probability
  - Implement the omission noise function
  - Implement schema for output columns and their dtypes
  - Implement a year filter to the form generation functions
