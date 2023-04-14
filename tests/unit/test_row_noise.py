@@ -3,8 +3,9 @@ import pandas as pd
 import pytest
 from vivarium.framework.randomness import RandomnessStream
 
-from pseudopeople.configuration import get_configuration
+from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.noise_entities import NOISE_TYPES
+from pseudopeople.schema_entities import FORMS
 
 RANDOMNESS = RandomnessStream(
     key="test_row_noise", clock=lambda: pd.Timestamp("2020-09-01"), seed=0
@@ -31,10 +32,10 @@ def dummy_data():
 
 
 def test_omission(dummy_data):
-    config = get_configuration().decennial_census.row_noise.omission
+    config = get_configuration()[FORMS.census.name][Keys.ROW_NOISE][NOISE_TYPES.omission.name]
     noised_data = NOISE_TYPES.omission(dummy_data, config, RANDOMNESS)
 
-    expected_noise = config.probability
+    expected_noise = config[Keys.PROBABILITY]
     assert np.isclose(1 - len(noised_data) / len(dummy_data), expected_noise, rtol=0.02)
     assert set(noised_data.columns) == set(dummy_data.columns)
     assert (noised_data.dtypes == dummy_data.dtypes).all()
