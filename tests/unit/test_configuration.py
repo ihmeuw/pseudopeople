@@ -54,9 +54,8 @@ def test_default_configuration_structure():
         for col in form.columns:
             for noise_type in col.noise_types:
                 config_level = config[form.name].column_noise[col.name][noise_type.name]
-                baseline_level = getattr(NOISE_TYPES, noise_type.name)
                 # FIXME: Is there a way to allow for adding new keys when they
-                #  don't exist in baseline? eg the for if loops below depend on their
+                #  don't exist in baseline? eg the for/if loops below depend on their
                 #  being row_noise, token_noise, and additional parameters at the
                 #  baseline level ('noise_type in col.noise_types')
                 #  Would we ever want to allow for adding non-baseline default noise?
@@ -70,7 +69,7 @@ def test_default_configuration_structure():
                         .get(Keys.PROBABILITY, "no default")
                     )
                     if default_probability == "no default":
-                        assert config_probability == baseline_level.probability
+                        assert config_probability == noise_type.probability
                     else:
                         assert config_probability == default_probability
                 if noise_type.token_noise_level:
@@ -83,7 +82,7 @@ def test_default_configuration_structure():
                         .get("token_noise_level", "no default")
                     )
                     if default_token_noise_level == "no default":
-                        assert config_token_noise_level == baseline_level.token_noise_level
+                        assert config_token_noise_level == noise_type.token_noise_level
                     else:
                         assert config_token_noise_level == default_token_noise_level
                 if noise_type.additional_parameters:
