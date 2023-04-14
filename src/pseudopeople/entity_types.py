@@ -58,9 +58,6 @@ class ColumnNoiseType:
     noise_level_scaling_function: Callable[[str], float] = lambda x: 1.0
     additional_parameters: Dict[str, Any] = None
 
-    def __getitem__(self, item):
-        return getattr(self, item)
-
     def __call__(
         self,
         column: pd.Series,

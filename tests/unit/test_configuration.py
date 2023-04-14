@@ -58,7 +58,7 @@ def test_default_configuration_structure():
                 #  being row_noise, token_noise, and additional parameters at the
                 #  baseline level ('noise_type in col.noise_types')
                 #  Would we ever want to allow for adding non-baseline default noise?
-                if noise_type[Keys.PROBABILITY]:
+                if noise_type.probability:
                     config_probability = config_level[Keys.PROBABILITY]
                     default_probability = (
                         DEFAULT_NOISE_VALUES.get(form.name, {})
@@ -68,7 +68,7 @@ def test_default_configuration_structure():
                         .get(Keys.PROBABILITY, "no default")
                     )
                     if default_probability == "no default":
-                        assert config_probability == baseline_level[Keys.PROBABILITY]
+                        assert config_probability == baseline_level.probability
                     else:
                         assert config_probability == default_probability
                 if noise_type.token_noise_level:
