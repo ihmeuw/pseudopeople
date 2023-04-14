@@ -148,16 +148,17 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
     assert expected_call_order == call_order
 
 
+# TODO: beef this function up
 def test_columns_noised(dummy_data):
     """Test that the noise functions are only applied to the numbers column
     (as specified in the dummy config)
     """
     config = ConfigTree(
         {
-            "decennial_census": {
-                "column_noise": {
+            FORMS.census.name: {
+                Keys.COLUMN_NOISE: {
                     "event_type": {
-                        "missing_data": {Keys.PROBABILITY: 0.1},
+                        NOISE_TYPES.missing_data.name: {Keys.PROBABILITY: 0.1},
                     },
                 },
             },
