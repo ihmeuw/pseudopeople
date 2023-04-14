@@ -363,7 +363,7 @@ def generate_typographical_errors(
         return err
 
     token_noise_level = configuration.token_noise_level
-    replace_token_probability_level = configuration.replace_token_probability
+    replace_token_probability_level = configuration[Keys.REPLACE_TOKEN_PROBABILITY]
 
     rng = np.random.default_rng(seed=randomness_stream.seed)
     column = column.astype(str)
