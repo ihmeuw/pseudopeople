@@ -38,7 +38,9 @@ def test_default_configuration_structure():
     for form in FORMS:
         # Check row noise
         for row_noise in form.row_noise_types:
-            config_probability = config[form.name].row_noise[row_noise.name].probability
+            config_probability = config[form.name][Keys.ROW_NOISE][row_noise.name][
+                Keys.PROBABILITY
+            ]
             default_probability = (
                 DEFAULT_NOISE_VALUES.get(form.name, {})
                 .get("row_noise", {})
@@ -46,7 +48,7 @@ def test_default_configuration_structure():
                 .get("probability", "no default")
             )
             if default_probability == "no default":
-                assert config_probability == getattr(NOISE_TYPES, row_noise.name).probability
+                assert config_probability == row_noise.probability
             else:
                 assert config_probability == default_probability
         for col in form.columns:
@@ -103,8 +105,7 @@ def test_default_configuration_structure():
                     }
                     if default_additional_parameters == {}:
                         assert (
-                            config_additional_parameters
-                            == baseline_level.additional_parameters
+                            config_additional_parameters == noise_type.additional_parameters
                         )
                     else:
                         # Confirm config includes default values
@@ -119,7 +120,7 @@ def test_default_configuration_structure():
                         for key, value in config_additional_parameters.items():
                             if key not in baseline_keys:
                                 continue
-                            assert baseline_level.additional_parameters[key] == value
+                            assert noise_type.additional_parameters[key] == value
 
 
 def test_get_configuration_with_user_override(user_configuration_yaml, mocker):
