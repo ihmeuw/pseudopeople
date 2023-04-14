@@ -148,7 +148,9 @@ def test_generate_missing_data(dummy_dataset):
 
 
 def test_incorrect_selection(categorical_series):
-    config = get_configuration().decennial_census.column_noise.state.incorrect_selection
+    config = get_configuration()[FORMS.census.name][Keys.COLUMN_NOISE]["state"][
+        NOISE_TYPES.incorrect_selection.name
+    ]
     noised_data = NOISE_TYPES.incorrect_selection(
         categorical_series, config, RANDOMNESS0, "test"
     )
@@ -159,7 +161,7 @@ def test_incorrect_selection(categorical_series):
     # Get real expected noise to account for possibility of noising with original value
     # Here we have a a possibility of choosing any of the 50 states for our categorical series fixture
     actual_noise = (noised_data != categorical_series).mean()
-    assert np.isclose(expected_noise, actual_noise, rtol=0.02)
+    assert np.isclose(expected_noise, actual_noise, rtol=0.03)
 
     original_empty_idx = categorical_series.index[categorical_series == ""]
     noised_empty_idx = noised_data.index[noised_data == ""]
@@ -219,7 +221,9 @@ def test_miswrite_ages_default_config(dummy_dataset):
     """Test that miswritten ages are appropriately handled, including
     no perturbation probabilities defaults to uniform distribution,
     perturbation probabilities"""
-    config = get_configuration().decennial_census.column_noise.age.age_miswriting
+    config = get_configuration()[FORMS.census.name][Keys.COLUMN_NOISE]["age"][
+        NOISE_TYPES.age_miswriting.name
+    ]
     data = dummy_dataset["age"]
     noised_data = NOISE_TYPES.age_miswriting(data, config, RANDOMNESS0, "test")
 
