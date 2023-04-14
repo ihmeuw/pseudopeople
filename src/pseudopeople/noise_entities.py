@@ -73,7 +73,7 @@ class __NoiseTypes(NamedTuple):
     typographic: ColumnNoiseType = ColumnNoiseType(
         "typographic",
         noise_functions.generate_typographical_errors,
-        additional_parameters={"include_original_token_level": 0.1},
+        additional_parameters={"replace_token_probabiliy": 0.9},
     )
 
 
