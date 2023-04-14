@@ -78,8 +78,8 @@ def _generate_default_configuration() -> ConfigTree:
             column_noise_dict = {}
             for noise_type in column.noise_types:
                 column_noise_type_dict = {}
-                if noise_type.row_noise_level is not None:
-                    column_noise_type_dict[Keys.ROW_NOISE_LEVEL] = noise_type.row_noise_level
+                if noise_type.probability is not None:
+                    column_noise_type_dict[Keys.PROBABILITY] = noise_type.probability
                 if noise_type.token_noise_level is not None:
                     column_noise_type_dict[
                         Keys.TOKEN_NOISE_LEVEL

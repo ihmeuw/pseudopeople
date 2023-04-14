@@ -6,6 +6,7 @@ from loguru import logger
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
+from pseudopeople.configuration import Keys
 from pseudopeople.utilities import get_index_to_noise
 
 
@@ -52,7 +53,7 @@ class ColumnNoiseType:
 
     name: str
     noise_function: Callable[[pd.Series, ConfigTree, RandomnessStream, Any], pd.Series]
-    row_noise_level: float = 0.01
+    probability: float = 0.01
     token_noise_level: Optional[float] = 0.1
     noise_level_scaling_function: Callable[[str], float] = lambda x: 1.0
     additional_parameters: Dict[str, Any] = None
@@ -65,7 +66,7 @@ class ColumnNoiseType:
         additional_key: Any,
     ) -> pd.Series:
         column = column.copy()
-        noise_level = configuration.row_noise_level * self.noise_level_scaling_function(
+        noise_level = configuration[Keys.PROBABILITY] * self.noise_level_scaling_function(
             column.name
         )
         to_noise_idx = get_index_to_noise(
