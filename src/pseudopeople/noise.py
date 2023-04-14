@@ -12,6 +12,7 @@ rows in each columns changed to null values.  Then, the form data will be noised
 by column and row for each type of additional noise type.
 """
 import pandas as pd
+from tqdm import tqdm
 from vivarium import ConfigTree
 
 from pseudopeople.configuration import Keys
@@ -48,7 +49,7 @@ def noise_form(
     randomness = get_randomness_stream(form.name, seed)
 
     noise_configuration = configuration[form.name]
-    for noise_type in NOISE_TYPES:
+    for noise_type in tqdm(NOISE_TYPES, desc="Applying noise", unit="type"):
         if isinstance(noise_type, RowNoiseType):
             if (
                 Keys.ROW_NOISE in noise_configuration
