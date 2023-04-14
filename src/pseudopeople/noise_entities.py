@@ -1,6 +1,7 @@
 from typing import NamedTuple
 
 from pseudopeople import noise_functions, utilities
+from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 
 
@@ -8,7 +9,7 @@ class __NoiseTypes(NamedTuple):
     """Container for all noise types in the order in which they should be applied:
     omissions, duplications, missing data, incorrect selection, copy from w/in
     household, month and day swaps, zip code miswriting, age miswriting,
-    numeric miswriting, nicknames, fake names, phonetic, OCR, typographic"
+    numeric miswriting, nicknames, fake names, phonetic, OCR, typographic
 
     NOTE: Any configuration tree overwrites in these objects are what ends up
     in the "baseline" ConfigTree layer.
@@ -49,7 +50,7 @@ class __NoiseTypes(NamedTuple):
         "age_miswriting",
         noise_functions.miswrite_ages,
         token_noise_level=None,
-        additional_parameters={"possible_perturbations": {-1: 0.5, 1: 0.5}},
+        additional_parameters={Keys.AGE_MISWRITING_PERTURBATIONS: {-1: 0.5, 1: 0.5}},
     )
     numeric_miswriting: ColumnNoiseType = ColumnNoiseType(
         "numeric_miswriting",
