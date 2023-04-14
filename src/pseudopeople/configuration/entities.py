@@ -7,3 +7,4 @@ class Keys:
     TOKEN_NOISE_LEVEL = "token_noise_level"
     AGE_MISWRITING_PERTURBATIONS = "possible_perturbations"
     ZIPCODE_DIGIT_PROBABILITIES = "digit_probabilities"
+    REPLACE_TOKEN_PROBABILITY = "replace_token_probability"

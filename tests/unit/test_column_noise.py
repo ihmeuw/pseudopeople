@@ -565,7 +565,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
                         NOISE_TYPES.typographic.name: {
                             Keys.PROBABILITY: 0.1,
                             "token_noise_level": 0.1,
-                            "include_original_token_level": 0.1,
+                            "replace_token_probability": 0.9,
                         },
                     },
                 },
@@ -594,7 +594,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
 
     # Check for expected string growth due to keeping original noised token
     assert (check_noised.str.len() >= check_original.str.len()).all()
-    p_include_original_token = config.include_original_token_level
+    p_include_original_token = 1 - config[Keys.REPLACE_TOKEN_PROBABILITY]
     p_token_does_not_increase_string_length = 1 - p_token_noise * p_include_original_token
     p_strings_do_not_increase_length = (
         p_token_does_not_increase_string_length**str_lengths
