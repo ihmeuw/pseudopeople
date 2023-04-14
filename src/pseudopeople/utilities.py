@@ -1,7 +1,9 @@
+import sys
 from typing import Any, Union
 
 import numpy as np
 import pandas as pd
+from loguru import logger
 from vivarium.framework.randomness import RandomnessStream, random
 
 from pseudopeople.constants import paths
@@ -103,3 +105,24 @@ def noise_scaling_incorrect_selection(name: str) -> float:
     noise_scaling_value = 1 / (1 - 1 / len(options))
 
     return noise_scaling_value
+
+
+def configure_logging_to_terminal(verbose: bool = False):
+    logger.remove()  # Clear default configuration
+    add_logging_sink(sys.stdout, verbose, colorize=True)
+
+
+def add_logging_sink(sink, verbose, colorize=False, serialize=False):
+    message_format = (
+        "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
+        "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> "
+        "- <level>{message}</level>"
+    )
+    if verbose:
+        logger.add(
+            sink, colorize=colorize, level="DEBUG", format=message_format, serialize=serialize
+        )
+    else:
+        logger.add(
+            sink, colorize=colorize, level="INFO", format=message_format, serialize=serialize
+        )
