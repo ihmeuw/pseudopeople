@@ -40,7 +40,9 @@ class __NoiseTypes(NamedTuple):
         "zipcode_miswriting",
         noise_functions.miswrite_zipcodes,
         token_noise_level=None,
-        additional_parameters={Keys.ZIPCODE_DIGIT_PROBABILITIES: [0.04, 0.04, 0.20, 0.36, 0.36]},
+        additional_parameters={
+            Keys.ZIPCODE_DIGIT_PROBABILITIES: [0.04, 0.04, 0.20, 0.36, 0.36]
+        },
     )
     age_miswriting: ColumnNoiseType = ColumnNoiseType(
         "age_miswriting",
