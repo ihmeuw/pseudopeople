@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Optional
 
 import pandas as pd
 from loguru import logger
@@ -53,7 +53,7 @@ class ColumnNoiseType:
     name: str
     noise_function: Callable[[pd.Series, ConfigTree, RandomnessStream, Any], pd.Series]
     row_noise_level: float = 0.01
-    token_noise_level: float = 0.1
+    token_noise_level: Optional[float] = 0.1
     noise_level_scaling_function: Callable[[str], float] = lambda x: 1.0
     additional_parameters: Dict[str, Any] = None
 
