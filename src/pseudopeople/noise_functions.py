@@ -152,10 +152,7 @@ def miswrite_zipcodes(
     # Scale up noise levels to adjust for inclusive sampling with all numbers
     scaleup_factor = 1 / (1 - (1 / len(possible_replacements)))
     # Get configuration values for each piece of 5 digit zipcode
-    scaled_digit_prob = [
-        p * scaleup_factor for p in configuration[Keys.ZIPCODE_DIGIT_PROBABILITIES]
-    ]
-    digit_probabilities = np.array(scaled_digit_prob)
+    digit_probabilities = scaleup_factor * np.array(configuration[Keys.ZIPCODE_DIGIT_PROBABILITIES])
     replace = rng.random(shape) < digit_probabilities
     random_digits = rng.choice(possible_replacements, shape)
     digits = []
