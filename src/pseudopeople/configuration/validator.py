@@ -7,9 +7,11 @@ from pseudopeople.configuration import Keys
 
 
 def validate_user_configuration(user_config: Dict, default_config: ConfigTree) -> None:
-    """Perform various validation checks on the final noising ConfigTree object"""
-    # todo validate that all keys in user config match values in default/baseline
-    #  besides possible permutations of age mis-writing
+    """
+    Validates the user-provided configuration. Confirms that all user-provided
+    keys exist in the default configuration. Confirms that all user-provided
+    values are valid for their respective noise functions.
+    """
     for form, form_config in user_config.items():
         default_form_config = _get_default_config_node(default_config, form, "form")
         for key in form_config:
@@ -47,9 +49,13 @@ def _validate_noise_type_config(
     noise_type: str,
     column: str = None,
 ) -> None:
+    """
+    Validates that all parameters are allowed for this noise function.
+    Additionally, validates that the configuration values are permissible.
+    """
     for parameter, parameter_config in noise_type_config.items():
         parameter_config_validator = {
-            # todo add additional custom validators
+            # todo add additional config value validators
             Keys.AGE_MISWRITING_PERTURBATIONS: _validate_age_miswriting_perturbations_config
         }.get(parameter, lambda *_: _)
 
@@ -77,7 +83,9 @@ def _get_default_config_node(
         form_context = "" if form is None else f" for form '{form}'"
         column_context = "" if column is None else f" for column '{column}'"
         noise_type_context = "" if noise_type is None else f" and noise type '{noise_type}'"
-        error_message = f"Invalid {key_type} '{key}' provided{form_context}{column_context}{noise_type_context}. "
+        context = form_context + column_context + noise_type_context
+
+        error_message = f"Invalid {key_type} '{key}' provided{context}. "
         valid_options_message = f"Valid {key_type}s are {[k for k in default_config]}."
         raise ValueError(error_message + valid_options_message)
 
@@ -85,6 +93,10 @@ def _get_default_config_node(
 def _validate_age_miswriting_perturbations_config(
     noise_type_config: Union[Dict, List], form: str, column: str
 ) -> None:
+    """
+    Validates the user-provided values for the age-miswriting permutations
+    parameter
+    """
     if not isinstance(noise_type_config, (Dict, List)):
         raise TypeError(
             "Invalid configuration type provided for age miswriting for form "
