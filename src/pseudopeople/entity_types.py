@@ -66,7 +66,12 @@ class ColumnNoiseType:
         additional_key: Any,
     ) -> pd.Series:
         column = column.copy()
-        noise_level = configuration[Keys.PROBABILITY] * self.noise_level_scaling_function(
+        probability_key = (
+            Keys.PROBABILITY
+            if Keys.PROBABILITY in configuration.keys()
+            else Keys.CELL_PROBABILITY
+        )
+        noise_level = configuration[probability_key] * self.noise_level_scaling_function(
             column.name
         )
         to_noise_idx = get_index_to_noise(

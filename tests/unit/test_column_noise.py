@@ -187,7 +187,7 @@ def test_miswrite_zipcodes(dummy_dataset):
                 Keys.COLUMN_NOISE: {
                     "zipcode": {
                         NOISE_TYPES.zipcode_miswriting.name: {
-                            Keys.PROBABILITY: 0.5,
+                            Keys.CELL_PROBABILITY: 0.5,
                             Keys.ZIPCODE_DIGIT_PROBABILITIES: dummy_digit_probabilities,
                         },
                     },
@@ -200,7 +200,7 @@ def test_miswrite_zipcodes(dummy_dataset):
     ]
 
     # Get configuration values for each piece of 5 digit zipcode
-    probability = config[Keys.PROBABILITY]
+    probability = config[Keys.CELL_PROBABILITY]
     data = dummy_dataset["zipcode"]
     noised_data = NOISE_TYPES.zipcode_miswriting(data, config, RANDOMNESS0, "test_zipcode")
 
@@ -567,7 +567,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
                 Keys.COLUMN_NOISE: {
                     column: {
                         NOISE_TYPES.typographic.name: {
-                            Keys.PROBABILITY: 0.1,
+                            Keys.CELL_PROBABILITY: 0.1,
                             "token_noise_level": 0.1,
                             "replace_token_probability": 0.9,
                         },
@@ -586,7 +586,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
     check_noised = noised_data.loc[not_missing_idx]
 
     # Check for expected noise level
-    p_row_noise = config[Keys.PROBABILITY]
+    p_row_noise = config[Keys.CELL_PROBABILITY]
     p_token_noise = config.token_noise_level
     str_lengths = check_original.str.len()  # pd.Series
     p_token_not_noised = 1 - p_token_noise
