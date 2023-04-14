@@ -315,7 +315,7 @@ def generate_missing_data(column: pd.Series, *_: Any) -> pd.Series:
     :returns: pd.Series of empty strings with the index of column.
     """
 
-    return pd.Series(pd.NA, index=column.index)
+    return pd.Series(np.nan, index=column.index)
 
 
 def generate_typographical_errors(

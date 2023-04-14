@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 from vivarium.framework.randomness import RandomnessStream
 
-from pseudopeople.configuration import get_configuration
+from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_entities import NOISE_TYPES
 
@@ -118,7 +118,7 @@ def test_generate_missing_data(dummy_dataset):
                 "column_noise": {
                     "zipcode": {
                         "missing_data": {
-                            "row_noise_level": 0.25,
+                            Keys.PROBABILITY: 0.25,
                         },
                     },
                 },
@@ -135,7 +135,7 @@ def test_generate_missing_data(dummy_dataset):
     ]
 
     # Check for expected noise level
-    expected_noise = config["row_noise_level"]
+    expected_noise = config[Keys.PROBABILITY]
     actual_noise = len(newly_missing_idx) / len(orig_non_missing_idx)
     assert np.isclose(expected_noise, actual_noise, rtol=0.02)
 
@@ -151,7 +151,7 @@ def test_incorrect_selection(categorical_series):
     )
 
     # Check for expected noise level
-    expected_noise = config["row_noise_level"]
+    expected_noise = config[Keys.PROBABILITY]
     # todo: Update when generate_incorrect_selection uses exclusive resampling
     # Get real expected noise to account for possibility of noising with original value
     # Here we have a a possibility of choosing any of the 50 states for our categorical series fixture
@@ -180,7 +180,7 @@ def test_miswrite_zipcodes(dummy_dataset):
             "decennial_census": {
                 "zipcode": {
                     "zipcode_miswriting": {
-                        "row_noise_level": 0.5,
+                        Keys.PROBABILITY: 0.5,
                         "first_two_digits_noise_level": 0.3,
                         "middle_digit_noise_level": 0.4,
                         "last_two_digits_noise_level": 0.5,
@@ -192,7 +192,7 @@ def test_miswrite_zipcodes(dummy_dataset):
     config = config["decennial_census"]["zipcode"]["zipcode_miswriting"]
 
     # Get configuration values for each piece of 5 digit zipcode
-    row_noise_level = config.row_noise_level
+    probability = config[Keys.PROBABILITY]
     first2_prob = config.first_two_digits_noise_level
     middle_prob = config.middle_digit_noise_level
     last2_prob = config.last_two_digits_noise_level
@@ -205,20 +205,20 @@ def test_miswrite_zipcodes(dummy_dataset):
     # Check noise for each digits position matches expected noise
     for i in range(2):
         assert np.isclose(
-            first2_prob * row_noise_level,
+            first2_prob * probability,
             (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).mean(),
             rtol=0.02,
         )
 
     assert np.isclose(
-        middle_prob * row_noise_level,
+        middle_prob * probability,
         (data[~orig_missing].str[2] != noised_data[~orig_missing].str[2]).mean(),
         rtol=0.02,
     )
 
     for i in range(3, 5):
         assert np.isclose(
-            last2_prob * row_noise_level,
+            last2_prob * probability,
             (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).mean(),
             rtol=0.02,
         )
@@ -234,7 +234,7 @@ def test_miswrite_ages_default_config(dummy_dataset):
 
     # Check for expected noise level
     not_missing_idx = data.index[data != ""]
-    expected_noise = config["row_noise_level"]
+    expected_noise = config[Keys.PROBABILITY]
     actual_noise = (noised_data[not_missing_idx] != data[not_missing_idx]).mean()
     # NOTE: we increase the relative tolerance a bit here because the expected
     # noise calculated above does not account for the fact that if a perturbed
@@ -262,7 +262,7 @@ def test_miswrite_ages_uniform_probabilities():
                 "column_noise": {
                     "age": {
                         "age_miswriting": {
-                            "row_noise_level": 1,
+                            Keys.PROBABILITY: 1,
                             "possible_perturbations": perturbations,
                         },
                     },
@@ -291,7 +291,7 @@ def test_miswrite_ages_provided_probabilities():
                 "column_noise": {
                     "age": {
                         "age_miswriting": {
-                            "row_noise_level": 1,
+                            Keys.PROBABILITY: 1,
                             "possible_perturbations": perturbations,
                         },
                     },
@@ -324,7 +324,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
                 "column_noise": {
                     "age": {
                         "age_miswriting": {
-                            "row_noise_level": 1,
+                            Keys.PROBABILITY: 1,
                             "possible_perturbations": perturbations,
                         },
                     },
@@ -351,7 +351,7 @@ def test_miswrite_ages_flips_negative_to_positive():
                 "column_noise": {
                     "age": {
                         "age_miswriting": {
-                            "row_noise_level": 1,
+                            Keys.PROBABILITY: 1,
                             "possible_perturbations": perturbations,
                         },
                     },
@@ -377,7 +377,7 @@ def test_miswrite_numerics(string_series):
                 "column_noise": {
                     "street_number": {
                         "numeric_miswriting": {
-                            "row_noise_level": 0.4,
+                            Keys.PROBABILITY: 0.4,
                             "token_noise_level": 0.5,
                         },
                     },
@@ -386,7 +386,7 @@ def test_miswrite_numerics(string_series):
         }
     )
     config = config.decennial_census.column_noise.street_number.numeric_miswriting
-    p_row_noise = config.row_noise_level
+    p_row_noise = config[Keys.PROBABILITY]
     p_token_noise = config.token_noise_level
     data = string_series
     # Hack: we need to name the series something with the miswrite_numeric noising
@@ -487,10 +487,10 @@ def test_generate_fake_names(dummy_dataset):
                 "column_noise": {
                     "first_name": {
                         "fake_name": {
-                            "row_noise_level": 0.4,
+                            Keys.PROBABILITY: 0.4,
                         },
                     },
-                    "last_name": {"fake_name": {"row_noise_level": 0.5}},
+                    "last_name": {"fake_name": {Keys.PROBABILITY: 0.5}},
                 },
             },
         }
@@ -518,12 +518,12 @@ def test_generate_fake_names(dummy_dataset):
     # todo: equal across fake values
     # Check noised values
     assert np.isclose(
-        first_name_config.row_noise_level,
+        first_name_config[Keys.PROBABILITY],
         (first_name_data[~orig_missing] != noised_first_names[~orig_missing]).mean(),
         rtol=0.02,
     )
     assert np.isclose(
-        last_name_config.row_noise_level,
+        last_name_config[Keys.PROBABILITY],
         (last_name_data[~orig_missing] != noised_last_names[~orig_missing]).mean(),
         rtol=0.02,
     )
@@ -566,7 +566,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
                 "column_noise": {
                     column: {
                         "typographic": {
-                            "row_noise_level": 0.1,
+                            Keys.PROBABILITY: 0.1,
                             "token_noise_level": 0.1,
                             "include_original_token_level": 0.1,
                         },
@@ -583,7 +583,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
     check_noised = noised_data.loc[not_missing_idx]
 
     # Check for expected noise level
-    p_row_noise = config.row_noise_level
+    p_row_noise = config[Keys.PROBABILITY]
     p_token_noise = config.token_noise_level
     str_lengths = check_original.str.len()  # pd.Series
     p_token_not_noised = 1 - p_token_noise
