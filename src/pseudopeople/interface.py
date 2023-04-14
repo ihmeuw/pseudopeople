@@ -4,6 +4,7 @@ from typing import Dict, Union
 import pandas as pd
 import pyarrow.parquet as pq
 from loguru import logger
+from tqdm import tqdm
 
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
@@ -58,6 +59,7 @@ def _generate_form(
         )
     noised_form = []
     for data_path in data_paths:
+        logger.info(f"Loading data from {data_path}.")
         data = _load_data_from_path(data_path, year_filter)
 
         data = _reformat_dates_for_noising(data, form)
