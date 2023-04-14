@@ -76,7 +76,7 @@ The following simulant attributes are included in this dataset:
 
 Household Surveys: ACS and CPS
 ------------------------------
-There are two simulated household survey datasets that can be loaded using :code:`pseudopeople`: the American
+There are two simulated household survey datasets that can be used: the American
 Communities Survey (ACS) and the Current Population Survey (CPS). 
 
 .. list-table:: **Simulant attributes**
