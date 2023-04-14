@@ -6,6 +6,7 @@ import yaml
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
+from pseudopeople.configuration import Keys
 from pseudopeople.constants import paths
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.utilities import get_index_to_noise, vectorized_choice
@@ -151,11 +152,8 @@ def miswrite_zipcodes(
     # Scale up noise levels to adjust for inclusive sampling with all numbers
     scaleup_factor = 1 / (1 - (1 / len(possible_replacements)))
     # Get configuration values for each piece of 5 digit zipcode
-    first2_prob = configuration.first_two_digits_noise_level * scaleup_factor
-    middle_prob = configuration.middle_digit_noise_level * scaleup_factor
-    last2_prob = configuration.last_two_digits_noise_level * scaleup_factor
-    threshold = np.array([2 * [first2_prob] + [middle_prob] + 2 * [last2_prob]])
-    replace = rng.random(shape) < threshold
+    digit_probabilities = np.array(configuration[Keys.ZIPCODE_DIGIT_PROBABILITIES])
+    replace = rng.random(shape) < digit_probabilities
     random_digits = rng.choice(possible_replacements, shape)
     digits = []
     for i in range(5):
