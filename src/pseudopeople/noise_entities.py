@@ -15,10 +15,10 @@ class __NoiseTypes(NamedTuple):
     in the "baseline" ConfigTree layer.
     """
 
-    omission: RowNoiseType = RowNoiseType("omission", noise_functions.omit_rows)
-    # duplication: RowNoiseType = RowNoiseType("duplication", noise_functions.duplicate_rows,)
+    omission: RowNoiseType = RowNoiseType("omit_row", noise_functions.omit_rows)
+    # duplication: RowNoiseType = RowNoiseType("duplicate_row", noise_functions.duplicate_rows)
     missing_data: ColumnNoiseType = ColumnNoiseType(
-        "missing_data",
+        "leave_blank",
         noise_functions.generate_missing_data,
         token_noise_level=None,
     )
