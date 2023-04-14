@@ -174,6 +174,7 @@ def test_swap_months_and_days():
 
 
 def test_miswrite_zipcodes(dummy_dataset):
+    dummy_digit_probabilities = [0.3, 0.3, 0.4, 0.5, 0.5]
     config = get_configuration()
     config.update(
         {
@@ -181,9 +182,7 @@ def test_miswrite_zipcodes(dummy_dataset):
                 "zipcode": {
                     "zipcode_miswriting": {
                         Keys.PROBABILITY: 0.5,
-                        "first_two_digits_noise_level": 0.3,
-                        "middle_digit_noise_level": 0.4,
-                        "last_two_digits_noise_level": 0.5,
+                        "digit_probabilities": dummy_digit_probabilities,
                     },
                 },
             },
@@ -193,9 +192,6 @@ def test_miswrite_zipcodes(dummy_dataset):
 
     # Get configuration values for each piece of 5 digit zipcode
     probability = config[Keys.PROBABILITY]
-    first2_prob = config.first_two_digits_noise_level
-    middle_prob = config.middle_digit_noise_level
-    last2_prob = config.last_two_digits_noise_level
     data = dummy_dataset["zipcode"]
     noised_data = NOISE_TYPES.zipcode_miswriting(data, config, RANDOMNESS0, "test_zipcode")
 
@@ -203,22 +199,10 @@ def test_miswrite_zipcodes(dummy_dataset):
     orig_missing = data == ""
     assert (noised_data[orig_missing] == "").all()
     # Check noise for each digits position matches expected noise
-    for i in range(2):
+    for i in range(5):
+        digit_prob = config["digit_probabilities"][i]
         assert np.isclose(
-            first2_prob * probability,
-            (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).mean(),
-            rtol=0.02,
-        )
-
-    assert np.isclose(
-        middle_prob * probability,
-        (data[~orig_missing].str[2] != noised_data[~orig_missing].str[2]).mean(),
-        rtol=0.02,
-    )
-
-    for i in range(3, 5):
-        assert np.isclose(
-            last2_prob * probability,
+            digit_prob * probability,
             (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).mean(),
             rtol=0.02,
         )
