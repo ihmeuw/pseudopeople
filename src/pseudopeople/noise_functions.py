@@ -336,7 +336,7 @@ def generate_typographical_errors(
     with open(paths.QWERTY_ERRORS) as f:
         qwerty_errors = yaml.full_load(f)
 
-    def keyboard_corrupt(truth, corrupted_pr, addl_pr, rng):
+    def keyboard_corrupt(truth, corrupted_pr, replace_pr, rng):
         """For each string, loop through each character and determine if
         it is to be corrupted. If so, uniformly choose from the appropriate
         values to mistype. Also determine which mistyped characters should
@@ -353,7 +353,7 @@ def generate_typographical_errors(
                 if random_number < corrupted_pr:
                     err += rng.choice(qwerty_errors[token])
                     random_number = rng.uniform()
-                    if random_number > addl_pr:
+                    if random_number >= replace_pr:
                         err += token
                     i += 1
                     error_introduced = True
@@ -363,7 +363,7 @@ def generate_typographical_errors(
         return err
 
     token_noise_level = configuration.token_noise_level
-    replace_token_probabiliy_level = configuration.replace_token_probabiliy
+    replace_token_probability_level = configuration.replace_token_probability
 
     rng = np.random.default_rng(seed=randomness_stream.seed)
     column = column.astype(str)
@@ -371,7 +371,7 @@ def generate_typographical_errors(
         noised_value = keyboard_corrupt(
             column[idx],
             token_noise_level,
-            replace_token_probabiliy_level,
+            replace_token_probability_level,
             rng,
         )
         column[idx] = noised_value
