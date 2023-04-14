@@ -9,20 +9,6 @@ from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, FORMS
 
 
-@pytest.fixture
-def user_configuration_yaml(tmp_path):
-    user_config_path = Path(f"{tmp_path}/test_configuration.yaml")
-    config = {
-        "decennial_census": {
-            "row_noise": {"omission": {"probability": 0.05}},
-            "column_noise": {"first_name": {"nickname": {Keys.PROBABILITY: 0.05}}},
-        }
-    }
-    with open(user_config_path, "w") as file:
-        yaml.dump(config, file)
-    return user_config_path
-
-
 def test_get_default_configuration(mocker):
     """Tests that the default configuration can be retrieved."""
     mock = mocker.patch("pseudopeople.configuration.generator.ConfigTree")
@@ -43,9 +29,9 @@ def test_default_configuration_structure():
             ]
             default_probability = (
                 DEFAULT_NOISE_VALUES.get(form.name, {})
-                .get("row_noise", {})
+                .get(Keys.ROW_NOISE, {})
                 .get(row_noise.name, {})
-                .get("probability", "no default")
+                .get(Keys.PROBABILITY, "no default")
             )
             if default_probability == "no default":
                 assert config_probability == row_noise.probability
@@ -63,7 +49,7 @@ def test_default_configuration_structure():
                     config_probability = config_level[Keys.PROBABILITY]
                     default_probability = (
                         DEFAULT_NOISE_VALUES.get(form.name, {})
-                        .get("column_noise", {})
+                        .get(Keys.COLUMN_NOISE, {})
                         .get(col.name, {})
                         .get(noise_type.name, {})
                         .get(Keys.PROBABILITY, "no default")
@@ -76,7 +62,7 @@ def test_default_configuration_structure():
                     config_token_noise_level = config_level.token_noise_level
                     default_token_noise_level = (
                         DEFAULT_NOISE_VALUES.get(form.name, {})
-                        .get("column_noise", {})
+                        .get(Keys.COLUMN_NOISE, {})
                         .get(col.name, {})
                         .get(noise_type.name, {})
                         .get("token_noise_level", "no default")
@@ -93,7 +79,7 @@ def test_default_configuration_structure():
                     }
                     default_additional_parameters = (
                         DEFAULT_NOISE_VALUES.get(form.name, {})
-                        .get("column_noise", {})
+                        .get(Keys.COLUMN_NOISE, {})
                         .get(col.name, {})
                         .get(noise_type.name, {})
                     )
@@ -122,10 +108,18 @@ def test_default_configuration_structure():
                             assert noise_type.additional_parameters[key] == value
 
 
-def test_get_configuration_with_user_override(user_configuration_yaml, mocker):
+def test_get_configuration_with_user_override(mocker):
     """Tests that the default configuration get updated when a user configuration is supplied."""
     mock = mocker.patch("pseudopeople.configuration.generator.ConfigTree")
-    _ = get_configuration(user_configuration_yaml)
+    config = {
+        FORMS.census.name: {
+            Keys.ROW_NOISE: {NOISE_TYPES.omission.name: {Keys.PROBABILITY: 0.05}},
+            Keys.COLUMN_NOISE: {
+                "first_name": {NOISE_TYPES.typographic.name: {Keys.PROBABILITY: 0.05}}
+            },
+        }
+    }
+    _ = get_configuration(config)
     mock.assert_called_once_with(layers=["baseline", "default", "user"])
     update_calls = [
         call
@@ -179,11 +173,11 @@ def test_format_miswrite_ages(user_config, expected):
     This includes zero-ing out default values that don't exist in the user config
     """
     user_config = {
-        "decennial_census": {
-            "column_noise": {
-                "age": {
-                    "age_miswriting": {
-                        "possible_perturbations": user_config,
+        FORMS.census.name: {
+            Keys.COLUMN_NOISE: {
+                COLUMNS.age.name: {
+                    NOISE_TYPES.age_miswriting.name: {
+                        Keys.AGE_MISWRITING_PERTURBATIONS: user_config,
                     },
                 },
             },
@@ -273,12 +267,12 @@ def test_validate_miswrite_ages_failures(perturbations, error, match):
     with pytest.raises(error, match=match):
         get_configuration(
             {
-                "decennial_census": {
-                    "column_noise": {
-                        "age": {
-                            "age_miswriting": {
+                FORMS.census.name: {
+                    Keys.COLUMN_NOISE: {
+                        COLUMNS.age.name: {
+                            NOISE_TYPES.age_miswriting.name: {
                                 Keys.PROBABILITY: 1,
-                                "possible_perturbations": perturbations,
+                                Keys.AGE_MISWRITING_PERTURBATIONS: perturbations,
                             },
                         },
                     },

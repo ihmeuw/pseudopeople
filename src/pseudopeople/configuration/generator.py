@@ -135,17 +135,17 @@ def _format_age_miswriting_perturbations(default_config: ConfigTree, user_dict: 
     for form in user_dict:
         user_perturbations = (
             user_dict[form]
-            .get("column_noise", {})
+            .get(Keys.COLUMN_NOISE, {})
             .get("age", {})
-            .get("age_miswriting", {})
-            .get("possible_perturbations", {})
+            .get(NOISE_TYPES.age_miswriting.name, {})
+            .get(Keys.AGE_MISWRITING_PERTURBATIONS, {})
         )
         if not user_perturbations:
             continue
         formatted = {}
-        default_perturbations = default_config[form]["column_noise"]["age"]["age_miswriting"][
-            "possible_perturbations"
-        ]
+        default_perturbations = default_config[form][Keys.COLUMN_NOISE]["age"][
+            NOISE_TYPES.age_miswriting.name
+        ][Keys.AGE_MISWRITING_PERTURBATIONS]
         # Replace default configuration with 0 probabilities
         for perturbation in default_perturbations:
             formatted[perturbation] = 0
@@ -158,8 +158,8 @@ def _format_age_miswriting_perturbations(default_config: ConfigTree, user_dict: 
             for perturbation, prob in user_perturbations.items():
                 formatted[perturbation] = prob
 
-        user_dict[form]["column_noise"]["age"]["age_miswriting"][
-            "possible_perturbations"
+        user_dict[form][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.age_miswriting.name][
+            Keys.AGE_MISWRITING_PERTURBATIONS
         ] = formatted
 
     return user_dict
