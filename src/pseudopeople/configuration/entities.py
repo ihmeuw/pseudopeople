@@ -6,6 +6,7 @@ class Keys:
     PROBABILITY = "probability"
     CELL_PROBABILITY = "cell_probability"
     TOKEN_NOISE_LEVEL = "token_noise_level"
+    REPLACE_TOKEN_PROBABILITY = "replace_token_probability"
     AGE_MISWRITING_PERTURBATIONS = "possible_perturbations"
     ZIPCODE_DIGIT_PROBABILITIES = "digit_probabilities"
     REPLACE_TOKEN_PROBABILITY = "replace_token_probability"
