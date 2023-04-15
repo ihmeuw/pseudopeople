@@ -58,24 +58,11 @@ def test_default_configuration_structure():
                         assert config_probability == noise_type.probability
                     else:
                         assert config_probability == default_probability
-                if noise_type.token_noise_level:
-                    config_token_noise_level = config_level.token_noise_level
-                    default_token_noise_level = (
-                        DEFAULT_NOISE_VALUES.get(form.name, {})
-                        .get(Keys.COLUMN_NOISE, {})
-                        .get(col.name, {})
-                        .get(noise_type.name, {})
-                        .get("token_noise_level", "no default")
-                    )
-                    if default_token_noise_level == "no default":
-                        assert config_token_noise_level == noise_type.token_noise_level
-                    else:
-                        assert config_token_noise_level == default_token_noise_level
                 if noise_type.additional_parameters:
                     config_additional_parameters = {
                         k: v
                         for k, v in config_level.to_dict().items()
-                        if k not in [Keys.PROBABILITY, "token_noise_level"]
+                        if k != Keys.PROBABILITY
                     }
                     default_additional_parameters = (
                         DEFAULT_NOISE_VALUES.get(form.name, {})
@@ -86,7 +73,7 @@ def test_default_configuration_structure():
                     default_additional_parameters = {
                         k: v
                         for k, v in default_additional_parameters.items()
-                        if k not in [Keys.PROBABILITY, "token_noise_level"]
+                        if k != Keys.PROBABILITY
                     }
                     if default_additional_parameters == {}:
                         assert (

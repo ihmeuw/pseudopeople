@@ -372,8 +372,8 @@ def test_miswrite_numerics(string_series):
                 Keys.COLUMN_NOISE: {
                     "street_number": {
                         NOISE_TYPES.numeric_miswriting.name: {
-                            Keys.PROBABILITY: 0.4,
-                            "token_noise_level": 0.5,
+                            Keys.CELL_PROBABILITY: 0.4,
+                            Keys.REPLACE_TOKEN_PROBABILITY: 0.5,
                         },
                     },
                 },
@@ -383,8 +383,8 @@ def test_miswrite_numerics(string_series):
     config = config[FORMS.census.name][Keys.COLUMN_NOISE]["street_number"][
         NOISE_TYPES.numeric_miswriting.name
     ]
-    p_row_noise = config[Keys.PROBABILITY]
-    p_token_noise = config.token_noise_level
+    p_row_noise = config[Keys.CELL_PROBABILITY]
+    p_token_noise = config[Keys.REPLACE_TOKEN_PROBABILITY]
     data = string_series
     # Hack: we need to name the series something with the miswrite_numeric noising
     # function applied to check dtypes.
@@ -568,8 +568,8 @@ def test_generate_typographical_errors(dummy_dataset, column):
                     column: {
                         NOISE_TYPES.typographic.name: {
                             Keys.CELL_PROBABILITY: 0.1,
-                            "token_noise_level": 0.1,
-                            "replace_token_probability": 0.9,
+                            Keys.TOKEN_NOISE_LEVEL: 0.1,
+                            Keys.REPLACE_TOKEN_PROBABILITY: 0.9,
                         },
                     },
                 },
@@ -587,7 +587,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
 
     # Check for expected noise level
     p_row_noise = config[Keys.CELL_PROBABILITY]
-    p_token_noise = config.token_noise_level
+    p_token_noise = config[Keys.TOKEN_NOISE_LEVEL]
     str_lengths = check_original.str.len()  # pd.Series
     p_token_not_noised = 1 - p_token_noise
     p_strings_not_noised = p_token_not_noised**str_lengths  # pd.Series
