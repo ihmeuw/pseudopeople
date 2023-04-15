@@ -20,13 +20,11 @@ class __NoiseTypes(NamedTuple):
     missing_data: ColumnNoiseType = ColumnNoiseType(
         "leave_blank",
         noise_functions.generate_missing_data,
-        token_noise_level=None,
     )
     incorrect_selection: ColumnNoiseType = ColumnNoiseType(
         "choose_wrong_option",
         noise_functions.generate_incorrect_selections,
         noise_level_scaling_function=utilities.noise_scaling_incorrect_selection,
-        token_noise_level=None,
     )
     # copy_from_within_household: ColumnNoiseType = ColumnNoiseType(
     #     "copy_from_household_member",
@@ -39,20 +37,25 @@ class __NoiseTypes(NamedTuple):
     zipcode_miswriting: ColumnNoiseType = ColumnNoiseType(
         "write_wrong_zipcode_digits",
         noise_functions.miswrite_zipcodes,
-        token_noise_level=None,
+        probability=None,
         additional_parameters={
-            Keys.ZIPCODE_DIGIT_PROBABILITIES: [0.04, 0.04, 0.20, 0.36, 0.36]
+            Keys.CELL_PROBABILITY: 0.01,
+            Keys.ZIPCODE_DIGIT_PROBABILITIES: [0.04, 0.04, 0.20, 0.36, 0.36],
         },
     )
     age_miswriting: ColumnNoiseType = ColumnNoiseType(
         "misreport_age",
         noise_functions.miswrite_ages,
-        token_noise_level=None,
         additional_parameters={Keys.AGE_MISWRITING_PERTURBATIONS: {-1: 0.5, 1: 0.5}},
     )
     numeric_miswriting: ColumnNoiseType = ColumnNoiseType(
         "write_wrong_digits",
         noise_functions.miswrite_numerics,
+        probability=None,
+        additional_parameters={  # TODO: need to clarify these
+            Keys.CELL_PROBABILITY: 0.01,
+            Keys.REPLACE_TOKEN_PROBABILITY: 0.1,
+        },
     )
     # nickname: ColumnNoiseType = ColumnNoiseType(
     #     "use_nickname",
@@ -65,15 +68,30 @@ class __NoiseTypes(NamedTuple):
     # phonetic: ColumnNoiseType = ColumnNoiseType(
     #     "make_phonetic_errors",
     #     noise_functions.generate_phonetic_errors,
+    #     probability=None,
+    #     additional_parameters={
+    #         Keys.CELL_PROBABILITY: 0.01,
+    #         Keys.REPLACE_TOKEN_PROBABILITY: 0.1,
+    #     },
     # )
     # ocr: ColumnNoiseType = ColumnNoiseType(
     #     "make_ocr_errors",
     #     noise_functions.generate_ocr_errors,
+    #     probability=None,
+    #     additional_parameters={
+    #         Keys.CELL_PROBABILITY: 0.01,
+    #         Keys.REPLACE_TOKEN_PROBABILITY: 0.1,
+    #     },
     # )
     typographic: ColumnNoiseType = ColumnNoiseType(
         "make_typos",
         noise_functions.generate_typographical_errors,
-        additional_parameters={Keys.REPLACE_TOKEN_PROBABILITY: 0.9},
+        probability=None,
+        additional_parameters={  # TODO: need to clarify these
+            Keys.CELL_PROBABILITY: 0.01,
+            Keys.TOKEN_NOISE_LEVEL: 0.1,
+            Keys.REPLACE_TOKEN_PROBABILITY: 0.9,
+        },
     )
 
 
