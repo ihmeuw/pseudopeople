@@ -92,6 +92,8 @@ def _generate_default_configuration() -> ConfigTree:
             if column_noise_dict:
                 column_dict[column.name] = column_noise_dict
 
+        # TODO: add check that we are not adding `probability` and `cell_probability`
+
         # Compile
         if row_noise_dict:
             form_dict[Keys.ROW_NOISE] = row_noise_dict
