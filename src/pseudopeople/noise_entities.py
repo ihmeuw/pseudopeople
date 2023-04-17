@@ -46,15 +46,15 @@ class __NoiseTypes(NamedTuple):
     age_miswriting: ColumnNoiseType = ColumnNoiseType(
         "misreport_age",
         noise_functions.miswrite_ages,
-        additional_parameters={Keys.AGE_MISWRITING_PERTURBATIONS: {-1: 0.5, 1: 0.5}},
+        additional_parameters={Keys.POSSIBLE_AGE_DIFFERENCES: {-1: 0.5, 1: 0.5}},
     )
     numeric_miswriting: ColumnNoiseType = ColumnNoiseType(
         "write_wrong_digits",
         noise_functions.miswrite_numerics,
         probability=None,
-        additional_parameters={  # TODO: need to clarify these
+        additional_parameters={
             Keys.CELL_PROBABILITY: 0.01,
-            Keys.REPLACE_TOKEN_PROBABILITY: 0.1,
+            Keys.TOKEN_PROBABILITY: 0.1,
         },
     )
     # nickname: ColumnNoiseType = ColumnNoiseType(
@@ -71,7 +71,7 @@ class __NoiseTypes(NamedTuple):
     #     probability=None,
     #     additional_parameters={
     #         Keys.CELL_PROBABILITY: 0.01,
-    #         Keys.REPLACE_TOKEN_PROBABILITY: 0.1,
+    #         Keys.TOKEN_PROBABILITY: 0.1,
     #     },
     # )
     # ocr: ColumnNoiseType = ColumnNoiseType(
@@ -80,7 +80,7 @@ class __NoiseTypes(NamedTuple):
     #     probability=None,
     #     additional_parameters={
     #         Keys.CELL_PROBABILITY: 0.01,
-    #         Keys.REPLACE_TOKEN_PROBABILITY: 0.1,
+    #         Keys.TOKEN_PROBABILITY: 0.1,
     #     },
     # )
     typographic: ColumnNoiseType = ColumnNoiseType(
@@ -89,8 +89,8 @@ class __NoiseTypes(NamedTuple):
         probability=None,
         additional_parameters={  # TODO: need to clarify these
             Keys.CELL_PROBABILITY: 0.01,
-            Keys.TOKEN_NOISE_LEVEL: 0.1,
-            Keys.REPLACE_TOKEN_PROBABILITY: 0.9,
+            Keys.TOKEN_PROBABILITY: 0.1,
+            Keys.INCLUDE_ORIGINAL_TOKEN_PROBABILITY: 0.1,
         },
     )
 

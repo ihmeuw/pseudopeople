@@ -258,7 +258,7 @@ def test_miswrite_ages_uniform_probabilities():
                     "age": {
                         NOISE_TYPES.age_miswriting.name: {
                             Keys.PROBABILITY: 1,
-                            "possible_perturbations": perturbations,
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                         },
                     },
                 },
@@ -287,7 +287,7 @@ def test_miswrite_ages_provided_probabilities():
                     "age": {
                         NOISE_TYPES.age_miswriting.name: {
                             Keys.PROBABILITY: 1,
-                            "possible_perturbations": perturbations,
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                         },
                     },
                 },
@@ -320,7 +320,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
                     "age": {
                         NOISE_TYPES.age_miswriting.name: {
                             Keys.PROBABILITY: 1,
-                            "possible_perturbations": perturbations,
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                         },
                     },
                 },
@@ -347,7 +347,7 @@ def test_miswrite_ages_flips_negative_to_positive():
                     "age": {
                         NOISE_TYPES.age_miswriting.name: {
                             Keys.PROBABILITY: 1,
-                            "possible_perturbations": perturbations,
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                         },
                     },
                 },
@@ -373,7 +373,7 @@ def test_miswrite_numerics(string_series):
                     "street_number": {
                         NOISE_TYPES.numeric_miswriting.name: {
                             Keys.CELL_PROBABILITY: 0.4,
-                            Keys.REPLACE_TOKEN_PROBABILITY: 0.5,
+                            Keys.TOKEN_PROBABILITY: 0.5,
                         },
                     },
                 },
@@ -384,7 +384,7 @@ def test_miswrite_numerics(string_series):
         NOISE_TYPES.numeric_miswriting.name
     ]
     p_row_noise = config[Keys.CELL_PROBABILITY]
-    p_token_noise = config[Keys.REPLACE_TOKEN_PROBABILITY]
+    p_token_noise = config[Keys.TOKEN_PROBABILITY]
     data = string_series
     # Hack: we need to name the series something with the miswrite_numeric noising
     # function applied to check dtypes.
@@ -568,8 +568,8 @@ def test_generate_typographical_errors(dummy_dataset, column):
                     column: {
                         NOISE_TYPES.typographic.name: {
                             Keys.CELL_PROBABILITY: 0.1,
-                            Keys.TOKEN_NOISE_LEVEL: 0.1,
-                            Keys.REPLACE_TOKEN_PROBABILITY: 0.9,
+                            Keys.TOKEN_PROBABILITY: 0.1,
+                            Keys.INCLUDE_ORIGINAL_TOKEN_PROBABILITY: 0.1,
                         },
                     },
                 },
@@ -587,7 +587,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
 
     # Check for expected noise level
     p_row_noise = config[Keys.CELL_PROBABILITY]
-    p_token_noise = config[Keys.TOKEN_NOISE_LEVEL]
+    p_token_noise = config[Keys.TOKEN_PROBABILITY]
     str_lengths = check_original.str.len()  # pd.Series
     p_token_not_noised = 1 - p_token_noise
     p_strings_not_noised = p_token_not_noised**str_lengths  # pd.Series
@@ -598,7 +598,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
 
     # Check for expected string growth due to keeping original noised token
     assert (check_noised.str.len() >= check_original.str.len()).all()
-    p_include_original_token = 1 - config[Keys.REPLACE_TOKEN_PROBABILITY]
+    p_include_original_token = config[Keys.INCLUDE_ORIGINAL_TOKEN_PROBABILITY]
     p_token_does_not_increase_string_length = 1 - p_token_noise * p_include_original_token
     p_strings_do_not_increase_length = (
         p_token_does_not_increase_string_length**str_lengths
