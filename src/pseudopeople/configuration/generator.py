@@ -84,11 +84,19 @@ def _generate_default_configuration() -> ConfigTree:
                     for key, value in noise_type.additional_parameters.items():
                         column_noise_type_dict[key] = value
                 if column_noise_type_dict:
+                    # We should not have both 'probability' and 'cell_probability'
+                    if (
+                        Keys.PROBABILITY in column_noise_type_dict
+                        and Keys.CELL_PROBABILITY in column_noise_type_dict
+                    ):
+                        raise ValueError(
+                            "'probability' and 'cell_probability' are mutually exclusive "
+                            "but both are found in the default configuration for "
+                            f"form '{form.name}', column '{column.name}', noise type '{noise_type.name}'"
+                        )
                     column_noise_dict[noise_type.name] = column_noise_type_dict
             if column_noise_dict:
                 column_dict[column.name] = column_noise_dict
-
-        # TODO: add check that we are not adding `probability` and `cell_probability`
 
         # Compile
         if row_noise_dict:
@@ -136,14 +144,14 @@ def _format_age_miswriting_perturbations(default_config: ConfigTree, user_dict: 
             .get(Keys.COLUMN_NOISE, {})
             .get("age", {})
             .get(NOISE_TYPES.age_miswriting.name, {})
-            .get(Keys.AGE_MISWRITING_PERTURBATIONS, {})
+            .get(Keys.POSSIBLE_AGE_DIFFERENCES, {})
         )
         if not user_perturbations:
             continue
         formatted = {}
         default_perturbations = default_config[form][Keys.COLUMN_NOISE]["age"][
             NOISE_TYPES.age_miswriting.name
-        ][Keys.AGE_MISWRITING_PERTURBATIONS]
+        ][Keys.POSSIBLE_AGE_DIFFERENCES]
         # Replace default configuration with 0 probabilities
         for perturbation in default_perturbations:
             formatted[perturbation] = 0
@@ -157,7 +165,7 @@ def _format_age_miswriting_perturbations(default_config: ConfigTree, user_dict: 
                 formatted[perturbation] = prob
 
         user_dict[form][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.age_miswriting.name][
-            Keys.AGE_MISWRITING_PERTURBATIONS
+            Keys.POSSIBLE_AGE_DIFFERENCES
         ] = formatted
 
     return user_dict

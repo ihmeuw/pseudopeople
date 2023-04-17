@@ -5,8 +5,7 @@ class Keys:
     COLUMN_NOISE = "column_noise"  # second layer, eg <form>: column_noise: {...}
     PROBABILITY = "probability"
     CELL_PROBABILITY = "cell_probability"
-    TOKEN_NOISE_LEVEL = "token_noise_level"
-    REPLACE_TOKEN_PROBABILITY = "replace_token_probability"
-    AGE_MISWRITING_PERTURBATIONS = "possible_perturbations"
+    TOKEN_PROBABILITY = "token_probability"
+    INCLUDE_ORIGINAL_TOKEN_PROBABILITY = "include_original_token_probability"
+    POSSIBLE_AGE_DIFFERENCES = "possible_age_differences"
     ZIPCODE_DIGIT_PROBABILITIES = "digit_probabilities"
-    REPLACE_TOKEN_PROBABILITY = "replace_token_probability"
