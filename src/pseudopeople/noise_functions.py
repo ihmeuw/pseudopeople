@@ -6,6 +6,7 @@ import yaml
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
+from pseudopeople import schema_entities
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import paths
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
@@ -30,7 +31,7 @@ def omit_rows(
 
     noise_level = configuration.probability
     # Account for ACS and CPS oversampling
-    if form_name in ["american_communities_survey", "current_population_survey"]:
+    if form_name in [schema_entities.FORMS.acs.name, schema_entities.FORMS.cps.name]:
         noise_level = 0.5 + noise_level / 2
     # Omit rows
     to_noise_index = get_index_to_noise(
