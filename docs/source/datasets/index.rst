@@ -58,7 +58,7 @@ The following simulant attributes are included in this dataset:
      - 
    * - Age
      - :code:`age` 
-     - Rounded to nearest integer. 
+     - Rounded down to an integer. 
    * - Date of birth
      - :code:`date_of_birth`
      - Formatted as MM/DD/YYYY.
@@ -123,7 +123,7 @@ Communities Survey (ACS) and the Current Population Survey (CPS).
      - 
    * - Age
      - :code:`age`  
-     - Rounded to nearest integer.
+     - Rounded down to an integer.
    * - Date of birth
      - :code:`date_of_birth`
      - Formatted as MM/DD/YYYY.
