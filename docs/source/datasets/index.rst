@@ -26,7 +26,7 @@ an individual simulant, with the columns representing different simulant attribu
    * - | American Communities Survey (ACS)
    * - | Current Population Survey (CPS)
    * - | Women, Infants, and Children (WIC) Administrative Data
-   * - | Social Security Administration Data
+   * - | Social Security Administration (SSA) Data
    * - | Tax W2 and 1099 Forms
    * - | Tax 1040 Form
 
