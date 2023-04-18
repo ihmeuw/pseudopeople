@@ -58,11 +58,11 @@ def dummy_config_noise_numbers():
                         "month_day_swap": {Keys.PROBABILITY: 0.01},
                         NOISE_TYPES.zipcode_miswriting.name: {
                             Keys.PROBABILITY: 0.01,
-                            "zipcode_miswriting": [0.04, 0.04, 0.2, 0.36, 0.36],
+                            Keys.ZIPCODE_DIGIT_PROBABILITIES: [0.04, 0.04, 0.2, 0.36, 0.36],
                         },
                         NOISE_TYPES.age_miswriting.name: {
                             Keys.PROBABILITY: 0.01,
-                            "age_miswriting": [1, -1],
+                            Keys.POSSIBLE_AGE_DIFFERENCES: [1, -1],
                         },
                         NOISE_TYPES.numeric_miswriting.name: {
                             Keys.PROBABILITY: 0.01,
@@ -72,15 +72,15 @@ def dummy_config_noise_numbers():
                         NOISE_TYPES.fake_name.name: {Keys.PROBABILITY: 0.01},
                         "phonetic": {
                             Keys.PROBABILITY: 0.01,
-                            "token_noise_level": 0.1,
+                            Keys.TOKEN_PROBABILITY: 0.1,
                         },
                         "ocr": {
                             Keys.PROBABILITY: 0.01,
-                            "token_noise_level": 0.1,
+                            Keys.TOKEN_PROBABILITY: 0.1,
                         },
                         NOISE_TYPES.typographic.name: {
                             Keys.PROBABILITY: 0.01,
-                            "token_noise_level": 0.1,
+                            Keys.TOKEN_PROBABILITY: 0.1,
                         },
                     },
                 },

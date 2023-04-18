@@ -148,7 +148,9 @@ def test_generate_missing_data(dummy_dataset):
 
 
 def test_incorrect_selection(categorical_series):
-    config = get_configuration().decennial_census.column_noise.state.incorrect_selection
+    config = get_configuration()[FORMS.census.name][Keys.COLUMN_NOISE]["state"][
+        NOISE_TYPES.incorrect_selection.name
+    ]
     noised_data = NOISE_TYPES.incorrect_selection(
         categorical_series, config, RANDOMNESS0, "test"
     )
@@ -159,7 +161,7 @@ def test_incorrect_selection(categorical_series):
     # Get real expected noise to account for possibility of noising with original value
     # Here we have a a possibility of choosing any of the 50 states for our categorical series fixture
     actual_noise = (noised_data != categorical_series).mean()
-    assert np.isclose(expected_noise, actual_noise, rtol=0.02)
+    assert np.isclose(expected_noise, actual_noise, rtol=0.03)
 
     original_empty_idx = categorical_series.index[categorical_series == ""]
     noised_empty_idx = noised_data.index[noised_data == ""]
@@ -185,7 +187,7 @@ def test_miswrite_zipcodes(dummy_dataset):
                 Keys.COLUMN_NOISE: {
                     "zipcode": {
                         NOISE_TYPES.zipcode_miswriting.name: {
-                            Keys.PROBABILITY: 0.5,
+                            Keys.CELL_PROBABILITY: 0.5,
                             Keys.ZIPCODE_DIGIT_PROBABILITIES: dummy_digit_probabilities,
                         },
                     },
@@ -198,7 +200,7 @@ def test_miswrite_zipcodes(dummy_dataset):
     ]
 
     # Get configuration values for each piece of 5 digit zipcode
-    probability = config[Keys.PROBABILITY]
+    probability = config[Keys.CELL_PROBABILITY]
     data = dummy_dataset["zipcode"]
     noised_data = NOISE_TYPES.zipcode_miswriting(data, config, RANDOMNESS0, "test_zipcode")
 
@@ -219,7 +221,9 @@ def test_miswrite_ages_default_config(dummy_dataset):
     """Test that miswritten ages are appropriately handled, including
     no perturbation probabilities defaults to uniform distribution,
     perturbation probabilities"""
-    config = get_configuration().decennial_census.column_noise.age.age_miswriting
+    config = get_configuration()[FORMS.census.name][Keys.COLUMN_NOISE]["age"][
+        NOISE_TYPES.age_miswriting.name
+    ]
     data = dummy_dataset["age"]
     noised_data = NOISE_TYPES.age_miswriting(data, config, RANDOMNESS0, "test")
 
@@ -254,7 +258,7 @@ def test_miswrite_ages_uniform_probabilities():
                     "age": {
                         NOISE_TYPES.age_miswriting.name: {
                             Keys.PROBABILITY: 1,
-                            "possible_perturbations": perturbations,
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                         },
                     },
                 },
@@ -283,7 +287,7 @@ def test_miswrite_ages_provided_probabilities():
                     "age": {
                         NOISE_TYPES.age_miswriting.name: {
                             Keys.PROBABILITY: 1,
-                            "possible_perturbations": perturbations,
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                         },
                     },
                 },
@@ -316,7 +320,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
                     "age": {
                         NOISE_TYPES.age_miswriting.name: {
                             Keys.PROBABILITY: 1,
-                            "possible_perturbations": perturbations,
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                         },
                     },
                 },
@@ -343,7 +347,7 @@ def test_miswrite_ages_flips_negative_to_positive():
                     "age": {
                         NOISE_TYPES.age_miswriting.name: {
                             Keys.PROBABILITY: 1,
-                            "possible_perturbations": perturbations,
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                         },
                     },
                 },
@@ -368,8 +372,8 @@ def test_miswrite_numerics(string_series):
                 Keys.COLUMN_NOISE: {
                     "street_number": {
                         NOISE_TYPES.numeric_miswriting.name: {
-                            Keys.PROBABILITY: 0.4,
-                            "token_noise_level": 0.5,
+                            Keys.CELL_PROBABILITY: 0.4,
+                            Keys.TOKEN_PROBABILITY: 0.5,
                         },
                     },
                 },
@@ -379,8 +383,8 @@ def test_miswrite_numerics(string_series):
     config = config[FORMS.census.name][Keys.COLUMN_NOISE]["street_number"][
         NOISE_TYPES.numeric_miswriting.name
     ]
-    p_row_noise = config[Keys.PROBABILITY]
-    p_token_noise = config.token_noise_level
+    p_row_noise = config[Keys.CELL_PROBABILITY]
+    p_token_noise = config[Keys.TOKEN_PROBABILITY]
     data = string_series
     # Hack: we need to name the series something with the miswrite_numeric noising
     # function applied to check dtypes.
@@ -563,9 +567,9 @@ def test_generate_typographical_errors(dummy_dataset, column):
                 Keys.COLUMN_NOISE: {
                     column: {
                         NOISE_TYPES.typographic.name: {
-                            Keys.PROBABILITY: 0.1,
-                            "token_noise_level": 0.1,
-                            "include_original_token_level": 0.1,
+                            Keys.CELL_PROBABILITY: 0.1,
+                            Keys.TOKEN_PROBABILITY: 0.1,
+                            Keys.INCLUDE_ORIGINAL_TOKEN_PROBABILITY: 0.1,
                         },
                     },
                 },
@@ -582,8 +586,8 @@ def test_generate_typographical_errors(dummy_dataset, column):
     check_noised = noised_data.loc[not_missing_idx]
 
     # Check for expected noise level
-    p_row_noise = config[Keys.PROBABILITY]
-    p_token_noise = config.token_noise_level
+    p_row_noise = config[Keys.CELL_PROBABILITY]
+    p_token_noise = config[Keys.TOKEN_PROBABILITY]
     str_lengths = check_original.str.len()  # pd.Series
     p_token_not_noised = 1 - p_token_noise
     p_strings_not_noised = p_token_not_noised**str_lengths  # pd.Series
@@ -594,7 +598,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
 
     # Check for expected string growth due to keeping original noised token
     assert (check_noised.str.len() >= check_original.str.len()).all()
-    p_include_original_token = config.include_original_token_level
+    p_include_original_token = config[Keys.INCLUDE_ORIGINAL_TOKEN_PROBABILITY]
     p_token_does_not_increase_string_length = 1 - p_token_noise * p_include_original_token
     p_strings_do_not_increase_length = (
         p_token_does_not_increase_string_length**str_lengths

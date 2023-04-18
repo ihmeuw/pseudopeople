@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict
 
 import pandas as pd
 from loguru import logger
@@ -30,11 +30,12 @@ class RowNoiseType:
 
     def __call__(
         self,
+        form_name: str,
         form_data: pd.DataFrame,
         configuration: ConfigTree,
         randomness_stream: RandomnessStream,
     ) -> pd.DataFrame:
-        return self.noise_function(form_data, configuration, randomness_stream)
+        return self.noise_function(form_name, form_data, configuration, randomness_stream)
 
 
 @dataclass
@@ -54,7 +55,6 @@ class ColumnNoiseType:
     name: str
     noise_function: Callable[[pd.Series, ConfigTree, RandomnessStream, Any], pd.Series]
     probability: float = 0.01
-    token_noise_level: Optional[float] = 0.1
     noise_level_scaling_function: Callable[[str], float] = lambda x: 1.0
     additional_parameters: Dict[str, Any] = None
 
@@ -66,7 +66,12 @@ class ColumnNoiseType:
         additional_key: Any,
     ) -> pd.Series:
         column = column.copy()
-        noise_level = configuration[Keys.PROBABILITY] * self.noise_level_scaling_function(
+        probability_key = (
+            Keys.CELL_PROBABILITY
+            if Keys.CELL_PROBABILITY in configuration.keys()
+            else Keys.PROBABILITY
+        )
+        noise_level = configuration[probability_key] * self.noise_level_scaling_function(
             column.name
         )
         to_noise_idx = get_index_to_noise(
