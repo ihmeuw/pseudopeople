@@ -223,7 +223,7 @@ def test_format_miswrite_ages(user_config, expected):
     ],
 )
 def test_overriding_nonexistent_keys_fails(config, match):
-    with pytest.raises(ValueError, match=match):
+    with pytest.raises(ConfigurationError, match=match):
         get_configuration(config)
 
 

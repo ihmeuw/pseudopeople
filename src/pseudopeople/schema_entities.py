@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from typing import NamedTuple, Tuple
 
-from pseudopeople.noise_entities import NOISE_TYPES
+from pseudopeople.constants.metadata import Forms
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
+from pseudopeople.noise_entities import NOISE_TYPES
 
 
 class DtypeNames:
@@ -369,7 +370,7 @@ class __Forms(NamedTuple):
     """NamedTuple that contains information about forms and their related columns"""
 
     census: Form = Form(
-        "decennial_census",
+        Forms.CENSUS,
         columns=(  # This defines the output column order
             COLUMNS.simulant_id,
             COLUMNS.first_name,
@@ -390,7 +391,7 @@ class __Forms(NamedTuple):
         date_column="year",
     )
     acs: Form = Form(
-        "american_communities_survey",
+        Forms.ACS,
         columns=(  # This defines the output column order
             COLUMNS.household_id,
             COLUMNS.simulant_id,
@@ -412,7 +413,7 @@ class __Forms(NamedTuple):
         date_column="survey_date",
     )
     cps: Form = Form(
-        "current_population_survey",
+        Forms.CPS,
         columns=(  # This defines the output column order
             COLUMNS.household_id,
             COLUMNS.simulant_id,
@@ -434,7 +435,7 @@ class __Forms(NamedTuple):
         date_column="survey_date",
     )
     wic: Form = Form(
-        "women_infants_and_children",
+        Forms.WIC,
         columns=(  # This defines the output column order
             COLUMNS.household_id,
             COLUMNS.simulant_id,
@@ -454,7 +455,7 @@ class __Forms(NamedTuple):
         date_column="year",
     )
     ssa: Form = Form(
-        "social_security",
+        Forms.SSA,
         columns=(  # This defines the output column order
             COLUMNS.simulant_id,
             COLUMNS.first_name,
@@ -468,7 +469,7 @@ class __Forms(NamedTuple):
         date_column="event_date",
     )
     tax_w2_1099: Form = Form(
-        "taxes_w2_and_1099",
+        Forms.TAXES_W2_1099,
         columns=(  # This defines the output column order
             COLUMNS.simulant_id,
             COLUMNS.first_name,
@@ -498,7 +499,7 @@ class __Forms(NamedTuple):
         date_column="tax_year",
     )
     # tax_1040: Form = Form(
-    #     "taxes_1040",
+    #     Forms.TAXES_1040,
     # )
 
 
