@@ -33,7 +33,7 @@ def dummy_data():
 
 def test_omission(dummy_data):
     config = get_configuration()[FORMS.census.name][Keys.ROW_NOISE][NOISE_TYPES.omission.name]
-    form_name_1 = "dummY_form_name"
+    form_name_1 = "dummy_form_name"
     form_name_2 = "american_communities_survey"
     noised_data1 = NOISE_TYPES.omission(form_name_1, dummy_data, config, RANDOMNESS)
     noised_data2 = NOISE_TYPES.omission(form_name_2, dummy_data, config, RANDOMNESS)
