@@ -8,6 +8,7 @@ from pseudopeople.__about__ import (
     __uri__,
     __version__,
 )
+from pseudopeople.config import get_config
 from pseudopeople.interface import (
     generate_american_communities_survey,
     generate_current_population_survey,
