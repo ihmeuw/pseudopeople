@@ -15,65 +15,83 @@ class __NoiseTypes(NamedTuple):
     in the "baseline" ConfigTree layer.
     """
 
-    omission: RowNoiseType = RowNoiseType("omission", noise_functions.omit_rows)
-    # duplication: RowNoiseType = RowNoiseType("duplication", noise_functions.duplicate_rows,)
+    omission: RowNoiseType = RowNoiseType("omit_row", noise_functions.omit_rows)
+    # duplication: RowNoiseType = RowNoiseType("duplicate_row", noise_functions.duplicate_rows)
     missing_data: ColumnNoiseType = ColumnNoiseType(
-        "missing_data",
+        "leave_blank",
         noise_functions.generate_missing_data,
-        token_noise_level=None,
     )
     incorrect_selection: ColumnNoiseType = ColumnNoiseType(
-        "incorrect_selection",
+        "choose_wrong_option",
         noise_functions.generate_incorrect_selections,
         noise_level_scaling_function=utilities.noise_scaling_incorrect_selection,
-        token_noise_level=None,
     )
     # copy_from_within_household: ColumnNoiseType = ColumnNoiseType(
-    #     "copy_from_within_household",
+    #     "copy_from_household_member",
     #     noise_functions.generate_within_household_copies,
     # )
     # month_day_swap: ColumnNoiseType = ColumnNoiseType(
-    #     "month_day_swap",
+    #     "swap_month_and_day",
     #     noise_functions.swap_months_and_days,
     # )
     zipcode_miswriting: ColumnNoiseType = ColumnNoiseType(
-        "zipcode_miswriting",
+        "write_wrong_zipcode_digits",
         noise_functions.miswrite_zipcodes,
-        token_noise_level=None,
+        probability=None,
         additional_parameters={
-            Keys.ZIPCODE_DIGIT_PROBABILITIES: [0.04, 0.04, 0.20, 0.36, 0.36]
+            Keys.CELL_PROBABILITY: 0.01,
+            Keys.ZIPCODE_DIGIT_PROBABILITIES: [0.04, 0.04, 0.20, 0.36, 0.36],
         },
     )
     age_miswriting: ColumnNoiseType = ColumnNoiseType(
-        "age_miswriting",
+        "misreport_age",
         noise_functions.miswrite_ages,
-        token_noise_level=None,
-        additional_parameters={Keys.AGE_MISWRITING_PERTURBATIONS: {-1: 0.5, 1: 0.5}},
+        additional_parameters={Keys.POSSIBLE_AGE_DIFFERENCES: {-1: 0.5, 1: 0.5}},
     )
     numeric_miswriting: ColumnNoiseType = ColumnNoiseType(
-        "numeric_miswriting",
+        "write_wrong_digits",
         noise_functions.miswrite_numerics,
+        probability=None,
+        additional_parameters={
+            Keys.CELL_PROBABILITY: 0.01,
+            Keys.TOKEN_PROBABILITY: 0.1,
+        },
     )
     # nickname: ColumnNoiseType = ColumnNoiseType(
-    #     "nickname",
+    #     "use_nickname",
     #     noise_functions.generate_nicknames,
     # )
     fake_name: ColumnNoiseType = ColumnNoiseType(
-        "fake_name",
+        "use_fake_name",
         noise_functions.generate_fake_names,
     )
     # phonetic: ColumnNoiseType = ColumnNoiseType(
-    #     "phonetic",
+    #     "make_phonetic_errors",
     #     noise_functions.generate_phonetic_errors,
+    #     probability=None,
+    #     additional_parameters={
+    #         Keys.CELL_PROBABILITY: 0.01,
+    #         Keys.TOKEN_PROBABILITY: 0.1,
+    #     },
     # )
     # ocr: ColumnNoiseType = ColumnNoiseType(
-    #     "ocr",
+    #     "make_ocr_errors",
     #     noise_functions.generate_ocr_errors,
+    #     probability=None,
+    #     additional_parameters={
+    #         Keys.CELL_PROBABILITY: 0.01,
+    #         Keys.TOKEN_PROBABILITY: 0.1,
+    #     },
     # )
     typographic: ColumnNoiseType = ColumnNoiseType(
-        "typographic",
+        "make_typos",
         noise_functions.generate_typographical_errors,
-        additional_parameters={"include_original_token_level": 0.1},
+        probability=None,
+        additional_parameters={  # TODO: need to clarify these
+            Keys.CELL_PROBABILITY: 0.01,
+            Keys.TOKEN_PROBABILITY: 0.1,
+            Keys.INCLUDE_ORIGINAL_TOKEN_PROBABILITY: 0.1,
+        },
     )
 
 

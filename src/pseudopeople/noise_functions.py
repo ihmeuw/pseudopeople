@@ -6,6 +6,7 @@ import yaml
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
+from pseudopeople import schema_entities
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import paths
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
@@ -13,12 +14,15 @@ from pseudopeople.utilities import get_index_to_noise, vectorized_choice
 
 
 def omit_rows(
+    form_name: str,
     form_data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
-
+    Function that omits rows from a dataset and returns only the remaining rows.  Note that for the ACS and CPS forms
+      we need to account for oversampling in the PRL simulation so a helper function has been hadded here to do so.
+    :param form_name: Form object being noised
     :param form_data:  pd.DataFrame of one of the form types used in Pseudopeople
     :param configuration: ConfigTree object containing noise level values
     :param randomness_stream: RandomnessStream object to make random selection for noise
@@ -26,10 +30,17 @@ def omit_rows(
     """
 
     noise_level = configuration.probability
-    to_noise_idx = get_index_to_noise(
-        form_data, noise_level, randomness_stream, "omission_choice"
+    # Account for ACS and CPS oversampling
+    if form_name in [schema_entities.FORMS.acs.name, schema_entities.FORMS.cps.name]:
+        noise_level = 0.5 + noise_level / 2
+    # Omit rows
+    to_noise_index = get_index_to_noise(
+        form_data,
+        noise_level,
+        randomness_stream,
+        f"{form_name}_omit_choice",
     )
-    noised_data = form_data.loc[form_data.index.difference(to_noise_idx)]
+    noised_data = form_data.loc[form_data.index.difference(to_noise_index)]
 
     return noised_data
 
@@ -182,7 +193,7 @@ def miswrite_ages(
     :param additional_key: additional key used for randomness_stream calls
     :return:
     """
-    possible_perturbations = configuration.possible_perturbations.to_dict()
+    possible_perturbations = configuration[Keys.POSSIBLE_AGE_DIFFERENCES].to_dict()
     perturbations = vectorized_choice(
         options=list(possible_perturbations.keys()),
         weights=list(possible_perturbations.values()),
@@ -217,7 +228,7 @@ def miswrite_numerics(
     if column.empty:
         return column
     # This is a fix to not replacing the original token for noise options
-    token_noise_level = configuration.token_noise_level / 0.9
+    token_noise_level = configuration[Keys.TOKEN_PROBABILITY] / 0.9
     rng = np.random.default_rng(randomness_stream.seed)
     column = column.astype(str)
     longest_str = column.str.len().max()
@@ -362,8 +373,8 @@ def generate_typographical_errors(
                 i += 1
         return err
 
-    token_noise_level = configuration.token_noise_level
-    include_original_token_level = configuration.include_original_token_level
+    token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
+    include_token_probability_level = configuration[Keys.INCLUDE_ORIGINAL_TOKEN_PROBABILITY]
 
     rng = np.random.default_rng(seed=randomness_stream.seed)
     column = column.astype(str)
@@ -371,7 +382,7 @@ def generate_typographical_errors(
         noised_value = keyboard_corrupt(
             column[idx],
             token_noise_level,
-            include_original_token_level,
+            include_token_probability_level,
             rng,
         )
         column[idx] = noised_value

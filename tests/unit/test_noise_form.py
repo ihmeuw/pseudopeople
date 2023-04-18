@@ -49,47 +49,47 @@ def dummy_config_noise_numbers():
     """
     return ConfigTree(
         {
-            "decennial_census": {
-                "column_noise": {
+            FORMS.census.name: {
+                Keys.COLUMN_NOISE: {
                     "event_type": {
-                        "missing_data": {Keys.PROBABILITY: 0.01},
-                        "incorrect_selection": {Keys.PROBABILITY: 0.01},
+                        NOISE_TYPES.missing_data.name: {Keys.PROBABILITY: 0.01},
+                        NOISE_TYPES.incorrect_selection.name: {Keys.PROBABILITY: 0.01},
                         "copy_from_within_household": {Keys.PROBABILITY: 0.01},
                         "month_day_swap": {Keys.PROBABILITY: 0.01},
-                        "zipcode_miswriting": {
+                        NOISE_TYPES.zipcode_miswriting.name: {
                             Keys.PROBABILITY: 0.01,
-                            "zipcode_miswriting": [0.04, 0.04, 0.2, 0.36, 0.36],
+                            Keys.ZIPCODE_DIGIT_PROBABILITIES: [0.04, 0.04, 0.2, 0.36, 0.36],
                         },
-                        "age_miswriting": {
+                        NOISE_TYPES.age_miswriting.name: {
                             Keys.PROBABILITY: 0.01,
-                            "age_miswriting": [1, -1],
+                            Keys.POSSIBLE_AGE_DIFFERENCES: [1, -1],
                         },
-                        "numeric_miswriting": {
+                        NOISE_TYPES.numeric_miswriting.name: {
                             Keys.PROBABILITY: 0.01,
                             "numeric_miswriting": [0.1],
                         },
                         "nickname": {Keys.PROBABILITY: 0.01},
-                        "fake_name": {Keys.PROBABILITY: 0.01},
+                        NOISE_TYPES.fake_name.name: {Keys.PROBABILITY: 0.01},
                         "phonetic": {
                             Keys.PROBABILITY: 0.01,
-                            "token_noise_level": 0.1,
+                            Keys.TOKEN_PROBABILITY: 0.1,
                         },
                         "ocr": {
                             Keys.PROBABILITY: 0.01,
-                            "token_noise_level": 0.1,
+                            Keys.TOKEN_PROBABILITY: 0.1,
                         },
-                        "typographic": {
+                        NOISE_TYPES.typographic.name: {
                             Keys.PROBABILITY: 0.01,
-                            "token_noise_level": 0.1,
+                            Keys.TOKEN_PROBABILITY: 0.1,
                         },
                     },
                 },
-                "row_noise": {
+                Keys.ROW_NOISE: {
                     "duplication": {
-                        "probability": 0.01,
+                        Keys.PROBABILITY: 0.01,
                     },
-                    "omission": {
-                        "probability": 0.01,
+                    NOISE_TYPES.omission.name: {
+                        Keys.PROBABILITY: 0.01,
                     },
                 },
             },
@@ -113,7 +113,7 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
     for field in NOISE_TYPES._fields:
         mock_return = (
             dummy_data[["event_type"]]
-            if field in ["omission", "duplication   "]
+            if field in ["omission", "duplication"]
             else dummy_data["event_type"]
         )
         mock.attach_mock(
@@ -148,16 +148,17 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
     assert expected_call_order == call_order
 
 
+# TODO: beef this function up
 def test_columns_noised(dummy_data):
     """Test that the noise functions are only applied to the numbers column
     (as specified in the dummy config)
     """
     config = ConfigTree(
         {
-            "decennial_census": {
-                "column_noise": {
+            FORMS.census.name: {
+                Keys.COLUMN_NOISE: {
                     "event_type": {
-                        "missing_data": {Keys.PROBABILITY: 0.1},
+                        NOISE_TYPES.missing_data.name: {Keys.PROBABILITY: 0.1},
                     },
                 },
             },

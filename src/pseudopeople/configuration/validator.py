@@ -56,7 +56,7 @@ def _validate_noise_type_config(
     for parameter, parameter_config in noise_type_config.items():
         parameter_config_validator = {
             # todo add additional config value validators
-            Keys.AGE_MISWRITING_PERTURBATIONS: _validate_age_miswriting_perturbations_config
+            Keys.POSSIBLE_AGE_DIFFERENCES: _validate_age_miswriting_perturbations_config
         }.get(parameter, lambda *_: _)
 
         _ = _get_default_config_node(
@@ -106,13 +106,13 @@ def _validate_age_miswriting_perturbations_config(
     for key in noise_type_config:
         if not isinstance(key, int):
             raise TypeError(
-                "All possible age miswriting perturbations must be ints. "
+                "All possible age miswriting differences must be ints. "
                 f"Provided {key} of type {type(key)} in the configuration "
                 f"for form {form} and column {column}."
             )
         if key == 0:
             raise ValueError(
-                "Cannot include 0 as an age miswriting perturbation. "
+                "Cannot include 0 as an age miswriting difference. "
                 f"Provided 0 in the configuration for form {form} and "
                 f"column {column}."
             )

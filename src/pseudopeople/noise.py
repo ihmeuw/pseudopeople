@@ -57,8 +57,9 @@ def noise_form(
             ):
                 # Apply row noise
                 form_data = noise_type(
+                    form.name,
                     form_data,
-                    noise_configuration.row_noise[noise_type.name],
+                    noise_configuration[Keys.ROW_NOISE][noise_type.name],
                     randomness,
                 )
 
