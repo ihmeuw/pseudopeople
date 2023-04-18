@@ -1,4 +1,4 @@
-class FormNames:
+class DatasetNames:
     """Container for Form names"""
 
     ACS = "american_communities_survey"
