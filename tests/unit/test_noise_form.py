@@ -7,6 +7,7 @@ import pandas as pd
 import pytest
 from vivarium.config_tree import ConfigTree
 
+from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType
 from pseudopeople.interface import (
     generate_american_communities_survey,
@@ -48,47 +49,47 @@ def dummy_config_noise_numbers():
     """
     return ConfigTree(
         {
-            "decennial_census": {
-                "column_noise": {
+            FORMS.census.name: {
+                Keys.COLUMN_NOISE: {
                     "event_type": {
-                        "missing_data": {"row_noise_level": 0.01},
-                        "incorrect_selection": {"row_noise_level": 0.01},
-                        "copy_from_within_household": {"row_noise_level": 0.01},
-                        "month_day_swap": {"row_noise_level": 0.01},
-                        "zipcode_miswriting": {
-                            "row_noise_level": 0.01,
-                            "zipcode_miswriting": [0.04, 0.04, 0.2, 0.36, 0.36],
+                        NOISE_TYPES.missing_data.name: {Keys.PROBABILITY: 0.01},
+                        NOISE_TYPES.incorrect_selection.name: {Keys.PROBABILITY: 0.01},
+                        "copy_from_within_household": {Keys.PROBABILITY: 0.01},
+                        "month_day_swap": {Keys.PROBABILITY: 0.01},
+                        NOISE_TYPES.zipcode_miswriting.name: {
+                            Keys.PROBABILITY: 0.01,
+                            Keys.ZIPCODE_DIGIT_PROBABILITIES: [0.04, 0.04, 0.2, 0.36, 0.36],
                         },
-                        "age_miswriting": {
-                            "row_noise_level": 0.01,
-                            "age_miswriting": [1, -1],
+                        NOISE_TYPES.age_miswriting.name: {
+                            Keys.PROBABILITY: 0.01,
+                            Keys.POSSIBLE_AGE_DIFFERENCES: [1, -1],
                         },
-                        "numeric_miswriting": {
-                            "row_noise_level": 0.01,
+                        NOISE_TYPES.numeric_miswriting.name: {
+                            Keys.PROBABILITY: 0.01,
                             "numeric_miswriting": [0.1],
                         },
-                        "nickname": {"row_noise_level": 0.01},
-                        "fake_name": {"row_noise_level": 0.01},
+                        "nickname": {Keys.PROBABILITY: 0.01},
+                        NOISE_TYPES.fake_name.name: {Keys.PROBABILITY: 0.01},
                         "phonetic": {
-                            "row_noise_level": 0.01,
-                            "token_noise_level": 0.1,
+                            Keys.PROBABILITY: 0.01,
+                            Keys.TOKEN_PROBABILITY: 0.1,
                         },
                         "ocr": {
-                            "row_noise_level": 0.01,
-                            "token_noise_level": 0.1,
+                            Keys.PROBABILITY: 0.01,
+                            Keys.TOKEN_PROBABILITY: 0.1,
                         },
-                        "typographic": {
-                            "row_noise_level": 0.01,
-                            "token_noise_level": 0.1,
+                        NOISE_TYPES.typographic.name: {
+                            Keys.PROBABILITY: 0.01,
+                            Keys.TOKEN_PROBABILITY: 0.1,
                         },
                     },
                 },
-                "row_noise": {
+                Keys.ROW_NOISE: {
                     "duplication": {
-                        "probability": 0.01,
+                        Keys.PROBABILITY: 0.01,
                     },
-                    "omission": {
-                        "probability": 0.01,
+                    NOISE_TYPES.omission.name: {
+                        Keys.PROBABILITY: 0.01,
                     },
                 },
             },
@@ -112,7 +113,7 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
     for field in NOISE_TYPES._fields:
         mock_return = (
             dummy_data[["event_type"]]
-            if field in ["omission", "duplication   "]
+            if field in ["omission", "duplication"]
             else dummy_data["event_type"]
         )
         mock.attach_mock(
@@ -147,16 +148,17 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
     assert expected_call_order == call_order
 
 
+# TODO: beef this function up
 def test_columns_noised(dummy_data):
     """Test that the noise functions are only applied to the numbers column
     (as specified in the dummy config)
     """
     config = ConfigTree(
         {
-            "decennial_census": {
-                "column_noise": {
+            FORMS.census.name: {
+                Keys.COLUMN_NOISE: {
                     "event_type": {
-                        "missing_data": {"row_noise_level": 0.1},
+                        NOISE_TYPES.missing_data.name: {Keys.PROBABILITY: 0.1},
                     },
                 },
             },
@@ -198,12 +200,12 @@ def test_two_noise_functions_are_independent(mocker):
             "decennial_census": {
                 "column_noise": {
                     "fake_column_one": {
-                        "alpha": {"row_noise_level": 0.20},
-                        "beta": {"row_noise_level": 0.30},
+                        "alpha": {Keys.PROBABILITY: 0.20},
+                        "beta": {Keys.PROBABILITY: 0.30},
                     },
                     "fake_column_two": {
-                        "alpha": {"row_noise_level": 0.40},
-                        "beta": {"row_noise_level": 0.50},
+                        "alpha": {Keys.PROBABILITY: 0.40},
+                        "beta": {Keys.PROBABILITY: 0.50},
                     },
                 },
             }
@@ -239,16 +241,16 @@ def test_two_noise_functions_are_independent(mocker):
 
     # Get config values for testing
     col1_expected_abc_proportion = (
-        config_tree.decennial_census.column_noise.fake_column_one.alpha.row_noise_level
+        config_tree.decennial_census.column_noise.fake_column_one.alpha[Keys.PROBABILITY]
     )
     col2_expected_abc_proportion = (
-        config_tree.decennial_census.column_noise.fake_column_two.alpha.row_noise_level
+        config_tree.decennial_census.column_noise.fake_column_two.alpha[Keys.PROBABILITY]
     )
     col1_expected_123_proportion = (
-        config_tree.decennial_census.column_noise.fake_column_one.beta.row_noise_level
+        config_tree.decennial_census.column_noise.fake_column_one.beta[Keys.PROBABILITY]
     )
     col2_expected_123_proportion = (
-        config_tree.decennial_census.column_noise.fake_column_two.beta.row_noise_level
+        config_tree.decennial_census.column_noise.fake_column_two.beta[Keys.PROBABILITY]
     )
 
     assert np.isclose(

@@ -1,4 +1,20 @@
-**0.4.0 - 04/11/23**
+**0.5.1 - 04/14/23**
+ - Formatting of noised dates implemented
+ - Moved from pd.NA to np.nan
+ - Added validation of user-supplied configuration
+ - Changed 'row_noise_level' to 'probability'
+ - Improved logging and added a noising progress bar
+ - Set default logging level to 'INFO', configurable with 'verbose' flag
+
+**0.5.0 - 04/13/23**
+ - Bugfix to apply incorrect selection noising at the expected probability
+ - Implement the omission noise function
+ - Implement schema for output columns and their dtypes
+ - Implement a year filter to the form generation functions
+ - Support a path to data root directory as form generation function argument
+ - Update documentation
+ 
+ **0.4.0 - 04/11/23**
  - Generate default configuration instead of maintaining a static file
  - Read sample data if no data argument is provided
  - Update sample datasets

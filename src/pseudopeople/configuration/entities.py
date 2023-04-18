@@ -1,0 +1,11 @@
+class Keys:
+    """Container for all non-form standard/repeated key names used in the configuration file"""
+
+    ROW_NOISE = "row_noise"  # second layer, eg <form>: row_noise: {...}
+    COLUMN_NOISE = "column_noise"  # second layer, eg <form>: column_noise: {...}
+    PROBABILITY = "probability"
+    CELL_PROBABILITY = "cell_probability"
+    TOKEN_PROBABILITY = "token_probability"
+    INCLUDE_ORIGINAL_TOKEN_PROBABILITY = "include_original_token_probability"
+    POSSIBLE_AGE_DIFFERENCES = "possible_age_differences"
+    ZIPCODE_DIGIT_PROBABILITIES = "digit_probabilities"

@@ -6,18 +6,23 @@ import yaml
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
+from pseudopeople.configuration import Keys
 from pseudopeople.constants import paths
+from pseudopeople.constants.metadata import FormNames
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.utilities import get_index_to_noise, vectorized_choice
 
 
 def omit_rows(
+    form_name: str,
     form_data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
-
+    Function that omits rows from a dataset and returns only the remaining rows.  Note that for the ACS and CPS forms
+      we need to account for oversampling in the PRL simulation so a helper function has been hadded here to do so.
+    :param form_name: Form object being noised
     :param form_data:  pd.DataFrame of one of the form types used in Pseudopeople
     :param configuration: ConfigTree object containing noise level values
     :param randomness_stream: RandomnessStream object to make random selection for noise
@@ -25,10 +30,17 @@ def omit_rows(
     """
 
     noise_level = configuration.probability
-    to_noise_idx = get_index_to_noise(
-        form_data, noise_level, randomness_stream, "omission_choice"
+    # Account for ACS and CPS oversampling
+    if form_name in [FormNames.ACS, FormNames.CPS]:
+        noise_level = 0.5 + noise_level / 2
+    # Omit rows
+    to_noise_index = get_index_to_noise(
+        form_data,
+        noise_level,
+        randomness_stream,
+        f"{form_name}_omit_choice",
     )
-    noised_data = form_data.loc[form_data.index.difference(to_noise_idx)]
+    noised_data = form_data.loc[form_data.index.difference(to_noise_index)]
 
     return noised_data
 
@@ -151,11 +163,10 @@ def miswrite_zipcodes(
     # Scale up noise levels to adjust for inclusive sampling with all numbers
     scaleup_factor = 1 / (1 - (1 / len(possible_replacements)))
     # Get configuration values for each piece of 5 digit zipcode
-    first2_prob = configuration.first_two_digits_noise_level * scaleup_factor
-    middle_prob = configuration.middle_digit_noise_level * scaleup_factor
-    last2_prob = configuration.last_two_digits_noise_level * scaleup_factor
-    threshold = np.array([2 * [first2_prob] + [middle_prob] + 2 * [last2_prob]])
-    replace = rng.random(shape) < threshold
+    digit_probabilities = scaleup_factor * np.array(
+        configuration[Keys.ZIPCODE_DIGIT_PROBABILITIES]
+    )
+    replace = rng.random(shape) < digit_probabilities
     random_digits = rng.choice(possible_replacements, shape)
     digits = []
     for i in range(5):
@@ -182,7 +193,7 @@ def miswrite_ages(
     :param additional_key: additional key used for randomness_stream calls
     :return:
     """
-    possible_perturbations = configuration.possible_perturbations.to_dict()
+    possible_perturbations = configuration[Keys.POSSIBLE_AGE_DIFFERENCES].to_dict()
     perturbations = vectorized_choice(
         options=list(possible_perturbations.keys()),
         weights=list(possible_perturbations.values()),
@@ -217,7 +228,7 @@ def miswrite_numerics(
     if column.empty:
         return column
     # This is a fix to not replacing the original token for noise options
-    token_noise_level = configuration.token_noise_level / 0.9
+    token_noise_level = configuration[Keys.TOKEN_PROBABILITY] / 0.9
     rng = np.random.default_rng(randomness_stream.seed)
     column = column.astype(str)
     longest_str = column.str.len().max()
@@ -315,7 +326,7 @@ def generate_missing_data(column: pd.Series, *_: Any) -> pd.Series:
     :returns: pd.Series of empty strings with the index of column.
     """
 
-    return pd.Series(pd.NA, index=column.index)
+    return pd.Series(np.nan, index=column.index)
 
 
 def generate_typographical_errors(
@@ -362,8 +373,8 @@ def generate_typographical_errors(
                 i += 1
         return err
 
-    token_noise_level = configuration.token_noise_level
-    include_original_token_level = configuration.include_original_token_level
+    token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
+    include_token_probability_level = configuration[Keys.INCLUDE_ORIGINAL_TOKEN_PROBABILITY]
 
     rng = np.random.default_rng(seed=randomness_stream.seed)
     column = column.astype(str)
@@ -371,7 +382,7 @@ def generate_typographical_errors(
         noised_value = keyboard_corrupt(
             column[idx],
             token_noise_level,
-            include_original_token_level,
+            include_token_probability_level,
             rng,
         )
         column[idx] = noised_value

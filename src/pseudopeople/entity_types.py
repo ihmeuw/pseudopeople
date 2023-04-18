@@ -6,7 +6,7 @@ from loguru import logger
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
-from pseudopeople import schema_entities
+from pseudopeople.configuration import Keys
 from pseudopeople.utilities import get_index_to_noise
 
 
@@ -30,11 +30,12 @@ class RowNoiseType:
 
     def __call__(
         self,
+        form_name: str,
         form_data: pd.DataFrame,
         configuration: ConfigTree,
         randomness_stream: RandomnessStream,
     ) -> pd.DataFrame:
-        return self.noise_function(form_data, configuration, randomness_stream)
+        return self.noise_function(form_name, form_data, configuration, randomness_stream)
 
 
 @dataclass
@@ -53,8 +54,7 @@ class ColumnNoiseType:
 
     name: str
     noise_function: Callable[[pd.Series, ConfigTree, RandomnessStream, Any], pd.Series]
-    row_noise_level: float = 0.01
-    token_noise_level: float = 0.1
+    probability: float = 0.01
     noise_level_scaling_function: Callable[[str], float] = lambda x: 1.0
     additional_parameters: Dict[str, Any] = None
 
@@ -66,7 +66,12 @@ class ColumnNoiseType:
         additional_key: Any,
     ) -> pd.Series:
         column = column.copy()
-        noise_level = configuration.row_noise_level * self.noise_level_scaling_function(
+        probability_key = (
+            Keys.CELL_PROBABILITY
+            if Keys.CELL_PROBABILITY in configuration.keys()
+            else Keys.PROBABILITY
+        )
+        noise_level = configuration[probability_key] * self.noise_level_scaling_function(
             column.name
         )
         to_noise_idx = get_index_to_noise(
@@ -82,7 +87,7 @@ class ColumnNoiseType:
             column.loc[to_noise_idx], configuration, randomness_stream, additional_key
         )
 
-        # Coerce noised column dtype back to original column's if it's changed
+        # Coerce noised column dtype back to original column's if it has changed
         if noised_data.dtype.name != column.dtype.name:
             noised_data = noised_data.astype(column.dtype)
 
