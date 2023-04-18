@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Union
+from typing import Dict, List, Union
 
 import numpy as np
 from vivarium.config_tree import ConfigTree, ConfigurationKeyError
