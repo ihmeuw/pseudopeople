@@ -140,8 +140,8 @@ def test_loading_from_yaml(tmp_path):
     ][NOISE_TYPES.age_miswriting.name].to_dict()
 
     assert (
-        default_config[Keys.AGE_MISWRITING_PERTURBATIONS]
-        == updated_config[Keys.AGE_MISWRITING_PERTURBATIONS]
+        default_config[Keys.POSSIBLE_AGE_DIFFERENCES]
+        == updated_config[Keys.POSSIBLE_AGE_DIFFERENCES]
     )
     # check that 1 got replaced with 0 probability
     assert updated_config[Keys.PROBABILITY] == 0.5
@@ -164,7 +164,7 @@ def test_format_miswrite_ages(user_config, expected):
             Keys.COLUMN_NOISE: {
                 COLUMNS.age.name: {
                     NOISE_TYPES.age_miswriting.name: {
-                        Keys.AGE_MISWRITING_PERTURBATIONS: user_config,
+                        Keys.POSSIBLE_AGE_DIFFERENCES: user_config,
                     },
                 },
             },
@@ -173,7 +173,7 @@ def test_format_miswrite_ages(user_config, expected):
 
     config = get_configuration(user_config)[FORMS.census.name][Keys.COLUMN_NOISE][
         COLUMNS.age.name
-    ][NOISE_TYPES.age_miswriting.name][Keys.AGE_MISWRITING_PERTURBATIONS].to_dict()
+    ][NOISE_TYPES.age_miswriting.name][Keys.POSSIBLE_AGE_DIFFERENCES].to_dict()
 
     assert config == expected
 
@@ -259,7 +259,7 @@ def test_validate_miswrite_ages_failures(perturbations, error, match):
                         COLUMNS.age.name: {
                             NOISE_TYPES.age_miswriting.name: {
                                 Keys.PROBABILITY: 1,
-                                Keys.AGE_MISWRITING_PERTURBATIONS: perturbations,
+                                Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                             },
                         },
                     },

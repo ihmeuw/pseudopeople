@@ -192,7 +192,7 @@ def miswrite_ages(
     :param additional_key: additional key used for randomness_stream calls
     :return:
     """
-    possible_perturbations = configuration.possible_perturbations.to_dict()
+    possible_perturbations = configuration[Keys.POSSIBLE_AGE_DIFFERENCES].to_dict()
     perturbations = vectorized_choice(
         options=list(possible_perturbations.keys()),
         weights=list(possible_perturbations.values()),
@@ -227,7 +227,7 @@ def miswrite_numerics(
     if column.empty:
         return column
     # This is a fix to not replacing the original token for noise options
-    token_noise_level = configuration[Keys.REPLACE_TOKEN_PROBABILITY] / 0.9
+    token_noise_level = configuration[Keys.TOKEN_PROBABILITY] / 0.9
     rng = np.random.default_rng(randomness_stream.seed)
     column = column.astype(str)
     longest_str = column.str.len().max()
@@ -346,7 +346,7 @@ def generate_typographical_errors(
     with open(paths.QWERTY_ERRORS) as f:
         qwerty_errors = yaml.full_load(f)
 
-    def keyboard_corrupt(truth, corrupted_pr, replace_pr, rng):
+    def keyboard_corrupt(truth, corrupted_pr, addl_pr, rng):
         """For each string, loop through each character and determine if
         it is to be corrupted. If so, uniformly choose from the appropriate
         values to mistype. Also determine which mistyped characters should
@@ -363,7 +363,7 @@ def generate_typographical_errors(
                 if random_number < corrupted_pr:
                     err += rng.choice(qwerty_errors[token])
                     random_number = rng.uniform()
-                    if random_number >= replace_pr:
+                    if random_number < addl_pr:
                         err += token
                     i += 1
                     error_introduced = True
@@ -372,8 +372,8 @@ def generate_typographical_errors(
                 i += 1
         return err
 
-    token_noise_level = configuration.token_noise_level
-    replace_token_probability_level = configuration[Keys.REPLACE_TOKEN_PROBABILITY]
+    token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
+    include_token_probability_level = configuration[Keys.INCLUDE_ORIGINAL_TOKEN_PROBABILITY]
 
     rng = np.random.default_rng(seed=randomness_stream.seed)
     column = column.astype(str)
@@ -381,7 +381,7 @@ def generate_typographical_errors(
         noised_value = keyboard_corrupt(
             column[idx],
             token_noise_level,
-            replace_token_probability_level,
+            include_token_probability_level,
             rng,
         )
         column[idx] = noised_value
