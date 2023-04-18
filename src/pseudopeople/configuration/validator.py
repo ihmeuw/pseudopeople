@@ -1,9 +1,10 @@
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Union
 
 import numpy as np
 from vivarium.config_tree import ConfigTree, ConfigurationKeyError
 
 from pseudopeople.configuration import Keys
+from pseudopeople.noise_entities import NOISE_TYPES
 
 
 def validate_user_configuration(user_config: Dict, default_config: ConfigTree) -> None:
@@ -27,7 +28,6 @@ def validate_user_configuration(user_config: Dict, default_config: ConfigTree) -
             _validate_noise_type_config(
                 noise_type_config, default_noise_type_config, form, noise_type
             )
-            # TODO: validate omissions = [0, 0.5]
 
         for column, column_config in form_config.get(Keys.COLUMN_NOISE, {}).items():
             default_column_config = _get_default_config_node(
@@ -55,14 +55,20 @@ def _validate_noise_type_config(
     """
     for parameter, parameter_config in noise_type_config.items():
         parameter_config_validator = {
-            # todo add additional config value validators
-            Keys.POSSIBLE_AGE_DIFFERENCES: _validate_age_miswriting_perturbations_config
-        }.get(parameter, lambda *_: _)
+            (
+                NOISE_TYPES.age_miswriting.name,
+                Keys.POSSIBLE_AGE_DIFFERENCES,
+            ): _validate_possible_age_differences,
+            (
+                NOISE_TYPES.zipcode_miswriting.name,
+                Keys.ZIPCODE_DIGIT_PROBABILITIES,
+            ): _validate_zipcode_digit_probabilities,
+        }.get((noise_type, parameter), _validate_default_standard_parameters)
 
         _ = _get_default_config_node(
             default_noise_type_config, parameter, "parameter", form, column, noise_type
         )
-        parameter_config_validator(parameter_config, form, column)
+        parameter_config_validator(parameter_config, form, column, parameter, noise_type)
 
 
 def _get_default_config_node(
@@ -90,8 +96,12 @@ def _get_default_config_node(
         raise ValueError(error_message + valid_options_message)
 
 
-def _validate_age_miswriting_perturbations_config(
-    noise_type_config: Union[Dict, List], form: str, column: str
+def _validate_possible_age_differences(
+    noise_type_config: Union[Dict, List],
+    form: str,
+    column: str,
+    parameter: str,
+    noise_type: str,
 ) -> None:
     """
     Validates the user-provided values for the age-miswriting permutations
@@ -99,8 +109,9 @@ def _validate_age_miswriting_perturbations_config(
     """
     if not isinstance(noise_type_config, (Dict, List)):
         raise TypeError(
-            "Invalid configuration type provided for age miswriting for form "
-            f"{form} and column {column}."
+            f"Invalid configuration type provided for '{parameter}'; must a Dict or List. "
+            f"Provided {noise_type_config} of type {type(noise_type_config)} in the "
+            f"configuration for noise type {noise_type} in form {form} and column {column}."
         )
 
     for key in noise_type_config:
@@ -131,3 +142,56 @@ def _validate_age_miswriting_perturbations_config(
                 "The provided age miswriting probabilities must sum to 1. "
                 f"Provided values sum to {sum(noise_type_config.values())}."
             )
+
+
+def _validate_zipcode_digit_probabilities(
+    noise_type_config: List, form: str, column: str, parameter: str, noise_type: str
+) -> None:
+    """Validates the user-provided values for the zipcode digit noising probabilities"""
+    if not isinstance(noise_type_config, List):
+        raise TypeError(
+            f"Invalid configuration type provided for '{parameter}'; must be a list. "
+            f"Provided {noise_type_config} of type {type(noise_type_config)} in the "
+            f"configuration for noise type {noise_type} in form {form} and column {column}."
+        )
+
+    for value in noise_type_config:
+        if not isinstance(value, float):
+            raise TypeError(
+                "All possible zipcode digit miswriting probabilities must be floats. "
+                f"Provided {value} of type {type(value)} in the configuration "
+                f"for form {form} and column {column}."
+            )
+        if value > 1 or value < 0:
+            raise ValueError(
+                "All zipcode digit miswriting probabilities must be between 0.0 "
+                f"and 1.0 (inclusive). Provided {noise_type_config} in the configuration "
+                f"for form {form} and column {column}."
+            )
+
+    if len(noise_type_config) != 5:
+        raise ValueError(
+            "There must be 5 zipcode digit miswriting probabilities. Provided "
+            f"{len(noise_type_config)} probabilities ({noise_type_config}) for "
+            f"form {form} and column {column}."
+        )
+
+
+def _validate_default_standard_parameters(
+    noise_type_config: Dict, form: str, column: str, parameter: str, noise_type: str
+) -> None:
+    if not isinstance(noise_type_config, float):
+        if noise_type_config == 0 or noise_type_config == 1:
+            pass
+        else:
+            raise TypeError(
+                f"Invalid configuration type provided for '{parameter}'; must be a float. "
+                f"Provided {noise_type_config} of type {type(noise_type_config)} in the "
+                f"configuration for noise type {noise_type} in form {form} and column {column}."
+            )
+    if noise_type_config > 1 or noise_type_config < 0:
+        raise ValueError(
+            "All '{parameter}'s must be between 0.0 and 1.0 (inclusive). "
+            f"Provided {noise_type_config} in the configuration for noise type "
+            f"{noise_type} in form {form} and column {column}."
+        )

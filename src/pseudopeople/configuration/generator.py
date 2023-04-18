@@ -85,6 +85,7 @@ def _generate_default_configuration() -> ConfigTree:
                         column_noise_type_dict[key] = value
                 if column_noise_type_dict:
                     # We should not have both 'probability' and 'cell_probability'
+                    # TODO: move this into a pytest
                     if (
                         Keys.PROBABILITY in column_noise_type_dict
                         and Keys.CELL_PROBABILITY in column_noise_type_dict
