@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Dict, List, Union
 
 import numpy as np
@@ -5,6 +6,15 @@ from vivarium.config_tree import ConfigTree, ConfigurationKeyError
 
 from pseudopeople.configuration import Keys
 from pseudopeople.noise_entities import NOISE_TYPES
+
+
+@dataclass
+class ConfigurationError(BaseException):
+    """Base class for configuration errors"""
+
+    message: str
+
+    pass
 
 
 def validate_user_configuration(user_config: Dict, default_config: ConfigTree) -> None:
@@ -68,7 +78,11 @@ def _validate_noise_type_config(
         _ = _get_default_config_node(
             default_noise_type_config, parameter, "parameter", form, column, noise_type
         )
-        parameter_config_validator(parameter_config, form, column, parameter, noise_type)
+        invalid_error = (
+            f"Invalid '{parameter}' provided for form '{form}' for "
+            f"column '{column}' and noise type '{noise_type}'. "
+        )
+        parameter_config_validator(parameter_config, parameter, invalid_error)
 
 
 def _get_default_config_node(
@@ -93,105 +107,90 @@ def _get_default_config_node(
 
         error_message = f"Invalid {key_type} '{key}' provided{context}. "
         valid_options_message = f"Valid {key_type}s are {[k for k in default_config]}."
-        raise ValueError(error_message + valid_options_message)
+        raise ConfigurationError(error_message + valid_options_message)
 
 
 def _validate_possible_age_differences(
     noise_type_config: Union[Dict, List],
-    form: str,
-    column: str,
     parameter: str,
-    noise_type: str,
+    invalid_error: str,
 ) -> None:
     """
     Validates the user-provided values for the age-miswriting permutations
     parameter
     """
     if not isinstance(noise_type_config, (Dict, List)):
-        raise TypeError(
-            f"Invalid configuration type provided for '{parameter}'; must a Dict or List. "
-            f"Provided {noise_type_config} of type {type(noise_type_config)} in the "
-            f"configuration for noise type {noise_type} in form {form} and column {column}."
+        raise ConfigurationError(
+            invalid_error + f"'{parameter}' must be a Dict or List. "
+            f"Provided {noise_type_config} of type {type(noise_type_config)}."
         )
-
     for key in noise_type_config:
         if not isinstance(key, int):
-            raise TypeError(
-                "All possible age miswriting differences must be ints. "
-                f"Provided {key} of type {type(key)} in the configuration "
-                f"for form {form} and column {column}."
+            raise ConfigurationError(
+                invalid_error + f"'{parameter}' must be ints. "
+                f"Provided {key} of type {type(key)}."
             )
         if key == 0:
-            raise ValueError(
-                "Cannot include 0 as an age miswriting difference. "
-                f"Provided 0 in the configuration for form {form} and "
-                f"column {column}."
-            )
-
+            raise ConfigurationError(invalid_error + f"'{parameter}' cannot include 0.")
     if isinstance(noise_type_config, Dict):
         for value in noise_type_config.values():
-            if not isinstance(value, float):
-                raise TypeError(
-                    "All possible age miswriting probabilities must be floats. "
-                    f"Provided {value} of type {type(value)} in the configuration "
-                    f"for form {form} and column {column}."
+            if not isinstance(value, (float, int)):
+                raise ConfigurationError(
+                    invalid_error + f"'{parameter}' probabilities must be floats or ints. "
+                    f"Provided {value} of type {type(value)}."
                 )
-
+            if not (0 <= value <= 1):
+                raise ConfigurationError(
+                    invalid_error
+                    + f"'{parameter}' probabilities must be between 0 and 1 (inclusive). "
+                    f"Provided {value} in {list(noise_type_config.values())}."
+                )
         if not np.isclose(sum(noise_type_config.values()), 1.0):
-            raise ValueError(
-                "The provided age miswriting probabilities must sum to 1. "
+            raise ConfigurationError(
+                invalid_error + f"'{parameter}' probabilities must sum to 1. "
                 f"Provided values sum to {sum(noise_type_config.values())}."
             )
 
 
 def _validate_zipcode_digit_probabilities(
-    noise_type_config: List, form: str, column: str, parameter: str, noise_type: str
+    noise_type_config: List, parameter: str, invalid_error: str
 ) -> None:
     """Validates the user-provided values for the zipcode digit noising probabilities"""
     if not isinstance(noise_type_config, List):
-        raise TypeError(
-            f"Invalid configuration type provided for '{parameter}'; must be a list. "
-            f"Provided {noise_type_config} of type {type(noise_type_config)} in the "
-            f"configuration for noise type {noise_type} in form {form} and column {column}."
+        raise ConfigurationError(
+            invalid_error + f"'{parameter}' must be a List. "
+            f"Provided {noise_type_config} of type {type(noise_type_config)}."
         )
-
-    for value in noise_type_config:
-        if not isinstance(value, float):
-            raise TypeError(
-                "All possible zipcode digit miswriting probabilities must be floats. "
-                f"Provided {value} of type {type(value)} in the configuration "
-                f"for form {form} and column {column}."
-            )
-        if value > 1 or value < 0:
-            raise ValueError(
-                "All zipcode digit miswriting probabilities must be between 0.0 "
-                f"and 1.0 (inclusive). Provided {noise_type_config} in the configuration "
-                f"for form {form} and column {column}."
-            )
-
     if len(noise_type_config) != 5:
-        raise ValueError(
-            "There must be 5 zipcode digit miswriting probabilities. Provided "
-            f"{len(noise_type_config)} probabilities ({noise_type_config}) for "
-            f"form {form} and column {column}."
+        raise ConfigurationError(
+            invalid_error + f"'{parameter}' must be a List of 5 probabilities. "
+            f"{len(noise_type_config)} probabilities ({noise_type_config})."
         )
+    for value in noise_type_config:
+        if not isinstance(value, (float, int)):
+            raise ConfigurationError(
+                invalid_error + f"'{parameter}' probabilities must be floats or ints. "
+                f"Provided {value} of type {type(value)}."
+            )
+        if not (0 <= value <= 1):
+            raise ConfigurationError(
+                invalid_error
+                + f"'{parameter}' probabilities must be between 0 and 1 (inclusive). "
+                f"Provided {value} in {noise_type_config}."
+            )
 
 
 def _validate_default_standard_parameters(
-    noise_type_config: Dict, form: str, column: str, parameter: str, noise_type: str
+    noise_type_config: Union[int, float], parameter: str, invalid_error: str
 ) -> None:
-    if not isinstance(noise_type_config, float):
-        if noise_type_config == 0 or noise_type_config == 1:
-            pass
-        else:
-            raise TypeError(
-                f"Invalid configuration type provided for '{parameter}'; must be a float. "
-                f"Provided {noise_type_config} of type {type(noise_type_config)} in the "
-                f"configuration for noise type {noise_type} in form {form} and column {column}."
-            )
-    if noise_type_config > 1 or noise_type_config < 0:
-        raise ValueError(
-            "All '{parameter}'s must be between 0.0 and 1.0 (inclusive). "
-            f"Provided {noise_type_config} in the configuration for noise type "
-            f"{noise_type} in form {form} and column {column}."
+    if not isinstance(noise_type_config, (float, int)):
+        raise ConfigurationError(
+            invalid_error + f"'{parameter}' probabilities must be floats or ints. "
+            f"Provided {noise_type_config} of type {type(noise_type_config)}."
+        )
+
+    if not (0 <= noise_type_config <= 1):
+        raise ConfigurationError(
+            invalid_error + f"'{parameter}'s must be between 0 and 1 (inclusive). "
+            f"Provided {noise_type_config}."
         )
