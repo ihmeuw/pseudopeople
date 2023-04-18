@@ -65,15 +65,9 @@ def _validate_noise_type_config(
     """
     for parameter, parameter_config in noise_type_config.items():
         parameter_config_validator = {
-            (
-                NOISE_TYPES.age_miswriting.name,
-                Keys.POSSIBLE_AGE_DIFFERENCES,
-            ): _validate_possible_age_differences,
-            (
-                NOISE_TYPES.zipcode_miswriting.name,
-                Keys.ZIPCODE_DIGIT_PROBABILITIES,
-            ): _validate_zipcode_digit_probabilities,
-        }.get((noise_type, parameter), _validate_default_standard_parameters)
+            Keys.POSSIBLE_AGE_DIFFERENCES: _validate_possible_age_differences,
+            Keys.ZIPCODE_DIGIT_PROBABILITIES: _validate_zipcode_digit_probabilities,
+        }.get(parameter, _validate_default_standard_parameters)
 
         _ = _get_default_config_node(
             default_noise_type_config, parameter, "parameter", form, column, noise_type
