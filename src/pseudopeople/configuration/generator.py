@@ -6,7 +6,8 @@ from vivarium.config_tree import ConfigTree
 
 from pseudopeople.configuration import Keys
 from pseudopeople.configuration.validator import validate_user_configuration
-from pseudopeople.schema_entities import FORMS, NOISE_TYPES
+from pseudopeople.noise_entities import NOISE_TYPES
+from pseudopeople.schema_entities import FORMS
 
 # Define non-baseline default items
 # NOTE: default values are defined in entity_types.RowNoiseType and entity_types.ColumnNoiseType

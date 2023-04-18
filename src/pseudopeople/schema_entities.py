@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import NamedTuple, Tuple
 
-from pseudopeople.noise_entities import NOISE_TYPES, ColumnNoiseType, RowNoiseType
+from pseudopeople.noise_entities import NOISE_TYPES
+from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 
 
 class DtypeNames:
