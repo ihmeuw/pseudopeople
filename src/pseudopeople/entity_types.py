@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict
 
 import pandas as pd
 from loguru import logger
@@ -30,11 +30,12 @@ class RowNoiseType:
 
     def __call__(
         self,
+        form_name: str,
         form_data: pd.DataFrame,
         configuration: ConfigTree,
         randomness_stream: RandomnessStream,
     ) -> pd.DataFrame:
-        return self.noise_function(form_data, configuration, randomness_stream)
+        return self.noise_function(form_name, form_data, configuration, randomness_stream)
 
 
 @dataclass
