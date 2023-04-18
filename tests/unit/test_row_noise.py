@@ -33,12 +33,22 @@ def dummy_data():
 
 def test_omission(dummy_data):
     config = get_configuration()[FORMS.census.name][Keys.ROW_NOISE][NOISE_TYPES.omission.name]
-    noised_data = NOISE_TYPES.omission(dummy_data, config, RANDOMNESS)
+    form_name_1 = "dummY_form_name"
+    form_name_2 = "american_communities_survey"
+    noised_data1 = NOISE_TYPES.omission(form_name_1, dummy_data, config, RANDOMNESS)
+    noised_data2 = NOISE_TYPES.omission(form_name_2, dummy_data, config, RANDOMNESS)
 
-    expected_noise = config[Keys.PROBABILITY]
-    assert np.isclose(1 - len(noised_data) / len(dummy_data), expected_noise, rtol=0.02)
-    assert set(noised_data.columns) == set(dummy_data.columns)
-    assert (noised_data.dtypes == dummy_data.dtypes).all()
+    expected_noise_1 = config[Keys.PROBABILITY]
+    assert np.isclose(1 - len(noised_data1) / len(dummy_data), expected_noise_1, rtol=0.02)
+    assert set(noised_data1.columns) == set(dummy_data.columns)
+    assert (noised_data1.dtypes == dummy_data.dtypes).all()
+
+    # Check ACS data is scaled properly due to oversampling
+    expected_noise_2 = 0.5 + config[Keys.PROBABILITY] / 2
+    assert np.isclose(1 - len(noised_data2) / len(dummy_data), expected_noise_2, rtol=0.02)
+    assert set(noised_data2.columns) == set(dummy_data.columns)
+    assert (noised_data2.dtypes == dummy_data.dtypes).all()
+    assert len(noised_data1) != len(noised_data2)
 
 
 @pytest.mark.skip(reason="TODO")
