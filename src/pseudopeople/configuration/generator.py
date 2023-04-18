@@ -11,6 +11,7 @@ from pseudopeople.schema_entities import FORMS
 
 # Define non-baseline default items
 # NOTE: default values are defined in entity_types.RowNoiseType and entity_types.ColumnNoiseType
+SSA_SSN_COLUMN = [column for column in FORMS.ssa.columns if column.name == "ssn"][0]
 DEFAULT_NOISE_VALUES = {
     FORMS.census.name: {
         Keys.ROW_NOISE: {
@@ -32,6 +33,28 @@ DEFAULT_NOISE_VALUES = {
                 Keys.PROBABILITY: 0.2905,
             },
         },
+    },
+    FORMS.tax_w2_1099.name: {
+        Keys.ROW_NOISE: {
+            NOISE_TYPES.omission.name: {
+                Keys.PROBABILITY: 0.005,
+            },
+        },
+    },
+    # No noise of any kind for SSN in the SSA observer
+    FORMS.ssa.name: {
+        Keys.COLUMN_NOISE: {
+            "ssn": {
+                noise_type.name: {
+                    (
+                        Keys.PROBABILITY
+                        if noise_type.probability is not None
+                        else Keys.CELL_PROBABILITY
+                    ): 0.0,
+                }
+                for noise_type in SSA_SSN_COLUMN.noise_types
+            }
+        }
     },
 }
 
