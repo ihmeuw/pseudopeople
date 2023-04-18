@@ -44,7 +44,7 @@ The following simulant attributes are included in this dataset:
    * - Attribute Name
      - Column Name    
    * - Unique simulant ID
-     - 
+     - :code:`simulant_id`
    * - First name
      - :code:`first_name`
    * - Middle initial
