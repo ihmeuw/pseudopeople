@@ -262,8 +262,8 @@ def test_validate_standard_parameters_failures(value, match):
     "perturbations, match",
     [
         (-1, "must be a Dict or List"),
-        ([-1, 0.4, 1], "must be ints"),
-        ({-1: 0.5, 0.4: 0.2, 1: 0.3}, "must be ints"),
+        ([-1, 0.4, 1], "must be a List of ints"),
+        ({-1: 0.5, 0.4: 0.2, 1: 0.3}, "must be a List of ints"),
         ([-1, 0, 1], "cannot include 0"),
         ({-1: 0.5, 4: 0.2, 0: 0.3}, "cannot include 0"),
         ({-1: 0.1, 1: 0.8}, "must sum to 1"),

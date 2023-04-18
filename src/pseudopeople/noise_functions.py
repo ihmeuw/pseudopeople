@@ -8,7 +8,7 @@ from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import paths
-from pseudopeople.constants.metadata import Forms
+from pseudopeople.constants.metadata import FormNames
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.utilities import get_index_to_noise, vectorized_choice
 
@@ -31,7 +31,7 @@ def omit_rows(
 
     noise_level = configuration.probability
     # Account for ACS and CPS oversampling
-    if form_name in [Forms.ACS, Forms.CPS]:
+    if form_name in [FormNames.ACS, FormNames.CPS]:
         noise_level = 0.5 + noise_level / 2
     # Omit rows
     to_noise_index = get_index_to_noise(

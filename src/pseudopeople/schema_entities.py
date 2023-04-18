@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import NamedTuple, Tuple
 
-from pseudopeople.constants.metadata import Forms
+from pseudopeople.constants.metadata import FormNames
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 
@@ -370,7 +370,7 @@ class __Forms(NamedTuple):
     """NamedTuple that contains information about forms and their related columns"""
 
     census: Form = Form(
-        Forms.CENSUS,
+        FormNames.CENSUS,
         columns=(  # This defines the output column order
             COLUMNS.simulant_id,
             COLUMNS.first_name,
@@ -391,7 +391,7 @@ class __Forms(NamedTuple):
         date_column="year",
     )
     acs: Form = Form(
-        Forms.ACS,
+        FormNames.ACS,
         columns=(  # This defines the output column order
             COLUMNS.household_id,
             COLUMNS.simulant_id,
@@ -413,7 +413,7 @@ class __Forms(NamedTuple):
         date_column="survey_date",
     )
     cps: Form = Form(
-        Forms.CPS,
+        FormNames.CPS,
         columns=(  # This defines the output column order
             COLUMNS.household_id,
             COLUMNS.simulant_id,
@@ -435,7 +435,7 @@ class __Forms(NamedTuple):
         date_column="survey_date",
     )
     wic: Form = Form(
-        Forms.WIC,
+        FormNames.WIC,
         columns=(  # This defines the output column order
             COLUMNS.household_id,
             COLUMNS.simulant_id,
@@ -455,7 +455,7 @@ class __Forms(NamedTuple):
         date_column="year",
     )
     ssa: Form = Form(
-        Forms.SSA,
+        FormNames.SSA,
         columns=(  # This defines the output column order
             COLUMNS.simulant_id,
             COLUMNS.first_name,
@@ -469,7 +469,7 @@ class __Forms(NamedTuple):
         date_column="event_date",
     )
     tax_w2_1099: Form = Form(
-        Forms.TAXES_W2_1099,
+        FormNames.TAXES_W2_1099,
         columns=(  # This defines the output column order
             COLUMNS.simulant_id,
             COLUMNS.first_name,

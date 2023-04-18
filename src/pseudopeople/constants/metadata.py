@@ -1,4 +1,6 @@
-class Forms:
+class FormNames:
+    """Container for Form names"""
+
     ACS = "american_communities_survey"
     CENSUS = "decennial_census"
     CPS = "current_population_survey"
