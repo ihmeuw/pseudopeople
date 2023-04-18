@@ -6,6 +6,7 @@ import yaml
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
+from pseudopeople import schema_entities
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import paths
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
@@ -13,12 +14,15 @@ from pseudopeople.utilities import get_index_to_noise, vectorized_choice
 
 
 def omit_rows(
+    form_name: str,
     form_data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
-
+    Function that omits rows from a dataset and returns only the remaining rows.  Note that for the ACS and CPS forms
+      we need to account for oversampling in the PRL simulation so a helper function has been hadded here to do so.
+    :param form_name: Form object being noised
     :param form_data:  pd.DataFrame of one of the form types used in Pseudopeople
     :param configuration: ConfigTree object containing noise level values
     :param randomness_stream: RandomnessStream object to make random selection for noise
@@ -26,10 +30,17 @@ def omit_rows(
     """
 
     noise_level = configuration.probability
-    to_noise_idx = get_index_to_noise(
-        form_data, noise_level, randomness_stream, "omission_choice"
+    # Account for ACS and CPS oversampling
+    if form_name in [schema_entities.FORMS.acs.name, schema_entities.FORMS.cps.name]:
+        noise_level = 0.5 + noise_level / 2
+    # Omit rows
+    to_noise_index = get_index_to_noise(
+        form_data,
+        noise_level,
+        randomness_stream,
+        f"{form_name}_omit_choice",
     )
-    noised_data = form_data.loc[form_data.index.difference(to_noise_idx)]
+    noised_data = form_data.loc[form_data.index.difference(to_noise_index)]
 
     return noised_data
 
