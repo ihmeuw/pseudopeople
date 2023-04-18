@@ -3,8 +3,9 @@
 ========
 Datasets
 ========
-Here we cover the simulated datasets, which are analogous to 'real world' administrative records such as tax documents
-and census surveys, that users can generate using :code:`pseudopeople` to test their PRL methods.
+Here we cover the realistic simulated datasets, which are analogous to 'real world' administrative records such as tax documents
+and census surveys, that users can generate using :code:`pseudopeople` for developing and testing Entity Resolution algorithms 
+and software.
 
 The below table offers a list of the datasets that can be generated. Each row of a given dataset represents
 an individual simulant, with the columns representing different simulant attributes, such as name, age, sex, et cetera.
@@ -41,7 +42,7 @@ The following simulant attributes are included in this dataset:
    :header-rows: 1
 
    * - Attribute Name
-     - Column Name
+     - Column Name    
    * - Unique simulant ID
      - 
    * - First name
@@ -75,7 +76,46 @@ The following simulant attributes are included in this dataset:
 
 Household Surveys: ACS and CPS
 ------------------------------
+There are two simulated household survey datasets that can be used: the American
+Communities Survey (ACS) and the Current Population Survey (CPS). 
 
+.. list-table:: **Simulant attributes**
+   :header-rows: 1
+
+   * - Attribute Name
+     - Column Name
+   * - Unique simulant ID
+     - 
+   * - Household ID 
+     -  
+   * - First name
+     - :code:`first_name`
+   * - Middle initial
+     - :code:`middle_initial`
+   * - Last name
+     - :code:`last_name`
+   * - Age
+     - :code:`age`  
+   * - Date of birth
+     - :code:`date_of_birth`
+   * - Physical address street number
+     - :code:`street_number`
+   * - Physical address street name
+     - :code:`street_name`
+   * - Physical address unit
+     - :code:`unit_number`
+   * - Physical address city
+     - :code:`city`    
+   * - Physical address state
+     - :code:`state`  
+   * - Physical address ZIP code
+     - :code:`zipcode`
+   * - Relationship to person 1 (head of household)
+     - :code:`relationship_to_household_head` 
+   * - Sex (binary; 'male' or 'female')
+     - :code:`sex`  
+   * - Race/ethnicity
+     - :code:`race_ethnicity` 
 
 WIC
 ---
