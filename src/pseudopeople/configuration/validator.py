@@ -128,7 +128,8 @@ def _validate_possible_age_differences(
         for value in noise_type_config.values():
             if not isinstance(value, (float, int)):
                 raise ConfigurationError(
-                    base_error_message + f"'{parameter}' probabilities must be floats or ints. "
+                    base_error_message
+                    + f"'{parameter}' probabilities must be floats or ints. "
                     f"Provided {value} of type {type(value)}."
                 )
             if not (0 <= value <= 1):
