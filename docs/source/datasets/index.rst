@@ -111,7 +111,7 @@ Communities Survey (ACS) and the Current Population Survey (CPS).
      - Not affected by noise functions; intended use is 'ground truth' for PRL tracking. 
    * - Household ID 
      - :code:`household_id` 
-     - 
+     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking.
    * - First name
      - :code:`first_name`
      - 
