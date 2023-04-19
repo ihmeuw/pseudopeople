@@ -3,6 +3,7 @@
 ========
 Datasets
 ========
+
 Here we cover the realistic simulated datasets, which are analogous to 'real world' administrative records such as tax documents
 and census surveys, that users can generate using :code:`pseudopeople` for developing and testing Entity Resolution algorithms 
 and software.
@@ -23,7 +24,7 @@ an individual simulant, with the columns representing different simulant attribu
 
    * - Name
    * - | US Decennial Census
-   * - | American Communities Survey (ACS)
+   * - | American Community Survey (ACS)
    * - | Current Population Survey (CPS)
    * - | Women, Infants, and Children (WIC) Administrative Data
    * - | Social Security Administration (SSA) Data
@@ -34,7 +35,8 @@ an individual simulant, with the columns representing different simulant attribu
 US Decennial Census
 -------------------
 The Decennial Census dataset is a simulated enumeration of the US Census Bureau's Decennial Census Survey. The years
-that have been simulated are 2020, 2030, and 2040.
+that have been simulated are 2020, 2030, and 2040. To find out more about the survey, please visit the Decennial Census
+`homepage <https://www.census.gov/programs-surveys/decennial-census.html>`_.   
 
 The following simulant attributes are included in this dataset:
 
@@ -97,8 +99,16 @@ The following simulant attributes are included in this dataset:
 Household Surveys: ACS and CPS
 ------------------------------
 There are two simulated household survey datasets that can be used: the American
-Communities Survey (ACS) and the Current Population Survey (CPS). 
+Community Survey (ACS) and the Current Population Survey (CPS). 
 
+ACS is an ongoing household survey conducted by the US Census Bureau that gathers information on a rolling basis about
+American community populations. Information collected includes ancestry, citizenship, education, income, language proficienccy, migration, 
+employment, disability, and housing characteristics. To find out more about ACS, please visit the `ACS homepage <https://www.census.gov/programs-surveys/acs/about.html>`_.
+
+CPS is another household survey conducted by the US Census Bureau and the US Bureau of Labor Statistics. This survey is administered by Census 
+Bureau field representatives across the country through both personal and telephone interviews. CPS collects labor force data, such as annual
+work activity and income, veteran status, school enrollment, contingent employment, worker displacement, job tenure, and more. To find out more
+about CPS, please visit the `CPS homepage <https://www.census.gov/programs-surveys/cps.html>`_. 
 
 .. list-table:: **Simulant attributes**
    :header-rows: 1
