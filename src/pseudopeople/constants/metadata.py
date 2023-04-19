@@ -1,5 +1,5 @@
 class DatasetNames:
-    """Container for Form names"""
+    """Container for Dataset names"""
 
     ACS = "american_communities_survey"
     CENSUS = "decennial_census"
