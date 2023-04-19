@@ -20,37 +20,37 @@ the datasets it generates:
 
 Pseudopeople applies the different types of row-based and column-based noise in
 the following order to mimic the data generation process by which a real dataset
-might be corrupted. The final column of the table, "Config Key," is the name of
+might be corrupted. The value in the "Config Key" column is the name of
 the noise type in the configuration used to customize the noise settings.
 
 .. list-table:: Types of noise in order of application
-  :widths: 1 2 5 1
+  :widths: 1 1 2 5
   :header-rows: 1
 
-  * - Order
+  * - Config Key
+    - Order
     - Noise Type
     - Description
-    - Config Key
-  * - ---
+  * - ``row_noise``
+    - ---
     - **Row-based noise**
     - ---
-    - ``row_noise``
-  * - 1
-    - Omit row
+  * - ``omit_row``
+    - 1
+    - Omit a row
     - Omit an entire randomly selected row of data
-    - ``omit_row``
-  * - ---
+  * - ``column_noise``
+    - ---
     - **Column-based noise**
     - ---
-    - ``column_noise``
-  * - 2
-    - Leave blank
-    - Leave a field blank, such as not writing your name on the designated line
-    - ``leave_blank``
-  * - 3
-    - Choose wrong option
-    - Choose the wrong option when there are a fixed number of selections available, such as marking the "Male" box when you meant "Female"
-    - ``choose_wrong_option``
+  * - ``leave_blank``
+    - 2
+    - Leave a field blank
+    - For example, not writing your name on the designated line
+  * - ``choose_wrong_option``
+    - 3
+    - Choose the wrong option (applies only to multiple choice fields)
+    - For example, marking the "Male" box when you meant "Female"
 
 .. todo::
 
