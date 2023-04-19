@@ -5,6 +5,8 @@ from string import ascii_lowercase, ascii_uppercase
 import pandas as pd
 import pytest
 
+from pseudopeople.schema_entities import COLUMNS
+
 HOUSING_TYPES = [
     "Carceral",
     "College",
@@ -127,7 +129,7 @@ def decennial_census_data_path(tmp_path_factory):
                 "Street" + "".join(random.choice(ascii_lowercase) for _ in range(3))
                 for _ in range(num_rows)
             ],
-            "relation_to_household_head": [
+            COLUMNS.relation_to_reference_person: [
                 random.choice(RELATIONS_TO_HOUSEHOLD_HEAD) for _ in range(num_rows)
             ],
             "zipcode": [str(random.randint(1, 99999)).zfill(5) for _ in range(num_rows)],
