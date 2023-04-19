@@ -10,12 +10,12 @@ class DatasetNames:
     WIC = "women_infants_and_children"
 
 
-FORM_NAMES = [
-    FormNames.ACS,
-    FormNames.CENSUS,
-    FormNames.CPS,
-    FormNames.SSA,
-    FormNames.TAXES_1040,
-    FormNames.TAXES_W2_1099,
-    FormNames.WIC,
+DATASET_NAMES = [
+    DatasetNames.ACS,
+    DatasetNames.CENSUS,
+    DatasetNames.CPS,
+    DatasetNames.SSA,
+    DatasetNames.TAXES_1040,
+    DatasetNames.TAXES_W2_1099,
+    DatasetNames.WIC,
 ]

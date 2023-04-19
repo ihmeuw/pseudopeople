@@ -332,7 +332,7 @@ def test_validate_miswrite_zipcode_digit_probabilities_failures(probabilities, m
 
 def test_get_config(caplog):
     user_config = {
-        FORMS.acs.name: {
+        DATASETS.acs.name: {
             Keys.COLUMN_NOISE: {
                 "zipcode": {
                     NOISE_TYPES.missing_data.name: {

@@ -153,9 +153,7 @@ def generate_decennial_census(
     if year:
         year_filter["hdf"] = [f"{DATASETS.census.date_column} == {year}."]
         year_filter["parquet"] = [(DATASETS.census.date_column, "==", year)]
-    return _generate_dataset(
-        DATASETS.census, source, seed, config, year_filter, verbose
-    )
+    return _generate_dataset(DATASETS.census, source, seed, config, year_filter, verbose)
 
 
 def generate_american_communities_survey(
@@ -240,9 +238,7 @@ def generate_taxes_w2_and_1099(
         year_filter["hdf"] = [f"{DATASETS.tax_w2_1099.date_column} == {year}."]
         year_filter["parquet"] = [(DATASETS.tax_w2_1099.date_column, "==", year)]
         seed = seed * 10_000 + year
-    return _generate_dataset(
-        DATASETS.tax_w2_1099, source, seed, config, year_filter, verbose
-    )
+    return _generate_dataset(DATASETS.tax_w2_1099, source, seed, config, year_filter, verbose)
 
 
 def generate_women_infants_and_children(

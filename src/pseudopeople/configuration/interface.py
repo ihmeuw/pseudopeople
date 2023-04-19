@@ -21,7 +21,7 @@ from typing import Dict, Union
 from loguru import logger
 
 from pseudopeople.configuration.generator import get_configuration
-from pseudopeople.constants.metadata import FORM_NAMES
+from pseudopeople.constants.metadata import DATASET_NAMES
 
 
 def get_config(
@@ -36,9 +36,9 @@ def get_config(
 
     config = get_configuration(user_configuration)
     if dataset_name:
-        if dataset_name in FORM_NAMES:
+        if dataset_name in DATASET_NAMES:
             config = config[dataset_name]
-        elif dataset_name not in FORM_NAMES:
+        elif dataset_name not in DATASET_NAMES:
             raise ValueError(
                 f"{dataset_name} provided but is not a valid option for dataset type."
             )
