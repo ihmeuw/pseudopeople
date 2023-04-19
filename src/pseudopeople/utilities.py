@@ -9,8 +9,8 @@ from vivarium.framework.randomness import RandomnessStream, random
 from pseudopeople.constants import paths
 
 
-def get_randomness_stream(form_name: str, seed: int) -> RandomnessStream:
-    return RandomnessStream(form_name, lambda: pd.Timestamp("2020-04-01"), seed)
+def get_randomness_stream(dataset_name: str, seed: int) -> RandomnessStream:
+    return RandomnessStream(dataset_name, lambda: pd.Timestamp("2020-04-01"), seed)
 
 
 def vectorized_choice(
