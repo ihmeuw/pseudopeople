@@ -1,7 +1,7 @@
 class DatasetNames:
     """Container for Dataset names"""
 
-    ACS = "american_communities_survey"
+    ACS = "american_community_survey"
     CENSUS = "decennial_census"
     CPS = "current_population_survey"
     SSA = "social_security"
