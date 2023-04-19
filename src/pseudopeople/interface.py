@@ -1,5 +1,38 @@
+"""
+=========================
+Dataset Noising Interface
+=========================
+
+An interface for users to generate noised datasets.
+
+This module contains the tools required to noise specific ``pseudopeople``
+datasets. Each dataset to be noised has its own `generate_*` function. For
+example, to noise the decennial census dataset we we would use :meth:`generate_decennial_census`.
+
+All dataset-specific noising functions have the same (optional) arguments.
+Notable options include:
+
+    - a `source` path to the root directory of un-noised data and defaults to using ``pseudopeople``'s sample datasets.
+    - a `config` path to a YAML file or a Python dictionary to override the default configuration.
+    - a `year` to subset to and noise and defaults to 2020.
+
+Example
+-------
+To generate noised sample decennial census data for the year 2030 using all
+default noising parameters except for the probability of row omission which
+should be 5%:
+
+::
+
+    >>> import pseudopeople as psp
+
+    >>> override = {"decennial_census": {"row_noise": {"omit_row": {"probability": 0.05}}}}
+    >>> noised_census = psp.generate_decennial_census(config=override, year=2030)
+
+"""
+
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict, List, Union
 
 import pandas as pd
 import pyarrow.parquet as pq
@@ -16,8 +49,8 @@ def _generate_dataset(
     dataset: Dataset,
     source: Union[Path, str],
     seed: int,
-    config: Union[Path, str, dict],
-    year_filter: Dict,
+    config: Union[Path, str, Dict],
+    year_filter: Dict[str, List],
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -92,7 +125,7 @@ def _coerce_dtypes(data: pd.DataFrame, dataset: Dataset):
     return data
 
 
-def _load_data_from_path(data_path: Path, year_filter: Dict):
+def _load_data_from_path(data_path: Path, year_filter: Dict[str, List]):
     """Load data from a data file given a data_path and a year_filter."""
     if data_path.suffix == ".hdf":
         with pd.HDFStore(str(data_path), mode="r") as hdf_store:
@@ -135,14 +168,14 @@ def _extract_columns(columns_to_keep, noised_dataset):
 def generate_decennial_census(
     source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[Path, str, dict] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: int = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
     Generates noised decennial census data from un-noised data.
 
-    :param source: A path to un-noised source census data
+    :param source: The root directory of clean data input which needs to be noised
     :param seed: An integer seed for randomness
     :param config: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
     :param year: The year from the data to noise
@@ -159,14 +192,14 @@ def generate_decennial_census(
 def generate_american_community_survey(
     source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[Path, str, dict] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: int = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
     Generates noised American Community Survey (ACS) data from un-noised data.
 
-    :param source: A path to un-noised source ACS data
+    :param source: The root directory of clean data input which needs to be noised
     :param seed: An integer seed for randomness
     :param config: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
     :param year: The year from the data to noise
@@ -189,14 +222,14 @@ def generate_american_community_survey(
 def generate_current_population_survey(
     source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[Path, str, dict] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: int = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
     Generates noised Current Population Survey (CPS) data from un-noised data.
 
-    :param source: A path to un-noised source CPS data
+    :param source: The root directory of clean data input which needs to be noised
     :param seed: An integer seed for randomness
     :param config: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
     :param year: The year from the data to noise
@@ -219,14 +252,14 @@ def generate_current_population_survey(
 def generate_taxes_w2_and_1099(
     source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[Path, str, dict] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: int = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
     Generates noised W2 and 1099 data from un-noised data.
 
-    :param source: A path to un-noised source W2 and 1099 data
+    :param source: The root directory of clean data input which needs to be noised
     :param seed: An integer seed for randomness
     :param config: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
     :param year: The year from the data to noise
@@ -244,14 +277,14 @@ def generate_taxes_w2_and_1099(
 def generate_women_infants_and_children(
     source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[Path, str, dict] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: int = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
     Generates noised Women Infants and Children (WIC) data from un-noised data.
 
-    :param source: A path to un-noised source WIC data
+    :param source: The root directory of clean data input which needs to be noised
     :param seed: An integer seed for randomness
     :param config: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
     :param year: The year from the data to noise
@@ -269,14 +302,14 @@ def generate_women_infants_and_children(
 def generate_social_security(
     source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[Path, str, dict] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: int = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
     Generates noised Social Security (SSA) data from un-noised data.
 
-    :param source: A path to un-noised source SSA data
+    :param source: The root directory of clean data input which needs to be noised
     :param seed: An integer seed for randomness
     :param config: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
     :param year: The year up to which to noise from the data
