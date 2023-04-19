@@ -3,6 +3,7 @@ import yaml
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
+from pseudopeople.configuration.interface import get_config
 from pseudopeople.configuration.validator import ConfigurationError
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
@@ -327,3 +328,27 @@ def test_validate_miswrite_zipcode_digit_probabilities_failures(probabilities, m
                 },
             },
         )
+
+
+def test_get_config(caplog):
+    user_config = {
+        DATASETS.acs.name: {
+            Keys.COLUMN_NOISE: {
+                "zipcode": {
+                    NOISE_TYPES.missing_data.name: {
+                        Keys.PROBABILITY: 0.25,
+                    },
+                },
+            },
+        },
+    }
+    config_1 = get_config()
+    assert isinstance(config_1, dict)
+    assert not caplog.records
+
+    config_2 = get_config("decennial_census", user_config)
+    assert isinstance(config_2, dict)
+    assert "not in the user provided configuration" in caplog.text
+
+    with pytest.raises(ValueError, match="bad_form_name"):
+        get_config("bad_form_name")

@@ -16,7 +16,7 @@ def _generate_dataset(
     dataset: Dataset,
     source: Union[Path, str],
     seed: int,
-    configuration: Union[Path, str, dict],
+    config: Union[Path, str, dict],
     year_filter: Dict,
     verbose: bool = False,
 ) -> pd.DataFrame:
@@ -29,7 +29,7 @@ def _generate_dataset(
         Root directory of clean data input which needs to be noised
     :param seed:
         Seed for controlling randomness
-    :param configuration:
+    :param config:
         Object to configure noise levels
     :param year_filter:
         Dictionary with keys 'hdf' and 'parquet' and values filter lists
@@ -39,7 +39,7 @@ def _generate_dataset(
         Noised dataset data in a pd.DataFrame
     """
     configure_logging_to_terminal(verbose)
-    configuration_tree = get_configuration(configuration)
+    configuration_tree = get_configuration(config)
     # TODO: we should save outputs of the simulation with filenames that are
     #  consistent with the names of the datasets if possible.
     dataset_file_name = {
@@ -135,7 +135,7 @@ def _extract_columns(columns_to_keep, noised_dataset):
 def generate_decennial_census(
     source: Union[Path, str] = None,
     seed: int = 0,
-    configuration: Union[Path, str, dict] = None,
+    config: Union[Path, str, dict] = None,
     year: int = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
@@ -144,7 +144,7 @@ def generate_decennial_census(
 
     :param source: A path to un-noised source census data
     :param seed: An integer seed for randomness
-    :param configuration: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
+    :param config: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
     :param year: The year from the data to noise
     :param verbose: Log with verbosity if True. Default is False.
     :return: A pd.DataFrame of noised census data
@@ -153,15 +153,13 @@ def generate_decennial_census(
     if year:
         year_filter["hdf"] = [f"{DATASETS.census.date_column} == {year}."]
         year_filter["parquet"] = [(DATASETS.census.date_column, "==", year)]
-    return _generate_dataset(
-        DATASETS.census, source, seed, configuration, year_filter, verbose
-    )
+    return _generate_dataset(DATASETS.census, source, seed, config, year_filter, verbose)
 
 
 def generate_american_community_survey(
     source: Union[Path, str] = None,
     seed: int = 0,
-    configuration: Union[Path, str, dict] = None,
+    config: Union[Path, str, dict] = None,
     year: int = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
@@ -170,7 +168,7 @@ def generate_american_community_survey(
 
     :param source: A path to un-noised source ACS data
     :param seed: An integer seed for randomness
-    :param configuration: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
+    :param config: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
     :param year: The year from the data to noise
     :param verbose: Log with verbosity if True. Default is False.
     :return: A pd.DataFrame of noised ACS data
@@ -185,13 +183,13 @@ def generate_american_community_survey(
             (DATASETS.acs.date_column, "<=", pd.Timestamp(f"{year}-12-31")),
         ]
         seed = seed * 10_000 + year
-    return _generate_dataset(DATASETS.acs, source, seed, configuration, year_filter, verbose)
+    return _generate_dataset(DATASETS.acs, source, seed, config, year_filter, verbose)
 
 
 def generate_current_population_survey(
     source: Union[Path, str] = None,
     seed: int = 0,
-    configuration: Union[Path, str, dict] = None,
+    config: Union[Path, str, dict] = None,
     year: int = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
@@ -200,7 +198,7 @@ def generate_current_population_survey(
 
     :param source: A path to un-noised source CPS data
     :param seed: An integer seed for randomness
-    :param configuration: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
+    :param config: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
     :param year: The year from the data to noise
     :param verbose: Log with verbosity if True. Default is False.
     :return: A pd.DataFrame of noised CPS data
@@ -215,13 +213,13 @@ def generate_current_population_survey(
             (DATASETS.cps.date_column, "<=", pd.Timestamp(f"{year}-12-31")),
         ]
         seed = seed * 10_000 + year
-    return _generate_dataset(DATASETS.cps, source, seed, configuration, year_filter, verbose)
+    return _generate_dataset(DATASETS.cps, source, seed, config, year_filter, verbose)
 
 
 def generate_taxes_w2_and_1099(
     source: Union[Path, str] = None,
     seed: int = 0,
-    configuration: Union[Path, str, dict] = None,
+    config: Union[Path, str, dict] = None,
     year: int = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
@@ -230,7 +228,7 @@ def generate_taxes_w2_and_1099(
 
     :param source: A path to un-noised source W2 and 1099 data
     :param seed: An integer seed for randomness
-    :param configuration: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
+    :param config: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
     :param year: The year from the data to noise
     :param verbose: Log with verbosity if True. Default is False.
     :return: A pd.DataFrame of noised W2 and 1099 data
@@ -240,15 +238,13 @@ def generate_taxes_w2_and_1099(
         year_filter["hdf"] = [f"{DATASETS.tax_w2_1099.date_column} == {year}."]
         year_filter["parquet"] = [(DATASETS.tax_w2_1099.date_column, "==", year)]
         seed = seed * 10_000 + year
-    return _generate_dataset(
-        DATASETS.tax_w2_1099, source, seed, configuration, year_filter, verbose
-    )
+    return _generate_dataset(DATASETS.tax_w2_1099, source, seed, config, year_filter, verbose)
 
 
 def generate_women_infants_and_children(
     source: Union[Path, str] = None,
     seed: int = 0,
-    configuration: Union[Path, str, dict] = None,
+    config: Union[Path, str, dict] = None,
     year: int = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
@@ -257,7 +253,7 @@ def generate_women_infants_and_children(
 
     :param source: A path to un-noised source WIC data
     :param seed: An integer seed for randomness
-    :param configuration: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
+    :param config: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
     :param year: The year from the data to noise
     :param verbose: Log with verbosity if True. Default is False.
     :return: A pd.DataFrame of noised WIC data
@@ -267,13 +263,13 @@ def generate_women_infants_and_children(
         year_filter["hdf"] = [f"{DATASETS.wic.date_column} == {year}."]
         year_filter["parquet"] = [(DATASETS.wic.date_column, "==", year)]
         seed = seed * 10_000 + year
-    return _generate_dataset(DATASETS.wic, source, seed, configuration, year_filter, verbose)
+    return _generate_dataset(DATASETS.wic, source, seed, config, year_filter, verbose)
 
 
 def generate_social_security(
     source: Union[Path, str] = None,
     seed: int = 0,
-    configuration: Union[Path, str, dict] = None,
+    config: Union[Path, str, dict] = None,
     year: int = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
@@ -282,7 +278,7 @@ def generate_social_security(
 
     :param source: A path to un-noised source SSA data
     :param seed: An integer seed for randomness
-    :param configuration: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
+    :param config: (optional) A path to a configuration YAML file or a dictionary to override the default configuration
     :param year: The year up to which to noise from the data
     :param verbose: Log with verbosity if True. Default is False.
     :return: A pd.DataFrame of noised SSA data
@@ -294,4 +290,4 @@ def generate_social_security(
             (DATASETS.ssa.date_column, "<=", pd.Timestamp(f"{year}-12-31"))
         ]
         seed = seed * 10_000 + year
-    return _generate_dataset(DATASETS.ssa, source, seed, configuration, year_filter, verbose)
+    return _generate_dataset(DATASETS.ssa, source, seed, config, year_filter, verbose)

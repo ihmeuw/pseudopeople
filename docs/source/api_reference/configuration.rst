@@ -1,0 +1,1 @@
+.. automodule:: pseudopeople.configuration.interface
