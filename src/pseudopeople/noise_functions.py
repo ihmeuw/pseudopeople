@@ -8,46 +8,57 @@ from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import paths
+from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.utilities import get_index_to_noise, vectorized_choice
 
 
 def omit_rows(
-    form_data: pd.DataFrame,
+    dataset_name: str,
+    dataset_data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
-
-    :param form_data:  pd.DataFrame of one of the form types used in Pseudopeople
+    Function that omits rows from a dataset and returns only the remaining rows.  Note that for the ACS and CPS datasets
+      we need to account for oversampling in the PRL simulation so a helper function has been hadded here to do so.
+    :param dataset_name: Dataset object being noised
+    :param dataset_data:  pd.DataFrame of one of the dataset types used in Pseudopeople
     :param configuration: ConfigTree object containing noise level values
     :param randomness_stream: RandomnessStream object to make random selection for noise
     :return: pd.DataFrame with rows from the original dataframe removed
     """
 
     noise_level = configuration.probability
-    to_noise_idx = get_index_to_noise(
-        form_data, noise_level, randomness_stream, "omission_choice"
+    # Account for ACS and CPS oversampling
+    if dataset_name in [DatasetNames.ACS, DatasetNames.CPS]:
+        noise_level = 0.5 + noise_level / 2
+    # Omit rows
+    to_noise_index = get_index_to_noise(
+        dataset_data,
+        noise_level,
+        randomness_stream,
+        f"{dataset_name}_omit_choice",
     )
-    noised_data = form_data.loc[form_data.index.difference(to_noise_idx)]
+    noised_data = dataset_data.loc[dataset_data.index.difference(to_noise_index)]
 
     return noised_data
 
 
 # def duplicate_rows(
-#     form_data: pd.DataFrame,
+#     dataset_data: pd.DataFrame,
 #     configuration: ConfigTree,
 #     randomness_stream: RandomnessStream,
 # ) -> pd.DataFrame:
 #     """
 
-#     :param form_data:
+#     :param dataset_data:
 #     :param configuration:
 #     :param randomness_stream:
 #     :return:
 #     """
 #     # todo actually duplicate rows
-#     return form_data
+#     return dataset_data
 
 
 def generate_incorrect_selections(
@@ -182,7 +193,7 @@ def miswrite_ages(
     :param additional_key: additional key used for randomness_stream calls
     :return:
     """
-    possible_perturbations = configuration.possible_perturbations.to_dict()
+    possible_perturbations = configuration[Keys.POSSIBLE_AGE_DIFFERENCES].to_dict()
     perturbations = vectorized_choice(
         options=list(possible_perturbations.keys()),
         weights=list(possible_perturbations.values()),
@@ -217,7 +228,7 @@ def miswrite_numerics(
     if column.empty:
         return column
     # This is a fix to not replacing the original token for noise options
-    token_noise_level = configuration.token_noise_level / 0.9
+    token_noise_level = configuration[Keys.TOKEN_PROBABILITY] / 0.9
     rng = np.random.default_rng(randomness_stream.seed)
     column = column.astype(str)
     longest_str = column.str.len().max()
@@ -336,7 +347,7 @@ def generate_typographical_errors(
     with open(paths.QWERTY_ERRORS) as f:
         qwerty_errors = yaml.full_load(f)
 
-    def keyboard_corrupt(truth, corrupted_pr, replace_pr, rng):
+    def keyboard_corrupt(truth, corrupted_pr, addl_pr, rng):
         """For each string, loop through each character and determine if
         it is to be corrupted. If so, uniformly choose from the appropriate
         values to mistype. Also determine which mistyped characters should
@@ -353,7 +364,7 @@ def generate_typographical_errors(
                 if random_number < corrupted_pr:
                     err += rng.choice(qwerty_errors[token])
                     random_number = rng.uniform()
-                    if random_number >= replace_pr:
+                    if random_number < addl_pr:
                         err += token
                     i += 1
                     error_introduced = True
@@ -362,8 +373,9 @@ def generate_typographical_errors(
                 i += 1
         return err
 
-    token_noise_level = configuration.token_noise_level
-    replace_token_probability_level = configuration[Keys.REPLACE_TOKEN_PROBABILITY]
+    token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
+    # TODO: remove this hard-coding
+    include_token_probability_level = 0.1
 
     rng = np.random.default_rng(seed=randomness_stream.seed)
     column = column.astype(str)
@@ -371,7 +383,7 @@ def generate_typographical_errors(
         noised_value = keyboard_corrupt(
             column[idx],
             token_noise_level,
-            replace_token_probability_level,
+            include_token_probability_level,
             rng,
         )
         column[idx] = noised_value

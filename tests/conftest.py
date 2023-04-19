@@ -1,7 +1,6 @@
 import pytest
-import yaml
-
-from pseudopeople.configuration import get_configuration
+from _pytest.logging import LogCaptureFixture
+from loguru import logger
 
 
 def pytest_addoption(parser):
@@ -22,14 +21,14 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(skip_slow)
 
 
-@pytest.fixture(scope="session")
-def user_config_path(tmp_path_factory):
-    """This simply copies the default config file to a temp directory
-    to be used as a user-provided config file in integration tests
-    """
-    config = get_configuration().to_dict()  # gets default config
-    config_path = tmp_path_factory.getbasetemp() / "dummy_config.yaml"
-    with open(config_path, "w") as file:
-        yaml.dump(config, file)
-
-    return config_path
+@pytest.fixture
+def caplog(caplog: LogCaptureFixture):
+    handler_id = logger.add(
+        caplog.handler,
+        format="{message}",
+        level=0,
+        filter=lambda record: record["level"].no >= caplog.handler.level,
+        enqueue=False,  # Set to 'True' if your test is spawning child processes.
+    )
+    yield caplog
+    logger.remove(handler_id)

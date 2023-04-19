@@ -6,31 +6,54 @@ from vivarium.config_tree import ConfigTree
 
 from pseudopeople.configuration import Keys
 from pseudopeople.configuration.validator import validate_user_configuration
-from pseudopeople.schema_entities import FORMS, NOISE_TYPES
+from pseudopeople.noise_entities import NOISE_TYPES
+from pseudopeople.schema_entities import COLUMNS, DATASETS
 
 # Define non-baseline default items
 # NOTE: default values are defined in entity_types.RowNoiseType and entity_types.ColumnNoiseType
 DEFAULT_NOISE_VALUES = {
-    FORMS.census.name: {
+    DATASETS.census.name: {
         Keys.ROW_NOISE: {
             NOISE_TYPES.omission.name: {
                 Keys.PROBABILITY: 0.0145,
             }
         },
     },
-    FORMS.acs.name: {
+    DATASETS.acs.name: {
         Keys.ROW_NOISE: {
             NOISE_TYPES.omission.name: {
                 Keys.PROBABILITY: 0.0145,
             },
         },
     },
-    FORMS.cps.name: {
+    DATASETS.cps.name: {
         Keys.ROW_NOISE: {
             NOISE_TYPES.omission.name: {
                 Keys.PROBABILITY: 0.2905,
             },
         },
+    },
+    DATASETS.tax_w2_1099.name: {
+        Keys.ROW_NOISE: {
+            NOISE_TYPES.omission.name: {
+                Keys.PROBABILITY: 0.005,
+            },
+        },
+    },
+    # No noise of any kind for SSN in the SSA observer
+    DATASETS.ssa.name: {
+        Keys.COLUMN_NOISE: {
+            COLUMNS.ssn.name: {
+                noise_type.name: {
+                    (
+                        Keys.PROBABILITY
+                        if noise_type.probability is not None
+                        else Keys.CELL_PROBABILITY
+                    ): 0.0,
+                }
+                for noise_type in COLUMNS.ssn.noise_types
+            }
+        }
     },
 }
 
@@ -59,14 +82,14 @@ def _generate_default_configuration() -> ConfigTree:
     noising_configuration = ConfigTree(layers=default_config_layers)
     # Instantiate the configuration file with baseline values
     baseline_dict = {}
-    # Loop through each form
-    for form in FORMS:
-        form_dict = {}
+    # Loop through each dataset
+    for dataset in DATASETS:
+        dataset_dict = {}
         row_noise_dict = {}
         column_dict = {}
 
         # Loop through row noise types
-        for row_noise in form.row_noise_types:
+        for row_noise in dataset.row_noise_types:
             row_noise_type_dict = {}
             if row_noise.probability is not None:
                 row_noise_type_dict[Keys.PROBABILITY] = row_noise.probability
@@ -74,33 +97,40 @@ def _generate_default_configuration() -> ConfigTree:
                 row_noise_dict[row_noise.name] = row_noise_type_dict
 
         # Loop through columns and their applicable column noise types
-        for column in form.columns:
+        for column in dataset.columns:
             column_noise_dict = {}
             for noise_type in column.noise_types:
                 column_noise_type_dict = {}
                 if noise_type.probability is not None:
                     column_noise_type_dict[Keys.PROBABILITY] = noise_type.probability
-                if noise_type.token_noise_level is not None:
-                    column_noise_type_dict[
-                        Keys.TOKEN_NOISE_LEVEL
-                    ] = noise_type.token_noise_level
                 if noise_type.additional_parameters is not None:
                     for key, value in noise_type.additional_parameters.items():
                         column_noise_type_dict[key] = value
                 if column_noise_type_dict:
+                    # We should not have both 'probability' and 'cell_probability'
+                    # TODO: move this into a pytest
+                    if (
+                        Keys.PROBABILITY in column_noise_type_dict
+                        and Keys.CELL_PROBABILITY in column_noise_type_dict
+                    ):
+                        raise ValueError(
+                            "'probability' and 'cell_probability' are mutually exclusive "
+                            "but both are found in the default configuration for "
+                            f"dataset '{dataset.name}', column '{column.name}', noise type '{noise_type.name}'"
+                        )
                     column_noise_dict[noise_type.name] = column_noise_type_dict
             if column_noise_dict:
                 column_dict[column.name] = column_noise_dict
 
         # Compile
         if row_noise_dict:
-            form_dict[Keys.ROW_NOISE] = row_noise_dict
+            dataset_dict[Keys.ROW_NOISE] = row_noise_dict
         if column_dict:
-            form_dict[Keys.COLUMN_NOISE] = column_dict
+            dataset_dict[Keys.COLUMN_NOISE] = column_dict
 
-        # Add the form's dictionary to baseline
-        if form_dict:
-            baseline_dict[form.name] = form_dict
+        # Add the dataset's dictionary to baseline
+        if dataset_dict:
+            baseline_dict[dataset.name] = dataset_dict
 
     noising_configuration.update(baseline_dict, layer="baseline")
 
@@ -132,20 +162,20 @@ def _format_user_configuration(default_config: ConfigTree, user_dict: Dict) -> D
 
 def _format_age_miswriting_perturbations(default_config: ConfigTree, user_dict: Dict) -> Dict:
     # Format any age perturbation lists as a dictionary with uniform probabilities
-    for form in user_dict:
+    for dataset in user_dict:
         user_perturbations = (
-            user_dict[form]
+            user_dict[dataset]
             .get(Keys.COLUMN_NOISE, {})
             .get("age", {})
             .get(NOISE_TYPES.age_miswriting.name, {})
-            .get(Keys.AGE_MISWRITING_PERTURBATIONS, {})
+            .get(Keys.POSSIBLE_AGE_DIFFERENCES, {})
         )
         if not user_perturbations:
             continue
         formatted = {}
-        default_perturbations = default_config[form][Keys.COLUMN_NOISE]["age"][
+        default_perturbations = default_config[dataset][Keys.COLUMN_NOISE]["age"][
             NOISE_TYPES.age_miswriting.name
-        ][Keys.AGE_MISWRITING_PERTURBATIONS]
+        ][Keys.POSSIBLE_AGE_DIFFERENCES]
         # Replace default configuration with 0 probabilities
         for perturbation in default_perturbations:
             formatted[perturbation] = 0
@@ -158,8 +188,8 @@ def _format_age_miswriting_perturbations(default_config: ConfigTree, user_dict: 
             for perturbation, prob in user_perturbations.items():
                 formatted[perturbation] = prob
 
-        user_dict[form][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.age_miswriting.name][
-            Keys.AGE_MISWRITING_PERTURBATIONS
+        user_dict[dataset][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.age_miswriting.name][
+            Keys.POSSIBLE_AGE_DIFFERENCES
         ] = formatted
 
     return user_dict

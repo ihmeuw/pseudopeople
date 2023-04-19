@@ -10,16 +10,16 @@ from vivarium.config_tree import ConfigTree
 from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType
 from pseudopeople.interface import (
-    generate_american_communities_survey,
+    generate_american_community_survey,
     generate_current_population_survey,
     generate_decennial_census,
     generate_social_security,
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
-from pseudopeople.noise import noise_form
+from pseudopeople.noise import noise_dataset
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import FORMS
+from pseudopeople.schema_entities import DATASETS
 
 
 @pytest.fixture(scope="module")
@@ -49,7 +49,7 @@ def dummy_config_noise_numbers():
     """
     return ConfigTree(
         {
-            FORMS.census.name: {
+            DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "event_type": {
                         NOISE_TYPES.missing_data.name: {Keys.PROBABILITY: 0.01},
@@ -58,11 +58,11 @@ def dummy_config_noise_numbers():
                         "month_day_swap": {Keys.PROBABILITY: 0.01},
                         NOISE_TYPES.zipcode_miswriting.name: {
                             Keys.PROBABILITY: 0.01,
-                            "zipcode_miswriting": [0.04, 0.04, 0.2, 0.36, 0.36],
+                            Keys.ZIPCODE_DIGIT_PROBABILITIES: [0.04, 0.04, 0.2, 0.36, 0.36],
                         },
                         NOISE_TYPES.age_miswriting.name: {
                             Keys.PROBABILITY: 0.01,
-                            "age_miswriting": [1, -1],
+                            Keys.POSSIBLE_AGE_DIFFERENCES: [1, -1],
                         },
                         NOISE_TYPES.numeric_miswriting.name: {
                             Keys.PROBABILITY: 0.01,
@@ -72,15 +72,15 @@ def dummy_config_noise_numbers():
                         NOISE_TYPES.fake_name.name: {Keys.PROBABILITY: 0.01},
                         "phonetic": {
                             Keys.PROBABILITY: 0.01,
-                            "token_noise_level": 0.1,
+                            Keys.TOKEN_PROBABILITY: 0.1,
                         },
                         "ocr": {
                             Keys.PROBABILITY: 0.01,
-                            "token_noise_level": 0.1,
+                            Keys.TOKEN_PROBABILITY: 0.1,
                         },
                         NOISE_TYPES.typographic.name: {
                             Keys.PROBABILITY: 0.01,
-                            "token_noise_level": 0.1,
+                            Keys.TOKEN_PROBABILITY: 0.1,
                         },
                     },
                 },
@@ -124,8 +124,8 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
             field,
         )
 
-    # FIXME: would be better to mock the form instead of using census
-    noise_form(FORMS.census, dummy_data, dummy_config_noise_numbers, 0)
+    # FIXME: would be better to mock the dataset instead of using census
+    noise_dataset(DATASETS.census, dummy_data, dummy_config_noise_numbers, 0)
 
     call_order = [x[0] for x in mock.mock_calls if not x[0].startswith("__")]
     expected_call_order = [
@@ -155,7 +155,7 @@ def test_columns_noised(dummy_data):
     """
     config = ConfigTree(
         {
-            FORMS.census.name: {
+            DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "event_type": {
                         NOISE_TYPES.missing_data.name: {Keys.PROBABILITY: 0.1},
@@ -165,39 +165,39 @@ def test_columns_noised(dummy_data):
         },
     )
     noised_data = dummy_data.copy()
-    noised_data = noise_form(FORMS.census, noised_data, config, 0)
+    noised_data = noise_dataset(DATASETS.census, noised_data, config, 0)
 
     assert (dummy_data["event_type"] != noised_data["event_type"]).any()
     assert (dummy_data["words"] == noised_data["words"]).all()
 
 
 @pytest.mark.parametrize(
-    "func, form",
+    "func, dataset",
     [
-        (generate_decennial_census, FORMS.census),
-        (generate_american_communities_survey, FORMS.acs),
-        (generate_current_population_survey, FORMS.cps),
-        (generate_women_infants_and_children, FORMS.wic),
-        (generate_social_security, FORMS.ssa),
-        (generate_taxes_w2_and_1099, FORMS.tax_w2_1099),
-        ("todo", "FORMS.tax_1040"),
+        (generate_decennial_census, DATASETS.census),
+        (generate_american_community_survey, DATASETS.acs),
+        (generate_current_population_survey, DATASETS.cps),
+        (generate_women_infants_and_children, DATASETS.wic),
+        (generate_social_security, DATASETS.ssa),
+        (generate_taxes_w2_and_1099, DATASETS.tax_w2_1099),
+        ("todo", "DATASETS.tax_1040"),
     ],
 )
-def test_correct_forms_are_used(func, form, mocker):
-    """Test that each interface noise function uses the correct form"""
+def test_correct_datasets_are_used(func, dataset, mocker):
+    """Test that each interface noise function uses the correct dataset"""
     if func == "todo":
-        pytest.skip(reason=f"TODO: implement function for form {form}")
-    mock = mocker.patch("pseudopeople.interface._generate_form")
+        pytest.skip(reason=f"TODO: implement function for dataset {dataset}")
+    mock = mocker.patch("pseudopeople.interface._generate_dataset")
     _ = func()
 
-    assert mock.call_args[0][0] == form
+    assert mock.call_args[0][0] == dataset
 
 
 def test_two_noise_functions_are_independent(mocker):
     # Make simple config tree to test 2 noise functions work together
     config_tree = ConfigTree(
         {
-            "decennial_census": {
+            DATASETS.census.name: {
                 "column_noise": {
                     "fake_column_one": {
                         "alpha": {Keys.PROBABILITY: 0.20},
@@ -225,16 +225,16 @@ def test_two_noise_functions_are_independent(mocker):
     mock_noise_types = MockNoiseTypes()
 
     mocker.patch("pseudopeople.noise.NOISE_TYPES", mock_noise_types)
-    dummy_form = pd.DataFrame(
+    dummy_dataset = pd.DataFrame(
         {
             "fake_column_one": ["cat", "dog", "bird", "bunny", "duck"] * 20_000,
             "fake_column_two": ["shoe", "pants", "shirt", "hat", "sunglasses"] * 20_000,
         }
     )
 
-    noised_data = noise_form(
-        form=FORMS.census,
-        form_data=dummy_form,
+    noised_data = noise_dataset(
+        dataset=DATASETS.census,
+        dataset_data=dummy_dataset,
         seed=0,
         configuration=config_tree,
     )
