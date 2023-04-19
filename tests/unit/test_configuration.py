@@ -1,10 +1,9 @@
-from pathlib import Path
-
 import pytest
 import yaml
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
+from pseudopeople.configuration.validator import ConfigurationError
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, FORMS
 
@@ -224,20 +223,52 @@ def test_format_miswrite_ages(user_config, expected):
     ],
 )
 def test_overriding_nonexistent_keys_fails(config, match):
-    with pytest.raises(ValueError, match=match):
+    with pytest.raises(ConfigurationError, match=match):
         get_configuration(config)
 
 
 @pytest.mark.parametrize(
-    "perturbations, error, match",
+    "value, match",
     [
-        (-1, TypeError, "Invalid configuration type"),
-        ([-1, 0.4, 1], TypeError, "must be ints"),
-        ({-1: 0.5, 0.4: 0.2, 1: 0.3}, TypeError, "must be ints"),
-        ([-1, 0, 1], ValueError, "Cannot include 0"),
-        ({-1: 0.5, 4: 0.2, 0: 0.3}, ValueError, "Cannot include 0"),
-        ({-1: 0.1, 1: 1}, TypeError, "must be floats"),
-        ({-1: 0.1, 1: 0.8}, ValueError, "must sum to 1"),
+        ("a", "must be floats or ints"),
+        (-0.01, "must be between 0 and 1"),
+        (1.01, "must be between 0 and 1"),
+    ],
+)
+def test_validate_standard_parameters_failures(value, match):
+    """Test that a runtime error is thrown if a user provides bad standard
+    probability values
+
+    NOTE: This also includes cell_probability values and technically any
+    other values not provided a unique validation function.
+    """
+    with pytest.raises(ConfigurationError, match=match):
+        get_configuration(
+            {
+                FORMS.census.name: {
+                    Keys.COLUMN_NOISE: {
+                        COLUMNS.age.name: {
+                            NOISE_TYPES.age_miswriting.name: {
+                                Keys.PROBABILITY: value,
+                            },
+                        },
+                    },
+                },
+            },
+        )
+
+
+@pytest.mark.parametrize(
+    "perturbations, match",
+    [
+        (-1, "must be a Dict or List"),
+        ([-1, 0.4, 1], "must be a List of ints"),
+        ({-1: 0.5, 0.4: 0.2, 1: 0.3}, "must be a List of ints"),
+        ([-1, 0, 1], "cannot include 0"),
+        ({-1: 0.5, 4: 0.2, 0: 0.3}, "cannot include 0"),
+        ({-1: 0.1, 1: 0.8}, "must sum to 1"),
+        ({-1: 0.1, 1: "a"}, "must be floats or ints"),
+        ({-1: -0.2, 1: 1.2}, "must be between 0 and 1"),
     ],
     ids=[
         "bad type",
@@ -245,13 +276,14 @@ def test_overriding_nonexistent_keys_fails(config, match):
         "non-int keys dict",
         "include 0 list",
         "include 0 dict",
-        "non-float values",
         "not sum to 1",
+        "non-float values",
+        "out of range",
     ],
 )
-def test_validate_miswrite_ages_failures(perturbations, error, match):
-    """Test that a runtime error is thrown if the user includes 0 as a possible perturbation"""
-    with pytest.raises(error, match=match):
+def test_validate_miswrite_ages_failures(perturbations, match):
+    """Test that a runtime error is thrown if the user provides bad possible_age_differences"""
+    with pytest.raises(ConfigurationError, match=match):
         get_configuration(
             {
                 FORMS.census.name: {
@@ -260,6 +292,35 @@ def test_validate_miswrite_ages_failures(perturbations, error, match):
                             NOISE_TYPES.age_miswriting.name: {
                                 Keys.PROBABILITY: 1,
                                 Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
+                            },
+                        },
+                    },
+                },
+            },
+        )
+
+
+@pytest.mark.parametrize(
+    "probabilities, match",
+    [
+        (0.2, "must be a List"),
+        ([0.5, 0.5, 0.5, 0.5], "must be a List of 5"),
+        ([0.2, 0.2, "foo", 0.2, 0.2], "must be floats or ints"),
+        ([-0.1, 0.2, 0.2, 0.2, 0.2], "must be between 0 and 1"),
+        ([1.01, 0.2, 0.2, 0.2, 0.2], "must be between 0 and 1"),
+    ],
+)
+def test_validate_miswrite_zipcode_digit_probabilities_failures(probabilities, match):
+    """Test that a runtime error is thrown if the user provides bad zipcode_digit_probabilities"""
+    with pytest.raises(ConfigurationError, match=match):
+        get_configuration(
+            {
+                FORMS.census.name: {
+                    Keys.COLUMN_NOISE: {
+                        COLUMNS.zipcode.name: {
+                            NOISE_TYPES.zipcode_miswriting.name: {
+                                Keys.CELL_PROBABILITY: 1,
+                                Keys.ZIPCODE_DIGIT_PROBABILITIES: probabilities,
                             },
                         },
                     },
