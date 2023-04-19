@@ -10,8 +10,8 @@
    :backlinks: none
 
 In order to have a realistic challenge with entity resolution, it is essential
-to have noise added to the data. Pseudopeople can add two broad categories of
-noise to the datasets it generates:
+to add noise to the data. Pseudopeople can add two broad categories of noise to
+the datasets it generates:
 
 #. **Row-based noise:** Errors in the inclusion or exclusion of entire rows of
    data, such as duplication or omission
@@ -52,3 +52,7 @@ datasets.
     - Choose wrong option
     - Choose the wrong option when there are a fixed number of selections available, such as marking the "Male" box when you meant "Female"
     - ``choose_wrong_option``
+
+.. todo::
+
+  Fill in the remaining noise functions in the above table.
