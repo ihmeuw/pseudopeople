@@ -8,3 +8,14 @@ class DatasetNames:
     TAXES_1040 = "taxes_1040"
     TAXES_W2_1099 = "taxes_w2_and_1099"
     WIC = "women_infants_and_children"
+
+
+FORM_NAMES = [
+    FormNames.ACS,
+    FormNames.CENSUS,
+    FormNames.CPS,
+    FormNames.SSA,
+    FormNames.TAXES_1040,
+    FormNames.TAXES_W2_1099,
+    FormNames.WIC,
+]

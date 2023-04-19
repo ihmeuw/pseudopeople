@@ -1,1 +1,1 @@
-.. automodule:: pseudopeople.config
+.. automodule:: pseudopeople.configuration.interface
