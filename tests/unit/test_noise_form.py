@@ -10,7 +10,7 @@ from vivarium.config_tree import ConfigTree
 from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType
 from pseudopeople.interface import (
-    generate_american_communities_survey,
+    generate_american_community_survey,
     generate_current_population_survey,
     generate_decennial_census,
     generate_social_security,
@@ -175,7 +175,7 @@ def test_columns_noised(dummy_data):
     "func, dataset",
     [
         (generate_decennial_census, DATASETS.census),
-        (generate_american_communities_survey, DATASETS.acs),
+        (generate_american_community_survey, DATASETS.acs),
         (generate_current_population_survey, DATASETS.cps),
         (generate_women_infants_and_children, DATASETS.wic),
         (generate_social_security, DATASETS.ssa),
@@ -197,7 +197,7 @@ def test_two_noise_functions_are_independent(mocker):
     # Make simple config tree to test 2 noise functions work together
     config_tree = ConfigTree(
         {
-            "decennial_census": {
+            DATASETS.census.name: {
                 "column_noise": {
                     "fake_column_one": {
                         "alpha": {Keys.PROBABILITY: 0.20},

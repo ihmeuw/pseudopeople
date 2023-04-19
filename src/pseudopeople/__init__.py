@@ -9,7 +9,7 @@ from pseudopeople.__about__ import (
     __version__,
 )
 from pseudopeople.interface import (
-    generate_american_communities_survey,
+    generate_american_community_survey,
     generate_current_population_survey,
     generate_decennial_census,
     generate_social_security,
