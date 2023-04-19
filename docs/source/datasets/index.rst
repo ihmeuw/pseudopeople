@@ -172,7 +172,7 @@ about CPS, please visit the `CPS homepage <https://www.census.gov/programs-surve
 
 WIC
 ---
-The Special Supplemental Nurtrition Program for Women, Infants, and Children (WIC) is a government benefits program designed to support mothers and young
+The Special Supplemental Nutrition Program for Women, Infants, and Children (WIC) is a government benefits program designed to support mothers and young
 children. The main qualifications are income and the presence of young children in the home. To find out more about this service, please visit the `WIC 
 homepage <https://www.fns.usda.gov/wic>`_.
 
