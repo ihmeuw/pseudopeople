@@ -7,7 +7,7 @@ from vivarium.config_tree import ConfigTree
 from pseudopeople.configuration import Keys
 from pseudopeople.configuration.validator import validate_user_configuration
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import DATASETS
+from pseudopeople.schema_entities import COLUMNS, DATASETS
 
 # Define non-baseline default items
 # NOTE: default values are defined in entity_types.RowNoiseType and entity_types.ColumnNoiseType
@@ -32,6 +32,28 @@ DEFAULT_NOISE_VALUES = {
                 Keys.PROBABILITY: 0.2905,
             },
         },
+    },
+    DATASETS.tax_w2_1099.name: {
+        Keys.ROW_NOISE: {
+            NOISE_TYPES.omission.name: {
+                Keys.PROBABILITY: 0.005,
+            },
+        },
+    },
+    # No noise of any kind for SSN in the SSA observer
+    DATASETS.ssa.name: {
+        Keys.COLUMN_NOISE: {
+            COLUMNS.ssn.name: {
+                noise_type.name: {
+                    (
+                        Keys.PROBABILITY
+                        if noise_type.probability is not None
+                        else Keys.CELL_PROBABILITY
+                    ): 0.0,
+                }
+                for noise_type in COLUMNS.ssn.noise_types
+            }
+        }
     },
 }
 
