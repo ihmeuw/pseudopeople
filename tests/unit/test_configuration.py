@@ -348,7 +348,7 @@ def test_get_config(caplog):
 
     config_2 = get_config("decennial_census", user_config)
     assert isinstance(config_2, dict)
-    assert len(caplog.records) == 1
+    assert "not in the user provided configuration" in caplog.text
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="bad_form_name"):
         get_config("bad_form_name")
