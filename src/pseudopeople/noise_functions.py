@@ -374,7 +374,8 @@ def generate_typographical_errors(
         return err
 
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
-    include_token_probability_level = configuration[Keys.INCLUDE_ORIGINAL_TOKEN_PROBABILITY]
+    # TODO: remove this hard-coding
+    include_token_probability_level = 0.1
 
     rng = np.random.default_rng(seed=randomness_stream.seed)
     column = column.astype(str)

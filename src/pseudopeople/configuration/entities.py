@@ -6,6 +6,5 @@ class Keys:
     PROBABILITY = "probability"
     CELL_PROBABILITY = "cell_probability"
     TOKEN_PROBABILITY = "token_probability"
-    INCLUDE_ORIGINAL_TOKEN_PROBABILITY = "include_original_token_probability"
     POSSIBLE_AGE_DIFFERENCES = "possible_age_differences"
     ZIPCODE_DIGIT_PROBABILITIES = "digit_probabilities"

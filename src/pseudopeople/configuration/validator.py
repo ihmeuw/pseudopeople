@@ -5,7 +5,6 @@ import numpy as np
 from vivarium.config_tree import ConfigTree, ConfigurationKeyError
 
 from pseudopeople.configuration import Keys
-from pseudopeople.noise_entities import NOISE_TYPES
 
 
 @dataclass
@@ -65,7 +64,7 @@ def _validate_noise_type_config(
         parameter_config_validator = {
             Keys.POSSIBLE_AGE_DIFFERENCES: _validate_possible_age_differences,
             Keys.ZIPCODE_DIGIT_PROBABILITIES: _validate_zipcode_digit_probabilities,
-        }.get(parameter, _validate_standard_parameters)
+        }.get(parameter, _validate_probability)
 
         _ = _get_default_config_node(
             default_noise_type_config, parameter, "parameter", form, column, noise_type
@@ -160,10 +159,10 @@ def _validate_zipcode_digit_probabilities(
             f"{len(noise_type_config)} probabilities ({noise_type_config})."
         )
     for value in noise_type_config:
-        _validate_standard_parameters(value, parameter, base_error_message)
+        _validate_probability(value, parameter, base_error_message)
 
 
-def _validate_standard_parameters(
+def _validate_probability(
     noise_type_config: Union[int, float], parameter: str, base_error_message: str
 ) -> None:
     if not isinstance(noise_type_config, (float, int)):
