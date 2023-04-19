@@ -13,7 +13,7 @@ All dataset-specific noising functions have the same (optional) arguments.
 Notable options include:
 
     - a `source` path to the root directory of un-noised data and defaults to using ``pseudopeople``'s sample datasets.
-    - a `configuration` path to a configuration YAML file or a Python dictionary to override the default configuration.
+    - a `config` path to a YAML file or a Python dictionary to override the default configuration.
     - a `year` to subset to and noise and defaults to 2020.
 
 Example
@@ -27,7 +27,7 @@ should be 5%:
     >>> import pseudopeople as psp
 
     >>> override = {"decennial_census": {"row_noise": {"omit_row": {"probability": 0.05}}}}
-    >>> noised_census = psp.generate_decennial_census(configuration=override, year=2030)
+    >>> noised_census = psp.generate_decennial_census(config=override, year=2030)
 
 """
 
@@ -49,7 +49,7 @@ def _generate_dataset(
     dataset: Dataset,
     source: Union[Path, str],
     seed: int,
-    config: Union[Path, str, dict],
+    config: Union[Path, str, Dict],
     year_filter: Dict[str, List],
     verbose: bool = False,
 ) -> pd.DataFrame:
@@ -168,7 +168,7 @@ def _extract_columns(columns_to_keep, noised_dataset):
 def generate_decennial_census(
     source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[Path, str, Dict[str, dict]] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: int = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
@@ -192,7 +192,7 @@ def generate_decennial_census(
 def generate_american_community_survey(
     source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[Path, str, Dict[str, dict]] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: int = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
@@ -222,7 +222,7 @@ def generate_american_community_survey(
 def generate_current_population_survey(
     source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[Path, str, Dict[str, dict]] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: int = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
@@ -252,7 +252,7 @@ def generate_current_population_survey(
 def generate_taxes_w2_and_1099(
     source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[Path, str, Dict[str, dict]] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: int = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
@@ -277,7 +277,7 @@ def generate_taxes_w2_and_1099(
 def generate_women_infants_and_children(
     source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[Path, str, Dict[str, dict]] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: int = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
@@ -302,7 +302,7 @@ def generate_women_infants_and_children(
 def generate_social_security(
     source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[Path, str, Dict[str, dict]] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: int = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:

@@ -35,7 +35,7 @@ def get_config(dataset_name: str = None, user_config: Union[Path, str, Dict] = N
         argument returns the configuration for this specific form and no other forms
         in the configuration. Possible dataset names include:
 
-            - "american_communities_survey"
+            - "american_community_survey"
             - "decennial_census"
             - "current_population_survey"
             - "social_security"
