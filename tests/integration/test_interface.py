@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from pseudopeople.constants import paths
+from pseudopeople.constants import metadata, paths
 from pseudopeople.interface import (
     generate_american_community_survey,
     generate_current_population_survey,
@@ -22,20 +22,20 @@ DATA_COLUMNS = ["year", "event_date", "survey_date", "tax_year"]
 @pytest.mark.parametrize(
     "data_dir_name, noising_function, use_sample_data",
     [
-        ("decennial_census_observer", generate_decennial_census, True),
-        ("decennial_census_observer", generate_decennial_census, False),
-        ("household_survey_observer_acs", generate_american_community_survey, True),
-        ("household_survey_observer_acs", generate_american_community_survey, False),
-        ("household_survey_observer_cps", generate_current_population_survey, True),
-        ("household_survey_observer_cps", generate_current_population_survey, False),
-        ("social_security_observer", generate_social_security, True),
-        ("social_security_observer", generate_social_security, False),
-        ("tax_w2_observer", generate_taxes_w2_and_1099, True),
-        ("tax_w2_observer", generate_taxes_w2_and_1099, False),
-        ("wic_observer", generate_women_infants_and_children, True),
-        ("wic_observer", generate_women_infants_and_children, False),
-        ("tax 1040", "todo", True),
-        ("tax 1040", "todo", False),
+        (metadata.DatasetNames.CENSUS, generate_decennial_census, True),
+        (metadata.DatasetNames.CENSUS, generate_decennial_census, False),
+        (metadata.DatasetNames.ACS, generate_american_community_survey, True),
+        (metadata.DatasetNames.ACS, generate_american_community_survey, False),
+        (metadata.DatasetNames.CPS, generate_current_population_survey, True),
+        (metadata.DatasetNames.CPS, generate_current_population_survey, False),
+        (metadata.DatasetNames.SSA, generate_social_security, True),
+        (metadata.DatasetNames.SSA, generate_social_security, False),
+        (metadata.DatasetNames.TAXES_W2_1099, generate_taxes_w2_and_1099, True),
+        (metadata.DatasetNames.TAXES_W2_1099, generate_taxes_w2_and_1099, False),
+        (metadata.DatasetNames.WIC, generate_women_infants_and_children, True),
+        (metadata.DatasetNames.WIC, generate_women_infants_and_children, False),
+        (metadata.DatasetNames.TAXES_1040, "todo", True),
+        (metadata.DatasetNames.TAXES_1040, "todo", False),
     ],
 )
 def test_generate_dataset(
@@ -125,13 +125,13 @@ def _generate_non_default_data_root(data_dir_name, tmpdir, sample_data_path, dat
 @pytest.mark.parametrize(
     "data_dir_name, noising_function",
     [
-        ("decennial_census_observer", generate_decennial_census),
-        ("household_survey_observer_acs", generate_american_community_survey),
-        ("household_survey_observer_cps", generate_current_population_survey),
-        ("social_security_observer", generate_social_security),
-        ("tax_w2_observer", generate_taxes_w2_and_1099),
-        ("wic_observer", generate_women_infants_and_children),
-        ("tax 1040", "todo"),
+        (metadata.DatasetNames.CENSUS, generate_decennial_census),
+        (metadata.DatasetNames.ACS, generate_american_community_survey),
+        (metadata.DatasetNames.CPS, generate_current_population_survey),
+        (metadata.DatasetNames.SSA, generate_social_security),
+        (metadata.DatasetNames.TAXES_W2_1099, generate_taxes_w2_and_1099),
+        (metadata.DatasetNames.WIC, generate_women_infants_and_children),
+        (metadata.DatasetNames.TAXES_1040, "todo"),
     ],
 )
 def test_generate_dataset_with_year(data_dir_name: str, noising_function: Callable):
@@ -157,10 +157,10 @@ def _mock_extract_columns(columns_to_keep, noised_dataset):
 @pytest.mark.parametrize(
     "data_dir_name, noising_function, date_column",
     [
-        ("decennial_census_observer", generate_decennial_census, DATASETS.census.date_column),
-        ("tax_w2_observer", generate_taxes_w2_and_1099, DATASETS.tax_w2_1099.date_column),
-        ("wic_observer", generate_women_infants_and_children, DATASETS.wic.date_column),
-        ("tax 1040", "todo", "todo"),
+        (metadata.DatasetNames.CENSUS, generate_decennial_census, DATASETS.census.date_column),
+        (metadata.DatasetNames.TAXES_W2_1099, generate_taxes_w2_and_1099, DATASETS.tax_w2_1099.date_column),
+        (metadata.DatasetNames.WIC, generate_women_infants_and_children, DATASETS.wic.date_column),
+        (metadata.DatasetNames.TAXES_1040, "todo", "todo"),
     ],
 )
 def test_dataset_filter_by_year(
@@ -189,9 +189,9 @@ def _mock_noise_dataset(
 @pytest.mark.parametrize(
     "data_dir_name, noising_function, dataset",
     [
-        ("household_survey_observer_acs", generate_american_community_survey, DATASETS.acs),
-        ("household_survey_observer_cps", generate_current_population_survey, DATASETS.cps),
-        ("social_security_observer", generate_social_security, DATASETS.ssa),
+        (metadata.DatasetNames.ACS, generate_american_community_survey, DATASETS.acs),
+        (metadata.DatasetNames.CPS, generate_current_population_survey, DATASETS.cps),
+        (metadata.DatasetNames.SSA, generate_social_security, DATASETS.ssa),
     ],
 )
 def test_dataset_filter_by_year_with_full_dates(
