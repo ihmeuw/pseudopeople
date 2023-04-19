@@ -11,10 +11,10 @@ values.
 
 ::
 
-    $ import pseudopeople as pp
-    $ pp.get_config("decennial_census")
+    $ import pseudopeople as psp
+    $ psp.get_config("decennial_census")
     $ user_config = {"decennial_census": {"row_noise": {"probability": {"omit_rows": 0.1},},},}
-    $ pp.get_config("decennial_census", user_config)
+    $ psp.get_config("decennial_census", user_config)
 
 """
 
