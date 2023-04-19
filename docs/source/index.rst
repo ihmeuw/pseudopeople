@@ -39,8 +39,8 @@ Then, generate a small-scale simulated decennial census:
 
 ::
 
-   >>> import pseudopeople as pp
-   >>> census = pp.generate_decennial_census()
+   >>> import pseudopeople as psp
+   >>> census = psp.generate_decennial_census()
    >>> census
         simulant_id first_name middle_initial  last_name age date_of_birth street_number           street_name unit_number     city state zipcode relation_to_household_head     sex race_ethnicity
    0            0_2    Melanie              L     Herrod  26    08/05/1993         10233  north burgher avenue              Anytown    US   00000           Reference person  Female          White
@@ -61,7 +61,7 @@ And W-2 and 1099 tax forms from the same fake population:
 
 ::
 
-   >>> taxes = pp.generate_taxes_w2_and_1099()
+   >>> taxes = psp.generate_taxes_w2_and_1099()
    >>> taxes
         simulant_id first_name middle_initial  last_name age date_of_birth mailing_address_street_number  ... employer_street_number employer_street_name employer_unit_number employer_city employer_state employer_zipcode tax_form
    0            0_4    Michael              M      Ticas  37    03/13/1983                          1312  ...                      e              ince dr                            Anytown             US            00000       W2
