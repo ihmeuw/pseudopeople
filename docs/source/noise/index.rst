@@ -9,6 +9,9 @@
    :local:
    :backlinks: none
 
+Categories of Noise
+-------------------
+
 In order to have a realistic challenge with entity resolution, it is essential
 to add noise to the data. Pseudopeople can add two broad categories of noise to
 the datasets it generates:
@@ -31,13 +34,22 @@ Pseudopeople has a configuration system to specify which types of noise are
 applied to each dataset, which columns each type of column-based noise is
 applied to, and any additional parameters needed by the noise functions.
 Pseudopeople comes with a default configuration for the provided datasets, and
-the defaults can be overridden by the user (see the Configuration section for
-details).
+the defaults can be overridden by the user. See the Configuration section for
+details.
+
+.. todo::
+
+  Add link to Configuration section once it exists.
+
+Available Noise Types
+---------------------
 
 Pseudopeople applies the different types of row-based and column-based noise in
 the following order to mimic the data generation process by which a real dataset
-might be corrupted. The "Config Key" column shows the name of the noise type in
-the configuration used to customize the noise settings.
+might be corrupted. The table lists all the available noise types, but not every
+type of noise will necessarily be applied to every dataset or every column. The
+configuration determines which noise types are actually used. The "Config Key"
+column shows the name of the noise type in the configuration.
 
 .. list-table:: Types of noise in order of application
   :widths: 1 2 5 1
@@ -61,11 +73,11 @@ the configuration used to customize the noise settings.
     - ---
   * - ``leave_blank``
     - Leave a field blank
-    - For example, forget to write your name on the designated line
+    - For example, forgetting to write your name on the designated line
     - 2
   * - ``choose_wrong_option``
     - Choose the wrong option from a fixed set of options
-    - For example, mark the "Male" box when you meant "Female"
+    - For example, marking the "Male" box when you meant "Female"
     - 3
 
 .. todo::
