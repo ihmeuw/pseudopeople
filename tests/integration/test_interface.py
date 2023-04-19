@@ -6,7 +6,7 @@ import pytest
 
 from pseudopeople.constants import paths
 from pseudopeople.interface import (
-    generate_american_communities_survey,
+    generate_american_community_survey,
     generate_current_population_survey,
     generate_decennial_census,
     generate_social_security,
@@ -24,8 +24,8 @@ DATA_COLUMNS = ["year", "event_date", "survey_date", "tax_year"]
     [
         ("decennial_census_observer", generate_decennial_census, True),
         ("decennial_census_observer", generate_decennial_census, False),
-        ("household_survey_observer_acs", generate_american_communities_survey, True),
-        ("household_survey_observer_acs", generate_american_communities_survey, False),
+        ("household_survey_observer_acs", generate_american_community_survey, True),
+        ("household_survey_observer_acs", generate_american_community_survey, False),
         ("household_survey_observer_cps", generate_current_population_survey, True),
         ("household_survey_observer_cps", generate_current_population_survey, False),
         ("social_security_observer", generate_social_security, True),
@@ -126,7 +126,7 @@ def _generate_non_default_data_root(data_dir_name, tmpdir, sample_data_path, dat
     "data_dir_name, noising_function",
     [
         ("decennial_census_observer", generate_decennial_census),
-        ("household_survey_observer_acs", generate_american_communities_survey),
+        ("household_survey_observer_acs", generate_american_community_survey),
         ("household_survey_observer_cps", generate_current_population_survey),
         ("social_security_observer", generate_social_security),
         ("tax_w2_observer", generate_taxes_w2_and_1099),
@@ -189,7 +189,7 @@ def _mock_noise_dataset(
 @pytest.mark.parametrize(
     "data_dir_name, noising_function, dataset",
     [
-        ("household_survey_observer_acs", generate_american_communities_survey, DATASETS.acs),
+        ("household_survey_observer_acs", generate_american_community_survey, DATASETS.acs),
         ("household_survey_observer_cps", generate_current_population_survey, DATASETS.cps),
         ("social_security_observer", generate_social_security, DATASETS.ssa),
     ],

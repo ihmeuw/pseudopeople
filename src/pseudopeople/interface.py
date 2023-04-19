@@ -156,7 +156,7 @@ def generate_decennial_census(
     return _generate_dataset(DATASETS.census, source, seed, config, year_filter, verbose)
 
 
-def generate_american_communities_survey(
+def generate_american_community_survey(
     source: Union[Path, str] = None,
     seed: int = 0,
     config: Union[Path, str, dict] = None,
@@ -164,7 +164,7 @@ def generate_american_communities_survey(
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
-    Generates noised American Communities Survey (ACS) data from un-noised data.
+    Generates noised American Community Survey (ACS) data from un-noised data.
 
     :param source: A path to un-noised source ACS data
     :param seed: An integer seed for randomness
