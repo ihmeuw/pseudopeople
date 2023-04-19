@@ -30,25 +30,3 @@ body:
       placeholder: e.g. 0.5.1
     validations:
       required: true
-
-  - type: markdown
-    attributes:
-      value: |
-        # Before Submitting
-
-  - type: checkboxes
-    attributes:
-      label: Have you tried this on the latest `main` branch?
-      description: |
-        * **Python**: `pip install pseudopeople --upgrade --pre`
-
-      options:
-        - label: I agree
-          required: true
-
-  - type: checkboxes
-    attributes:
-      label: Have you tried the steps to reproduce? Do they include all relevant data and configuration? Does the issue you report still appear there?
-      options:
-        - label: I agree
-          required: true
