@@ -39,7 +39,7 @@ class __NoiseTypes(NamedTuple):
         noise_functions.miswrite_zipcodes,
         probability=None,
         additional_parameters={
-            Keys.CELL_PROBABILITY: 0.015,
+            Keys.CELL_PROBABILITY: 0.01,
             Keys.ZIPCODE_DIGIT_PROBABILITIES: [0.04, 0.04, 0.20, 0.36, 0.36],
         },
     )
@@ -55,7 +55,7 @@ class __NoiseTypes(NamedTuple):
         noise_functions.miswrite_numerics,
         probability=None,
         additional_parameters={
-            Keys.CELL_PROBABILITY: 0.015,
+            Keys.CELL_PROBABILITY: 0.01,
             Keys.TOKEN_PROBABILITY: 0.1,
         },
     )
@@ -72,7 +72,7 @@ class __NoiseTypes(NamedTuple):
     #     noise_functions.generate_phonetic_errors,
     #     probability=None,
     #     additional_parameters={
-    #         Keys.CELL_PROBABILITY: 0.015,
+    #         Keys.CELL_PROBABILITY: 0.01,
     #         Keys.TOKEN_PROBABILITY: 0.1,
     #     },
     # )
@@ -81,7 +81,7 @@ class __NoiseTypes(NamedTuple):
     #     noise_functions.generate_ocr_errors,
     #     probability=None,
     #     additional_parameters={
-    #         Keys.CELL_PROBABILITY: 0.015,
+    #         Keys.CELL_PROBABILITY: 0.01,
     #         Keys.TOKEN_PROBABILITY: 0.1,
     #     },
     # )
@@ -90,7 +90,7 @@ class __NoiseTypes(NamedTuple):
         noise_functions.generate_typographical_errors,
         probability=None,
         additional_parameters={  # TODO: need to clarify these
-            Keys.CELL_PROBABILITY: 0.015,
+            Keys.CELL_PROBABILITY: 0.01,
             Keys.TOKEN_PROBABILITY: 0.1,
             Keys.INCLUDE_ORIGINAL_TOKEN_PROBABILITY: 0.1,
         },
