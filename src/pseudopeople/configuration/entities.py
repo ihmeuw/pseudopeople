@@ -1,8 +1,8 @@
 class Keys:
-    """Container for all non-form standard/repeated key names used in the configuration file"""
+    """Container for all non-dataset standard/repeated key names used in the configuration file"""
 
-    ROW_NOISE = "row_noise"  # second layer, eg <form>: row_noise: {...}
-    COLUMN_NOISE = "column_noise"  # second layer, eg <form>: column_noise: {...}
+    ROW_NOISE = "row_noise"  # second layer, eg <dataset>: row_noise: {...}
+    COLUMN_NOISE = "column_noise"  # second layer, eg <dataset>: column_noise: {...}
     PROBABILITY = "probability"
     CELL_PROBABILITY = "cell_probability"
     TOKEN_PROBABILITY = "token_probability"

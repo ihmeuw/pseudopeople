@@ -9,7 +9,7 @@ from vivarium.framework.randomness import RandomnessStream
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import FORMS
+from pseudopeople.schema_entities import DATASETS
 
 RANDOMNESS0 = RandomnessStream(
     key="test_column_noise", clock=lambda: pd.Timestamp("2020-09-01"), seed=0
@@ -112,12 +112,12 @@ def string_series():
 
 
 def test_generate_missing_data(dummy_dataset):
-    config = get_configuration()[FORMS.census.name][Keys.COLUMN_NOISE]["zipcode"][
+    config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE]["zipcode"][
         NOISE_TYPES.missing_data.name
     ]
     config.update(
         {
-            FORMS.census.name: {
+            DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "zipcode": {
                         NOISE_TYPES.missing_data.name: {
@@ -148,7 +148,7 @@ def test_generate_missing_data(dummy_dataset):
 
 
 def test_incorrect_selection(categorical_series):
-    config = get_configuration()[FORMS.census.name][Keys.COLUMN_NOISE]["state"][
+    config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE]["state"][
         NOISE_TYPES.incorrect_selection.name
     ]
     noised_data = NOISE_TYPES.incorrect_selection(
@@ -183,7 +183,7 @@ def test_miswrite_zipcodes(dummy_dataset):
     config = get_configuration()
     config.update(
         {
-            FORMS.census.name: {
+            DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "zipcode": {
                         NOISE_TYPES.zipcode_miswriting.name: {
@@ -195,7 +195,7 @@ def test_miswrite_zipcodes(dummy_dataset):
             },
         }
     )
-    config = config[FORMS.census.name][Keys.COLUMN_NOISE]["zipcode"][
+    config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["zipcode"][
         NOISE_TYPES.zipcode_miswriting.name
     ]
 
@@ -221,7 +221,7 @@ def test_miswrite_ages_default_config(dummy_dataset):
     """Test that miswritten ages are appropriately handled, including
     no perturbation probabilities defaults to uniform distribution,
     perturbation probabilities"""
-    config = get_configuration()[FORMS.census.name][Keys.COLUMN_NOISE]["age"][
+    config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][
         NOISE_TYPES.age_miswriting.name
     ]
     data = dummy_dataset["age"]
@@ -253,7 +253,7 @@ def test_miswrite_ages_uniform_probabilities():
 
     config = get_configuration(
         {
-            FORMS.census.name: {
+            DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "age": {
                         NOISE_TYPES.age_miswriting.name: {
@@ -264,7 +264,7 @@ def test_miswrite_ages_uniform_probabilities():
                 },
             },
         },
-    )[FORMS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.age_miswriting.name]
+    )[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.age_miswriting.name]
 
     data = pd.Series([str(original_age)] * num_rows, name="age")
     noised_data = NOISE_TYPES.age_miswriting(data, config, RANDOMNESS0, "test")
@@ -282,7 +282,7 @@ def test_miswrite_ages_provided_probabilities():
 
     config = get_configuration(
         {
-            FORMS.census.name: {
+            DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "age": {
                         NOISE_TYPES.age_miswriting.name: {
@@ -293,7 +293,7 @@ def test_miswrite_ages_provided_probabilities():
                 },
             },
         },
-    )[FORMS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.age_miswriting.name]
+    )[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.age_miswriting.name]
 
     data = pd.Series([str(original_age)] * num_rows, name="age")
     noised_data = NOISE_TYPES.age_miswriting(data, config, RANDOMNESS0, "test")
@@ -315,7 +315,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
 
     config = get_configuration(
         {
-            FORMS.census.name: {
+            DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "age": {
                         NOISE_TYPES.age_miswriting.name: {
@@ -326,7 +326,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
                 },
             },
         },
-    )[FORMS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.age_miswriting.name]
+    )[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.age_miswriting.name]
 
     data = pd.Series([str(age)] * num_rows, name="age")
     noised_data = NOISE_TYPES.age_miswriting(data, config, RANDOMNESS0, "test")
@@ -342,7 +342,7 @@ def test_miswrite_ages_flips_negative_to_positive():
 
     config = get_configuration(
         {
-            FORMS.census.name: {
+            DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "age": {
                         NOISE_TYPES.age_miswriting.name: {
@@ -353,7 +353,7 @@ def test_miswrite_ages_flips_negative_to_positive():
                 },
             },
         },
-    )[FORMS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.age_miswriting.name]
+    )[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.age_miswriting.name]
 
     data = pd.Series([str(age)] * num_rows, name="age")
     noised_data = NOISE_TYPES.age_miswriting(data, config, RANDOMNESS0, "test")
@@ -368,7 +368,7 @@ def test_miswrite_numerics(string_series):
     config = get_configuration()
     config.update(
         {
-            FORMS.census.name: {
+            DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "street_number": {
                         NOISE_TYPES.numeric_miswriting.name: {
@@ -380,7 +380,7 @@ def test_miswrite_numerics(string_series):
             },
         }
     )
-    config = config[FORMS.census.name][Keys.COLUMN_NOISE]["street_number"][
+    config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["street_number"][
         NOISE_TYPES.numeric_miswriting.name
     ]
     p_row_noise = config[Keys.CELL_PROBABILITY]
@@ -480,7 +480,7 @@ def test_generate_fake_names(dummy_dataset):
     config = get_configuration()
     config.update(
         {
-            FORMS.census.name: {
+            DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "first_name": {
                         NOISE_TYPES.fake_name.name: {
@@ -492,10 +492,10 @@ def test_generate_fake_names(dummy_dataset):
             },
         }
     )
-    first_name_config = config[FORMS.census.name][Keys.COLUMN_NOISE]["first_name"][
+    first_name_config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["first_name"][
         NOISE_TYPES.fake_name.name
     ]
-    last_name_config = config[FORMS.census.name][Keys.COLUMN_NOISE]["last_name"][
+    last_name_config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["last_name"][
         NOISE_TYPES.fake_name.name
     ]
 
@@ -563,7 +563,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
     config = get_configuration()
     config.update(
         {
-            FORMS.census.name: {
+            DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     column: {
                         NOISE_TYPES.typographic.name: {
@@ -575,7 +575,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
             },
         }
     )
-    config = config[FORMS.census.name][Keys.COLUMN_NOISE][column][
+    config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][
         NOISE_TYPES.typographic.name
     ]
     noised_data = NOISE_TYPES.typographic(data, config, RANDOMNESS0, "test")
@@ -616,7 +616,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
 
 
 @pytest.mark.parametrize(
-    "noise_type, data_col, form, form_col",
+    "noise_type, data_col, dataset, dataset_col",
     [
         (NOISE_TYPES.missing_data, "numbers", "decennial_census", "zipcode"),
         (NOISE_TYPES.incorrect_selection, "state", "decennial_census", "state"),
@@ -639,18 +639,18 @@ def test_generate_typographical_errors(dummy_dataset, column):
         (NOISE_TYPES.typographic, "characters", "decennial_census", "street_name"),
     ],
 )
-def test_seeds_behave_as_expected(noise_type, data_col, form, form_col, dummy_dataset):
+def test_seeds_behave_as_expected(noise_type, data_col, dataset, dataset_col, dummy_dataset):
     """Tests that different seeds produce different results and the same seed
     produces the same results
     """
     if data_col == "todo":
         pytest.skip(reason=f"TODO: implement for {noise_type}")
     noise = noise_type.name
-    config = get_configuration()[form][Keys.COLUMN_NOISE][form_col][noise]
+    config = get_configuration()[dataset][Keys.COLUMN_NOISE][dataset_col][noise]
     data = dummy_dataset[data_col]
     # Hack: we need to name the series something with the noising
     # function applied to check dtypes.
-    data.name = form_col
+    data.name = dataset_col
     noised_data = noise_type(data, config, RANDOMNESS0, f"test_{noise}")
     noised_data_same_seed = noise_type(data, config, RANDOMNESS0, f"test_{noise}")
     noised_data_different_seed = noise_type(data, config, RANDOMNESS1, f"test_{noise}")

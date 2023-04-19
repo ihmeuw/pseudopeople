@@ -20,39 +20,41 @@ def validate_user_configuration(user_config: Dict, default_config: ConfigTree) -
     keys exist in the default configuration. Confirms that all user-provided
     values are valid for their respective noise functions.
     """
-    for form, form_config in user_config.items():
-        default_form_config = _get_default_config_node(default_config, form, "form")
-        for key in form_config:
-            _get_default_config_node(default_form_config, key, "configuration key", form)
+    for dataset, dataset_config in user_config.items():
+        default_dataset_config = _get_default_config_node(default_config, dataset, "dataset")
+        for key in dataset_config:
+            _get_default_config_node(
+                default_dataset_config, key, "configuration key", dataset
+            )
 
-        default_row_noise_config = default_form_config[Keys.ROW_NOISE]
-        default_column_noise_config = default_form_config[Keys.COLUMN_NOISE]
+        default_row_noise_config = default_dataset_config[Keys.ROW_NOISE]
+        default_column_noise_config = default_dataset_config[Keys.COLUMN_NOISE]
 
-        for noise_type, noise_type_config in form_config.get(Keys.ROW_NOISE, {}).items():
+        for noise_type, noise_type_config in dataset_config.get(Keys.ROW_NOISE, {}).items():
             default_noise_type_config = _get_default_config_node(
-                default_row_noise_config, noise_type, "noise type", form
+                default_row_noise_config, noise_type, "noise type", dataset
             )
             _validate_noise_type_config(
-                noise_type_config, default_noise_type_config, form, noise_type
+                noise_type_config, default_noise_type_config, dataset, noise_type
             )
 
-        for column, column_config in form_config.get(Keys.COLUMN_NOISE, {}).items():
+        for column, column_config in dataset_config.get(Keys.COLUMN_NOISE, {}).items():
             default_column_config = _get_default_config_node(
-                default_column_noise_config, column, "column", form
+                default_column_noise_config, column, "column", dataset
             )
             for noise_type, noise_type_config in column_config.items():
                 default_noise_type_config = _get_default_config_node(
-                    default_column_config, noise_type, "noise type", form, column
+                    default_column_config, noise_type, "noise type", dataset, column
                 )
                 _validate_noise_type_config(
-                    noise_type_config, default_noise_type_config, form, noise_type, column
+                    noise_type_config, default_noise_type_config, dataset, noise_type, column
                 )
 
 
 def _validate_noise_type_config(
     noise_type_config: Union[Dict, List],
     default_noise_type_config: ConfigTree,
-    form: str,
+    dataset: str,
     noise_type: str,
     column: str = None,
 ) -> None:
@@ -67,10 +69,10 @@ def _validate_noise_type_config(
         }.get(parameter, _validate_probability)
 
         _ = _get_default_config_node(
-            default_noise_type_config, parameter, "parameter", form, column, noise_type
+            default_noise_type_config, parameter, "parameter", dataset, column, noise_type
         )
         base_error_message = (
-            f"Invalid '{parameter}' provided for form '{form}' for "
+            f"Invalid '{parameter}' provided for dataset '{dataset}' for "
             f"column '{column}' and noise type '{noise_type}'. "
         )
         parameter_config_validator(parameter_config, parameter, base_error_message)
@@ -80,7 +82,7 @@ def _get_default_config_node(
     default_config: ConfigTree,
     key: str,
     key_type: str,
-    form: str = None,
+    dataset: str = None,
     column: str = None,
     noise_type: str = None,
 ) -> ConfigTree:
@@ -91,10 +93,10 @@ def _get_default_config_node(
     try:
         return default_config[key]
     except ConfigurationKeyError:
-        form_context = "" if form is None else f" for form '{form}'"
+        dataset_context = "" if dataset is None else f" for dataset '{dataset}'"
         column_context = "" if column is None else f" for column '{column}'"
         noise_type_context = "" if noise_type is None else f" and noise type '{noise_type}'"
-        context = form_context + column_context + noise_type_context
+        context = dataset_context + column_context + noise_type_context
 
         error_message = f"Invalid {key_type} '{key}' provided{context}. "
         valid_options_message = f"Valid {key_type}s are {[k for k in default_config]}."
