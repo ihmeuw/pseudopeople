@@ -110,6 +110,8 @@ Bureau field representatives across the country through both personal and teleph
 work activity and income, veteran status, school enrollment, contingent employment, worker displacement, job tenure, and more. To find out more
 about CPS, please visit the `CPS homepage <https://www.census.gov/programs-surveys/cps.html>`_. 
 
+The following simulant attributes are included in this dataset:
+
 .. list-table:: **Simulant attributes**
    :header-rows: 1
 
@@ -176,6 +178,8 @@ The Special Supplemental Nurtrition Program for Women, Infants, and Children (WI
 children. The main qualifications are income and the presence of young children in the home. To find out more about this service, please visit the `WIC 
 homepage <https://www.fns.usda.gov/wic>`_.
 
+The following simulant attributes are included in this dataset:
+
 .. list-table:: **Simulant attributes**
    :header-rows: 1
 
@@ -233,6 +237,39 @@ homepage <https://www.fns.usda.gov/wic>`_.
 
 Social Security
 ---------------
+
+The following simulant attributes are included in this dataset:
+
+.. list-table:: **Simulant attributes**
+   :header-rows: 1
+
+   * - Attribute Name
+     - Column Name
+     - Notes
+   * - Unique simulant ID
+     - simulant_id
+     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking.  
+   * - First name
+     - :code:`first_name`
+     - 
+   * - Middle initial
+     - :code:`middle_initial`
+     - 
+   * - Last name
+     - :code:`last_name`
+     - 
+   * - Age
+     - :code:`age`  
+     - Rounded down to an integer.
+   * - Date of birth
+     - :code:`date_of_birth`
+     - Formatted as YYYYMMDD.
+   * - Date of event
+     - :code:`event_date`
+     - Formatted as YYYYMMDD.  
+   * - Type of event
+     - :code:`event_type`
+     - Possible values are 'Creation' and 'Date of death'. 
 
 
 Tax W-2 & 1099
