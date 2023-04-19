@@ -18,6 +18,22 @@ the datasets it generates:
 #. **Column-based noise:** Errors in data entry for individual fields within a
    record, such as miswriting or incorrectly selecting responses
 
+Each type of row-based noise operates on the entire dataset (selecting rows to
+include or exclude), while each type of column-based noise operates on one
+column of data at a time (selecting cells within that column to noise).
+Pseudopeople applies row-based noise prior to column-based noise so that errors
+in individual fields are applied to the records that actually appear in the
+data. Each type of column-based noise is applied independently to a subset of
+the columns in the dataset, where each column represents the values of a single
+field for all the records.
+
+Pseudopeople has a configuration system to specify which types of noise are
+applied to each dataset, which columns each type of column-based noise is
+applied to, and any additional parameters needed by the noise functions.
+Pseudopeople comes with a default configuration for the provided datasets, and
+the defaults can be overridden by the user (see the Configuration section for
+details).
+
 Pseudopeople applies the different types of row-based and column-based noise in
 the following order to mimic the data generation process by which a real dataset
 might be corrupted. The "Config Key" column shows the name of the noise type in
