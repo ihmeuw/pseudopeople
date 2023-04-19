@@ -30,12 +30,14 @@ class RowNoiseType:
 
     def __call__(
         self,
-        form_name: str,
-        form_data: pd.DataFrame,
+        dataset_name: str,
+        dataset_data: pd.DataFrame,
         configuration: ConfigTree,
         randomness_stream: RandomnessStream,
     ) -> pd.DataFrame:
-        return self.noise_function(form_name, form_data, configuration, randomness_stream)
+        return self.noise_function(
+            dataset_name, dataset_data, configuration, randomness_stream
+        )
 
 
 @dataclass

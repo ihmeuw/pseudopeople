@@ -5,7 +5,7 @@ from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import FORMS
+from pseudopeople.schema_entities import DATASETS
 
 RANDOMNESS = RandomnessStream(
     key="test_row_noise", clock=lambda: pd.Timestamp("2020-09-01"), seed=0
@@ -32,11 +32,13 @@ def dummy_data():
 
 
 def test_omission(dummy_data):
-    config = get_configuration()[FORMS.census.name][Keys.ROW_NOISE][NOISE_TYPES.omission.name]
-    form_name_1 = "dummy_form_name"
-    form_name_2 = "american_communities_survey"
-    noised_data1 = NOISE_TYPES.omission(form_name_1, dummy_data, config, RANDOMNESS)
-    noised_data2 = NOISE_TYPES.omission(form_name_2, dummy_data, config, RANDOMNESS)
+    config = get_configuration()[DATASETS.census.name][Keys.ROW_NOISE][
+        NOISE_TYPES.omission.name
+    ]
+    dataset_name_1 = "dummy_dataset_name"
+    dataset_name_2 = "american_communities_survey"
+    noised_data1 = NOISE_TYPES.omission(dataset_name_1, dummy_data, config, RANDOMNESS)
+    noised_data2 = NOISE_TYPES.omission(dataset_name_2, dummy_data, config, RANDOMNESS)
 
     expected_noise_1 = config[Keys.PROBABILITY]
     assert np.isclose(1 - len(noised_data1) / len(dummy_data), expected_noise_1, rtol=0.02)
