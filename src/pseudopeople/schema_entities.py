@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 from typing import NamedTuple, Tuple
 
-from pseudopeople.noise_entities import NOISE_TYPES, ColumnNoiseType, RowNoiseType
+from pseudopeople.constants.metadata import DatasetNames
+from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
+from pseudopeople.noise_entities import NOISE_TYPES
 
 
 class DtypeNames:
@@ -353,7 +355,7 @@ COLUMNS = __Columns()
 
 
 @dataclass
-class Form:
+class Dataset:
     name: str
     columns: Tuple[Column, ...]  # This defines the output column order
     date_column: str
@@ -364,11 +366,11 @@ class Form:
     )
 
 
-class __Forms(NamedTuple):
-    """NamedTuple that contains information about forms and their related columns"""
+class __Datasets(NamedTuple):
+    """NamedTuple that contains information about datasets and their related columns"""
 
-    census: Form = Form(
-        "decennial_census",
+    census: Dataset = Dataset(
+        DatasetNames.CENSUS,
         columns=(  # This defines the output column order
             COLUMNS.simulant_id,
             COLUMNS.first_name,
@@ -388,8 +390,8 @@ class __Forms(NamedTuple):
         ),
         date_column="year",
     )
-    acs: Form = Form(
-        "american_communities_survey",
+    acs: Dataset = Dataset(
+        DatasetNames.ACS,
         columns=(  # This defines the output column order
             COLUMNS.household_id,
             COLUMNS.simulant_id,
@@ -410,8 +412,8 @@ class __Forms(NamedTuple):
         ),
         date_column="survey_date",
     )
-    cps: Form = Form(
-        "current_population_survey",
+    cps: Dataset = Dataset(
+        DatasetNames.CPS,
         columns=(  # This defines the output column order
             COLUMNS.household_id,
             COLUMNS.simulant_id,
@@ -432,8 +434,8 @@ class __Forms(NamedTuple):
         ),
         date_column="survey_date",
     )
-    wic: Form = Form(
-        "women_infants_and_children",
+    wic: Dataset = Dataset(
+        DatasetNames.WIC,
         columns=(  # This defines the output column order
             COLUMNS.household_id,
             COLUMNS.simulant_id,
@@ -452,8 +454,8 @@ class __Forms(NamedTuple):
         ),
         date_column="year",
     )
-    ssa: Form = Form(
-        "social_security",
+    ssa: Dataset = Dataset(
+        DatasetNames.SSA,
         columns=(  # This defines the output column order
             COLUMNS.simulant_id,
             COLUMNS.first_name,
@@ -466,8 +468,8 @@ class __Forms(NamedTuple):
         ),
         date_column="event_date",
     )
-    tax_w2_1099: Form = Form(
-        "taxes_w2_and_1099",
+    tax_w2_1099: Dataset = Dataset(
+        DatasetNames.TAXES_W2_1099,
         columns=(  # This defines the output column order
             COLUMNS.simulant_id,
             COLUMNS.first_name,
@@ -496,9 +498,9 @@ class __Forms(NamedTuple):
         ),
         date_column="tax_year",
     )
-    # tax_1040: Form = Form(
-    #     "taxes_1040",
+    # tax_1040: Dataset = Dataset(
+    #     Datasets.TAXES_1040,
     # )
 
 
-FORMS = __Forms()
+DATASETS = __Datasets()

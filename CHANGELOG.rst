@@ -1,3 +1,16 @@
+**0.6.0 - 04/19/23**
+ - Update documentation (landing page, datasets section, quickstart)
+ - Update zipcode miswriting function to act on each digit independently
+ - Modify config key names
+ - Update sample datsets to include all GQ types
+ - Scale household survey data to account for oversampling
+ - Implement user config value validation
+ - Change the term "Form" to "Dataset" throughout
+ - Update the default config values
+ - Change "american_communities_survey" to "american_community_survey"
+ - Implement config interface and get_config function
+ - Add a github issues template
+
 **0.5.1 - 04/14/23**
  - Formatting of noised dates implemented
  - Moved from pd.NA to np.nan

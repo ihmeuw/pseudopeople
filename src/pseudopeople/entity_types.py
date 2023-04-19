@@ -25,16 +25,19 @@ class RowNoiseType:
     """
 
     name: str
-    noise_function: Callable[[pd.DataFrame, ConfigTree, RandomnessStream], pd.DataFrame]
+    noise_function: Callable[[str, pd.DataFrame, ConfigTree, RandomnessStream], pd.DataFrame]
     probability: float = 0.0
 
     def __call__(
         self,
-        form_data: pd.DataFrame,
+        dataset_name: str,
+        dataset_data: pd.DataFrame,
         configuration: ConfigTree,
         randomness_stream: RandomnessStream,
     ) -> pd.DataFrame:
-        return self.noise_function(form_data, configuration, randomness_stream)
+        return self.noise_function(
+            dataset_name, dataset_data, configuration, randomness_stream
+        )
 
 
 @dataclass
@@ -53,8 +56,7 @@ class ColumnNoiseType:
 
     name: str
     noise_function: Callable[[pd.Series, ConfigTree, RandomnessStream, Any], pd.Series]
-    probability: float = 0.01
-    token_noise_level: Optional[float] = 0.1
+    probability: Optional[float] = 0.01
     noise_level_scaling_function: Callable[[str], float] = lambda x: 1.0
     additional_parameters: Dict[str, Any] = None
 
@@ -66,7 +68,12 @@ class ColumnNoiseType:
         additional_key: Any,
     ) -> pd.Series:
         column = column.copy()
-        noise_level = configuration[Keys.PROBABILITY] * self.noise_level_scaling_function(
+        probability_key = (
+            Keys.CELL_PROBABILITY
+            if Keys.CELL_PROBABILITY in configuration.keys()
+            else Keys.PROBABILITY
+        )
+        noise_level = configuration[probability_key] * self.noise_level_scaling_function(
             column.name
         )
         to_noise_idx = get_index_to_noise(
