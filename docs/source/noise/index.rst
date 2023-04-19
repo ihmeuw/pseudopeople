@@ -14,9 +14,9 @@ to add noise to the data. Pseudopeople can add two broad categories of noise to
 the datasets it generates:
 
 #. **Row-based noise:** Errors in the inclusion or exclusion of entire rows of
-   data, such as duplication or omission
-#. **Column-based noise:** Errors in individual data entry, such as miswriting
-   or incorrectly selecting responses
+   data, such as duplication or omission of a record
+#. **Column-based noise:** Errors in data entry for individual fields within a
+   record, such as miswriting or incorrectly selecting responses
 
 Pseudopeople applies the different types of row-based and column-based noise in
 the following order to mimic the data generation process by which a real dataset
