@@ -19,7 +19,7 @@ A dataset in the Pseudopeople framework is analogous to a dataset representing
 a census survey or tax document.  The types of dataset that are compatible with
 the Pseudopeople framework include:
 
-.. list-table:: **Types of Dataset**
+.. list-table:: **Types of Datasets**
    :header-rows: 1
    :widths: 20
 
