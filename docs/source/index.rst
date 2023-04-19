@@ -6,9 +6,9 @@ Pseudopeople is a Python package that generates realistic simulated data about a
 fictional United States population, for use in testing record linkage (entity resolution)
 methods.
 
-| 🙈 **Fake**: These are made up people!
+| 🙈 **Simulated**: These are made-up people! No need to worry about confidentiality.
 | 📝 **Versatile**: Generate multiple datasets about the same population: censuses, surveys, and administrative records.
-| ✔️ **Truth deck**: Ground-truth unique identifiers are present in every dataset for checking link correctness.
+| ✔️ **Verifiable**: Ground-truth unique identifiers are present in every dataset for checking link correctness.
 | ⚙️ **Customizable**: Configure the levels of noise in each dataset.
 | 💪 **Full-scale**: Supports generating datasets at the size of the real-life US population.
 
