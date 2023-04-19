@@ -176,6 +176,9 @@ The Special Supplemental Nutrition Program for Women, Infants, and Children (WIC
 children. The main qualifications are income and the presence of young children in the home. To find out more about this service, please visit the `WIC 
 homepage <https://www.fns.usda.gov/wic>`_.
 
+Pseudopeople can generate a simulated version of the administrative data that would be recorded by WIC. This is a yearly file of information about all 
+simulants enrolled in the program as of the end of that year.
+
 .. list-table:: **Simulant attributes**
    :header-rows: 1
 
