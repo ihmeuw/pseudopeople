@@ -1,8 +1,8 @@
-.. _noise_functions_main:
+.. _noise_main:
 
-=================
- Noise Functions
-=================
+======
+ Noise
+======
 
 .. contents::
    :depth: 2
@@ -19,30 +19,30 @@ noise to the datasets it generates:
    or incorrectly selecting responses
 
 Pseudopeople applies the different types of row-based and column-based noise in
-the following order so as to mimic the data generation process by which a real
-dataset might be subject to errors. The final column of the table, "config key,"
-is the name of the noise type in the configuration dictionary used by the
-dataset generation functions.
+the following order to mimic the data generation process by which a real dataset
+might be corrupted. The final column of the table, "Config Key," is the name of
+the noise type in the configuration dictionary used to generate the noised
+datasets.
 
 .. list-table:: Types of noise in order of application
   :widths: 1 2 5 1
   :header-rows: 1
 
   * - Order
-    - Type of Noise
+    - Noise Type
     - Description
-    - Config key
+    - Config Key
   * - ---
     - **Row-based noise**
-    - **Errors applied to an entire row of data, such as duplication or omission of a record**
+    - ---
     - ``row_noise``
   * - 1
     - Omit row
-    - Omit an entire row of data
+    - Omit an entire randomly selected row of data
     - ``omit_row``
   * - ---
     - **Column-based noise**
-    - **Errors specific to a particular column of the data, such as miswriting an address or incorrectly selecting from a list of choices**
+    - ---
     - ``column_noise``
   * - 2
     - Leave blank
