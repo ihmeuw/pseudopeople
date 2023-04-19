@@ -172,6 +172,63 @@ about CPS, please visit the `CPS homepage <https://www.census.gov/programs-surve
 
 WIC
 ---
+The Special Supplemental Nurtrition Program for Women, Infants, and Children (WIC) is a government benefits program designed to support mothers and young
+children. The main qualifications are income and the presence of young children in the home. To find out more about this service, please visit the `WIC 
+homepage <https://www.fns.usda.gov/wic>`_.
+
+.. list-table:: **Simulant attributes**
+   :header-rows: 1
+
+   * - Attribute Name
+     - Column Name
+     - Notes
+   * - Unique simulant ID
+     - simulant_id
+     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking. 
+   * - Household ID 
+     - :code:`household_id` 
+     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking.
+   * - First name
+     - :code:`first_name`
+     - 
+   * - Middle initial
+     - :code:`middle_initial`
+     - 
+   * - Last name
+     - :code:`last_name`
+     - 
+   * - Age
+     - :code:`age`  
+     - Rounded down to an integer.
+   * - Date of birth
+     - :code:`date_of_birth`
+     - Formatted as MM/DD/YYYY.
+   * - Physical address street number
+     - :code:`street_number`
+     - 
+   * - Physical address street name
+     - :code:`street_name`
+     - 
+   * - Physical address unit
+     - :code:`unit_number`
+     - 
+   * - Physical address city
+     - :code:`city`    
+     - 
+   * - Physical address state
+     - :code:`state`  
+     - 
+   * - Physical address ZIP code
+     - :code:`zipcode`
+     - 
+   * - Sex 
+     - :code:`sex`  
+     - Binary; 'male' or 'female'
+   * - Race/ethnicity
+     - :code:`race_ethnicity` 
+     - The following exhaustive and mutually exclusive categories for the single composite 'race/ethnicity' indicator are as follows:
+       White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
+       Multiracial or Some Other Race.  
 
 
 Social Security
