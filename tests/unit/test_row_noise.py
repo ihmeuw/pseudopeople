@@ -4,6 +4,7 @@ import pytest
 from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.constants import metadata
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS
 
@@ -36,7 +37,7 @@ def test_omission(dummy_data):
         NOISE_TYPES.omission.name
     ]
     dataset_name_1 = "dummy_dataset_name"
-    dataset_name_2 = "american_communities_survey"
+    dataset_name_2 = metadata.DatasetNames.ACS
     noised_data1 = NOISE_TYPES.omission(dataset_name_1, dummy_data, config, RANDOMNESS)
     noised_data2 = NOISE_TYPES.omission(dataset_name_2, dummy_data, config, RANDOMNESS)
 
