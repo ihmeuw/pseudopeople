@@ -9,12 +9,13 @@ In ``pseudopeople`` a configuration is used to provide noise level that get pass
 various types of noise to given datasets.  Users can provide their own configuration that will override the deault
 values.
 .. code-block:: python
-    >>> import pseudopeople as pp
-    >>> pp.get_config("decennial_census")
-    >>> user_config = {"decennial_census": {"row_noise": {"probability": 0.1},},}
-    >>> pp.get_config("decennial_census", user_config)
+>>> import pseudopeople as pp
+>>> pp.get_config("decennial_census")
+>>> user_config = {"decennial_census": {"row_noise": {"probability": 0.1},},}
+>>> pp.get_config("decennial_census", user_config)
 
 """
+
 from pathlib import Path
 from typing import Dict, Union
 
@@ -30,7 +31,7 @@ def get_config(
     """
     Function that displays the configuration for the user
     :param dataset_name: Name of dataset to lookup in configuration.  Providing this argument returns the configuration for
-      this specific form and no other forms in the configuration.
+    this specific form and no other forms in the configuration.
     :param user_configuration: Dictionary of configuration values the user wishes to manually override.
     """
 
