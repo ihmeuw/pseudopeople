@@ -92,7 +92,6 @@ class __NoiseTypes(NamedTuple):
         additional_parameters={  # TODO: need to clarify these
             Keys.CELL_PROBABILITY: 0.01,
             Keys.TOKEN_PROBABILITY: 0.1,
-            Keys.INCLUDE_ORIGINAL_TOKEN_PROBABILITY: 0.1,
         },
     )
 
