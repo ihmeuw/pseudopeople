@@ -13,7 +13,7 @@ The github repo can be found at: https://github.com/ihmeuw/pseudopeople
 
    installation
    datasets/index
-   noise_functions/index
+   noise/index
    tutorials/index
    concepts/index
    api_reference/index
