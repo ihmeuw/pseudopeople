@@ -21,8 +21,7 @@ the datasets it generates:
 Pseudopeople applies the different types of row-based and column-based noise in
 the following order to mimic the data generation process by which a real dataset
 might be corrupted. The final column of the table, "Config Key," is the name of
-the noise type in the configuration dictionary used to generate the noised
-datasets.
+the noise type in the configuration used to customize the noise settings.
 
 .. list-table:: Types of noise in order of application
   :widths: 1 2 5 1
