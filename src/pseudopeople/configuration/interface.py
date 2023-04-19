@@ -8,6 +8,7 @@ An interface for users to interact with the configuration (config) in pseudopeop
 In ``pseudopeople`` a configuration is used to provide noise level that get passed to the noise functions to apply
 various types of noise to given datasets.  Users can provide their own configuration that will override the default
 values.
+
 ::
 
     $ import pseudopeople as pp
@@ -31,9 +32,9 @@ def get_config(dataset_name: str = None, user_config: Union[Path, str, Dict] = N
     Function that displays the configuration for the user
 
     :param dataset_name: Name of dataset to lookup in configuration.  Providing this argument returns the configuration
-    for this specific form and no other forms in the configuration.  Possible dataset names include:
-    ["american_communities_survey", "decennial_census", "current_population_survey", "social_security", "taxes_1040",
-    "taxes_w2_and_1099", "women_infants_and_children"].
+        for this specific form and no other forms in the configuration.  Possible dataset names include:
+        ["american_communities_survey", "decennial_census", "current_population_survey", "social_security", "taxes_1040",
+        "taxes_w2_and_1099", "women_infants_and_children"].
     :param user_config: Dictionary of configuration values the user wishes to manually override.
     :return: Dictionary of the config.
     """
