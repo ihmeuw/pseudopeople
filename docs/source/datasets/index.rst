@@ -48,7 +48,7 @@ The following simulant attributes are included in this dataset:
      - Notes    
    * - Unique simulant ID
      - :code:`simulant_id`
-     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking. 
+     - Not affected by noise functions; intended use is 'ground truth' for testing and validation. 
    * - First name
      - :code:`first_name`
      - 
