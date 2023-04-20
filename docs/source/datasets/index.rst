@@ -8,8 +8,8 @@ Here we cover the realistic simulated datasets, which are analogous to "real wor
 and census surveys, that users can generate using Pseudopeople for developing and testing Entity Resolution algorithms 
 and software. 
 
-Each of the datasets that can be generated using Pseudopeople can have "noise" added to them, thereby realistically 
-simulating how administrative records can be corrupted or distorted, adding extra challenges to researchers trying to link those 
+Each of the datasets that can be generated using Pseudopeople have "noise" added to them, thereby realistically 
+simulating how administrative records can be corrupted or distorted, which creates challenges in linking those 
 records. To read more about the different kinds of noise that can be applied to the different datasets, please see the `Noise page <https://pseudopeople.readthedocs.io/en/latest/noise_functions/index.html#noise-functions>`_.
 
 The below table offers a list of the datasets that can be generated. Each row of a given dataset represents
@@ -43,8 +43,7 @@ The Decennial Census dataset is a simulated enumeration of the US Census Bureau'
 that have been simulated are 2020, 2030, and 2040. To find out more about the Decennial Census, please visit the Decennial Census
 `homepage <https://www.census.gov/programs-surveys/decennial-census.html>`_.   
 
-To find out more about how to generate a simulation of the Decennial Census using Pseudopeople, please see the `API Reference page <https://pseudopeople.readthedocs.io/en/latest/api_reference/interface.html#pseudopeople.interface.generate_decennial_census>`_ for the 
-:code:`generate_decennial_census()` function. 
+To find out more about how to generate a simulation of the Decennial Census using Pseudopeople, see :func:`pseudopeople.interface.generate_decennial_census`.
 
 The following simulant attributes are included in this dataset:
 
@@ -127,7 +126,7 @@ The following simulant attributes are included in these datasets:
      - Column Name
      - Notes
    * - Unique simulant ID
-     - simulant_id
+     - :code:`simulant_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation. 
    * - Household ID 
      - :code:`household_id` 
@@ -193,7 +192,7 @@ The following simulant attributes are included in this dataset:
      - Column Name
      - Notes
    * - Unique simulant ID
-     - simulant_id
+     - :code:`simulant_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation. 
    * - Household ID 
      - :code:`household_id` 
@@ -258,7 +257,7 @@ The following simulant attributes are included in this dataset:
      - Column Name
      - Notes
    * - Unique simulant ID
-     - simulant_id
+     - :code:`simulant_id`
      - Not affected by noise functions; intended use is "ground truth" for PRL tracking.  
    * - First name
      - :code:`first_name`
@@ -300,11 +299,8 @@ The following simulant attributes are included in these datasets:
      - Column Name
      - Notes
    * - Unique simulant ID
-     - simulant_id
+     - :code:`simulant_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation. 
-   * - Household ID 
-     - :code:`household_id` 
-     - Not affected by noise functions; intended use is "ground truth" for testing and validation.
    * - First name
      - :code:`first_name`
      - 
