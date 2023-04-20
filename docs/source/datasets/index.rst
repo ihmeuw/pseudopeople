@@ -43,8 +43,7 @@ The Decennial Census dataset is a simulated enumeration of the US Census Bureau'
 that have been simulated are 2020, 2030, and 2040. To find out more about the Decennial Census, please visit the Decennial Census
 `homepage <https://www.census.gov/programs-surveys/decennial-census.html>`_.   
 
-To find out more about how to generate a simulation of the Decennial Census using Pseudopeople, please see the `API Reference page <https://pseudopeople.readthedocs.io/en/latest/api_reference/interface.html#pseudopeople.interface.generate_decennial_census>`_ for the 
-:code:`generate_decennial_census()` function. 
+To find out more about how to generate a simulation of the Decennial Census using Pseudopeople, see :func:`pseudopeople.interface.generate_decennial_census`.
 
 The following simulant attributes are included in this dataset:
 
