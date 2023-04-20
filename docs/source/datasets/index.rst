@@ -201,7 +201,7 @@ simulants enrolled in the program as of the end of that year.
      - Rounded down to an integer.
    * - Date of birth
      - :code:`date_of_birth`
-     - Formatted as MM/DD/YYYY.
+     - Formatted as YYYY-MM-DD.
    * - Physical address street number
      - :code:`street_number`
      - 
