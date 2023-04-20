@@ -34,6 +34,7 @@ an individual simulant, with the columns representing different simulant attribu
 
 US Decennial Census
 -------------------
+
 The Decennial Census dataset is a simulated enumeration of the US Census Bureau's Decennial Census of Population and Housing. The years
 that have been simulated are 2020, 2030, and 2040. To find out more about the Decennial Census, please visit the Decennial Census
 `homepage <https://www.census.gov/programs-surveys/decennial-census.html>`_.   
@@ -270,6 +271,48 @@ The following simulant attributes are included in this dataset:
    * - Social security number 
      - :code:`ssn`
      - 
+   * - Date of event
+     - :code:`event_date`
+     - Formatted as YYYY-MM-DD.  
+   * - Type of event
+     - :code:`event_type`
+     - Possible values are 'Creation' and 'Death'. 
+
+The Social Security Administration (SSA) is the US federal government agency that administers Social Security, the social insurance program
+that consists of retirement, disability and survivor benefits. To find out more about this program, visit the `SSA homepage <https://www.ssa.gov/about-ssa>`_.
+
+Pseudopeople can generate a simulated version of a subset of the administrative data that would be recorded by SSA. Currently, the simulated
+SSA data includes records of SSA creation and dates of death.
+
+The following simulant attributes are included in this dataset:
+
+.. list-table:: **Simulant attributes**
+   :header-rows: 1
+
+   * - Attribute Name
+     - Column Name
+     - Notes
+   * - Unique simulant ID
+     - simulant_id
+     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking.  
+   * - First name
+     - :code:`first_name`
+     - 
+   * - Middle initial
+     - :code:`middle_initial`
+     - 
+   * - Last name
+     - :code:`last_name`
+     - 
+   * - Age
+     - :code:`age`  
+     - Rounded down to an integer.
+   * - Date of birth
+     - :code:`date_of_birth`
+     - Formatted as YYYY-MM-DD.
+   * - Social security number
+     - :code:`ssn`
+     -      
    * - Date of event
      - :code:`event_date`
      - Formatted as YYYY-MM-DD.  
