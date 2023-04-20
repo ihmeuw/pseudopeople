@@ -16,6 +16,12 @@ Users can provide their own configuration that will override the default values.
     $ user_config = {"decennial_census": {"row_noise": {"probability": {"omit_rows": 0.1},},},}
     $ psp.get_config("decennial_census", user_config)
 
+Note that when specifying a value to override in the configuration, users must specify the specific node they wish to
+change. Configuration is a hierarchical structure and to must properly source the lower levels. The configuration
+levels include dataset, column or row noise, noise type, and probability. Not sourcing values in a user provided
+configuration correctly will raise a ConfigurationKeyError if the lookup fails. If an invalid value is provided, such as
+providing 1.5 for a probability, a ConfigurationError will be raised.
+
 """
 
 from pathlib import Path
@@ -44,6 +50,8 @@ def get_config(dataset_name: str = None, user_config: Union[Path, str, Dict] = N
             - "women_infants_and_children"
     :param user_config: Dictionary of configuration values the user wishes to manually override.
     :return: Dictionary of the config.
+    :raises ValueError: Error raised when an invalid name is passed for a dataset name
+
     """
 
     config = get_configuration(user_config)
