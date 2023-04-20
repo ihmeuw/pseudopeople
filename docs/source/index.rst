@@ -2,6 +2,10 @@
 Pseudopeople
 ============
 
+
+.. image:: ../Pseudopeople-logo_FINAL_2023.04.11_psdppl-logo_blue-ombre.png
+
+
 Pseudopeople is a Python package that generates realistic simulated data about a
 fictional United States population, for use in testing record linkage (entity resolution)
 methods.
@@ -95,7 +99,7 @@ Now, see how many your record linkage method can find -- without access to the t
    :maxdepth: 2
 
    datasets/index
-   noise_functions/index
+   noise/index
    tutorials/index
    concepts/index
    api_reference/index
