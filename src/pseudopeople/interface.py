@@ -1,33 +1,32 @@
 """
-=========================
-Dataset Noising Interface
-=========================
+============================
+Dataset Generation Interface
+============================
 
-An interface for users to generate noised datasets.
+An interface for users to generate pseudopeople datasets.
 
-This module contains the tools required to noise specific pseudopeople
-datasets. Each dataset to be noised has its own `generate_*` function. For
-example, to noise the decennial census dataset we we would use :meth:`generate_decennial_census`.
+This module contains the tools required to generate specific pseudopeople
+datasets. Each dataset to be generated has its own `generate_*` function. For
+example, to generate the decennial census dataset we would use :meth:`generate_decennial_census`.
 
-All dataset-specific noising functions have the same (optional) arguments.
-Notable options include:
+All of the `generate_*` functions have the same (optional) parameters.
+Notable parameters include:
 
-    - a `source` path to the root directory of datasets to be noised. Defaults to using pseudopeople's sample datasets.
+    - a `source` path to the root directory of pseudopeople input data (defaults to using the pseudopeople sample datasets).
     - a `config` path to a YAML file or a Python dictionary to override the default configuration.
-    - a `year` to subset to and noise and defaults to 2020.
+    - a `year` to subset to and noise (defaults to 2020).
 
 Example
 -------
-To generate noised sample decennial census data for the year 2030 using all
+To generate sample decennial census data for the year 2030 using all
 default noising parameters except for the probability of row omission which
 should be 5%:
 
 ::
 
-    >>> import pseudopeople as psp
-
-    >>> override = {"decennial_census": {"row_noise": {"omit_row": {"probability": 0.05}}}}
-    >>> noised_census = psp.generate_decennial_census(config=override, year=2030)
+    import pseudopeople as psp
+    override = {"decennial_census": {"row_noise": {"omit_row": {"probability": 0.05}}}}
+    noised_census = psp.generate_decennial_census(config=override, year=2030)
 
 """
 
@@ -174,18 +173,21 @@ def generate_decennial_census(
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
-    Generates noised data from the pseudopeople decennial census dataset. This
-    noised data represents simulated responses to the US Census Bureau's Census
-    of Population and Housing.
+    Generates a pseudopeople decennial census dataset which represents simulated
+    responses to the US Census Bureau's Census of Population and Housing.
 
-    :param source: The root directory containing the datasets to be noised. Defaults to the pseudopeople sample datasets directory.
+    :param source: The root directory containing pseudopeople input data. Defaults
+        to the pseudopeople sample datasets directory.
     :param seed: An integer seed for randomness.
-    :param config: An optional override to the default configuration. Can be a path to a configuration YAML file or a dictionary.
-    :param year: The year (format YYYY) to noise in the dataset. Must be a decennial year (eg 2020, 2030, 2040). Will return an empty pd.DataFrame if there is no data with this year.
+    :param config: An optional override to the default configuration. Can be a path
+        to a configuration YAML file or a dictionary.
+    :param year: The year (format YYYY) to include in the dataset. Must be a decennial
+        year (eg 2020, 2030, 2040). Will return an empty pd.DataFrame if there is no
+        data with this year.
     :param verbose: Log with verbosity if True.
-    :return: A pd.DataFrame of noised decennial census data.
+    :return: A pd.DataFrame of simulated decennial census data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
     year_filter = {"hdf": None, "parquet": None}
     if year:
@@ -202,8 +204,8 @@ def generate_american_community_survey(
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
-    Generates noised data from the pseudopeople ACS dataset. This noised data
-    represents simulated responses to the ACS survey.
+    Generates a pseudopeople ACS dataset which represents simulated responses to
+    the ACS survey.
 
     The American Community Survey (ACS) is an ongoing household survey conducted by
     the US Census Bureau that gathers information on a rolling basis about
@@ -211,14 +213,17 @@ def generate_american_community_survey(
     citizenship, education, income, language proficiency, migration, employment,
     disability, and housing characteristics.
 
-    :param source: The root directory containing the datasets to be noised. Defaults to the pseudopeople sample datasets directory.
+    :param source: The root directory containing pseudopeople input data. Defaults
+        to the pseudopeople sample datasets directory.
     :param seed: An integer seed for randomness. Defaults to 0.
-    :param config: An optional override to the default configuration. Can be a path to a configuration YAML file or a dictionary.
-    :param year: The survey date year (format YYYY) to noise in the dataset. Will return an empty pd.DataFrame if there is no data with this year.
+    :param config: An optional override to the default configuration. Can be a path
+        to a configuration YAML file or a dictionary.
+    :param year: The survey date year (format YYYY) to include in the dataset. Will
+        return an empty pd.DataFrame if there is no data with this year.
     :param verbose: Log with verbosity if True.
-    :return: A pd.DataFrame of noised ACS data.
+    :return: A pd.DataFrame of simulated ACS data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
     year_filter = {"hdf": None, "parquet": None}
     if year:
@@ -241,8 +246,8 @@ def generate_current_population_survey(
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
-    Generates noised data from the pseudopeople CPS dataset. This noised data
-    represents simulated responses to the CPS survey.
+    Generates a pseudopeople CPS dataset which represents simulated responses to
+    the CPS survey.
 
     The Current Population Survey (CPS) is a household survey conducted by the
     US Census Bureau and the US Bureau of Labor Statistics. This survey is administered
@@ -251,14 +256,17 @@ def generate_current_population_survey(
     activity and income, veteran status, school enrollment, contingent employment,
     worker displacement, job tenure, and more.
 
-    :param source: The root directory containing the datasets to be noised. Defaults to the pseudopeople sample datasets directory.
+    :param source: The root directory containing pseudopeople input data. Defaults
+        to the pseudopeople sample datasets directory.
     :param seed: An integer seed for randomness. Defaults to 0.
-    :param config: An optional override to the default configuration. Can be a path to a configuration YAML file or a dictionary.
-    :param year: The survey date year (format YYYY) to noise in the dataset. Will return an empty pd.DataFrame if there is no data with this year.
+    :param config: An optional override to the default configuration. Can be a path
+        to a configuration YAML file or a dictionary.
+    :param year: The survey date year (format YYYY) to include in the dataset. Will
+        return an empty pd.DataFrame if there is no data with this year.
     :param verbose: Log with verbosity if True.
-    :return: A pd.DataFrame of noised CPS data.
+    :return: A pd.DataFrame of simulated CPS data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
     year_filter = {"hdf": None, "parquet": None}
     if year:
@@ -281,17 +289,20 @@ def generate_taxes_w2_and_1099(
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
-    Generates noised data from the pseudopeople W2 and 1099 tax dataset. This
-    noised data represents simulated tax form data.
+    Generates a pseudopeople W2 and 1099 tax dataset which represents simulated
+    tax form data.
 
-    :param source: The root directory containing the datasets to be noised. Defaults to the pseudopeople sample datasets directory.
+    :param source: The root directory containing pseudopeople input data. Defaults
+        to the pseudopeople sample datasets directory.
     :param seed: An integer seed for randomness. Defaults to 0.
-    :param config: An optional override to the default configuration. Can be a path to a configuration YAML file or a dictionary.
-    :param year: The tax year (format YYYY) to noise in the dataset. Will return an empty pd.DataFrame if there is no data with this year.
+    :param config: An optional override to the default configuration. Can be a path
+        to a configuration YAML file or a dictionary.
+    :param year: The tax year (format YYYY) to include in the dataset. Will return
+        an empty pd.DataFrame if there is no data with this year.
     :param verbose: Log with verbosity if True.
-    :return: A pd.DataFrame of noised W2 and 1099 tax data.
+    :return: A pd.DataFrame of simulated W2 and 1099 tax data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
     year_filter = {"hdf": None, "parquet": None}
     if year:
@@ -309,23 +320,25 @@ def generate_women_infants_and_children(
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
-    Generates noised data from the pseudopeople WIC dataset. This noised data
-    represents a simulated version of the administrative data that
-    would be recorded by WIC. This is a yearly file of information about all
-    simulants enrolled in the program as of the end of that year.
+    Generates a pseudopeople WIC dataset which represents a simulated version of
+    the administrative data that would be recorded by WIC. This is a yearly file
+    of information about all simulants enrolled in the program as of the end of that year.
 
     The Special Supplemental Nutrition Program for Women, Infants, and Children (WIC)
     is a government benefits program designed to support mothers and young children.
     The main qualifications are income and the presence of young children in the home.
 
-    :param source: The root directory containing the datasets to be noised. Defaults to the pseudopeople sample datasets directory.
+    :param source: The root directory containing pseudopeople input data. Defaults
+        to the pseudopeople sample datasets directory.
     :param seed: An integer seed for randomness. Defaults to 0.
-    :param config: An optional override to the default configuration. Can be a path to a configuration YAML file or a dictionary.
-    :param year: The year (format YYYY) to noise in the dataset. Will return an empty pd.DataFrame if there is no data with this year.
+    :param config: An optional override to the default configuration. Can be a path
+        to a configuration YAML file or a dictionary.
+    :param year: The year (format YYYY) to include in the dataset. Will return an
+        empty pd.DataFrame if there is no data with this year.
     :param verbose: Log with verbosity if True.
-    :return: A pd.DataFrame of noised WIC data.
+    :return: A pd.DataFrame of simulated WIC data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
     year_filter = {"hdf": None, "parquet": None}
     if year:
@@ -343,17 +356,21 @@ def generate_social_security(
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
-    Generates noised data from the pseudopeople SSA dataset. This noised data
-    represents simulated Social Security Administration (SSA) data.
+    Generates a pseudopeople SSA dataset which represents simulated Social Security
+    Administration (SSA) data.
 
-    :param source: The root directory containing the datasets to be noised. Defaults to the pseudopeople sample datasets directory.
+    :param source: The root directory containing pseudopeople input data. Defaults
+        to the pseudopeople sample datasets directory.
     :param seed: An integer seed for randomness. Defaults to 0.
-    :param config: An optional override to the default configuration. Can be a path to a configuration YAML file or a dictionary.
-    :param year: The latest year (format YYYY) to noise in the dataset; will also include previous year data. Will return an empty pd.DataFrame if there is no data with this year.
+    :param config: An optional override to the default configuration. Can be a path
+        to a configuration YAML file or a dictionary.
+    :param year: The latest year (format YYYY) to include in the dataset; will also
+        include all previous years. Will return an empty pd.DataFrame if there is no
+        data on or before this year.
     :param verbose: Log with verbosity if True.
-    :return: A pd.DataFrame of noised SSA data.
+    :return: A pd.DataFrame of simulated SSA data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
     year_filter = {"hdf": None, "parquet": None}
     if year:
