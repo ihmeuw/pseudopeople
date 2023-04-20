@@ -88,3 +88,9 @@ column shows the name of the noise type in the configuration.
 .. todo::
 
   Fill in the remaining noise functions in the above table.
+
+Default noise types for each column
+-----------------------------------
+
+Noise function details
+----------------------
