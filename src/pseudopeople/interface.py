@@ -185,7 +185,7 @@ def generate_decennial_census(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of noised decennial census data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: Something is wrong with the datasets in the source directory provided.
+    :raises DataSourceError: An incorrect data source is provided.
     """
     year_filter = {"hdf": None, "parquet": None}
     if year:
@@ -218,7 +218,7 @@ def generate_american_community_survey(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of noised ACS data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: Something is wrong with the datasets in the source directory provided.
+    :raises DataSourceError: An incorrect data source is provided.
     """
     year_filter = {"hdf": None, "parquet": None}
     if year:
@@ -258,7 +258,7 @@ def generate_current_population_survey(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of noised CPS data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: Something is wrong with the datasets in the source directory provided.
+    :raises DataSourceError: An incorrect data source is provided.
     """
     year_filter = {"hdf": None, "parquet": None}
     if year:
@@ -291,7 +291,7 @@ def generate_taxes_w2_and_1099(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of noised W2 and 1099 tax data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: Something is wrong with the datasets in the source directory provided.
+    :raises DataSourceError: An incorrect data source is provided.
     """
     year_filter = {"hdf": None, "parquet": None}
     if year:
@@ -325,7 +325,7 @@ def generate_women_infants_and_children(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of noised WIC data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: Something is wrong with the datasets in the source directory provided.
+    :raises DataSourceError: An incorrect data source is provided.
     """
     year_filter = {"hdf": None, "parquet": None}
     if year:
@@ -353,7 +353,7 @@ def generate_social_security(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of noised SSA data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: Something is wrong with the datasets in the source directory provided.
+    :raises DataSourceError: An incorrect data source is provided.
     """
     year_filter = {"hdf": None, "parquet": None}
     if year:
