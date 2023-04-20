@@ -40,6 +40,7 @@ from loguru import logger
 
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
+from pseudopeople.exceptions import DataSourceError
 from pseudopeople.noise import noise_dataset
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
 from pseudopeople.utilities import configure_logging_to_terminal
@@ -86,13 +87,13 @@ def _generate_dataset(
     source = Path(source) / dataset_file_name
     data_paths = [x for x in source.glob(f"{dataset_file_name}*")]
     if not data_paths:
-        raise ValueError(
+        raise DataSourceError(
             f"No datasets found at directory {str(source)}. "
             "Please provide the path to the unmodified root data directory."
         )
     suffix = set(x.suffix for x in data_paths)
     if len(suffix) > 1:
-        raise TypeError(
+        raise DataSourceError(
             f"Only one type of file extension expected but more than one found: {suffix}. "
             "Please provide the path to the unmodified root data directory."
         )
@@ -133,12 +134,12 @@ def _load_data_from_path(data_path: Path, year_filter: Dict[str, List]):
     elif data_path.suffix == ".parquet":
         data = pq.read_table(data_path, filters=year_filter["parquet"]).to_pandas()
     else:
-        raise ValueError(
+        raise DataSourceError(
             "Source path must either be a .hdf or a .parquet file. Provided "
             f"{data_path.suffix}"
         )
     if not isinstance(data, pd.DataFrame):
-        raise TypeError(
+        raise DataSourceError(
             f"File located at {data_path} must contain a pandas DataFrame. "
             "Please provide the path to the unmodified root data directory."
         )
@@ -184,10 +185,7 @@ def generate_decennial_census(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of noised decennial census data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises TypeError: More than one file type is found in the source directory provided.
-    :raises TypeError: The file located in the data source directory provided does not contain a pd.DataFrame.
-    :raises ValueError: The source directory provided contains file types other than .hdf or .parquet.
-    :raises ValueError: No datasets are found in the source directory provided.
+    :raises DataSourceError: Something is wrong with the datasets in the source directory provided.
     """
     year_filter = {"hdf": None, "parquet": None}
     if year:
@@ -220,10 +218,7 @@ def generate_american_community_survey(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of noised ACS data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises TypeError: More than one file type is found in the source directory provided.
-    :raises TypeError: The file located in the data source directory provided does not contain a pd.DataFrame.
-    :raises ValueError: The source directory provided contains file types other than .hdf or .parquet.
-    :raises ValueError: No datasets are found in the source directory provided.
+    :raises DataSourceError: Something is wrong with the datasets in the source directory provided.
     """
     year_filter = {"hdf": None, "parquet": None}
     if year:
@@ -263,10 +258,7 @@ def generate_current_population_survey(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of noised CPS data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises TypeError: More than one file type is found in the source directory provided.
-    :raises TypeError: The file located in the data source directory provided does not contain a pd.DataFrame.
-    :raises ValueError: The source directory provided contains file types other than .hdf or .parquet.
-    :raises ValueError: No datasets are found in the source directory provided.
+    :raises DataSourceError: Something is wrong with the datasets in the source directory provided.
     """
     year_filter = {"hdf": None, "parquet": None}
     if year:
@@ -299,10 +291,7 @@ def generate_taxes_w2_and_1099(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of noised W2 and 1099 tax data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises TypeError: More than one file type is found in the source directory provided.
-    :raises TypeError: The file located in the data source directory provided does not contain a pd.DataFrame.
-    :raises ValueError: The source directory provided contains file types other than .hdf or .parquet.
-    :raises ValueError: No datasets are found in the source directory provided.
+    :raises DataSourceError: Something is wrong with the datasets in the source directory provided.
     """
     year_filter = {"hdf": None, "parquet": None}
     if year:
@@ -336,10 +325,7 @@ def generate_women_infants_and_children(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of noised WIC data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises TypeError: More than one file type is found in the source directory provided.
-    :raises TypeError: The file located in the data source directory provided does not contain a pd.DataFrame.
-    :raises ValueError: The source directory provided contains file types other than .hdf or .parquet.
-    :raises ValueError: No datasets are found in the source directory provided.
+    :raises DataSourceError: Something is wrong with the datasets in the source directory provided.
     """
     year_filter = {"hdf": None, "parquet": None}
     if year:
@@ -367,10 +353,7 @@ def generate_social_security(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of noised SSA data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises TypeError: More than one file type is found in the source directory provided.
-    :raises TypeError: The file located in the data source directory provided does not contain a pd.DataFrame.
-    :raises ValueError: The source directory provided contains file types other than .hdf or .parquet.
-    :raises ValueError: No datasets are found in the source directory provided.
+    :raises DataSourceError: Something is wrong with the datasets in the source directory provided.
     """
     year_filter = {"hdf": None, "parquet": None}
     if year:
