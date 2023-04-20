@@ -10,8 +10,14 @@
    :backlinks: entry
 
 In order to have a realistic challenge with entity resolution, it is essential
-to add noise to the data. Noise can also be called "corruption" or "distortion."
-This page describes the types of noise included in Pseudopeople.
+to add noise to the simulated data. Noise can also be called "corruption" or
+"distortion." Pseudopeople comes with a default noise configuration for the
+provided datasets, and the defaults can be overridden by the user. See the
+Configuration section for details.
+
+.. todo::
+
+  Add link to Configuration section once it exists.
 
 Categories of noise
 -------------------
@@ -26,13 +32,6 @@ Pseudopeople can add two broad categories of noise to the datasets it generates:
 Each type of row-based noise operates on the entire dataset (selecting rows to
 include or exclude), while each type of column-based noise operates on one
 column of data at a time (selecting cells within that column to noise).
-Pseudopeople comes with a default noise configuration for the provided datasets,
-and the defaults can be overridden by the user. See the Configuration section
-for details.
-
-.. todo::
-
-  Add link to Configuration section once it exists.
 
 Available noise types
 ---------------------
