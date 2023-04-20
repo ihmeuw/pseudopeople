@@ -127,7 +127,7 @@ The following simulant attributes are included in these datasets:
      - Column Name
      - Notes
    * - Unique simulant ID
-     - simulant_id
+     - :code:`simulant_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation. 
    * - Household ID 
      - :code:`household_id` 
@@ -193,7 +193,7 @@ The following simulant attributes are included in this dataset:
      - Column Name
      - Notes
    * - Unique simulant ID
-     - simulant_id
+     - :code:`simulant_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation. 
    * - Household ID 
      - :code:`household_id` 
@@ -258,7 +258,7 @@ The following simulant attributes are included in this dataset:
      - Column Name
      - Notes
    * - Unique simulant ID
-     - simulant_id
+     - :code:`simulant_id`
      - Not affected by noise functions; intended use is "ground truth" for PRL tracking.  
    * - First name
      - :code:`first_name`
@@ -298,11 +298,8 @@ The following simulant attributes are included in these datasets:
      - Column Name
      - Notes
    * - Unique simulant ID
-     - simulant_id
+     - :code:`simulant_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation. 
-   * - Household ID 
-     - :code:`household_id` 
-     - Not affected by noise functions; intended use is "ground truth" for testing and validation.
    * - First name
      - :code:`first_name`
      - 
