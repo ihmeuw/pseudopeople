@@ -288,6 +288,8 @@ The following simulant attributes are included in this dataset:
 
 Tax W-2 & 1099
 --------------
+Administrative data reported in annual tax forms, such as W-2s and 1099s, can also be simulated by Pseudopeople. 1099 forms are used for independent 
+contractors or self-employed individuals, while a W-2 form is used for employees (whose employer withholds payroll taxes from their earnings).
 
 The following simulant attributes are included in these datasets:
 
@@ -372,3 +374,83 @@ The following simulant attributes are included in these datasets:
 
 Tax 1040
 --------
+As with data collected from W-2 and 1099 forms, Pseudopeople also enables the simulation of administrative records from 1040 forms, which are
+also reported to the IRS on an annual basis. 
+
+The following simulant attributes are included in these datasets:
+
+.. list-table:: **Simulant attributes**
+   :header-rows: 1
+
+   * - Attribute Name
+     - Column Name
+     - Notes
+   * - Unique simulant ID
+     - :code:`simulant_id`
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation. 
+   * - First name
+     - :code:`first_name`
+     - 
+   * - Middle initial
+     - :code:`middle_initial`
+     - 
+   * - Last name
+     - :code:`last_name`
+     - 
+   * - Age
+     - :code:`age`  
+     - Rounded down to an integer.
+   * - Date of birth
+     - :code:`date_of_birth`
+     - Formatted as YYYY-MM-DD.
+   * - Mailing address street number
+     - :code:`mailing_address_street_number`
+     - 
+   * - Mailing address street name
+     - :code:`mailing_address_street_name`
+     - 
+   * - Mailing address unit number
+     - :code:`mailing_address_unit_number`
+     - 
+   * - Mailing address city
+     - :code:`mailing_address_city`    
+     - 
+   * - Mailing address state
+     - :code:`mailing_address_state`  
+     - 
+   * - Mailing address ZIP code
+     - :code:`mailing_address_zipcode`
+     - 
+   * - Social security number 
+     - :code:`ssn`
+     - 
+   * - Income 
+     - :code:`income`
+     - 
+   * - Employer ID 
+     - :code:`employer_id`
+     -  
+   * - Employer Name 
+     - :code:`employer_name`
+     - 
+   * - Employer street number
+     - :code:`employer_street_number`
+     - 
+   * - Employer street name
+     - :code:`employer_street_name`
+     - 
+   * - Employer unit number
+     - :code:`employer_unit_number`
+     - 
+   * - Employer city
+     - :code:`employer_city`    
+     - 
+   * - Employer state
+     - :code:`employer_state`  
+     - 
+   * - Employer ZIP code
+     - :code:`employer_zipcode`
+     - 
+   * - Type of tax form 
+     - :code:`tax_form`
+     - Possible values are "W2" or "1099".
