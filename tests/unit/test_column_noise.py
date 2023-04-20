@@ -121,7 +121,7 @@ def test_generate_missing_data(dummy_dataset):
                 Keys.COLUMN_NOISE: {
                     "zipcode": {
                         NOISE_TYPES.missing_data.name: {
-                            Keys.PROBABILITY: 0.25,
+                            Keys.CELL_PROBABILITY: 0.25,
                         },
                     },
                 },
@@ -138,7 +138,7 @@ def test_generate_missing_data(dummy_dataset):
     ]
 
     # Check for expected noise level
-    expected_noise = config[Keys.PROBABILITY]
+    expected_noise = config[Keys.CELL_PROBABILITY]
     actual_noise = len(newly_missing_idx) / len(orig_non_missing_idx)
     assert np.isclose(expected_noise, actual_noise, rtol=0.02)
 
@@ -156,7 +156,7 @@ def test_incorrect_selection(categorical_series):
     )
 
     # Check for expected noise level
-    expected_noise = config[Keys.PROBABILITY]
+    expected_noise = config[Keys.CELL_PROBABILITY]
     # todo: Update when generate_incorrect_selection uses exclusive resampling
     # Get real expected noise to account for possibility of noising with original value
     # Here we have a a possibility of choosing any of the 50 states for our categorical series fixture
@@ -229,7 +229,7 @@ def test_miswrite_ages_default_config(dummy_dataset):
 
     # Check for expected noise level
     not_missing_idx = data.index[data != ""]
-    expected_noise = config[Keys.PROBABILITY]
+    expected_noise = config[Keys.CELL_PROBABILITY]
     actual_noise = (noised_data[not_missing_idx] != data[not_missing_idx]).mean()
     # NOTE: we increase the relative tolerance a bit here because the expected
     # noise calculated above does not account for the fact that if a perturbed
@@ -257,7 +257,7 @@ def test_miswrite_ages_uniform_probabilities():
                 Keys.COLUMN_NOISE: {
                     "age": {
                         NOISE_TYPES.age_miswriting.name: {
-                            Keys.PROBABILITY: 1,
+                            Keys.CELL_PROBABILITY: 1,
                             Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                         },
                     },
@@ -286,7 +286,7 @@ def test_miswrite_ages_provided_probabilities():
                 Keys.COLUMN_NOISE: {
                     "age": {
                         NOISE_TYPES.age_miswriting.name: {
-                            Keys.PROBABILITY: 1,
+                            Keys.CELL_PROBABILITY: 1,
                             Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                         },
                     },
@@ -319,7 +319,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
                 Keys.COLUMN_NOISE: {
                     "age": {
                         NOISE_TYPES.age_miswriting.name: {
-                            Keys.PROBABILITY: 1,
+                            Keys.CELL_PROBABILITY: 1,
                             Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                         },
                     },
@@ -346,7 +346,7 @@ def test_miswrite_ages_flips_negative_to_positive():
                 Keys.COLUMN_NOISE: {
                     "age": {
                         NOISE_TYPES.age_miswriting.name: {
-                            Keys.PROBABILITY: 1,
+                            Keys.CELL_PROBABILITY: 1,
                             Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                         },
                     },
@@ -484,10 +484,10 @@ def test_generate_fake_names(dummy_dataset):
                 Keys.COLUMN_NOISE: {
                     "first_name": {
                         NOISE_TYPES.fake_name.name: {
-                            Keys.PROBABILITY: 0.4,
+                            Keys.CELL_PROBABILITY: 0.4,
                         },
                     },
-                    "last_name": {NOISE_TYPES.fake_name.name: {Keys.PROBABILITY: 0.5}},
+                    "last_name": {NOISE_TYPES.fake_name.name: {Keys.CELL_PROBABILITY: 0.5}},
                 },
             },
         }
@@ -519,12 +519,12 @@ def test_generate_fake_names(dummy_dataset):
     # todo: equal across fake values
     # Check noised values
     assert np.isclose(
-        first_name_config[Keys.PROBABILITY],
+        first_name_config[Keys.CELL_PROBABILITY],
         (first_name_data[~orig_missing] != noised_first_names[~orig_missing]).mean(),
         rtol=0.02,
     )
     assert np.isclose(
-        last_name_config[Keys.PROBABILITY],
+        last_name_config[Keys.CELL_PROBABILITY],
         (last_name_data[~orig_missing] != noised_last_names[~orig_missing]).mean(),
         rtol=0.02,
     )

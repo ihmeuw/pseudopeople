@@ -37,9 +37,7 @@ class __NoiseTypes(NamedTuple):
     zipcode_miswriting: ColumnNoiseType = ColumnNoiseType(
         "write_wrong_zipcode_digits",
         noise_functions.miswrite_zipcodes,
-        probability=None,
         additional_parameters={
-            Keys.CELL_PROBABILITY: 0.01,
             Keys.ZIPCODE_DIGIT_PROBABILITIES: [0.04, 0.04, 0.20, 0.36, 0.36],
         },
     )
@@ -53,9 +51,7 @@ class __NoiseTypes(NamedTuple):
     numeric_miswriting: ColumnNoiseType = ColumnNoiseType(
         "write_wrong_digits",
         noise_functions.miswrite_numerics,
-        probability=None,
         additional_parameters={
-            Keys.CELL_PROBABILITY: 0.01,
             Keys.TOKEN_PROBABILITY: 0.1,
         },
     )
@@ -88,9 +84,7 @@ class __NoiseTypes(NamedTuple):
     typographic: ColumnNoiseType = ColumnNoiseType(
         "make_typos",
         noise_functions.generate_typographical_errors,
-        probability=None,
-        additional_parameters={  # TODO: need to clarify these
-            Keys.CELL_PROBABILITY: 0.01,
+        additional_parameters={
             Keys.TOKEN_PROBABILITY: 0.1,
         },
     )

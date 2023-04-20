@@ -15,28 +15,28 @@ DEFAULT_NOISE_VALUES = {
     DATASETS.census.name: {
         Keys.ROW_NOISE: {
             NOISE_TYPES.omission.name: {
-                Keys.PROBABILITY: 0.0145,
+                Keys.ROW_PROBABILITY: 0.0145,
             }
         },
     },
     DATASETS.acs.name: {
         Keys.ROW_NOISE: {
             NOISE_TYPES.omission.name: {
-                Keys.PROBABILITY: 0.0145,
+                Keys.ROW_PROBABILITY: 0.0145,
             },
         },
     },
     DATASETS.cps.name: {
         Keys.ROW_NOISE: {
             NOISE_TYPES.omission.name: {
-                Keys.PROBABILITY: 0.2905,
+                Keys.ROW_PROBABILITY: 0.2905,
             },
         },
     },
     DATASETS.tax_w2_1099.name: {
         Keys.ROW_NOISE: {
             NOISE_TYPES.omission.name: {
-                Keys.PROBABILITY: 0.005,
+                Keys.ROW_PROBABILITY: 0.005,
             },
         },
     },
@@ -45,11 +45,7 @@ DEFAULT_NOISE_VALUES = {
         Keys.COLUMN_NOISE: {
             COLUMNS.ssn.name: {
                 noise_type.name: {
-                    (
-                        Keys.PROBABILITY
-                        if noise_type.probability is not None
-                        else Keys.CELL_PROBABILITY
-                    ): 0.0,
+                    Keys.CELL_PROBABILITY: 0.0,
                 }
                 for noise_type in COLUMNS.ssn.noise_types
             }
@@ -91,8 +87,8 @@ def _generate_default_configuration() -> ConfigTree:
         # Loop through row noise types
         for row_noise in dataset.row_noise_types:
             row_noise_type_dict = {}
-            if row_noise.probability is not None:
-                row_noise_type_dict[Keys.PROBABILITY] = row_noise.probability
+            if row_noise.row_probability is not None:
+                row_noise_type_dict[Keys.ROW_PROBABILITY] = row_noise.row_probability
             if row_noise_type_dict:
                 row_noise_dict[row_noise.name] = row_noise_type_dict
 
@@ -101,23 +97,14 @@ def _generate_default_configuration() -> ConfigTree:
             column_noise_dict = {}
             for noise_type in column.noise_types:
                 column_noise_type_dict = {}
-                if noise_type.probability is not None:
-                    column_noise_type_dict[Keys.PROBABILITY] = noise_type.probability
+                if noise_type.cell_probability is not None:
+                    column_noise_type_dict[
+                        Keys.CELL_PROBABILITY
+                    ] = noise_type.cell_probability
                 if noise_type.additional_parameters is not None:
                     for key, value in noise_type.additional_parameters.items():
                         column_noise_type_dict[key] = value
                 if column_noise_type_dict:
-                    # We should not have both 'probability' and 'cell_probability'
-                    # TODO: move this into a pytest
-                    if (
-                        Keys.PROBABILITY in column_noise_type_dict
-                        and Keys.CELL_PROBABILITY in column_noise_type_dict
-                    ):
-                        raise ValueError(
-                            "'probability' and 'cell_probability' are mutually exclusive "
-                            "but both are found in the default configuration for "
-                            f"dataset '{dataset.name}', column '{column.name}', noise type '{noise_type.name}'"
-                        )
                     column_noise_dict[noise_type.name] = column_noise_type_dict
             if column_noise_dict:
                 column_dict[column.name] = column_noise_dict
