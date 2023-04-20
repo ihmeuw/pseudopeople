@@ -1,17 +1,10 @@
-from dataclasses import dataclass
 from typing import Dict, List, Union
 
 import numpy as np
 from vivarium.config_tree import ConfigTree, ConfigurationKeyError
 
 from pseudopeople.configuration import Keys
-
-
-@dataclass
-class ConfigurationError(BaseException):
-    """Base class for configuration errors"""
-
-    message: str
+from pseudopeople.exceptions import ConfigurationError
 
 
 def validate_user_configuration(user_config: Dict, default_config: ConfigTree) -> None:

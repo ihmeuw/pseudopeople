@@ -9,3 +9,4 @@ py:class pandas.core.generic.PandasObject
 
 # pseudopeople
 py:exc ConfigurationError
+py:exc DataSourceError

@@ -350,5 +350,5 @@ def test_get_config(caplog):
     assert isinstance(config_2, dict)
     assert "not in the user provided configuration" in caplog.text
 
-    with pytest.raises(ValueError, match="bad_form_name"):
+    with pytest.raises(ConfigurationError, match="bad_form_name"):
         get_config("bad_form_name")
