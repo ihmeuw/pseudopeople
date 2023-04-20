@@ -1,0 +1,32 @@
+name: Bug report
+description: Create a report to help us improve
+body:
+  - type: textarea
+    attributes:
+      label: What happens?
+      description: A short, clear and concise description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: To Reproduce
+      description: Steps to reproduce the behavior.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: "# Environment (please complete the following information):"
+  - type: input
+    attributes:
+      label: "OS:"
+      placeholder: e.g. iOS
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: "Pseudopeople version:"
+      placeholder: e.g. 0.5.1
+    validations:
+      required: true

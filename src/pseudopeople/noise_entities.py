@@ -46,7 +46,9 @@ class __NoiseTypes(NamedTuple):
     age_miswriting: ColumnNoiseType = ColumnNoiseType(
         "misreport_age",
         noise_functions.miswrite_ages,
-        additional_parameters={Keys.POSSIBLE_AGE_DIFFERENCES: {-1: 0.5, 1: 0.5}},
+        additional_parameters={
+            Keys.POSSIBLE_AGE_DIFFERENCES: {-2: 0.1, -1: 0.4, 1: 0.4, 2: 0.1}
+        },
     )
     numeric_miswriting: ColumnNoiseType = ColumnNoiseType(
         "write_wrong_digits",
@@ -90,7 +92,6 @@ class __NoiseTypes(NamedTuple):
         additional_parameters={  # TODO: need to clarify these
             Keys.CELL_PROBABILITY: 0.01,
             Keys.TOKEN_PROBABILITY: 0.1,
-            Keys.INCLUDE_ORIGINAL_TOKEN_PROBABILITY: 0.1,
         },
     )
 

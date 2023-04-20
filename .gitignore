@@ -131,3 +131,6 @@ dmypy.json
 
 # Local user jupyter notebooks directory
 notebooks/
+
+# Mac OS stuff
+.DS_Store
