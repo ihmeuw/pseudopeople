@@ -24,8 +24,8 @@ from typing import Dict, Union
 from loguru import logger
 
 from pseudopeople.configuration.generator import get_configuration
-from pseudopeople.schema_entities import DATASETS
 from pseudopeople.exceptions import ConfigurationError
+from pseudopeople.schema_entities import DATASETS
 
 
 def get_config(dataset_name: str = None, user_config: Union[Path, str, Dict] = None) -> Dict:
