@@ -34,7 +34,7 @@ an individual simulant, with the columns representing different simulant attribu
 
 US Decennial Census
 -------------------
-The Decennial Census dataset is a simulated enumeration of the US Census Bureau's Decennial Census Survey. The years
+The Decennial Census dataset is a simulated enumeration of the US Census Bureau's Decennial Census of Population and Housing. The years
 that have been simulated are 2020, 2030, and 2040. To find out more about the survey, please visit the Decennial Census
 `homepage <https://www.census.gov/programs-surveys/decennial-census.html>`_.   
 
