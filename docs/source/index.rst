@@ -99,7 +99,7 @@ Now, see how many your record linkage method can find -- without access to the t
    :maxdepth: 2
 
    datasets/index
-   noise_functions/index
+   noise/index
    tutorials/index
    concepts/index
    api_reference/index
