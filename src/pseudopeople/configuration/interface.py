@@ -16,9 +16,9 @@ Users can provide their own configuration that will override the default values.
     $ user_config = {"decennial_census": {"row_noise": {"probability": {"omit_rows": 0.1},},},}
     $ psp.get_config("decennial_census", user_config)
 
-Note that when specifying a value to override in the configuration, users must specify the specific node they wish to
-change. Configuration is a hierarchical structure and to must properly source the lower levels. The configuration
-levels include dataset, column or row noise, noise type, and probability.
+Note that the configuration is a hierarchical structure. When overriding default values, the entire path to the value
+of interest needs to be provided. The configuration path includes keys for dataset, column or row noise, noise type,
+and probability or other parameters unique to the specific noise type.
 
 """
 
