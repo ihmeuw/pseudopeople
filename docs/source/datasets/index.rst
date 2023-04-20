@@ -5,8 +5,12 @@ Datasets
 ========
 
 Here we cover the realistic simulated datasets, which are analogous to "real world" administrative records such as tax documents
-and census surveys, that users can generate using :code:`pseudopeople` for developing and testing Entity Resolution algorithms 
-and software.
+and census surveys, that users can generate using Pseudopeople for developing and testing Entity Resolution algorithms 
+and software. 
+
+Each of the datasets that can be generated using Pseudopeople can have "noise" added to them, thereby realistically 
+simulating how administrative records can be corrupted or distorted, adding extra challenges to researchers trying to link those 
+records. To read more about the different kinds of noise that can be applied to the different datasets, please see the `Noise page <https://pseudopeople.readthedocs.io/en/latest/noise_functions/index.html#noise-functions>`_.
 
 The below table offers a list of the datasets that can be generated. Each row of a given dataset represents
 an individual simulant, with the columns representing different simulant attributes, such as name, age, sex, et cetera.
