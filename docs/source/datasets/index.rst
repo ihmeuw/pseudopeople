@@ -110,6 +110,7 @@ Bureau field representatives across the country through both personal and teleph
 work activity and income, veteran status, school enrollment, contingent employment, worker displacement, job tenure, and more. To find out more
 about CPS, please visit the `CPS homepage <https://www.census.gov/programs-surveys/cps.html>`_. 
 
+The following simulant attributes are included in these datasets:
 
 .. list-table:: **Simulant attributes**
    :header-rows: 1
@@ -175,6 +176,8 @@ homepage <https://www.fns.usda.gov/wic>`_.
 Pseudopeople can generate a simulated version of the administrative data that would be recorded by WIC. This is a yearly file of information about all 
 simulants enrolled in the program as of the end of that year.
 
+The following simulant attributes are included in this dataset:
+
 .. list-table:: **Simulant attributes**
    :header-rows: 1
 
@@ -232,10 +235,105 @@ simulants enrolled in the program as of the end of that year.
 
 Social Security
 ---------------
+The Social Security Administration (SSA) is the US federal government agency that administers Social Security, the social insurance program
+that consists of retirement, disability and survivor benefits. To find out more about this program, visit the `SSA homepage <https://www.ssa.gov/about-ssa>`_.
+
+Pseudopeople can generate a simulated version of a subset of the administrative data that would be recorded by SSA. Currently, the simulated
+SSA data includes records of SSA creation and dates of death.
+
+The following simulant attributes are included in this dataset:
+
+.. list-table:: **Simulant attributes**
+   :header-rows: 1
+
+   * - Attribute Name
+     - Column Name
+     - Notes
+   * - Unique simulant ID
+     - simulant_id
+     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking.  
+   * - First name
+     - :code:`first_name`
+     - 
+   * - Middle initial
+     - :code:`middle_initial`
+     - 
+   * - Last name
+     - :code:`last_name`
+     - 
+   * - Age
+     - :code:`age`  
+     - Rounded down to an integer.
+   * - Date of birth
+     - :code:`date_of_birth`
+     - Formatted as YYYY-MM-DD.
+   * - Date of event
+     - :code:`event_date`
+     - Formatted as YYYY-MM-DD.  
+   * - Type of event
+     - :code:`event_type`
+     - Possible values are 'Creation' and 'Death'. 
 
 
 Tax W-2 & 1099
 --------------
+
+The following simulant attributes are included in these datasets:
+
+.. list-table:: **Simulant attributes**
+   :header-rows: 1
+
+   * - Attribute Name
+     - Column Name
+     - Notes
+   * - Unique simulant ID
+     - simulant_id
+     - Not affected by noise functions; intended use is 'ground truth' for testing and validation. 
+   * - Household ID 
+     - :code:`household_id` 
+     - Not affected by noise functions; intended use is 'ground truth' for testing and validation.
+   * - First name
+     - :code:`first_name`
+     - 
+   * - Middle initial
+     - :code:`middle_initial`
+     - 
+   * - Last name
+     - :code:`last_name`
+     - 
+   * - Age
+     - :code:`age`  
+     - Rounded down to an integer.
+   * - Date of birth
+     - :code:`date_of_birth`
+     - Formatted as YYYY-MM-DD.
+   * - Physical address street number
+     - :code:`street_number`
+     - 
+   * - Physical address street name
+     - :code:`street_name`
+     - 
+   * - Physical address unit
+     - :code:`unit_number`
+     - 
+   * - Physical address city
+     - :code:`city`    
+     - 
+   * - Physical address state
+     - :code:`state`  
+     - 
+   * - Physical address ZIP code
+     - :code:`zipcode`
+     - 
+   * - Sex 
+     - :code:`sex`  
+     - Binary; 'male' or 'female'
+   * - Race/ethnicity
+     - :code:`race_ethnicity` 
+     - The following exhaustive and mutually exclusive categories for the single composite 'race/ethnicity' indicator are as follows:
+       White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
+       Multiracial or Some Other Race.  
+
 
 
 Tax 1040
