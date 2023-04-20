@@ -7,7 +7,7 @@
 .. contents::
    :depth: 2
    :local:
-   :backlinks: none
+   :backlinks: entry
 
 In order to have a realistic challenge with entity resolution, it is essential
 to add noise to the data. Noise can also be called "corruption" or "distortion."
