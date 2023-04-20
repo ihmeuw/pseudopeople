@@ -41,16 +41,16 @@ Pseudopeople applies the different types of row-based and column-based noise in
 the following order to mimic the data generation process by which a real dataset
 might be corrupted. The table lists all the available noise types, but not every
 type of noise will necessarily be applied to every dataset or every column. The
-configuration determines which noise types are actually used. The "Config Key"
-column shows the name of the noise type in the configuration.
+configuration determines which noise types are actually used. The "Noise Type"
+column shows the name of the noise type in the configuration system.
 
 .. list-table:: Types of noise in order of application
   :widths: 1 2 5 1
   :header-rows: 1
 
-  * - Config Key
-    - Noise Type
+  * - Noise Type
     - Description
+    - Example
     - Order
   * - ``row_noise``
     - **Row-based noise**
@@ -58,7 +58,7 @@ column shows the name of the noise type in the configuration.
     - ---
   * - ``omit_row``
     - Omit a row
-    - Omit an entire randomly selected row of data
+    - Neglecting to file a tax form on time
     - 1
   * - ``column_noise``
     - **Column-based noise**
@@ -66,11 +66,11 @@ column shows the name of the noise type in the configuration.
     - ---
   * - ``leave_blank``
     - Leave a field blank
-    - For example, forgetting to write your name on the designated line
+    - Forgetting to write your name on the designated line
     - 2
   * - ``choose_wrong_option``
     - Choose the wrong option from a fixed set of options
-    - For example, marking the "Male" box when you meant "Female"
+    - Marking the "Male" box when you meant "Female"
     - 3
 
 .. todo::
