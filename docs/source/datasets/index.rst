@@ -182,10 +182,10 @@ simulants enrolled in the program as of the end of that year.
      - Notes
    * - Unique simulant ID
      - simulant_id
-     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking. 
+     - Not affected by noise functions; intended use is 'ground truth' for testing and validation. 
    * - Household ID 
      - :code:`household_id` 
-     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking.
+     - Not affected by noise functions; intended use is 'ground truth' for testing and validation.
    * - First name
      - :code:`first_name`
      - 
