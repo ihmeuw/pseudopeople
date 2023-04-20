@@ -9,26 +9,31 @@
    :local:
    :backlinks: none
 
-Categories of Noise
+In order to have a realistic challenge with entity resolution, it is essential
+to add noise to the data. Noise can also be called "corruption" or "distortion."
+This page describes the types of noise included in Pseudopeople.
+
+Categories of noise
 -------------------
 
-In order to have a realistic challenge with entity resolution, it is essential
-to add noise to the data. Pseudopeople can add two broad categories of noise to
-the datasets it generates:
+Pseudopeople can add two broad categories of noise to the datasets it generates:
 
 #. **Row-based noise:** Errors in the inclusion or exclusion of entire rows of
-   data, such as duplication or omission of a record
+   data, such as duplication or omission
 #. **Column-based noise:** Errors in data entry for individual fields within a
-   record, such as miswriting or incorrectly selecting responses
+   row, such as miswriting or incorrectly selecting responses
 
 Each type of row-based noise operates on the entire dataset (selecting rows to
 include or exclude), while each type of column-based noise operates on one
 column of data at a time (selecting cells within that column to noise).
 Pseudopeople applies row-based noise prior to column-based noise so that errors
-in individual fields are applied to the records that actually appear in the
-data. Each type of column-based noise is applied independently to a subset of
-the columns in the dataset, where each column represents the values of a single
-field for all the records.
+in individual fields are applied to the records (rows) that actually appear in
+the data. Each type of column-based noise is applied independently to a subset
+of the columns in the dataset, where each column represents the values of a
+single field for all the records.
+
+Customizing the noise in a dataset
+----------------------------------
 
 Pseudopeople has a configuration system to specify which types of noise are
 applied to each dataset, which columns each type of column-based noise is
@@ -41,7 +46,7 @@ details.
 
   Add link to Configuration section once it exists.
 
-Available Noise Types
+Available noise types
 ---------------------
 
 Pseudopeople applies the different types of row-based and column-based noise in
