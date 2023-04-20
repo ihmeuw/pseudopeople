@@ -51,7 +51,6 @@ def get_config(dataset_name: str = None, user_config: Union[Path, str, Dict] = N
     :param user_config: An optional override to the default configuration. Can be
         a path to a configuration YAML file or a dictionary.
     :return: Dictionary of the config.
-    :raises ValueError: An invalid name is passed for a dataset name
     :raises ConfigurationError: An invalid configuration is passed with user_config.
 
     """
