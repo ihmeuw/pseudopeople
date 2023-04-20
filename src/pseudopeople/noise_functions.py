@@ -8,22 +8,22 @@ from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import paths
-from pseudopeople.constants.metadata import FormNames
+from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.utilities import get_index_to_noise, vectorized_choice
 
 
 def omit_rows(
-    form_name: str,
-    form_data: pd.DataFrame,
+    dataset_name: str,
+    dataset_data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
-    Function that omits rows from a dataset and returns only the remaining rows.  Note that for the ACS and CPS forms
+    Function that omits rows from a dataset and returns only the remaining rows.  Note that for the ACS and CPS datasets
       we need to account for oversampling in the PRL simulation so a helper function has been hadded here to do so.
-    :param form_name: Form object being noised
-    :param form_data:  pd.DataFrame of one of the form types used in Pseudopeople
+    :param dataset_name: Dataset object being noised
+    :param dataset_data:  pd.DataFrame of one of the dataset types used in Pseudopeople
     :param configuration: ConfigTree object containing noise level values
     :param randomness_stream: RandomnessStream object to make random selection for noise
     :return: pd.DataFrame with rows from the original dataframe removed
@@ -31,34 +31,34 @@ def omit_rows(
 
     noise_level = configuration.probability
     # Account for ACS and CPS oversampling
-    if form_name in [FormNames.ACS, FormNames.CPS]:
+    if dataset_name in [DatasetNames.ACS, DatasetNames.CPS]:
         noise_level = 0.5 + noise_level / 2
     # Omit rows
     to_noise_index = get_index_to_noise(
-        form_data,
+        dataset_data,
         noise_level,
         randomness_stream,
-        f"{form_name}_omit_choice",
+        f"{dataset_name}_omit_choice",
     )
-    noised_data = form_data.loc[form_data.index.difference(to_noise_index)]
+    noised_data = dataset_data.loc[dataset_data.index.difference(to_noise_index)]
 
     return noised_data
 
 
 # def duplicate_rows(
-#     form_data: pd.DataFrame,
+#     dataset_data: pd.DataFrame,
 #     configuration: ConfigTree,
 #     randomness_stream: RandomnessStream,
 # ) -> pd.DataFrame:
 #     """
 
-#     :param form_data:
+#     :param dataset_data:
 #     :param configuration:
 #     :param randomness_stream:
 #     :return:
 #     """
 #     # todo actually duplicate rows
-#     return form_data
+#     return dataset_data
 
 
 def generate_incorrect_selections(
@@ -374,7 +374,8 @@ def generate_typographical_errors(
         return err
 
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
-    include_token_probability_level = configuration[Keys.INCLUDE_ORIGINAL_TOKEN_PROBABILITY]
+    # TODO: remove this hard-coding
+    include_token_probability_level = 0.1
 
     rng = np.random.default_rng(seed=randomness_stream.seed)
     column = column.astype(str)

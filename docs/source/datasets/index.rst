@@ -34,8 +34,9 @@ an individual simulant, with the columns representing different simulant attribu
 
 US Decennial Census
 -------------------
-The Decennial Census dataset is a simulated enumeration of the US Census Bureau's Decennial Census Survey. The years
-that have been simulated are 2020, 2030, and 2040. To find out more about the survey, please visit the Decennial Census
+
+The Decennial Census dataset is a simulated enumeration of the US Census Bureau's Decennial Census of Population and Housing. The years
+that have been simulated are 2020, 2030, and 2040. To find out more about the Decennial Census, please visit the Decennial Census
 `homepage <https://www.census.gov/programs-surveys/decennial-census.html>`_.   
 
 The following simulant attributes are included in this dataset:
@@ -48,7 +49,7 @@ The following simulant attributes are included in this dataset:
      - Notes    
    * - Unique simulant ID
      - :code:`simulant_id`
-     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking. 
+     - Not affected by noise functions; intended use is 'ground truth' for testing and validation. 
    * - First name
      - :code:`first_name`
      - 
@@ -63,7 +64,7 @@ The following simulant attributes are included in this dataset:
      - Rounded down to an integer. 
    * - Date of birth
      - :code:`date_of_birth`
-     - Formatted as MM/DD/YYYY.
+     - Formatted as YYYY-MM-DD.
    * - Physical address street number
      - :code:`street_number`
      - 
@@ -82,9 +83,9 @@ The following simulant attributes are included in this dataset:
    * - Physical address ZIP code
      - :code:`zipcode`
      - 
-   * - Relationship to person 1 (head of household)
-     - :code:`relationship_to_household_head` 
-     - 'Person 1', 'head of household', and 'Reference person' are all synonymous in this context. Possible values for this indicator include:
+   * - Relationship to reference person
+     - :code:`relationship_to_reference_person` 
+     - Possible values for this indicator include:
        Reference person; Biological child; Adopted child; Stepchild; Sibling; Parent; Grandchild; Parent-in-law; Child-in-law; Other relative;
        Roommate; Foster child; and Other nonrelative.
    * - Sex 
@@ -120,10 +121,10 @@ The following simulant attributes are included in this dataset:
      - Notes
    * - Unique simulant ID
      - simulant_id
-     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking. 
+     - Not affected by noise functions; intended use is 'ground truth' for testing and validation. 
    * - Household ID 
      - :code:`household_id` 
-     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking.
+     - Not affected by noise functions; intended use is 'ground truth' for testing and validation.
    * - First name
      - :code:`first_name`
      - 
@@ -138,7 +139,7 @@ The following simulant attributes are included in this dataset:
      - Rounded down to an integer.
    * - Date of birth
      - :code:`date_of_birth`
-     - Formatted as MM/DD/YYYY.
+     - Formatted as YYYY-MM-DD.
    * - Physical address street number
      - :code:`street_number`
      - 
@@ -157,11 +158,6 @@ The following simulant attributes are included in this dataset:
    * - Physical address ZIP code
      - :code:`zipcode`
      - 
-   * - Relationship to person 1
-     - :code:`relationship_to_household_head` 
-     - 'Person 1', 'head of household', and 'Reference person' are all synonymous in this context. Possible values for this indicator include:
-       Reference person; Biological child; Adopted child; Stepchild; Sibling; Parent; Grandchild; Parent-in-law; Child-in-law; Other relative;
-       Roommate; Foster child; and Other nonrelative.
    * - Sex 
      - :code:`sex`  
      - Binary; 'male' or 'female'
@@ -174,9 +170,12 @@ The following simulant attributes are included in this dataset:
 
 WIC
 ---
-The Special Supplemental Nurtrition Program for Women, Infants, and Children (WIC) is a government benefits program designed to support mothers and young
+The Special Supplemental Nutrition Program for Women, Infants, and Children (WIC) is a government benefits program designed to support mothers and young
 children. The main qualifications are income and the presence of young children in the home. To find out more about this service, please visit the `WIC 
 homepage <https://www.fns.usda.gov/wic>`_.
+
+Pseudopeople can generate a simulated version of the administrative data that would be recorded by WIC. This is a yearly file of information about all 
+simulants enrolled in the program as of the end of that year.
 
 The following simulant attributes are included in this dataset:
 
@@ -188,10 +187,10 @@ The following simulant attributes are included in this dataset:
      - Notes
    * - Unique simulant ID
      - simulant_id
-     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking. 
+     - Not affected by noise functions; intended use is 'ground truth' for testing and validation. 
    * - Household ID 
      - :code:`household_id` 
-     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking.
+     - Not affected by noise functions; intended use is 'ground truth' for testing and validation.
    * - First name
      - :code:`first_name`
      - 
@@ -206,7 +205,7 @@ The following simulant attributes are included in this dataset:
      - Rounded down to an integer.
    * - Date of birth
      - :code:`date_of_birth`
-     - Formatted as MM/DD/YYYY.
+     - Formatted as YYYY-MM-DD.
    * - Physical address street number
      - :code:`street_number`
      - 

@@ -1,4 +1,4 @@
 # default owners
-* @ihmeuw/vivarium-dev
+* @albrja @hussain-jafari @mattkappel @ramittal @rmudambi @stevebachmeier
 /docs/* @ihmeuw/vivarium-research @ihmeuw/vivarium-dev
 *.rst @ihmeuw/vivarium-research @ihmeuw/vivarium-dev @zmbc @pletale
