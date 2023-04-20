@@ -70,7 +70,7 @@ The following simulant attributes are included in this dataset:
    * - Physical address street name
      - :code:`street_name`
      - 
-   * - Physical address unit
+   * - Physical address unit number
      - :code:`unit_number`
      - 
    * - Physical address city
@@ -145,7 +145,7 @@ The following simulant attributes are included in these datasets:
    * - Physical address street name
      - :code:`street_name`
      - 
-   * - Physical address unit
+   * - Physical address unit number
      - :code:`unit_number`
      - 
    * - Physical address city
@@ -211,7 +211,7 @@ The following simulant attributes are included in this dataset:
    * - Physical address street name
      - :code:`street_name`
      - 
-   * - Physical address unit
+   * - Physical address unit number
      - :code:`unit_number`
      - 
    * - Physical address city
@@ -267,6 +267,9 @@ The following simulant attributes are included in this dataset:
    * - Date of birth
      - :code:`date_of_birth`
      - Formatted as YYYY-MM-DD.
+   * - Social security number 
+     - :code:`ssn`
+     - 
    * - Date of event
      - :code:`event_date`
      - Formatted as YYYY-MM-DD.  
@@ -307,34 +310,57 @@ The following simulant attributes are included in these datasets:
    * - Date of birth
      - :code:`date_of_birth`
      - Formatted as YYYY-MM-DD.
-   * - Physical address street number
-     - :code:`street_number`
+   * - Mailing address street number
+     - :code:`mailing_address_street_number`
      - 
-   * - Physical address street name
-     - :code:`street_name`
+   * - Mailing address street name
+     - :code:`mailing_address_street_name`
      - 
-   * - Physical address unit
-     - :code:`unit_number`
+   * - Mailing address unit number
+     - :code:`mailing_address_unit_number`
      - 
-   * - Physical address city
-     - :code:`city`    
+   * - Mailing address city
+     - :code:`mailing_address_city`    
      - 
-   * - Physical address state
-     - :code:`state`  
+   * - Mailing address state
+     - :code:`mailing_address_state`  
      - 
-   * - Physical address ZIP code
-     - :code:`zipcode`
+   * - Mailing address ZIP code
+     - :code:`mailing_address_zipcode`
      - 
-   * - Sex 
-     - :code:`sex`  
-     - Binary; 'male' or 'female'
-   * - Race/ethnicity
-     - :code:`race_ethnicity` 
-     - The following exhaustive and mutually exclusive categories for the single composite 'race/ethnicity' indicator are as follows:
-       White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
-       Multiracial or Some Other Race.  
-
-
+   * - Social security number 
+     - :code:`ssn`
+     - 
+   * - Income 
+     - :code:`income`
+     - 
+   * - Employer ID 
+     - :code:`employer_id`
+     -  
+   * - Employer Name 
+     - :code:`employer_name`
+     - 
+   * - Employer street number
+     - :code:`employer_street_number`
+     - 
+   * - Employer street name
+     - :code:`employer_street_name`
+     - 
+   * - Employer unit number
+     - :code:`employer_unit_number`
+     - 
+   * - Employer city
+     - :code:`employer_city`    
+     - 
+   * - Employer state
+     - :code:`employer_state`  
+     - 
+   * - Employer ZIP code
+     - :code:`employer_zipcode`
+     - 
+   * - Type of tax form 
+     - :code:`tax_form`
+     - Possible values are 'W2' or '1099'.
 
 Tax 1040
 --------
