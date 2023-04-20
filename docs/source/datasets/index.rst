@@ -237,6 +237,12 @@ The following simulant attributes are included in this dataset:
 Social Security
 ---------------
 
+The Social Security Administration (SSA) is the US federal government agency that administers Social Security, the social insurance program
+that consists of retirement, disability and survivor benefits.
+
+Pseudopeople can generate a simulated version of a subset of the administrative data that would be recorded by SSA. Currently, the simulated
+SSA data includes records of SSA creation and dates of death.
+
 The following simulant attributes are included in this dataset:
 
 .. list-table:: **Simulant attributes**
@@ -262,13 +268,13 @@ The following simulant attributes are included in this dataset:
      - Rounded down to an integer.
    * - Date of birth
      - :code:`date_of_birth`
-     - Formatted as YYYYMMDD.
+     - Formatted as YYYY-MM-DD.
    * - Date of event
      - :code:`event_date`
-     - Formatted as YYYYMMDD.  
+     - Formatted as YYYY-MM-DD.  
    * - Type of event
      - :code:`event_type`
-     - Possible values are 'Creation' and 'Date of death'. 
+     - Possible values are 'Creation' and 'Death'. 
 
 
 Tax W-2 & 1099
