@@ -269,6 +269,9 @@ The following simulant attributes are included in this dataset:
    * - Date of birth
      - :code:`date_of_birth`
      - Formatted as YYYY-MM-DD.
+   * - Social security number
+     - :code:`ssn`
+     -      
    * - Date of event
      - :code:`event_date`
      - Formatted as YYYY-MM-DD.  
