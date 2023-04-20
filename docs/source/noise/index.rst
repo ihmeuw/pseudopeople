@@ -11,9 +11,10 @@
 
 In order to have a realistic challenge with entity resolution, it is essential
 to add noise to the simulated data. Noise can also be called "corruption" or
-"distortion." Pseudopeople comes with a default noise configuration for the
-provided datasets, and the defaults can be overridden by the user. See the
-Configuration section for details.
+"distortion." By default, Pseudopeople applies noise to the datasets it
+generates using some reasonable settings. If desired, the user can change these
+settings through the configuration system. See the Configuration section for
+details.
 
 .. todo::
 
