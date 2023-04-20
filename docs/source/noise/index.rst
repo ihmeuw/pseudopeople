@@ -83,3 +83,9 @@ Default noise types for each column
 
 Noise function details
 ----------------------
+
+.. toctree::
+   :maxdepth: 3
+   :glob:
+
+   noise_functions
