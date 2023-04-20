@@ -238,7 +238,7 @@ Social Security
 ---------------
 
 The Social Security Administration (SSA) is the US federal government agency that administers Social Security, the social insurance program
-that consists of retirement, disability and survivor benefits. To find out more about this program, visit the SSA `homepage <https://www.ssa.gov/about-ssa>`_.
+that consists of retirement, disability and survivor benefits. To find out more about this program, visit the `SSA homepage <https://www.ssa.gov/about-ssa>`_.
 
 Pseudopeople can generate a simulated version of a subset of the administrative data that would be recorded by SSA. Currently, the simulated
 SSA data includes records of SSA creation and dates of death.
