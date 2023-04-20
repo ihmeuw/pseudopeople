@@ -3,6 +3,7 @@
 ========
 Datasets
 ========
+
 Here we cover the realistic simulated datasets, which are analogous to 'real world' administrative records such as tax documents
 and census surveys, that users can generate using :code:`pseudopeople` for developing and testing Entity Resolution algorithms 
 and software.
@@ -23,7 +24,7 @@ an individual simulant, with the columns representing different simulant attribu
 
    * - Name
    * - | US Decennial Census
-   * - | American Communities Survey (ACS)
+   * - | American Community Survey (ACS)
    * - | Current Population Survey (CPS)
    * - | Women, Infants, and Children (WIC) Administrative Data
    * - | Social Security Administration (SSA) Data
@@ -33,8 +34,9 @@ an individual simulant, with the columns representing different simulant attribu
 
 US Decennial Census
 -------------------
-The Decennial Census dataset is a simulated enumeration of the US Census Bureau's Decennial Census Survey. The years
-that have been simulated are 2020, 2030, and 2040.
+The Decennial Census dataset is a simulated enumeration of the US Census Bureau's Decennial Census of Population and Housing. The years
+that have been simulated are 2020, 2030, and 2040. To find out more about the Decennial Census, please visit the Decennial Census
+`homepage <https://www.census.gov/programs-surveys/decennial-census.html>`_.   
 
 The following simulant attributes are included in this dataset:
 
@@ -46,7 +48,7 @@ The following simulant attributes are included in this dataset:
      - Notes    
    * - Unique simulant ID
      - :code:`simulant_id`
-     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking. 
+     - Not affected by noise functions; intended use is 'ground truth' for testing and validation. 
    * - First name
      - :code:`first_name`
      - 
@@ -61,7 +63,7 @@ The following simulant attributes are included in this dataset:
      - Rounded down to an integer. 
    * - Date of birth
      - :code:`date_of_birth`
-     - Formatted as MM/DD/YYYY.
+     - Formatted as YYYY-MM-DD.
    * - Physical address street number
      - :code:`street_number`
      - 
@@ -80,9 +82,9 @@ The following simulant attributes are included in this dataset:
    * - Physical address ZIP code
      - :code:`zipcode`
      - 
-   * - Relationship to person 1 (head of household)
-     - :code:`relationship_to_household_head` 
-     - 'Person 1', 'head of household', and 'Reference person' are all synonymous in this context. Possible values for this indicator include:
+   * - Relationship to reference person
+     - :code:`relationship_to_reference_person` 
+     - Possible values for this indicator include:
        Reference person; Biological child; Adopted child; Stepchild; Sibling; Parent; Grandchild; Parent-in-law; Child-in-law; Other relative;
        Roommate; Foster child; and Other nonrelative.
    * - Sex 
@@ -97,7 +99,16 @@ The following simulant attributes are included in this dataset:
 Household Surveys: ACS and CPS
 ------------------------------
 There are two simulated household survey datasets that can be used: the American
-Communities Survey (ACS) and the Current Population Survey (CPS). 
+Community Survey (ACS) and the Current Population Survey (CPS). 
+
+ACS is an ongoing household survey conducted by the US Census Bureau that gathers information on a rolling basis about
+American community populations. Information collected includes ancestry, citizenship, education, income, language proficienccy, migration, 
+employment, disability, and housing characteristics. To find out more about ACS, please visit the `ACS homepage <https://www.census.gov/programs-surveys/acs/about.html>`_.
+
+CPS is another household survey conducted by the US Census Bureau and the US Bureau of Labor Statistics. This survey is administered by Census 
+Bureau field representatives across the country through both personal and telephone interviews. CPS collects labor force data, such as annual
+work activity and income, veteran status, school enrollment, contingent employment, worker displacement, job tenure, and more. To find out more
+about CPS, please visit the `CPS homepage <https://www.census.gov/programs-surveys/cps.html>`_. 
 
 
 .. list-table:: **Simulant attributes**
@@ -108,10 +119,10 @@ Communities Survey (ACS) and the Current Population Survey (CPS).
      - Notes
    * - Unique simulant ID
      - simulant_id
-     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking. 
+     - Not affected by noise functions; intended use is 'ground truth' for testing and validation. 
    * - Household ID 
      - :code:`household_id` 
-     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking.
+     - Not affected by noise functions; intended use is 'ground truth' for testing and validation.
    * - First name
      - :code:`first_name`
      - 
@@ -123,10 +134,10 @@ Communities Survey (ACS) and the Current Population Survey (CPS).
      - 
    * - Age
      - :code:`age`  
-     - Rounded to nearest integer.
+     - Rounded down to an integer.
    * - Date of birth
      - :code:`date_of_birth`
-     - Formatted as MM/DD/YYYY.
+     - Formatted as YYYY-MM-DD.
    * - Physical address street number
      - :code:`street_number`
      - 
@@ -145,11 +156,6 @@ Communities Survey (ACS) and the Current Population Survey (CPS).
    * - Physical address ZIP code
      - :code:`zipcode`
      - 
-   * - Relationship to person 1
-     - :code:`relationship_to_household_head` 
-     - 'Person 1', 'head of household', and 'Reference person' are all synonymous in this context. Possible values for this indicator include:
-       Reference person; Biological child; Adopted child; Stepchild; Sibling; Parent; Grandchild; Parent-in-law; Child-in-law; Other relative;
-       Roommate; Foster child; and Other nonrelative.
    * - Sex 
      - :code:`sex`  
      - Binary; 'male' or 'female'
@@ -162,6 +168,66 @@ Communities Survey (ACS) and the Current Population Survey (CPS).
 
 WIC
 ---
+The Special Supplemental Nutrition Program for Women, Infants, and Children (WIC) is a government benefits program designed to support mothers and young
+children. The main qualifications are income and the presence of young children in the home. To find out more about this service, please visit the `WIC 
+homepage <https://www.fns.usda.gov/wic>`_.
+
+Pseudopeople can generate a simulated version of the administrative data that would be recorded by WIC. This is a yearly file of information about all 
+simulants enrolled in the program as of the end of that year.
+
+.. list-table:: **Simulant attributes**
+   :header-rows: 1
+
+   * - Attribute Name
+     - Column Name
+     - Notes
+   * - Unique simulant ID
+     - simulant_id
+     - Not affected by noise functions; intended use is 'ground truth' for testing and validation. 
+   * - Household ID 
+     - :code:`household_id` 
+     - Not affected by noise functions; intended use is 'ground truth' for testing and validation.
+   * - First name
+     - :code:`first_name`
+     - 
+   * - Middle initial
+     - :code:`middle_initial`
+     - 
+   * - Last name
+     - :code:`last_name`
+     - 
+   * - Age
+     - :code:`age`  
+     - Rounded down to an integer.
+   * - Date of birth
+     - :code:`date_of_birth`
+     - Formatted as YYYY-MM-DD.
+   * - Physical address street number
+     - :code:`street_number`
+     - 
+   * - Physical address street name
+     - :code:`street_name`
+     - 
+   * - Physical address unit
+     - :code:`unit_number`
+     - 
+   * - Physical address city
+     - :code:`city`    
+     - 
+   * - Physical address state
+     - :code:`state`  
+     - 
+   * - Physical address ZIP code
+     - :code:`zipcode`
+     - 
+   * - Sex 
+     - :code:`sex`  
+     - Binary; 'male' or 'female'
+   * - Race/ethnicity
+     - :code:`race_ethnicity` 
+     - The following exhaustive and mutually exclusive categories for the single composite 'race/ethnicity' indicator are as follows:
+       White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
+       Multiracial or Some Other Race.  
 
 
 Social Security
