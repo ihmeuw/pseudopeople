@@ -6,14 +6,14 @@ import pytest
 
 from pseudopeople.constants import paths
 from pseudopeople.interface import (
-    generate_american_communities_survey,
+    generate_american_community_survey,
     generate_current_population_survey,
     generate_decennial_census,
     generate_social_security,
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
-from pseudopeople.schema_entities import COLUMNS, FORMS
+from pseudopeople.schema_entities import COLUMNS, DATASETS
 
 # TODO: Move into a metadata file and import metadata into prl
 DATA_COLUMNS = ["year", "event_date", "survey_date", "tax_year"]
@@ -24,8 +24,8 @@ DATA_COLUMNS = ["year", "event_date", "survey_date", "tax_year"]
     [
         ("decennial_census_observer", generate_decennial_census, True),
         ("decennial_census_observer", generate_decennial_census, False),
-        ("household_survey_observer_acs", generate_american_communities_survey, True),
-        ("household_survey_observer_acs", generate_american_communities_survey, False),
+        ("household_survey_observer_acs", generate_american_community_survey, True),
+        ("household_survey_observer_acs", generate_american_community_survey, False),
         ("household_survey_observer_cps", generate_current_population_survey, True),
         ("household_survey_observer_cps", generate_current_population_survey, False),
         ("social_security_observer", generate_social_security, True),
@@ -38,15 +38,15 @@ DATA_COLUMNS = ["year", "event_date", "survey_date", "tax_year"]
         ("tax 1040", "todo", False),
     ],
 )
-def test_generate_form(
+def test_generate_dataset(
     data_dir_name: str, noising_function: Callable, use_sample_data: bool, tmpdir
 ):
-    """Tests that noised forms are generated and as expected. The 'use_sample_data'
+    """Tests that noised datasets are generated and as expected. The 'use_sample_data'
     parameter determines whether to use the sample data (if True) or
     a non-default root directory with multiple datasets to compile (if False)
     """
     if noising_function == "todo":
-        pytest.skip(reason=f"TODO: implement form {data_dir_name}")
+        pytest.skip(reason=f"TODO: implement dataset {data_dir_name}")
 
     sample_data_path = list(
         (paths.SAMPLE_DATA_ROOT / data_dir_name).glob(f"{data_dir_name}*")
@@ -126,7 +126,7 @@ def _generate_non_default_data_root(data_dir_name, tmpdir, sample_data_path, dat
     "data_dir_name, noising_function",
     [
         ("decennial_census_observer", generate_decennial_census),
-        ("household_survey_observer_acs", generate_american_communities_survey),
+        ("household_survey_observer_acs", generate_american_community_survey),
         ("household_survey_observer_cps", generate_current_population_survey),
         ("social_security_observer", generate_social_security),
         ("tax_w2_observer", generate_taxes_w2_and_1099),
@@ -134,9 +134,9 @@ def _generate_non_default_data_root(data_dir_name, tmpdir, sample_data_path, dat
         ("tax 1040", "todo"),
     ],
 )
-def test_generate_form_with_year(data_dir_name: str, noising_function: Callable):
+def test_generate_dataset_with_year(data_dir_name: str, noising_function: Callable):
     if noising_function == "todo":
-        pytest.skip(reason=f"TODO: implement form {data_dir_name}")
+        pytest.skip(reason=f"TODO: implement dataset {data_dir_name}")
     # todo fix hard-coding in MIC-3960
     data_path = paths.SAMPLE_DATA_ROOT / data_dir_name / f"{data_dir_name}.parquet"
     data = pd.read_parquet(data_path)
@@ -150,59 +150,59 @@ def test_generate_form_with_year(data_dir_name: str, noising_function: Callable)
     assert not noised_data.equals(noised_data_different_seed)
 
 
-def _mock_extract_columns(columns_to_keep, noised_form):
-    return noised_form
+def _mock_extract_columns(columns_to_keep, noised_dataset):
+    return noised_dataset
 
 
 @pytest.mark.parametrize(
     "data_dir_name, noising_function, date_column",
     [
-        ("decennial_census_observer", generate_decennial_census, FORMS.census.date_column),
-        ("tax_w2_observer", generate_taxes_w2_and_1099, FORMS.tax_w2_1099.date_column),
-        ("wic_observer", generate_women_infants_and_children, FORMS.wic.date_column),
+        ("decennial_census_observer", generate_decennial_census, DATASETS.census.date_column),
+        ("tax_w2_observer", generate_taxes_w2_and_1099, DATASETS.tax_w2_1099.date_column),
+        ("wic_observer", generate_women_infants_and_children, DATASETS.wic.date_column),
         ("tax 1040", "todo", "todo"),
     ],
 )
-def test_form_filter_by_year(
+def test_dataset_filter_by_year(
     mocker, data_dir_name: str, noising_function: Callable, date_column: str
 ):
     if noising_function == "todo":
-        pytest.skip(reason=f"TODO: implement form {data_dir_name}")
+        pytest.skip(reason=f"TODO: implement dataset {data_dir_name}")
 
     mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
-    mocker.patch("pseudopeople.interface.noise_form", side_effect=_mock_noise_form)
+    mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
     noised_data = noising_function(year=2020)
 
     assert (noised_data[date_column] == 2020).all()
 
 
-def _mock_noise_form(
-    form,
-    form_data: pd.DataFrame,
+def _mock_noise_dataset(
+    dataset,
+    dataset_data: pd.DataFrame,
     configuration,
     seed: int,
 ):
-    """Mock noise_form that just returns unnoised data"""
-    return form_data
+    """Mock noise_dataset that just returns unnoised data"""
+    return dataset_data
 
 
 @pytest.mark.parametrize(
-    "data_dir_name, noising_function, form",
+    "data_dir_name, noising_function, dataset",
     [
-        ("household_survey_observer_acs", generate_american_communities_survey, FORMS.acs),
-        ("household_survey_observer_cps", generate_current_population_survey, FORMS.cps),
-        ("social_security_observer", generate_social_security, FORMS.ssa),
+        ("household_survey_observer_acs", generate_american_community_survey, DATASETS.acs),
+        ("household_survey_observer_cps", generate_current_population_survey, DATASETS.cps),
+        ("social_security_observer", generate_social_security, DATASETS.ssa),
     ],
 )
-def test_form_filter_by_year_with_full_dates(
-    mocker, data_dir_name: str, noising_function: Callable, form: FORMS
+def test_dataset_filter_by_year_with_full_dates(
+    mocker, data_dir_name: str, noising_function: Callable, dataset: DATASETS
 ):
     mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
-    mocker.patch("pseudopeople.interface.noise_form", side_effect=_mock_noise_form)
+    mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
     noised_data = noising_function(year=2020)
 
-    dates = pd.DatetimeIndex(noised_data[form.date_column])
-    if form == FORMS.ssa:
+    dates = pd.DatetimeIndex(noised_data[dataset.date_column])
+    if dataset == DATASETS.ssa:
         assert (dates.year <= 2020).all()
     else:
         assert (dates.year == 2020).all()

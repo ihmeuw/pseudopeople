@@ -110,6 +110,7 @@ Bureau field representatives across the country through both personal and teleph
 work activity and income, veteran status, school enrollment, contingent employment, worker displacement, job tenure, and more. To find out more
 about CPS, please visit the `CPS homepage <https://www.census.gov/programs-surveys/cps.html>`_. 
 
+
 .. list-table:: **Simulant attributes**
    :header-rows: 1
 
