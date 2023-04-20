@@ -63,7 +63,7 @@ The following simulant attributes are included in this dataset:
      - Rounded down to an integer. 
    * - Date of birth
      - :code:`date_of_birth`
-     - Formatted as MM/DD/YYYY.
+     - Formatted as YYYY-MM-DD.
    * - Physical address street number
      - :code:`street_number`
      - 
@@ -82,9 +82,9 @@ The following simulant attributes are included in this dataset:
    * - Physical address ZIP code
      - :code:`zipcode`
      - 
-   * - Relationship to person 1 (head of household)
-     - :code:`relationship_to_household_head` 
-     - 'Person 1', 'head of household', and 'Reference person' are all synonymous in this context. Possible values for this indicator include:
+   * - Relationship to reference person
+     - :code:`relationship_to_reference_person` 
+     - Possible values for this indicator include:
        Reference person; Biological child; Adopted child; Stepchild; Sibling; Parent; Grandchild; Parent-in-law; Child-in-law; Other relative;
        Roommate; Foster child; and Other nonrelative.
    * - Sex 
@@ -118,10 +118,10 @@ about CPS, please visit the `CPS homepage <https://www.census.gov/programs-surve
      - Notes
    * - Unique simulant ID
      - simulant_id
-     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking. 
+     - Not affected by noise functions; intended use is 'ground truth' for testing and validation. 
    * - Household ID 
      - :code:`household_id` 
-     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking.
+     - Not affected by noise functions; intended use is 'ground truth' for testing and validation.
    * - First name
      - :code:`first_name`
      - 
@@ -136,7 +136,7 @@ about CPS, please visit the `CPS homepage <https://www.census.gov/programs-surve
      - Rounded down to an integer.
    * - Date of birth
      - :code:`date_of_birth`
-     - Formatted as MM/DD/YYYY.
+     - Formatted as YYYY-MM-DD.
    * - Physical address street number
      - :code:`street_number`
      - 
@@ -155,11 +155,6 @@ about CPS, please visit the `CPS homepage <https://www.census.gov/programs-surve
    * - Physical address ZIP code
      - :code:`zipcode`
      - 
-   * - Relationship to person 1
-     - :code:`relationship_to_household_head` 
-     - 'Person 1', 'head of household', and 'Reference person' are all synonymous in this context. Possible values for this indicator include:
-       Reference person; Biological child; Adopted child; Stepchild; Sibling; Parent; Grandchild; Parent-in-law; Child-in-law; Other relative;
-       Roommate; Foster child; and Other nonrelative.
    * - Sex 
      - :code:`sex`  
      - Binary; 'male' or 'female'
