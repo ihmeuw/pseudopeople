@@ -18,9 +18,7 @@ Users can provide their own configuration that will override the default values.
 
 Note that when specifying a value to override in the configuration, users must specify the specific node they wish to
 change. Configuration is a hierarchical structure and to must properly source the lower levels. The configuration
-levels include dataset, column or row noise, noise type, and probability. Not sourcing values in a user provided
-configuration correctly will raise a ConfigurationKeyError if the lookup fails. If an invalid value is provided, such as
-providing 1.5 for a probability, a ConfigurationError will be raised.
+levels include dataset, column or row noise, noise type, and probability.
 
 """
 
@@ -51,6 +49,7 @@ def get_config(dataset_name: str = None, user_config: Union[Path, str, Dict] = N
     :param user_config: Dictionary of configuration values the user wishes to manually override.
     :return: Dictionary of the config.
     :raises ValueError: Error raised when an invalid name is passed for a dataset name
+    :raises ConfigurationError: Error raised when an invalid configuration is passed with user_config.
 
     """
 
