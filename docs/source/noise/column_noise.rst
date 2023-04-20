@@ -1,7 +1,7 @@
 .. _column_noise:
 
 ==================
-Column-based noise
+Column-based Noise
 ==================
 
 Leave a field blank

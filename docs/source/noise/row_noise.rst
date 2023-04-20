@@ -1,7 +1,7 @@
 .. _row_noise:
 
 ===============
-Row-based noise
+Row-based Noise
 ===============
 
 Omit a row
