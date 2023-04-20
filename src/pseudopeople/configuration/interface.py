@@ -48,8 +48,8 @@ def get_config(dataset_name: str = None, user_config: Union[Path, str, Dict] = N
             - "women_infants_and_children"
     :param user_config: Dictionary of configuration values the user wishes to manually override.
     :return: Dictionary of the config.
-    :raises ValueError: Error raised when an invalid name is passed for a dataset name
-    :raises ConfigurationError: Error raised when an invalid configuration is passed with user_config.
+    :raises ValueError: An invalid name is passed for a dataset name
+    :raises ConfigurationError: An invalid configuration is passed with user_config.
 
     """
 

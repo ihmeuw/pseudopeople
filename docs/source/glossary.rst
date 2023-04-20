@@ -8,7 +8,7 @@ Glossary
 
     Configuration
         The configuration is a set of parameters that will define the level for each
-        noise type in a nested dictionary. Configuration is a hierarchical structure
+        noise type in a nested dictionary. The configuration is a hierarchical structure
         and values are specific to each dataset, column, and noise type.
 
     Datasets
