@@ -31,7 +31,7 @@ should be 5%:
 """
 
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
 import pyarrow.parquet as pq
@@ -162,7 +162,8 @@ def generate_decennial_census(
     source: Union[Path, str] = None,
     seed: int = 0,
     config: Union[Path, str, Dict[str, Dict]] = None,
-    year: Union[int, None] = 2020,
+    year: Optional[int] = 2020,
+    # year: Union[int, None] = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -194,7 +195,7 @@ def generate_american_community_survey(
     source: Union[Path, str] = None,
     seed: int = 0,
     config: Union[Path, str, Dict[str, Dict]] = None,
-    year: Union[int, None] = 2020,
+    year: Optional[int] = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -237,7 +238,7 @@ def generate_current_population_survey(
     source: Union[Path, str] = None,
     seed: int = 0,
     config: Union[Path, str, Dict[str, Dict]] = None,
-    year: Union[int, None] = 2020,
+    year: Optional[int] = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -281,7 +282,7 @@ def generate_taxes_w2_and_1099(
     source: Union[Path, str] = None,
     seed: int = 0,
     config: Union[Path, str, Dict[str, Dict]] = None,
-    year: Union[int, None] = 2020,
+    year: Optional[int] = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -313,7 +314,7 @@ def generate_women_infants_and_children(
     source: Union[Path, str] = None,
     seed: int = 0,
     config: Union[Path, str, Dict[str, Dict]] = None,
-    year: Union[int, None] = 2020,
+    year: Optional[int] = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -350,7 +351,7 @@ def generate_social_security(
     source: Union[Path, str] = None,
     seed: int = 0,
     config: Union[Path, str, Dict[str, Dict]] = None,
-    year: Union[int, None] = 2020,
+    year: Optional[int] = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
