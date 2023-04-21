@@ -13,7 +13,7 @@ __title__ = "pseudopeople"
 __summary__ = "pseudopeople is package which adds noise to simulated census-scale data using standard scientific Python tools."
 __uri__ = "https://github.com/ihmeuw/pseudopeople"
 
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 
 __author__ = "The pseudopeople developers"
 __email__ = "vivarium.dev@gmail.com"
