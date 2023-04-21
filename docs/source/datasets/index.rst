@@ -43,7 +43,7 @@ The Decennial Census dataset is a simulated enumeration of the US Census Bureau'
 that have been simulated are 2020, 2030, and 2040. To find out more about the Decennial Census, please visit the Decennial Census
 `homepage <https://www.census.gov/programs-surveys/decennial-census.html>`_.   
 
-To find out more about how to generate a simulation of the Decennial Census using Pseudopeople, see :func:`pseudopeople.interface.generate_decennial_census`.
+Generate Decennial Census data with :func:`pseudopeople.interface.generate_decennial_census`.
 
 The following simulant attributes are included in this dataset:
 
@@ -117,8 +117,10 @@ Bureau field representatives across the country through both personal and teleph
 work activity and income, veteran status, school enrollment, contingent employment, worker displacement, job tenure, and more. To find out more
 about CPS, please visit the `CPS homepage <https://www.census.gov/programs-surveys/cps.html>`_. 
 
-To find out more about how to generate a simulation of ACS using Pseudopeople, see :func:`pseudopeople.interface.generate_american_community_survey`. 
-Likewise, to find out more about how to generate a simulation of CPS, see :func:`pseudopeople.interface.generate_current_population_survey`.
+
+Generate ACS data with :func:`pseudopeople.interface.generate_american_community_survey`
+
+Generate CPS data with :func:`pseudopeople.interface.generate_current_population_survey`
 
 The following simulant attributes are included in these datasets:
 
@@ -186,7 +188,7 @@ homepage <https://www.fns.usda.gov/wic>`_.
 Pseudopeople can generate a simulated version of the administrative data that would be recorded by WIC. This is a yearly file of information about all 
 simulants enrolled in the program as of the end of that year.
 
-To find out more about how to generate a simulation of WIC using Pseudopeople, see :func:`pseudopeople.interface.generate_women_infants_and_children`. 
+Generate WIC data with :func:`pseudopeople.interface.generate_women_infants_and_children` 
 
 The following simulant attributes are included in this dataset:
 
@@ -253,7 +255,7 @@ that consists of retirement, disability and survivor benefits. To find out more 
 Pseudopeople can generate a simulated version of a subset of the administrative data that would be recorded by SSA. Currently, the simulated
 SSA data includes records of SSA creation and dates of death.
 
-To find out more about how to generate a simulation of SSA data using Pseudopeople, see :func:`pseudopeople.interface.generate_social_security`. 
+Generate SSA data with :func:`pseudopeople.interface.generate_social_security`. 
 
 The following simulant attributes are included in this dataset:
 
@@ -297,7 +299,7 @@ Tax W-2 & 1099
 Administrative data reported in annual tax forms, such as W-2s and 1099s, can also be simulated by Pseudopeople. 1099 forms are used for independent 
 contractors or self-employed individuals, while a W-2 form is used for employees (whose employer withholds payroll taxes from their earnings).
 
-To find out more about how to generate a simulation of these tax forms using Pseudopeople, see :func:`pseudopeople.interface.generate_taxes_w2_and_1099`. 
+Generate W-2 and 1099 data with :func:`pseudopeople.interface.generate_taxes_w2_and_1099`. 
 
 The following simulant attributes are included in these datasets:
 
