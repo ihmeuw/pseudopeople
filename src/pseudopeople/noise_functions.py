@@ -29,7 +29,7 @@ def omit_rows(
     :return: pd.DataFrame with rows from the original dataframe removed
     """
 
-    noise_level = configuration.probability
+    noise_level = configuration[Keys.ROW_PROBABILITY]
     # Account for ACS and CPS oversampling
     if dataset_name in [DatasetNames.ACS, DatasetNames.CPS]:
         noise_level = 0.5 + noise_level / 2

@@ -25,16 +25,16 @@ def test_default_configuration_structure():
         # Check row noise
         for row_noise in dataset.row_noise_types:
             config_probability = config[dataset.name][Keys.ROW_NOISE][row_noise.name][
-                Keys.PROBABILITY
+                Keys.ROW_PROBABILITY
             ]
             default_probability = (
                 DEFAULT_NOISE_VALUES.get(dataset.name, {})
                 .get(Keys.ROW_NOISE, {})
                 .get(row_noise.name, {})
-                .get(Keys.PROBABILITY, "no default")
+                .get(Keys.ROW_PROBABILITY, "no default")
             )
             if default_probability == "no default":
-                assert config_probability == row_noise.probability
+                assert config_probability == row_noise.row_probability
             else:
                 assert config_probability == default_probability
         for col in dataset.columns:
@@ -45,24 +45,24 @@ def test_default_configuration_structure():
                 #  being row_noise, token_noise, and additional parameters at the
                 #  baseline level ('noise_type in col.noise_types')
                 #  Would we ever want to allow for adding non-baseline default noise?
-                if noise_type.probability:
-                    config_probability = config_level[Keys.PROBABILITY]
+                if noise_type.cell_probability:
+                    config_probability = config_level[Keys.CELL_PROBABILITY]
                     default_probability = (
                         DEFAULT_NOISE_VALUES.get(dataset.name, {})
                         .get(Keys.COLUMN_NOISE, {})
                         .get(col.name, {})
                         .get(noise_type.name, {})
-                        .get(Keys.PROBABILITY, "no default")
+                        .get(Keys.CELL_PROBABILITY, "no default")
                     )
                     if default_probability == "no default":
-                        assert config_probability == noise_type.probability
+                        assert config_probability == noise_type.cell_probability
                     else:
                         assert config_probability == default_probability
                 if noise_type.additional_parameters:
                     config_additional_parameters = {
                         k: v
                         for k, v in config_level.to_dict().items()
-                        if k != Keys.PROBABILITY
+                        if k != Keys.CELL_PROBABILITY
                     }
                     default_additional_parameters = (
                         DEFAULT_NOISE_VALUES.get(dataset.name, {})
@@ -73,7 +73,7 @@ def test_default_configuration_structure():
                     default_additional_parameters = {
                         k: v
                         for k, v in default_additional_parameters.items()
-                        if k != Keys.PROBABILITY
+                        if k != Keys.CELL_PROBABILITY
                     }
                     if default_additional_parameters == {}:
                         assert (
@@ -100,9 +100,9 @@ def test_get_configuration_with_user_override(mocker):
     mock = mocker.patch("pseudopeople.configuration.generator.ConfigTree")
     config = {
         DATASETS.census.name: {
-            Keys.ROW_NOISE: {NOISE_TYPES.omission.name: {Keys.PROBABILITY: 0.05}},
+            Keys.ROW_NOISE: {NOISE_TYPES.omission.name: {Keys.ROW_PROBABILITY: 0.05}},
             Keys.COLUMN_NOISE: {
-                "first_name": {NOISE_TYPES.typographic.name: {Keys.PROBABILITY: 0.05}}
+                "first_name": {NOISE_TYPES.typographic.name: {Keys.CELL_PROBABILITY: 0.05}}
             },
         }
     }
@@ -122,7 +122,7 @@ def test_loading_from_yaml(tmp_path):
             Keys.COLUMN_NOISE: {
                 COLUMNS.age.name: {
                     NOISE_TYPES.age_miswriting.name: {
-                        Keys.PROBABILITY: 0.5,
+                        Keys.CELL_PROBABILITY: 0.5,
                     },
                 },
             },
@@ -144,7 +144,7 @@ def test_loading_from_yaml(tmp_path):
         == updated_config[Keys.POSSIBLE_AGE_DIFFERENCES]
     )
     # check that 1 got replaced with 0 probability
-    assert updated_config[Keys.PROBABILITY] == 0.5
+    assert updated_config[Keys.CELL_PROBABILITY] == 0.5
 
 
 @pytest.mark.parametrize(
@@ -250,7 +250,7 @@ def test_validate_standard_parameters_failures(value, match):
                     Keys.COLUMN_NOISE: {
                         COLUMNS.age.name: {
                             NOISE_TYPES.age_miswriting.name: {
-                                Keys.PROBABILITY: value,
+                                Keys.CELL_PROBABILITY: value,
                             },
                         },
                     },
@@ -291,7 +291,7 @@ def test_validate_miswrite_ages_failures(perturbations, match):
                     Keys.COLUMN_NOISE: {
                         COLUMNS.age.name: {
                             NOISE_TYPES.age_miswriting.name: {
-                                Keys.PROBABILITY: 1,
+                                Keys.CELL_PROBABILITY: 1,
                                 Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                             },
                         },
@@ -336,7 +336,7 @@ def test_get_config(caplog):
             Keys.COLUMN_NOISE: {
                 "zipcode": {
                     NOISE_TYPES.missing_data.name: {
-                        Keys.PROBABILITY: 0.25,
+                        Keys.CELL_PROBABILITY: 0.25,
                     },
                 },
             },
