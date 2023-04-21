@@ -1,3 +1,7 @@
+**0.6.2 - 04/21/23**
+ - Updated documentation
+ - Updated progress bar behavior
+
 **0.6.1 - 04/21/23**
  - Updated documentation
  - Standardized configuration key names
