@@ -175,7 +175,7 @@ def generate_decennial_census(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The year (format YYYY) to include in the dataset. Must be a decennial
-        year (e.g. 2020, 2030, 2040). Will return an empty pd.DataFrame if there is no
+        year (e.g. 2020, 2030, 2040). Will return an empty pd.DataFrame if there are no
         data with this year. If None is provided, data from all years are
         included in the dataset.
     :param verbose: Log with verbosity if True.
@@ -363,7 +363,7 @@ def generate_social_security(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The latest year (format YYYY) to include in the dataset; will also
-        include all previous years. Will return an empty pd.DataFrame if there is no
+        include all previous years. Will return an empty pd.DataFrame if there are no
         data on or before this year. If None is provided, data from all years are
         included in the dataset.
     :param verbose: Log with verbosity if True.
