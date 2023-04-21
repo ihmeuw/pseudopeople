@@ -1,0 +1,44 @@
+name: Data access request
+description: Request access to pseudopeople input data (beyond the sample included with pseudopeople)
+body:
+  - type: input
+    attributes:
+      label: "What is the name of your project?"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: "What is the purpose of your project?"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: "Who is involved in the project? Which of these people will have direct access to the pseudopeople input data?"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: "What funding is the project under? What expectations with respect to open access and access to data come with that funding?"
+    validations:
+      required: true
+  - type: checkboxes
+    attributes:
+      label: "We commit to:"
+      options:
+        - label: be responsive to further questions from interested parties
+          required: true
+        - label: deprecate and replace our version of the pseudopeople input data when a new version is released
+          required: true
+  - type: checkboxes
+    attributes:
+      label: What data would you like to request?
+      options:
+        - label: Full US
+        - label: Rhode Island
+        - label: Other (may not be available immediately)
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Other data - more explanation
+      description: If you selected "Other" on the previous question, please provide more details about the input data you would like.
