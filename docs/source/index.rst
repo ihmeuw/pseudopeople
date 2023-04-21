@@ -2,6 +2,10 @@
 Pseudopeople
 ============
 
+
+.. image:: ../Pseudopeople-logo_FINAL_2023.04.11_psdppl-logo_blue-ombre.png
+
+
 Pseudopeople is a Python package that generates realistic simulated data about a
 fictional United States population, for use in testing record linkage (entity resolution)
 methods.
@@ -15,6 +19,23 @@ methods.
 Pseudopeople is currently in an alpha release.
 Things are still in flux!
 If you notice any issues, please let us know `on GitHub <https://github.com/ihmeuw/pseudopeople/issues>`_.
+
+Introduction
+------------
+
+The University of Washington IHME Simulation Science Team is excited to introduce pseudopeople, the Python package that simplifies Entity Resolution (ER) research and development.
+This package generates large-scale, simulated population data according to specifications by the user, to replicate a range of complexities of real applications of probabilistic record linkage software.
+With sensitive data often required for ER, accessing and testing new methods and software has been a challenge - until now.
+Our innovative approach creates realistic, simulated data including name, address, and date of birth, without compromising privacy. 
+
+Our work builds on the success of previous data synthesis projects, such as
+`FEBRL <http://users.cecs.anu.edu.au/~Peter.Christen/Febrl/febrl-0.3/febrldoc-0.3/manual.html>`_,
+`GeCO <https://dl.acm.org/doi/10.1145/2505515.2508207>`_,
+and `SOG <https://web.archive.org/web/20170830050229/http:/mitiq.mit.edu/ICIQ/Documents/IQ%20Conference%202009/Papers/3-B.pdf>`_,
+while leveraging the power of our simulation platform `Vivarium <https://vivarium.readthedocs.io/en/latest/>`_ to incorporate real, publicly-accessible data about the US population.
+This allows us to model realistic household and family structures at scale, with relevant geographies.
+We have created a simulation of the US population, including names and addresses, with defined types of data collection (e.g., simulating decennial censuses, surveys, taxes, and other administrative data).
+By creating realistic, but simulated, data which includes these attributes, we can make ER research and development easier for ourselves and others. 
 
 Quickstart
 ----------
@@ -42,18 +63,18 @@ Then, generate a small-scale simulated decennial census:
    >>> import pseudopeople as psp
    >>> census = psp.generate_decennial_census()
    >>> census
-        simulant_id first_name middle_initial  last_name age date_of_birth street_number           street_name unit_number     city state zipcode relation_to_household_head     sex race_ethnicity
-   0            0_2    Melanie              L     Herrod  26    08/05/1993         10233  north burgher avenue              Anytown    US   00000           Reference person  Female          White
-   1            0_3     Jordan              C     Herrod  26    12/29/1993         10233  north burgher avenue              Anytown    US   00000             Other relative  Female          White
-   2          0_923       John              E      Davis  77    06/29/1942       147-153          browning ave              Anytown    US   00000           Reference person    Male          Black
-   3         0_2641     Sharon              T    Plummer  59    10/10/1960           107           stallion st              Anytown    US   00000           Reference person  Female          White
-   4         0_2801     Ronnie              A     Yoakum  73    12/05/1946           214           s vine lane              Anytown    US   00000           Reference person    Male          White
-   ...          ...        ...            ...        ...  ..           ...           ...                   ...         ...      ...   ...     ...                        ...     ...            ...
-   9639     0_19008      James              G    Johnson  56    06/12/1963           691        sunny crest ln              Anytown    US   00000           Reference person    Male          Black
-   9640     0_20161   Nannette              D    Mckenna  61    11/09/1958          6132                n pine              Anytown    US   00000           Reference person  Female          White
-   9641     0_20162    Cynthia              L    Mckenna  65    01/20/1955          6132                n pine              Anytown    US   00000            Same-sex spouse  Female          White
-   9642     0_19669     Marcus              A  Underwood  59    10/06/1960          1724              lodi way              Anytown    US   00000           Reference person    Male            NaN
-   9643     0_20160      Kelly              A     Parris  26    10/24/1993          2203           blume st ne              Anytown    US   00000           Reference person  Female          White
+        simulant_id first_name middle_initial  last_name age date_of_birth street_number           street_name unit_number     city state zipcode relation_to_reference_person     sex race_ethnicity
+   0            0_2    Melanie              L     Herrod  26    08/05/1993         10233  north burgher avenue              Anytown    US   00000             Reference person  Female          White
+   1            0_3     Jordan              C     Herrod  26    12/29/1993         10233  north burgher avenue              Anytown    US   00000               Other relative  Female          White
+   2          0_923       John              E      Davis  77    06/29/1942       147-153          browning ave              Anytown    US   00000             Reference person    Male          Black
+   3         0_2641     Sharon              T    Plummer  59    10/10/1960           107           stallion st              Anytown    US   00000             Reference person  Female          White
+   4         0_2801     Ronnie              A     Yoakum  73    12/05/1946           214           s vine lane              Anytown    US   00000             Reference person    Male          White
+   ...          ...        ...            ...        ...  ..           ...           ...                   ...         ...      ...   ...     ...                          ...     ...            ...
+   9639     0_19008      James              G    Johnson  56    06/12/1963           691        sunny crest ln              Anytown    US   00000             Reference person    Male          Black
+   9640     0_20161   Nannette              D    Mckenna  61    11/09/1958          6132                n pine              Anytown    US   00000             Reference person  Female          White
+   9641     0_20162    Cynthia              L    Mckenna  65    01/20/1955          6132                n pine              Anytown    US   00000              Same-sex spouse  Female          White
+   9642     0_19669     Marcus              A  Underwood  59    10/06/1960          1724              lodi way              Anytown    US   00000             Reference person    Male            NaN
+   9643     0_20160      Kelly              A     Parris  26    10/24/1993          2203           blume st ne              Anytown    US   00000             Reference person  Female          White
 
    [9644 rows x 15 columns]
 
@@ -95,7 +116,9 @@ Now, see how many your record linkage method can find -- without access to the t
    :maxdepth: 2
 
    datasets/index
-   noise_functions/index
+   input_data/index
+   noise/index
+   configuration/index
    tutorials/index
    concepts/index
    api_reference/index
