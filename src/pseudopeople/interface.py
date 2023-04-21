@@ -73,18 +73,10 @@ def _generate_dataset(
     """
     configure_logging_to_terminal(verbose)
     configuration_tree = get_configuration(config)
-    # TODO: we should save outputs of the simulation with filenames that are
-    #  consistent with the names of the datasets if possible.
-    dataset_file_name = {
-        DATASETS.acs.name: "household_survey_observer_acs",
-        DATASETS.cps.name: "household_survey_observer_cps",
-        DATASETS.tax_w2_1099.name: "tax_w2_observer",
-        DATASETS.wic.name: "wic_observer",
-    }.get(dataset.name, f"{dataset.name}_observer")
     if source is None:
         source = paths.SAMPLE_DATA_ROOT
-    source = Path(source) / dataset_file_name
-    data_paths = [x for x in source.glob(f"{dataset_file_name}*")]
+    source = Path(source) / dataset.name
+    data_paths = [x for x in source.glob(f"{dataset.name}*")]
     if not data_paths:
         raise DataSourceError(
             f"No datasets found at directory {str(source)}. "

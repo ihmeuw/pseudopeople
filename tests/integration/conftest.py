@@ -25,7 +25,7 @@ RACE_ETHNICITIES = [
     "White",
 ]
 
-RELATIONS_TO_HOUSEHOLD_HEAD = [
+RELATIONS_TO_REFERENCE_PERSON = [
     "Adopted child",
     "Biological child",
     "Child-in-law",
@@ -127,8 +127,8 @@ def decennial_census_data_path(tmp_path_factory):
                 "Street" + "".join(random.choice(ascii_lowercase) for _ in range(3))
                 for _ in range(num_rows)
             ],
-            "relation_to_household_head": [
-                random.choice(RELATIONS_TO_HOUSEHOLD_HEAD) for _ in range(num_rows)
+            "relation_to_reference_person": [
+                random.choice(RELATIONS_TO_REFERENCE_PERSON) for _ in range(num_rows)
             ],
             "zipcode": [str(random.randint(1, 99999)).zfill(5) for _ in range(num_rows)],
             "date_of_birth": [
