@@ -4,9 +4,13 @@
 Datasets
 ========
 
-Here we cover the realistic simulated datasets, which are analogous to 'real world' administrative records such as tax documents
-and census surveys, that users can generate using :code:`pseudopeople` for developing and testing Entity Resolution algorithms 
-and software.
+Here we cover the realistic simulated datasets, which are analogous to "real world" administrative records such as tax documents
+and routinely generated files of social security numbers, that users can generate using Pseudopeople for developing and testing Entity Resolution algorithms 
+and software. 
+
+Each of the datasets that can be generated using Pseudopeople have "noise" added to them, thereby realistically 
+simulating how administrative records can be corrupted or distorted, which creates challenges in linking those 
+records. To read more about the different kinds of noise that can be applied to the different datasets, please see the `Noise page <https://pseudopeople.readthedocs.io/en/latest/noise_functions/index.html#noise-functions>`_.
 
 The below table offers a list of the datasets that can be generated. Each row of a given dataset represents
 an individual simulant, with the columns representing different simulant attributes, such as name, age, sex, et cetera.
@@ -39,6 +43,8 @@ The Decennial Census dataset is a simulated enumeration of the US Census Bureau'
 that have been simulated are 2020, 2030, and 2040. To find out more about the Decennial Census, please visit the Decennial Census
 `homepage <https://www.census.gov/programs-surveys/decennial-census.html>`_.   
 
+To find out more about how to generate a simulation of the Decennial Census using Pseudopeople, see :func:`pseudopeople.interface.generate_decennial_census`.
+
 The following simulant attributes are included in this dataset:
 
 .. list-table:: **Simulant attributes**
@@ -49,7 +55,7 @@ The following simulant attributes are included in this dataset:
      - Notes    
    * - Unique simulant ID
      - :code:`simulant_id`
-     - Not affected by noise functions; intended use is 'ground truth' for testing and validation. 
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation. 
    * - First name
      - :code:`first_name`
      - 
@@ -90,10 +96,10 @@ The following simulant attributes are included in this dataset:
        Roommate; Foster child; and Other nonrelative.
    * - Sex 
      - :code:`sex`  
-     - Binary; 'male' or 'female'.
+     - Binary; "male" or "female".
    * - Race/ethnicity
      - :code:`race_ethnicity` 
-     - The exhaustive and mutually exclusive categories for the single composite 'race/ethnicity' indicator are as follows:
+     - The exhaustive and mutually exclusive categories for the single composite "race/ethnicity" indicator are as follows:
        White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
        Multiracial or Some Other Race. 
 
@@ -120,11 +126,11 @@ The following simulant attributes are included in these datasets:
      - Column Name
      - Notes
    * - Unique simulant ID
-     - simulant_id
-     - Not affected by noise functions; intended use is 'ground truth' for testing and validation. 
+     - :code:`simulant_id`
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation. 
    * - Household ID 
      - :code:`household_id` 
-     - Not affected by noise functions; intended use is 'ground truth' for testing and validation.
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation.
    * - First name
      - :code:`first_name`
      - 
@@ -160,10 +166,10 @@ The following simulant attributes are included in these datasets:
      - 
    * - Sex 
      - :code:`sex`  
-     - Binary; 'male' or 'female'
+     - Binary; "male" or "female"
    * - Race/ethnicity
      - :code:`race_ethnicity` 
-     - The following exhaustive and mutually exclusive categories for the single composite 'race/ethnicity' indicator are as follows:
+     - The following exhaustive and mutually exclusive categories for the single composite "race/ethnicity" indicator are as follows:
        White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
        Multiracial or Some Other Race.  
 
@@ -186,11 +192,11 @@ The following simulant attributes are included in this dataset:
      - Column Name
      - Notes
    * - Unique simulant ID
-     - simulant_id
-     - Not affected by noise functions; intended use is 'ground truth' for testing and validation. 
+     - :code:`simulant_id`
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation. 
    * - Household ID 
      - :code:`household_id` 
-     - Not affected by noise functions; intended use is 'ground truth' for testing and validation.
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation.
    * - First name
      - :code:`first_name`
      - 
@@ -226,10 +232,10 @@ The following simulant attributes are included in this dataset:
      - 
    * - Sex 
      - :code:`sex`  
-     - Binary; 'male' or 'female'
+     - Binary; "male" or "female"
    * - Race/ethnicity
      - :code:`race_ethnicity` 
-     - The following exhaustive and mutually exclusive categories for the single composite 'race/ethnicity' indicator are as follows:
+     - The following exhaustive and mutually exclusive categories for the single composite "race/ethnicity" indicator are as follows:
        White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
        Multiracial or Some Other Race.  
 
@@ -251,50 +257,8 @@ The following simulant attributes are included in this dataset:
      - Column Name
      - Notes
    * - Unique simulant ID
-     - simulant_id
-     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking.  
-   * - First name
-     - :code:`first_name`
-     - 
-   * - Middle initial
-     - :code:`middle_initial`
-     - 
-   * - Last name
-     - :code:`last_name`
-     - 
-   * - Age
-     - :code:`age`  
-     - Rounded down to an integer.
-   * - Date of birth
-     - :code:`date_of_birth`
-     - Formatted as YYYY-MM-DD.
-   * - Social security number 
-     - :code:`ssn`
-     - 
-   * - Date of event
-     - :code:`event_date`
-     - Formatted as YYYY-MM-DD.  
-   * - Type of event
-     - :code:`event_type`
-     - Possible values are 'Creation' and 'Death'. 
-
-The Social Security Administration (SSA) is the US federal government agency that administers Social Security, the social insurance program
-that consists of retirement, disability and survivor benefits. To find out more about this program, visit the `SSA homepage <https://www.ssa.gov/about-ssa>`_.
-
-Pseudopeople can generate a simulated version of a subset of the administrative data that would be recorded by SSA. Currently, the simulated
-SSA data includes records of SSA creation and dates of death.
-
-The following simulant attributes are included in this dataset:
-
-.. list-table:: **Simulant attributes**
-   :header-rows: 1
-
-   * - Attribute Name
-     - Column Name
-     - Notes
-   * - Unique simulant ID
-     - simulant_id
-     - Not affected by noise functions; intended use is 'ground truth' for PRL tracking.  
+     - :code:`simulant_id`
+     - Not affected by noise functions; intended use is "ground truth" for PRL tracking.  
    * - First name
      - :code:`first_name`
      - 
@@ -318,7 +282,7 @@ The following simulant attributes are included in this dataset:
      - Formatted as YYYY-MM-DD.  
    * - Type of event
      - :code:`event_type`
-     - Possible values are 'Creation' and 'Death'. 
+     - Possible values are "Creation" and "Death". 
 
 
 Tax W-2 & 1099
@@ -333,11 +297,8 @@ The following simulant attributes are included in these datasets:
      - Column Name
      - Notes
    * - Unique simulant ID
-     - simulant_id
-     - Not affected by noise functions; intended use is 'ground truth' for testing and validation. 
-   * - Household ID 
-     - :code:`household_id` 
-     - Not affected by noise functions; intended use is 'ground truth' for testing and validation.
+     - :code:`simulant_id`
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation. 
    * - First name
      - :code:`first_name`
      - 
@@ -403,7 +364,7 @@ The following simulant attributes are included in these datasets:
      - 
    * - Type of tax form 
      - :code:`tax_form`
-     - Possible values are 'W2' or '1099'.
+     - Possible values are "W2" or "1099".
 
 Tax 1040
 --------
