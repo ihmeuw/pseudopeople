@@ -20,7 +20,7 @@ the configuration system---see the Configuration section for details.
 
   Add link to Configuration section once it exists.
 
-Categories of noise
+Categories of Noise
 -------------------
 
 Pseudopeople can add two broad categories of noise to the datasets it generates:
@@ -35,7 +35,7 @@ include or exclude), while each type of column-based noise operates on one
 column of data at a time (selecting cells within that column to noise).
 Currently, errors added in different columns are independent of each other.
 
-Available noise types
+Available Noise Types
 ---------------------
 
 Pseudopeople applies the different types of row-based and column-based noise in
@@ -78,10 +78,10 @@ column shows the name of the noise type in the configuration system.
 
   Fill in the remaining noise functions in the above table.
 
-Default noise types for each column
+Default Noise Types for Each Column
 -----------------------------------
 
-Noise function details
+Noise Function Details
 ----------------------
 
 .. toctree::
