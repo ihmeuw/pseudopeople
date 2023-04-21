@@ -11,7 +11,7 @@ Resolution algorithms and software.
 Each of the datasets that can be generated using Pseudopeople have "noise" added to them, thereby realistically 
 simulating how administrative records can be corrupted or distorted, which creates challenges in linking those 
 records. To read more about the different kinds of noise that can be applied to the different datasets, please see the
- `Noise page <https://pseudopeople.readthedocs.io/en/latest/noise_functions/index.html#noise-functions>`_.
+`Noise page <https://pseudopeople.readthedocs.io/en/latest/noise_functions/index.html#noise-functions>`_.
 
 The below table offers a list of the datasets that can be generated. Each row of a given dataset represents
 an individual simulant, with the columns representing different simulant attributes, such as name, age, sex, et cetera.
@@ -422,6 +422,6 @@ The following columns are included in these datasets:
      - Possible values are "W2" or "1099".
 
 Tax form: 1040
--------------
+--------------
 As with data collected from W-2 and 1099 forms, Pseudopeople will also enable the simulation of administrative records from 1040 forms, which are
 also reported to the IRS on an annual basis. This feature has not yet been implemented, so please stay tuned for more information! 
