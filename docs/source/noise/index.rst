@@ -4,17 +4,17 @@
  Noise
 ======
 
-.. contents::
-   :depth: 2
-   :local:
-   :backlinks: entry
-
 In order to have a realistic challenge with entity resolution, it is essential
 to add noise to the simulated data. "Noise" refers to various types of errors
 introduced into the data and may also be called "corruption" or "distortion." By
 default, Pseudopeople applies noise to the simulated datasets using some
 reasonable settings. If desired, the user can change the noise settings through
 the configuration system---see the Configuration section for details.
+
+.. contents::
+   :depth: 2
+   :local:
+   :backlinks: entry
 
 .. todo::
 
