@@ -117,6 +117,9 @@ Bureau field representatives across the country through both personal and teleph
 work activity and income, veteran status, school enrollment, contingent employment, worker displacement, job tenure, and more. To find out more
 about CPS, please visit the `CPS homepage <https://www.census.gov/programs-surveys/cps.html>`_. 
 
+To find out more about how to generate a simulation of ACS using Pseudopeople, see :func:`pseudopeople.interface.generate_american_community_survey`. 
+Likewise, to find out more about how to generate a simulation of CPS, see :func:`pseudopeople.interface.generate_current_population_survey`.
+
 The following simulant attributes are included in these datasets:
 
 .. list-table:: **Simulant attributes**
@@ -183,6 +186,8 @@ homepage <https://www.fns.usda.gov/wic>`_.
 Pseudopeople can generate a simulated version of the administrative data that would be recorded by WIC. This is a yearly file of information about all 
 simulants enrolled in the program as of the end of that year.
 
+To find out more about how to generate a simulation of WIC using Pseudopeople, see :func:`pseudopeople.interface.generate_women_infants_and_children`. 
+
 The following simulant attributes are included in this dataset:
 
 .. list-table:: **Simulant attributes**
@@ -248,6 +253,8 @@ that consists of retirement, disability and survivor benefits. To find out more 
 Pseudopeople can generate a simulated version of a subset of the administrative data that would be recorded by SSA. Currently, the simulated
 SSA data includes records of SSA creation and dates of death.
 
+To find out more about how to generate a simulation of SSA data using Pseudopeople, see :func:`pseudopeople.interface.generate_social_security`. 
+
 The following simulant attributes are included in this dataset:
 
 .. list-table:: **Simulant attributes**
@@ -289,6 +296,8 @@ Tax W-2 & 1099
 --------------
 Administrative data reported in annual tax forms, such as W-2s and 1099s, can also be simulated by Pseudopeople. 1099 forms are used for independent 
 contractors or self-employed individuals, while a W-2 form is used for employees (whose employer withholds payroll taxes from their earnings).
+
+To find out more about how to generate a simulation of these tax forms using Pseudopeople, see :func:`pseudopeople.interface.generate_w2_and_1099`. 
 
 The following simulant attributes are included in these datasets:
 
@@ -370,83 +379,5 @@ The following simulant attributes are included in these datasets:
 
 Tax 1040
 --------
-As with data collected from W-2 and 1099 forms, Pseudopeople also enables the simulation of administrative records from 1040 forms, which are
-also reported to the IRS on an annual basis. 
-
-The following simulant attributes are included in these datasets:
-
-.. list-table:: **Simulant attributes**
-   :header-rows: 1
-
-   * - Attribute Name
-     - Column Name
-     - Notes
-   * - Unique simulant ID
-     - :code:`simulant_id`
-     - Not affected by noise functions; intended use is "ground truth" for testing and validation. 
-   * - First name
-     - :code:`first_name`
-     - 
-   * - Middle initial
-     - :code:`middle_initial`
-     - 
-   * - Last name
-     - :code:`last_name`
-     - 
-   * - Age
-     - :code:`age`  
-     - Rounded down to an integer.
-   * - Date of birth
-     - :code:`date_of_birth`
-     - Formatted as YYYY-MM-DD.
-   * - Mailing address street number
-     - :code:`mailing_address_street_number`
-     - 
-   * - Mailing address street name
-     - :code:`mailing_address_street_name`
-     - 
-   * - Mailing address unit number
-     - :code:`mailing_address_unit_number`
-     - 
-   * - Mailing address city
-     - :code:`mailing_address_city`    
-     - 
-   * - Mailing address state
-     - :code:`mailing_address_state`  
-     - 
-   * - Mailing address ZIP code
-     - :code:`mailing_address_zipcode`
-     - 
-   * - Social security number 
-     - :code:`ssn`
-     - 
-   * - Income 
-     - :code:`income`
-     - 
-   * - Employer ID 
-     - :code:`employer_id`
-     -  
-   * - Employer Name 
-     - :code:`employer_name`
-     - 
-   * - Employer street number
-     - :code:`employer_street_number`
-     - 
-   * - Employer street name
-     - :code:`employer_street_name`
-     - 
-   * - Employer unit number
-     - :code:`employer_unit_number`
-     - 
-   * - Employer city
-     - :code:`employer_city`    
-     - 
-   * - Employer state
-     - :code:`employer_state`  
-     - 
-   * - Employer ZIP code
-     - :code:`employer_zipcode`
-     - 
-   * - Type of tax form 
-     - :code:`tax_form`
-     - Possible values are "W2" or "1099".
+As with data collected from W-2 and 1099 forms, Pseudopeople will also enable the simulation of administrative records from 1040 forms, which are
+also reported to the IRS on an annual basis. This feature has not yet been implemented, so please stay tuned for more information! 
