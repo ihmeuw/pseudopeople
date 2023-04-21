@@ -26,7 +26,7 @@ class RowNoiseType:
 
     name: str
     noise_function: Callable[[str, pd.DataFrame, ConfigTree, RandomnessStream], pd.DataFrame]
-    probability: float = 0.0
+    row_probability: float = 0.0
 
     def __call__(
         self,
@@ -56,7 +56,7 @@ class ColumnNoiseType:
 
     name: str
     noise_function: Callable[[pd.Series, ConfigTree, RandomnessStream, Any], pd.Series]
-    probability: Optional[float] = 0.01
+    cell_probability: Optional[float] = 0.01
     noise_level_scaling_function: Callable[[str], float] = lambda x: 1.0
     additional_parameters: Dict[str, Any] = None
 
@@ -68,14 +68,9 @@ class ColumnNoiseType:
         additional_key: Any,
     ) -> pd.Series:
         column = column.copy()
-        probability_key = (
+        noise_level = configuration[
             Keys.CELL_PROBABILITY
-            if Keys.CELL_PROBABILITY in configuration.keys()
-            else Keys.PROBABILITY
-        )
-        noise_level = configuration[probability_key] * self.noise_level_scaling_function(
-            column.name
-        )
+        ] * self.noise_level_scaling_function(column.name)
         to_noise_idx = get_index_to_noise(
             column, noise_level, randomness_stream, f"{self.name}_{additional_key}"
         )

@@ -246,8 +246,8 @@ class __Columns(NamedTuple):
         ),
         DtypeNames.CATEGORICAL,
     )
-    relation_to_household_head: Column = Column(
-        "relation_to_household_head",
+    relation_to_reference_person: Column = Column(
+        "relation_to_reference_person",
         (
             NOISE_TYPES.missing_data,
             NOISE_TYPES.incorrect_selection,
@@ -384,7 +384,7 @@ class __Datasets(NamedTuple):
             COLUMNS.city,
             COLUMNS.state,
             COLUMNS.zipcode,
-            COLUMNS.relation_to_household_head,
+            COLUMNS.relation_to_reference_person,
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
         ),
