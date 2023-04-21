@@ -24,7 +24,6 @@ an individual simulant, with the columns representing different simulant attribu
 
 .. list-table:: **Available Datasets**
    :header-rows: 1
-   :widths: 20
 
    * - Name
    * - | US Decennial Census
@@ -255,7 +254,7 @@ that consists of retirement, disability and survivor benefits. To find out more 
 Pseudopeople can generate a simulated version of a subset of the administrative data that would be recorded by SSA. Currently, the simulated
 SSA data includes records of SSA creation and dates of death.
 
-Generate SSA data with :func:`pseudopeople.interface.generate_social_security`. 
+Generate SSA data with :func:`pseudopeople.interface.generate_social_security` 
 
 The following simulant attributes are included in this dataset:
 
@@ -299,7 +298,7 @@ Tax W-2 & 1099
 Administrative data reported in annual tax forms, such as W-2s and 1099s, can also be simulated by Pseudopeople. 1099 forms are used for independent 
 contractors or self-employed individuals, while a W-2 form is used for employees (whose employer withholds payroll taxes from their earnings).
 
-Generate W-2 and 1099 data with :func:`pseudopeople.interface.generate_taxes_w2_and_1099`. 
+Generate W-2 and 1099 data with :func:`pseudopeople.interface.generate_taxes_w2_and_1099` 
 
 The following simulant attributes are included in these datasets:
 
