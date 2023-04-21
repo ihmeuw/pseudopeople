@@ -85,8 +85,7 @@ Noise function details
 ----------------------
 
 .. toctree::
-   :maxdepth: 2
-   :glob:
+  :maxdepth: 2
 
-   row_noise
-   column_noise
+  row_noise
+  column_noise
