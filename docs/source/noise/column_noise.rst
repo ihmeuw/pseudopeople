@@ -42,7 +42,7 @@ Choose the wrong option
 Some survey questions or administrative forms ask the respondent to choose
 between a list of options.
 This noise type occurs when the wrong option is chosen by mistake.
-The options available depends on the column; see the :ref:`datasets page <datasets_main>` for
+The options available depend on the column; see the :ref:`datasets page <datasets_main>` for
 lists of options that correspond to each column.
 All wrong options are equally likely.
 
@@ -73,7 +73,7 @@ the small, specific area) than the first few (which will be the same over a larg
 This noise type is called :code:`write_wrong_zipcode_digits` in the configuration.
 It takes two parameters:
 
-.. list-table:: Parameters to the :code:`choose_wrong_option` noise type
+.. list-table:: Parameters to the :code:`write_wrong_zipcode_digits` noise type
   :widths: 1 5 1
   :header-rows: 1
 
@@ -88,7 +88,7 @@ It takes two parameters:
     - 0.01 (1%)
   * - :code:`digit_probabilities`
     - A list of probabilities, one for each digit in a (5-digit) ZIP code.
-      The first item in this list is the probability *in a cell considered for this noise type* that the first digit of the ZIP
+      The first item in this list is the probability **in a cell considered for this noise type** that the first digit of the ZIP
       code will be wrong, the second item is the same probability for the second digit, and so on.
     - [0.2, 0.2, 0.2, 0.36, 0.36]
 
@@ -103,7 +103,7 @@ person actually is.
 This noise type is called :code:`misreport_age` in the configuration.
 It takes two parameters:
 
-.. list-table:: Parameters to the :code:`choose_wrong_option` noise type
+.. list-table:: Parameters to the :code:`misreport_age` noise type
   :widths: 1 5 1
   :header-rows: 1
 
@@ -117,12 +117,13 @@ It takes two parameters:
     - 0.01 (1%)
   * - :code:`possible_age_differences`
     - One of two options:
-      * A list of possible differences to add to the true age to get the misreported age.
-        A negative number means that the reported age is too young, while a positive number means it is too old.
-        Each difference is equally likely.
-      * A dictionary mapping from possible differences to the corresponding probabilities of those differences.
-        This is like the list option except that it allows some differences to be more likely than others.
-        The probabilities must add up to 1.
+
+        * A list of possible differences to add to the true age to get the misreported age.
+          A negative number means that the reported age is too young, while a positive number means it is too old.
+          Each difference is equally likely.
+        * A dictionary mapping from possible differences to the corresponding probabilities of those differences.
+          This is like the list option except that it allows some differences to be more likely than others.
+          The probabilities must add up to 1.
     - {-2: 0.1, -1: 0.4, +1: 0.4, +2: 0.1}
 
 Write the wrong digits
