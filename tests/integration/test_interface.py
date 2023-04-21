@@ -22,20 +22,20 @@ DATA_COLUMNS = ["year", "event_date", "survey_date", "tax_year"]
 @pytest.mark.parametrize(
     "data_dir_name, noising_function, use_sample_data",
     [
-        (metadata.DatasetNames.CENSUS, generate_decennial_census, True),
-        (metadata.DatasetNames.CENSUS, generate_decennial_census, False),
-        (metadata.DatasetNames.ACS, generate_american_community_survey, True),
-        (metadata.DatasetNames.ACS, generate_american_community_survey, False),
-        (metadata.DatasetNames.CPS, generate_current_population_survey, True),
-        (metadata.DatasetNames.CPS, generate_current_population_survey, False),
-        (metadata.DatasetNames.SSA, generate_social_security, True),
-        (metadata.DatasetNames.SSA, generate_social_security, False),
-        (metadata.DatasetNames.TAXES_W2_1099, generate_taxes_w2_and_1099, True),
-        (metadata.DatasetNames.TAXES_W2_1099, generate_taxes_w2_and_1099, False),
-        (metadata.DatasetNames.WIC, generate_women_infants_and_children, True),
-        (metadata.DatasetNames.WIC, generate_women_infants_and_children, False),
-        (metadata.DatasetNames.TAXES_1040, "todo", True),
-        (metadata.DatasetNames.TAXES_1040, "todo", False),
+        (DATASETS.census.name, generate_decennial_census, True),
+        (DATASETS.census.name, generate_decennial_census, False),
+        (DATASETS.acs.name, generate_american_community_survey, True),
+        (DATASETS.acs.name, generate_american_community_survey, False),
+        (DATASETS.cps.name, generate_current_population_survey, True),
+        (DATASETS.cps.name, generate_current_population_survey, False),
+        (DATASETS.ssa.name, generate_social_security, True),
+        (DATASETS.ssa.name, generate_social_security, False),
+        (DATASETS.tax_w2_1099.name, generate_taxes_w2_and_1099, True),
+        (DATASETS.tax_w2_1099.name, generate_taxes_w2_and_1099, False),
+        (DATASETS.wic.name, generate_women_infants_and_children, True),
+        (DATASETS.wic.name, generate_women_infants_and_children, False),
+        ("DATASETS.tax_1040.name", "todo", True),
+        ("DATASETS.tax_1040.name", "todo", False),
     ],
 )
 def test_generate_dataset(
@@ -52,15 +52,7 @@ def test_generate_dataset(
         (paths.SAMPLE_DATA_ROOT / data_dir_name).glob(f"{data_dir_name}*")
     )[0]
 
-    # Load the unnoised sample data
-    if sample_data_path.suffix == ".parquet":
-        data = pd.read_parquet(sample_data_path)
-    elif sample_data_path.suffix == ".hdf":
-        data = pd.read_hdf(sample_data_path)
-    else:
-        raise NotImplementedError(
-            f"Expected hdf or parquet but got {sample_data_path.suffix}"
-        )
+    data = _load_data(sample_data_path)
 
     # Configure if default (sample data) is used or a different root directory
     if use_sample_data:
@@ -125,21 +117,20 @@ def _generate_non_default_data_root(data_dir_name, tmpdir, sample_data_path, dat
 @pytest.mark.parametrize(
     "data_dir_name, noising_function",
     [
-        (metadata.DatasetNames.CENSUS, generate_decennial_census),
-        (metadata.DatasetNames.ACS, generate_american_community_survey),
-        (metadata.DatasetNames.CPS, generate_current_population_survey),
-        (metadata.DatasetNames.SSA, generate_social_security),
-        (metadata.DatasetNames.TAXES_W2_1099, generate_taxes_w2_and_1099),
-        (metadata.DatasetNames.WIC, generate_women_infants_and_children),
-        (metadata.DatasetNames.TAXES_1040, "todo"),
+        (DATASETS.census.name, generate_decennial_census),
+        (DATASETS.acs.name, generate_american_community_survey),
+        (DATASETS.cps.name, generate_current_population_survey),
+        (DATASETS.ssa.name, generate_social_security),
+        (DATASETS.tax_w2_1099.name, generate_taxes_w2_and_1099),
+        (DATASETS.wic.name, generate_women_infants_and_children),
+        ("DATASETS.tax_1040.name", "todo"),
     ],
 )
 def test_generate_dataset_with_year(data_dir_name: str, noising_function: Callable):
     if noising_function == "todo":
         pytest.skip(reason=f"TODO: implement dataset {data_dir_name}")
-    # todo fix hard-coding in MIC-3960
     data_path = paths.SAMPLE_DATA_ROOT / data_dir_name / f"{data_dir_name}.parquet"
-    data = pd.read_parquet(data_path)
+    data = _load_data(data_path)
 
     noised_data = noising_function(year=2020, seed=0)
     noised_data_same_seed = noising_function(year=2020, seed=0)
@@ -157,9 +148,13 @@ def _mock_extract_columns(columns_to_keep, noised_dataset):
 @pytest.mark.parametrize(
     "data_dir_name, noising_function, date_column",
     [
-        (metadata.DatasetNames.CENSUS, generate_decennial_census, DATASETS.census.date_column),
-        (metadata.DatasetNames.TAXES_W2_1099, generate_taxes_w2_and_1099, DATASETS.tax_w2_1099.date_column),
-        (metadata.DatasetNames.WIC, generate_women_infants_and_children, DATASETS.wic.date_column),
+        (DATASETS.census.name, generate_decennial_census, DATASETS.census.date_column),
+        (
+            DATASETS.tax_w2_1099.name,
+            generate_taxes_w2_and_1099,
+            DATASETS.tax_w2_1099.date_column,
+        ),
+        (DATASETS.wic, generate_women_infants_and_children, DATASETS.wic.date_column),
         (metadata.DatasetNames.TAXES_1040, "todo", "todo"),
     ],
 )
@@ -206,3 +201,14 @@ def test_dataset_filter_by_year_with_full_dates(
         assert (dates.year <= 2020).all()
     else:
         assert (dates.year == 2020).all()
+
+
+def _load_data(data_path):
+    if data_path.suffix == ".parquet":
+        data = pd.read_parquet(data_path)
+    elif data_path.suffix == ".hdf":
+        data = pd.read_hdf(data_path)
+    else:
+        raise NotImplementedError(f"Expected hdf or parquet but got {data_path.suffix}")
+
+    return data
