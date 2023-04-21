@@ -31,7 +31,7 @@ Our innovative approach creates realistic, simulated data including name, addres
 Our work builds on the success of previous data synthesis projects, such as
 `FEBRL <http://users.cecs.anu.edu.au/~Peter.Christen/Febrl/febrl-0.3/febrldoc-0.3/manual.html>`_,
 `GeCO <https://dl.acm.org/doi/10.1145/2505515.2508207>`_,
-and `SOG <https://dl.acm.org/doi/10.5555/3344081.3344082>`_,
+and `SOG <https://web.archive.org/web/20170830050229/http:/mitiq.mit.edu/ICIQ/Documents/IQ%20Conference%202009/Papers/3-B.pdf>`_,
 while leveraging the power of our simulation platform `Vivarium <https://vivarium.readthedocs.io/en/latest/>`_ to incorporate real, publicly-accessible data about the US population.
 This allows us to model realistic household and family structures at scale, with relevant geographies.
 We have created a simulation of the U.S population, including names and addresses, with defined types of data collection (e.g., simulating decennial censuses, surveys, taxes, and other administrative data).
