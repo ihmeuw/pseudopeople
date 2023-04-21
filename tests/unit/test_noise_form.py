@@ -52,44 +52,44 @@ def dummy_config_noise_numbers():
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "event_type": {
-                        NOISE_TYPES.missing_data.name: {Keys.PROBABILITY: 0.01},
-                        NOISE_TYPES.incorrect_selection.name: {Keys.PROBABILITY: 0.01},
-                        "copy_from_within_household": {Keys.PROBABILITY: 0.01},
-                        "month_day_swap": {Keys.PROBABILITY: 0.01},
+                        NOISE_TYPES.missing_data.name: {Keys.CELL_PROBABILITY: 0.01},
+                        NOISE_TYPES.incorrect_selection.name: {Keys.CELL_PROBABILITY: 0.01},
+                        "copy_from_within_household": {Keys.CELL_PROBABILITY: 0.01},
+                        "month_day_swap": {Keys.CELL_PROBABILITY: 0.01},
                         NOISE_TYPES.zipcode_miswriting.name: {
-                            Keys.PROBABILITY: 0.01,
+                            Keys.CELL_PROBABILITY: 0.01,
                             Keys.ZIPCODE_DIGIT_PROBABILITIES: [0.04, 0.04, 0.2, 0.36, 0.36],
                         },
                         NOISE_TYPES.age_miswriting.name: {
-                            Keys.PROBABILITY: 0.01,
+                            Keys.CELL_PROBABILITY: 0.01,
                             Keys.POSSIBLE_AGE_DIFFERENCES: [1, -1],
                         },
                         NOISE_TYPES.numeric_miswriting.name: {
-                            Keys.PROBABILITY: 0.01,
+                            Keys.CELL_PROBABILITY: 0.01,
                             "numeric_miswriting": [0.1],
                         },
-                        "nickname": {Keys.PROBABILITY: 0.01},
-                        NOISE_TYPES.fake_name.name: {Keys.PROBABILITY: 0.01},
+                        "nickname": {Keys.CELL_PROBABILITY: 0.01},
+                        NOISE_TYPES.fake_name.name: {Keys.CELL_PROBABILITY: 0.01},
                         "phonetic": {
-                            Keys.PROBABILITY: 0.01,
+                            Keys.CELL_PROBABILITY: 0.01,
                             Keys.TOKEN_PROBABILITY: 0.1,
                         },
                         "ocr": {
-                            Keys.PROBABILITY: 0.01,
+                            Keys.CELL_PROBABILITY: 0.01,
                             Keys.TOKEN_PROBABILITY: 0.1,
                         },
                         NOISE_TYPES.typographic.name: {
-                            Keys.PROBABILITY: 0.01,
+                            Keys.CELL_PROBABILITY: 0.01,
                             Keys.TOKEN_PROBABILITY: 0.1,
                         },
                     },
                 },
                 Keys.ROW_NOISE: {
                     "duplication": {
-                        Keys.PROBABILITY: 0.01,
+                        Keys.ROW_PROBABILITY: 0.01,
                     },
                     NOISE_TYPES.omission.name: {
-                        Keys.PROBABILITY: 0.01,
+                        Keys.ROW_PROBABILITY: 0.01,
                     },
                 },
             },
@@ -158,7 +158,7 @@ def test_columns_noised(dummy_data):
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "event_type": {
-                        NOISE_TYPES.missing_data.name: {Keys.PROBABILITY: 0.1},
+                        NOISE_TYPES.missing_data.name: {Keys.CELL_PROBABILITY: 0.1},
                     },
                 },
             },
@@ -200,12 +200,12 @@ def test_two_noise_functions_are_independent(mocker):
             DATASETS.census.name: {
                 "column_noise": {
                     "fake_column_one": {
-                        "alpha": {Keys.PROBABILITY: 0.20},
-                        "beta": {Keys.PROBABILITY: 0.30},
+                        "alpha": {Keys.CELL_PROBABILITY: 0.20},
+                        "beta": {Keys.CELL_PROBABILITY: 0.30},
                     },
                     "fake_column_two": {
-                        "alpha": {Keys.PROBABILITY: 0.40},
-                        "beta": {Keys.PROBABILITY: 0.50},
+                        "alpha": {Keys.CELL_PROBABILITY: 0.40},
+                        "beta": {Keys.CELL_PROBABILITY: 0.50},
                     },
                 },
             }
@@ -241,16 +241,16 @@ def test_two_noise_functions_are_independent(mocker):
 
     # Get config values for testing
     col1_expected_abc_proportion = (
-        config_tree.decennial_census.column_noise.fake_column_one.alpha[Keys.PROBABILITY]
+        config_tree.decennial_census.column_noise.fake_column_one.alpha[Keys.CELL_PROBABILITY]
     )
     col2_expected_abc_proportion = (
-        config_tree.decennial_census.column_noise.fake_column_two.alpha[Keys.PROBABILITY]
+        config_tree.decennial_census.column_noise.fake_column_two.alpha[Keys.CELL_PROBABILITY]
     )
     col1_expected_123_proportion = (
-        config_tree.decennial_census.column_noise.fake_column_one.beta[Keys.PROBABILITY]
+        config_tree.decennial_census.column_noise.fake_column_one.beta[Keys.CELL_PROBABILITY]
     )
     col2_expected_123_proportion = (
-        config_tree.decennial_census.column_noise.fake_column_two.beta[Keys.PROBABILITY]
+        config_tree.decennial_census.column_noise.fake_column_two.beta[Keys.CELL_PROBABILITY]
     )
 
     assert np.isclose(

@@ -40,13 +40,13 @@ def test_omission(dummy_data):
     noised_data1 = NOISE_TYPES.omission(dataset_name_1, dummy_data, config, RANDOMNESS)
     noised_data2 = NOISE_TYPES.omission(dataset_name_2, dummy_data, config, RANDOMNESS)
 
-    expected_noise_1 = config[Keys.PROBABILITY]
+    expected_noise_1 = config[Keys.ROW_PROBABILITY]
     assert np.isclose(1 - len(noised_data1) / len(dummy_data), expected_noise_1, rtol=0.02)
     assert set(noised_data1.columns) == set(dummy_data.columns)
     assert (noised_data1.dtypes == dummy_data.dtypes).all()
 
     # Check ACS data is scaled properly due to oversampling
-    expected_noise_2 = 0.5 + config[Keys.PROBABILITY] / 2
+    expected_noise_2 = 0.5 + config[Keys.ROW_PROBABILITY] / 2
     assert np.isclose(1 - len(noised_data2) / len(dummy_data), expected_noise_2, rtol=0.02)
     assert set(noised_data2.columns) == set(dummy_data.columns)
     assert (noised_data2.dtypes == dummy_data.dtypes).all()

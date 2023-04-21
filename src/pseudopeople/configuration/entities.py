@@ -3,7 +3,7 @@ class Keys:
 
     ROW_NOISE = "row_noise"  # second layer, eg <dataset>: row_noise: {...}
     COLUMN_NOISE = "column_noise"  # second layer, eg <dataset>: column_noise: {...}
-    PROBABILITY = "probability"
+    ROW_PROBABILITY = "row_probability"
     CELL_PROBABILITY = "cell_probability"
     TOKEN_PROBABILITY = "token_probability"
     POSSIBLE_AGE_DIFFERENCES = "possible_age_differences"
