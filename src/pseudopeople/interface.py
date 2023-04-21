@@ -31,11 +31,12 @@ should be 5%:
 """
 
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
 import pyarrow.parquet as pq
 from loguru import logger
+from tqdm import tqdm
 
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
@@ -90,8 +91,14 @@ def _generate_dataset(
             "Please provide the path to the unmodified root data directory."
         )
     noised_dataset = []
-    for data_path in data_paths:
-        logger.info(f"Loading data from {data_path}.")
+    iterator = (
+        tqdm(data_paths, desc="Noising data", leave=False)
+        if len(data_paths) > 1
+        else data_paths
+    )
+    # for data_path in tqdm(data_paths, desc="Noising data", leave=False):
+    for data_path in iterator:
+        logger.debug(f"Loading data from {data_path}.")
         data = _load_data_from_path(data_path, year_filter)
 
         data = _reformat_dates_for_noising(data, dataset)
@@ -105,6 +112,8 @@ def _generate_dataset(
     # Known pandas bug: pd.concat does not preserve category dtypes so we coerce
     # again after concat (https://github.com/pandas-dev/pandas/issues/51362)
     noised_dataset = _coerce_dtypes(noised_dataset, dataset)
+
+    logger.debug("*** Finished ***")
 
     return noised_dataset
 
@@ -162,7 +171,7 @@ def generate_decennial_census(
     source: Union[Path, str] = None,
     seed: int = 0,
     config: Union[Path, str, Dict[str, Dict]] = None,
-    year: int = 2020,
+    year: Optional[int] = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -175,8 +184,9 @@ def generate_decennial_census(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The year (format YYYY) to include in the dataset. Must be a decennial
-        year (e.g. 2020, 2030, 2040). Will return an empty pd.DataFrame if there is no
-        data with this year.
+        year (e.g. 2020, 2030, 2040). Will return an empty pd.DataFrame if there are no
+        data with this year. If None is provided, data from all years are
+        included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated decennial census data.
     :raises ConfigurationError: An incorrect config is provided.
@@ -193,7 +203,7 @@ def generate_american_community_survey(
     source: Union[Path, str] = None,
     seed: int = 0,
     config: Union[Path, str, Dict[str, Dict]] = None,
-    year: int = 2020,
+    year: Optional[int] = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -212,7 +222,8 @@ def generate_american_community_survey(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The survey date year (format YYYY) to include in the dataset. Will
-        return an empty pd.DataFrame if there is no data with this year.
+        return an empty pd.DataFrame if there are no data with this year. If None is
+        provided, data from all years are included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated ACS data.
     :raises ConfigurationError: An incorrect config is provided.
@@ -235,7 +246,7 @@ def generate_current_population_survey(
     source: Union[Path, str] = None,
     seed: int = 0,
     config: Union[Path, str, Dict[str, Dict]] = None,
-    year: int = 2020,
+    year: Optional[int] = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -255,7 +266,8 @@ def generate_current_population_survey(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The survey date year (format YYYY) to include in the dataset. Will
-        return an empty pd.DataFrame if there is no data with this year.
+        return an empty pd.DataFrame if there are no data with this year. If None is
+        provided, data from all years are included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated CPS data.
     :raises ConfigurationError: An incorrect config is provided.
@@ -278,7 +290,7 @@ def generate_taxes_w2_and_1099(
     source: Union[Path, str] = None,
     seed: int = 0,
     config: Union[Path, str, Dict[str, Dict]] = None,
-    year: int = 2020,
+    year: Optional[int] = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -291,7 +303,8 @@ def generate_taxes_w2_and_1099(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The tax year (format YYYY) to include in the dataset. Will return
-        an empty pd.DataFrame if there is no data with this year.
+        an empty pd.DataFrame if there are no data with this year. If None is provided,
+        data from all years are included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated W2 and 1099 tax data.
     :raises ConfigurationError: An incorrect config is provided.
@@ -309,7 +322,7 @@ def generate_women_infants_and_children(
     source: Union[Path, str] = None,
     seed: int = 0,
     config: Union[Path, str, Dict[str, Dict]] = None,
-    year: int = 2020,
+    year: Optional[int] = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -327,7 +340,8 @@ def generate_women_infants_and_children(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The year (format YYYY) to include in the dataset. Will return an
-        empty pd.DataFrame if there is no data with this year.
+        empty pd.DataFrame if there are no data with this year. If None is provided,
+        data from all years are included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated WIC data.
     :raises ConfigurationError: An incorrect config is provided.
@@ -345,7 +359,7 @@ def generate_social_security(
     source: Union[Path, str] = None,
     seed: int = 0,
     config: Union[Path, str, Dict[str, Dict]] = None,
-    year: int = 2020,
+    year: Optional[int] = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -358,8 +372,9 @@ def generate_social_security(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The latest year (format YYYY) to include in the dataset; will also
-        include all previous years. Will return an empty pd.DataFrame if there is no
-        data on or before this year.
+        include all previous years. Will return an empty pd.DataFrame if there are no
+        data on or before this year. If None is provided, data from all years are
+        included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated SSA data.
     :raises ConfigurationError: An incorrect config is provided.
