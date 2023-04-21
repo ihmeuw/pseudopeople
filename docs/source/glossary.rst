@@ -27,5 +27,9 @@ Glossary
         errors or mistakes in the data to replicate realistic challenges in personal
         record linkage.
 
+    Probabilistic record linkage (PRL)
+        Entity resolution ("record linkage") methods that internally use probabilities of
+        some kind to represent uncertainty about which records belong to which entities.
+
     Record linkage
         Another term for entity resolution.
