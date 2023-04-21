@@ -34,7 +34,7 @@ Our work builds on the success of previous data synthesis projects, such as
 and `SOG <https://web.archive.org/web/20170830050229/http:/mitiq.mit.edu/ICIQ/Documents/IQ%20Conference%202009/Papers/3-B.pdf>`_,
 while leveraging the power of our simulation platform `Vivarium <https://vivarium.readthedocs.io/en/latest/>`_ to incorporate real, publicly-accessible data about the US population.
 This allows us to model realistic household and family structures at scale, with relevant geographies.
-We have created a simulation of the U.S population, including names and addresses, with defined types of data collection (e.g., simulating decennial censuses, surveys, taxes, and other administrative data).
+We have created a simulation of the US population, including names and addresses, with defined types of data collection (e.g., simulating decennial censuses, surveys, taxes, and other administrative data).
 By creating realistic, but simulated, data which includes these attributes, we can make ER research and development easier for ourselves and others. 
 
 Quickstart
