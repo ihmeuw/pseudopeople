@@ -63,7 +63,7 @@ It takes one parameter:
     - 0.01 (1%)
 
 Write the wrong ZIP code digits
-------------------------------
+-------------------------------
 
 When reporting a ZIP code on a survey or form, people may misremember or misreport
 the digits.
