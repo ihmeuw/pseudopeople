@@ -163,7 +163,6 @@ def generate_decennial_census(
     seed: int = 0,
     config: Union[Path, str, Dict[str, Dict]] = None,
     year: Optional[int] = 2020,
-    # year: Union[int, None] = 2020,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
