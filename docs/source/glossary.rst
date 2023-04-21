@@ -17,7 +17,19 @@ Glossary
         The noised data will be output in format specific to the dataset type,
         eg a census or tax form.
 
+    Entity resolution (ER)
+        The task of identifying the unique entities associated with a set of records,
+        where multiple records may refer to the same entity.
+        Also called "record linkage," among other names.
+
     Noise functions
         Functions that will be applied to datasets at a row or column level to apply
         errors or mistakes in the data to replicate realistic challenges in personal
         record linkage.
+
+    Probabilistic record linkage (PRL)
+        Entity resolution ("record linkage") methods that internally use probabilities of
+        some kind to represent uncertainty about which records belong to which entities.
+
+    Record linkage
+        Another term for entity resolution.
