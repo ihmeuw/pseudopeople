@@ -98,7 +98,7 @@ visit the `ACS homepage <https://www.census.gov/programs-surveys/acs/about.html>
 
 Generate ACS data with :func:`pseudopeople.interface.generate_american_community_survey`
 
-The following columns are included in these datasets:
+The following columns are included in this dataset:
 
 .. list-table:: **Dataset columns**
    :header-rows: 1
