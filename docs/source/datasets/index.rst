@@ -163,7 +163,7 @@ contingent employment, worker displacement, job tenure, and more. To find out mo
 
 Generate CPS data with :func:`pseudopeople.interface.generate_current_population_survey`
 
-The following columns are included in these datasets:
+The following columns are included in this dataset:
 
 .. list-table:: **Dataset columns**
    :header-rows: 1
