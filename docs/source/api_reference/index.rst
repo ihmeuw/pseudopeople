@@ -9,5 +9,4 @@ package: dataset generator functions and the config generator function.
    :maxdepth: 2
    :glob:
 
-   configuration/index
-   noising/index
+   */index
