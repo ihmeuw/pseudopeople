@@ -29,7 +29,7 @@ The Decennial Census dataset is a simulated enumeration of the US Census Bureau'
 that have been simulated are 2020, 2030, and 2040. To find out more about the Decennial Census, please visit the Decennial Census
 `homepage <https://www.census.gov/programs-surveys/decennial-census.html>`_.   
 
-Generate Decennial Census data with :func:`pseudopeople.interface.generate_decennial_census`
+Generate Decennial Census data with :func:`pseudopeople.generate_decennial_census`
 
 The following columns are included in this dataset:
 
@@ -96,7 +96,7 @@ Bureau that gathers information on a rolling basis about American community popu
 education, income, language proficienccy, migration, employment, disability, and housing characteristics. To find out more about ACS, please
 visit the `ACS homepage <https://www.census.gov/programs-surveys/acs/about.html>`_.
 
-Generate ACS data with :func:`pseudopeople.interface.generate_american_community_survey`
+Generate ACS data with :func:`pseudopeople.generate_american_community_survey`
 
 The following columns are included in this dataset:
 
@@ -161,7 +161,7 @@ Bureau of Labor Statistics. CPS collects labor force data, such as annual work a
 contingent employment, worker displacement, job tenure, and more. To find out more about CPS, please visit the 
 `CPS homepage <https://www.census.gov/programs-surveys/cps.html>`_. 
 
-Generate CPS data with :func:`pseudopeople.interface.generate_current_population_survey`
+Generate CPS data with :func:`pseudopeople.generate_current_population_survey`
 
 The following columns are included in this dataset:
 
@@ -230,7 +230,7 @@ homepage <https://www.fns.usda.gov/wic>`_.
 Pseudopeople can generate a simulated version of the administrative data that would be recorded by WIC. This is a yearly file of information about all 
 simulants enrolled in the program as of the end of that year.
 
-Generate WIC data with :func:`pseudopeople.interface.generate_women_infants_and_children` 
+Generate WIC data with :func:`pseudopeople.generate_women_infants_and_children` 
 
 The following columns are included in this dataset:
 
@@ -297,7 +297,7 @@ that consists of retirement, disability and survivor benefits. To find out more 
 Pseudopeople can generate a simulated version of a subset of the administrative data that would be recorded by SSA. Currently, the simulated
 SSA data includes records of SSA creation and dates of death.
 
-Generate SSA data with :func:`pseudopeople.interface.generate_social_security` 
+Generate SSA data with :func:`pseudopeople.generate_social_security` 
 
 The following columns are included in this dataset:
 
@@ -341,7 +341,7 @@ Tax forms: W-2 & 1099
 Administrative data reported in annual tax forms, such as W-2s and 1099s, can also be simulated by Pseudopeople. 1099 forms are used for independent 
 contractors or self-employed individuals, while a W-2 form is used for employees (whose employer withholds payroll taxes from their earnings).
 
-Generate W-2 and 1099 data with :func:`pseudopeople.interface.generate_taxes_w2_and_1099` 
+Generate W-2 and 1099 data with :func:`pseudopeople.generate_taxes_w2_and_1099` 
 
 The following columns are included in these datasets:
 
