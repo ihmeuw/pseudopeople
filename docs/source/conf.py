@@ -108,7 +108,7 @@ html_theme_path = ["_theme"]
 html_theme = "sphinx_rtd_theme"
 html_logo = "_static/pseudopeople_logo_white.png"
 html_theme_options = {
-    'logo_only': True,
+    "logo_only": True,
 }
 
 # Theme options are theme-specific and customize the look and feel of a theme
