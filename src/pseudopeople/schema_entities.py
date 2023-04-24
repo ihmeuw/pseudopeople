@@ -389,6 +389,10 @@ class __Datasets(NamedTuple):
             COLUMNS.race_ethnicity,
         ),
         date_column="year",
+        row_noise_types=(
+            NOISE_TYPES.do_not_respond,
+            # NOISE_TYPES.duplication,
+        ),
     )
     acs: Dataset = Dataset(
         DatasetNames.ACS,
@@ -411,6 +415,10 @@ class __Datasets(NamedTuple):
             COLUMNS.race_ethnicity,
         ),
         date_column="survey_date",
+        row_noise_types=(
+            NOISE_TYPES.do_not_respond,
+            # NOISE_TYPES.duplication,
+        ),
     )
     cps: Dataset = Dataset(
         DatasetNames.CPS,
@@ -433,6 +441,10 @@ class __Datasets(NamedTuple):
             COLUMNS.race_ethnicity,
         ),
         date_column="survey_date",
+        row_noise_types=(
+            NOISE_TYPES.do_not_respond,
+            # NOISE_TYPES.duplication,
+        ),
     )
     wic: Dataset = Dataset(
         DatasetNames.WIC,

@@ -7,7 +7,7 @@ from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
-from pseudopeople.constants import paths
+from pseudopeople.constants import data_values, paths
 from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.utilities import get_index_to_noise, vectorized_choice
@@ -30,9 +30,6 @@ def omit_rows(
     """
 
     noise_level = configuration[Keys.ROW_PROBABILITY]
-    # Account for ACS and CPS oversampling
-    if dataset_name in [DatasetNames.ACS, DatasetNames.CPS]:
-        noise_level = 0.5 + noise_level / 2
     # Omit rows
     to_noise_index = get_index_to_noise(
         dataset_data,
@@ -41,6 +38,86 @@ def omit_rows(
         f"{dataset_name}_omit_choice",
     )
     noised_data = dataset_data.loc[dataset_data.index.difference(to_noise_index)]
+
+    return noised_data
+
+
+def _get_census_do_not_respond_demographic_probabilities(
+    population: pd.DataFrame,
+    base_probability: float = data_values.DO_NOT_RESPOND_BASE_PROBABILITY,
+) -> pd.Series:
+    """
+    Helper function for do_not_respond noising based on demography of age, race/ethnicity, and sex.
+
+    :param population: a dataset containing records of simulants
+    :param base_probability: base probability for do_not_respond
+    :return: a pd.Series of probabilities
+    """
+    probabilities = pd.Series(base_probability, index=population.index)
+    probabilities += (
+        population["race_ethnicity"]
+        .astype(str)
+        .map(data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_RACE)
+    )
+    for s in ["Female", "Male"]:
+        sex_mask = population["sex"] == s
+        age_lookup = (
+            data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_SEX_AGE[
+                data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_SEX_AGE["sex"] == s
+            ]
+            .drop(["sex"], axis=1)
+            .rename(columns={"age_interval": "age"})
+        )
+
+        age_bins = pd.cut(
+            x=population[sex_mask]["age"],
+            bins=pd.IntervalIndex(age_lookup["age"]),
+        )
+        probabilities[sex_mask] += age_bins.map(age_lookup.set_index("age").squeeze()).astype(
+            float
+        )
+    return probabilities
+
+
+def omit_target_rows(
+    dataset_name: str,
+    dataset_data: pd.DataFrame,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+) -> pd.DataFrame:
+    """
+    Applies targeted omission based on demographic model for census and surveys.
+
+    :param dataset_name: Form object name being noised
+    :param dataset_data:  pd.DataFrame of one of the form types used in Pseudopeople
+    :param configuration: ConfigTree object containing noise level values
+    :param randomness_stream: RandomnessStream object to make random selection for noise
+    :return: pd.DataFrame with rows from the original dataframe removed
+    """
+    supported_datasets = [DatasetNames.ACS, DatasetNames.CPS, DatasetNames.CENSUS]
+    if dataset_name not in supported_datasets:
+        raise ValueError(
+            f"Unexpected dataset_name {dataset_name}. Valid values are: {supported_datasets}"
+        )
+
+    noise_levels = _get_census_do_not_respond_demographic_probabilities(dataset_data)
+
+    # Apply an overall non-response rate of 27.6% for Current Population Survey (CPS)
+    if dataset_name == DatasetNames.CPS:
+        noise_levels += 0.276
+
+    configured_noise_level = configuration[Keys.ROW_PROBABILITY]
+    default_noise_level = data_values.DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY[dataset_name]
+    noise_levels = noise_levels * (configured_noise_level / default_noise_level)
+
+    # Account for ACS and CPS oversampling
+    if dataset_name in [DatasetNames.ACS, DatasetNames.CPS]:
+        noise_levels = 0.5 + noise_levels / 2
+
+    to_noise_idx = get_index_to_noise(
+        dataset_data, noise_levels, randomness_stream, f"do_not_respond_{dataset_name}"
+    )
+    noised_data = dataset_data.loc[dataset_data.index.difference(to_noise_idx)]
 
     return noised_data
 
