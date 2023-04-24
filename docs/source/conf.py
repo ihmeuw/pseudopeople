@@ -106,6 +106,7 @@ add_module_names = False
 
 html_theme_path = ["_theme"]
 html_theme = "sphinx_rtd_theme"
+html_logo = "_static/pseudopeople_logo_white.png"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
