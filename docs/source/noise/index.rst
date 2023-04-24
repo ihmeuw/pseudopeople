@@ -9,7 +9,7 @@ to add noise to the simulated data. "Noise" refers to various types of errors
 introduced into the data and may also be called "corruption" or "distortion." By
 default, Pseudopeople applies noise to the simulated datasets using some
 reasonable settings. If desired, the user can change the noise settings through
-the configuration system---see the `Configuration section <https://pseudopeople.readthedocs.io/en/latest/configuration/index.html>`_ 
+the configuration system---see the :ref:`Configuration section <configuration_main>` 
 for details.
 
 .. contents::
