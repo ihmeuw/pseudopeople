@@ -7,7 +7,7 @@ An interface for users to generate pseudopeople datasets.
 
 This module contains the tools required to generate specific pseudopeople
 datasets. Each dataset to be generated has its own `generate_*` function. For
-example, to generate the decennial census dataset we would use :meth:`generate_decennial_census`.
+example, to generate the decennial census dataset we would use :func:`pseudopeople.generate_decennial_census`.
 
 All of the `generate_*` functions have the same (optional) parameters.
 Notable parameters include:
@@ -36,6 +36,7 @@ from typing import Dict, List, Optional, Union
 import pandas as pd
 import pyarrow.parquet as pq
 from loguru import logger
+from tqdm import tqdm
 
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
@@ -90,8 +91,14 @@ def _generate_dataset(
             "Please provide the path to the unmodified root data directory."
         )
     noised_dataset = []
-    for data_path in data_paths:
-        logger.info(f"Loading data from {data_path}.")
+    iterator = (
+        tqdm(data_paths, desc="Noising data", leave=False)
+        if len(data_paths) > 1
+        else data_paths
+    )
+    # for data_path in tqdm(data_paths, desc="Noising data", leave=False):
+    for data_path in iterator:
+        logger.debug(f"Loading data from {data_path}.")
         data = _load_data_from_path(data_path, year_filter)
 
         data = _reformat_dates_for_noising(data, dataset)
@@ -105,6 +112,8 @@ def _generate_dataset(
     # Known pandas bug: pd.concat does not preserve category dtypes so we coerce
     # again after concat (https://github.com/pandas-dev/pandas/issues/51362)
     noised_dataset = _coerce_dtypes(noised_dataset, dataset)
+
+    logger.debug("*** Finished ***")
 
     return noised_dataset
 
