@@ -88,7 +88,7 @@ column shows the name of the noise type in the configuration system.
     - Writing 'Alex' instead of legal name 'Alexander'
   * - Fake names
     - ``use_fake_name``
-    - Using fake name rather than official name
+    - Using 'Mr' rather than actual first name
   * - Numeric miswriting 
     - ``write_wrong_digits``
     - Listing incorrect date of birth 
