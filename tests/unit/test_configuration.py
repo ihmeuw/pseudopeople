@@ -191,7 +191,11 @@ def test_format_miswrite_ages(user_config, expected):
             "Invalid noise type '.*' provided for dataset '.*'. ",
         ),
         (
-            {DATASETS.acs.name: {Keys.ROW_NOISE: {NOISE_TYPES.do_not_respond.name: {"fake": {}}}}},
+            {
+                DATASETS.acs.name: {
+                    Keys.ROW_NOISE: {NOISE_TYPES.do_not_respond.name: {"fake": {}}}
+                }
+            },
             "Invalid parameter '.*' provided for dataset '.*' and noise type '.*'. ",
         ),
         (
