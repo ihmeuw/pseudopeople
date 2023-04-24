@@ -99,7 +99,7 @@ It takes two parameters:
     - A list of five probabilities, one for each digit in a (5-digit) ZIP code.
       The first value in this list is the probability that the first digit of the ZIP code will be wrong
       **given that the cell is being considered for this noise type**.
-      The second value in the list is this same probability but about the second digit, and so on.
+      The second value in the list is the corresponding probability for the second digit, and so on.
     - [0.04, 0.04, 0.20, 0.36, 0.36]
 
 Misreport age
@@ -130,7 +130,7 @@ It takes two parameters:
           A negative number means that the reported age is too young, while a positive number means it is too old.
           Each difference is equally likely.
         * A dictionary mapping from possible differences to the corresponding probabilities of those differences.
-          This is like the list option except that it allows some differences to be more likely than others.
+          This is like the list option except that it allows some age differences to be more likely than others.
           The probabilities must add up to 1.
       
       Zero (no change) is not allowed as a possible difference.
