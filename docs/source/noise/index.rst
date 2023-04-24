@@ -100,7 +100,7 @@ column shows the name of the noise type in the configuration system.
     - Writing ZIP code 98118 when you actually live in 98112
   * - Copy from within household
     - ``copy_from_household_member``
-    - Copying survey responses from another household member
+    - Accidentally writing the age of another person in your household in the line for your age
   * - Month and day swap
     - ``swap_morth_and_day``
     - Reporting date as DD/MM/YYYY instead of MM/DD/YYYY
