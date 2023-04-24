@@ -16,6 +16,9 @@ class __NoiseTypes(NamedTuple):
     """
 
     omission: RowNoiseType = RowNoiseType("omit_row", noise_functions.omit_rows)
+    do_not_respond: RowNoiseType = RowNoiseType(
+        "do_not_respond", noise_functions.omit_target_rows
+    )
     # duplication: RowNoiseType = RowNoiseType("duplicate_row", noise_functions.duplicate_rows)
     missing_data: ColumnNoiseType = ColumnNoiseType(
         "leave_blank",
