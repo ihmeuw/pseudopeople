@@ -48,7 +48,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             # NOISE_TYPES.copy_from_within_household,
-            # NOISE_TYPES.month_day_swap,
+            NOISE_TYPES.month_day_swap,
             NOISE_TYPES.numeric_miswriting,
             # NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
@@ -269,7 +269,7 @@ class __Columns(NamedTuple):
         "event_date",
         (
             NOISE_TYPES.missing_data,
-            # NOISE_TYPES.month_day_swap,
+            NOISE_TYPES.month_day_swap,
             NOISE_TYPES.numeric_miswriting,
             # NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,

@@ -116,22 +116,33 @@ def generate_incorrect_selections(
 #     return column
 
 
-# def swap_months_and_days(
-#     column: pd.Series,
-#     configuration: ConfigTree,
-#     randomness_stream: RandomnessStream,
-#     additional_key: Any,
-# ) -> pd.Series:
-#     """
+def swap_months_and_days(
+    column: pd.Series,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
+) -> pd.Series:
+    """
+    Function that swaps month and day of dates.
 
-#     :param column:
-#     :param configuration:
-#     :param randomness_stream:
-#     :param additional_key: Key for RandomnessStream
-#     :return:
-#     """
-#     # todo actually duplicate rows
-#     return column
+    :param column: pd.Series containing dates with the format YYYY-MM-DD
+    :param configuration: ConfigTree object containing noise level values
+    :param randomness_stream: Randomness Stream object for random choices using vivarium CRN framework
+    :param additional_key: Key for RandomnessStream
+    :return: Noised pd.Series where some dates have month and day swapped.
+    """
+    if column.name == "event_date":
+        year = column.str[:4]
+        month = column.str[4:7]
+        day = column.str[7:]
+        noised = year + day + month
+    else:
+        year = column.str[6:]
+        month = column.str[:3]
+        day = column.str[3:6]
+        noised = day + month + year
+
+    return noised
 
 
 def miswrite_zipcodes(

@@ -81,6 +81,10 @@ def dummy_dataset():
     first_name_series = pd.Series(first_names * int(num_simulants / len(first_names)))
     last_names = ["A last name", "another last name", "other last name", "last name", ""]
     last_name_series = pd.Series(last_names * int(num_simulants / len(last_names)))
+    date_of_birth_list = ["01/31/1950", "05/01/1990", "10/01/2000", "12/31/2010", ""]
+    date_of_birth_series = pd.Series(
+        date_of_birth_list * int(num_simulants / len(date_of_birth_list))
+    )
 
     return pd.DataFrame(
         {
@@ -92,6 +96,7 @@ def dummy_dataset():
             "zipcode": zipcode_series,
             "first_name": first_name_series,
             "last_name": last_name_series,
+            "date_of_birth": date_of_birth_series,
         }
     )
 
@@ -173,9 +178,23 @@ def test_generate_within_household_copies():
     pass
 
 
-@pytest.mark.skip(reason="TODO")
-def test_swap_months_and_days():
-    pass
+def test_swap_months_and_days(dummy_dataset):
+
+    data = dummy_dataset["date_of_birth"]
+    config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE]["date_of_birth"][
+        NOISE_TYPES.month_day_swap.name
+    ]
+    expected_noise = config[Keys.CELL_PROBABILITY]
+    noised_data = NOISE_TYPES.month_day_swap(data, config, RANDOMNESS0, "test_swap_month_day")
+
+    # Confirm missing data remains missing
+    orig_missing = data == ""
+    assert (noised_data[orig_missing] == "").all()
+
+    assert (data[~orig_missing].str[6:] == noised_data[~orig_missing].str[6:]).all()
+    assert np.isclose(
+        expected_noise, (data[~orig_missing] != noised_data[~orig_missing]).mean(), rtol=0.02
+    )
 
 
 def test_miswrite_zipcodes(dummy_dataset):
