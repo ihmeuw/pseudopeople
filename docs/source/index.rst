@@ -40,7 +40,8 @@ By creating realistic, but simulated, data which includes these attributes, we c
 Quickstart
 ----------
 
-First, install Pseudopeople with pip:
+pseudopeople requires a version of `Python <https://www.python.org/>`_ between 3.7 and 3.10 (inclusive) to be installed.
+Once Python is installed, you can install pseudopeople with pip by running the command:
 
 .. highlight:: console
 
@@ -48,7 +49,7 @@ First, install Pseudopeople with pip:
 
    $ pip install pseudopeople
 
-Or, you can install from source on `the Pseudopeople GitHub repository <https://github.com/ihmeuw/pseudopeople>`_.
+Or, you can install from source on `the pseudopeople GitHub repository <https://github.com/ihmeuw/pseudopeople>`_.
 
 Then, generate a small-scale simulated decennial census:
 
@@ -110,6 +111,16 @@ This is our truth deck, which we wouldn't have for a real linkage task.
    There are 6,181 true matches to find between these datasets!
 
 Now, see how many your record linkage method can find -- without access to the truth deck, of course!
+
+Not linking in Python?
+Just save your datasets as files, for example CSV files:
+
+::
+
+   >>> census.to_csv('census.csv')
+   >>> taxes.to_csv('taxes.csv')
+
+Now you can load these datasets in any environment that can read CSV.
 
 .. toctree::
    :hidden:
