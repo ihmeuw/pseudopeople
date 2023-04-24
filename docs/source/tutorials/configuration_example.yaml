@@ -1,0 +1,8 @@
+current_population_survey:
+  column_noise:
+    last_name:
+      use_fake_name:
+        cell_probability: 0.3
+    first_name:
+      use_fake_name:
+        cell_probability: 0.2

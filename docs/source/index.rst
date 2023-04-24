@@ -37,6 +37,8 @@ This allows us to model realistic household and family structures at scale, with
 We have created a simulation of the US population, including names and addresses, with defined types of data collection (e.g., simulating decennial censuses, surveys, taxes, and other administrative data).
 By creating realistic, but simulated, data which includes these attributes, we can make ER research and development easier for ourselves and others.
 
+.. _quickstart:
+
 Quickstart
 ----------
 
