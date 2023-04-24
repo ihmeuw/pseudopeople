@@ -1,7 +1,7 @@
 .. image:: ../Pseudopeople-logo_FINAL_2023.04.11_psdppl-logo_blue-ombre.png
 
-Pseudopeople is a Python package that generates realistic simulated data about a
-fictional United States population, for use in testing record linkage (entity resolution)
+pseudopeople is a Python package that generates realistic simulated data about a
+fictional United States population over multiple decades, for use in testing entity resolution (record linkage)
 methods.
 
 | 🙈 **Simulated**: These are made-up people! No need to worry about confidentiality.
