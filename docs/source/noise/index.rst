@@ -94,7 +94,7 @@ column shows the name of the noise type in the configuration system.
     - Writing "2022" instead of "2002" in your date of birth
   * - Age miswriting
     - ``misreport_age``
-    - Listing incorrect age
+    - Reporting that you are 28 years old when you are actually 27
   * - ZIP code miswriting
     - ``write_wrong_zipcode_digits``
     - Listing incorrect ZIP code
