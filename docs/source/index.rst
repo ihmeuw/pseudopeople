@@ -26,7 +26,7 @@ Introduction
 The University of Washington IHME Simulation Science Team is excited to introduce pseudopeople, the Python package that simplifies Entity Resolution (ER) research and development.
 This package generates large-scale, simulated population data according to specifications by the user, to replicate a range of complexities of real applications of probabilistic record linkage software.
 With sensitive data often required for ER, accessing and testing new methods and software has been a challenge - until now.
-Our innovative approach creates realistic, simulated data including name, address, and date of birth, without compromising privacy. 
+Our innovative approach creates realistic, simulated data including name, address, and date of birth, without compromising privacy.
 
 Our work builds on the success of previous data synthesis projects, such as
 `FEBRL <http://users.cecs.anu.edu.au/~Peter.Christen/Febrl/febrl-0.3/febrldoc-0.3/manual.html>`_,
@@ -35,7 +35,7 @@ and `SOG <https://web.archive.org/web/20170830050229/http:/mitiq.mit.edu/ICIQ/Do
 while leveraging the power of our simulation platform `Vivarium <https://vivarium.readthedocs.io/en/latest/>`_ to incorporate real, publicly-accessible data about the US population.
 This allows us to model realistic household and family structures at scale, with relevant geographies.
 We have created a simulation of the US population, including names and addresses, with defined types of data collection (e.g., simulating decennial censuses, surveys, taxes, and other administrative data).
-By creating realistic, but simulated, data which includes these attributes, we can make ER research and development easier for ourselves and others. 
+By creating realistic, but simulated, data which includes these attributes, we can make ER research and development easier for ourselves and others.
 
 Quickstart
 ----------
@@ -120,6 +120,5 @@ Now, see how many your record linkage method can find -- without access to the t
    noise/index
    configuration/index
    tutorials/index
-   concepts/index
    api_reference/index
    glossary
