@@ -91,7 +91,7 @@ column shows the name of the noise type in the configuration system.
     - Using 'Mr' rather than actual first name
   * - Numeric miswriting 
     - ``write_wrong_digits``
-    - Listing incorrect date of birth 
+    - Writing "2022" instead of "2002" in your date of birth
   * - Age miswriting
     - ``misreport_age``
     - Listing incorrect age
