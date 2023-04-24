@@ -70,7 +70,7 @@ column shows the name of the noise type in the configuration system.
   * - Leave a field blank
     - ``leave_blank``
     - Forgetting to write your name on the designated line
-  * - Choose the wrong option from a fixed set of options
+  * - Choose the wrong option
     - ``choose_wrong_option``
     - Marking the "Male" box when you meant "Female"
   * - Optical character recognition (OCR) error
@@ -79,7 +79,7 @@ column shows the name of the noise type in the configuration system.
   * - Phonetic error
     - ``make_phonetic_errors``
     - Mishearing a 't' for a 'd'
-  * - Typographic errors
+  * - Make typos
     - ``make_typos``
     - Accidentally typing an 'l' instead of a 'k' because they are 
       right next to each other on a QWERTY keyboard
