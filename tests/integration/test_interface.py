@@ -83,14 +83,19 @@ def test_generate_dataset(
             expected_dtype = np.dtype(object)
         assert noised_data[col_name].dtype == expected_dtype
         # Check if noised
+        shared_not_missing_idx = shared_idx[
+            check_original[col_name].notna() & check_noised[col_name].notna()
+        ]
         if col.noise_types:
-            both_not_missing_idx = shared_idx[
-                check_original[col_name].notna() & check_noised[col_name].notna()
-            ]
             assert (
-                check_original.loc[both_not_missing_idx, col_name]
-                != check_noised.loc[both_not_missing_idx, col_name]
+                check_original.loc[shared_not_missing_idx, col_name]
+                != check_noised.loc[shared_not_missing_idx, col_name]
             ).mean() <= 0.04
+        else:
+            assert (
+                check_original.loc[shared_not_missing_idx, col_name]
+                == check_noised.loc[shared_not_missing_idx, col_name]
+            ).all()
 
 
 def _generate_non_default_data_root(data_dir_name, tmpdir, sample_data_path, data):
