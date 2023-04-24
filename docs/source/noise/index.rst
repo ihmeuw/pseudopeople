@@ -103,7 +103,7 @@ column shows the name of the noise type in the configuration system.
     - Accidentally writing the age of another person in your household in the line for your age
   * - Month and day swap
     - ``swap_morth_and_day``
-    - Reporting date as DD/MM/YYYY instead of MM/DD/YYYY
+    - Reporting 17/05/1976 when a survey asks for the date in MM/DD/YYYY format
 
 
 Default Noise Types for Each Column
