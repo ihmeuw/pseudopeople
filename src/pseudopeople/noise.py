@@ -49,7 +49,7 @@ def noise_dataset(
     randomness = get_randomness_stream(dataset.name, seed)
 
     noise_configuration = configuration[dataset.name]
-    for noise_type in tqdm(NOISE_TYPES, desc="Applying noise", unit="type"):
+    for noise_type in tqdm(NOISE_TYPES, desc="Applying noise", unit="type", leave=False):
         if isinstance(noise_type, RowNoiseType):
             if (
                 Keys.ROW_NOISE in noise_configuration

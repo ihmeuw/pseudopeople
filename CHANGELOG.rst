@@ -1,3 +1,12 @@
+**0.6.2 - 04/21/23**
+ - Updated documentation
+ - Updated progress bar behavior
+
+**0.6.1 - 04/21/23**
+ - Updated documentation
+ - Standardized configuration key names
+ - Updated to account for changes to input data schema
+
 **0.6.0 - 04/19/23**
  - Update documentation (landing page, datasets section, quickstart)
  - Update zipcode miswriting function to act on each digit independently
