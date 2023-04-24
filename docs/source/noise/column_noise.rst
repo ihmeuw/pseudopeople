@@ -67,7 +67,7 @@ Write the wrong ZIP code digits
 
 When reporting a ZIP code on a survey or form, people may misremember or misreport
 the digits.
-They are probably more likely to get confused about the last few digits (which identify
+They are probably more likely to do this for the last few digits (which identify
 the small, specific area) than the first few (which will be the same over a larger area).
 
 This noise type is called :code:`write_wrong_zipcode_digits` in the configuration.
