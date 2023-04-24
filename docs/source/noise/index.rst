@@ -17,9 +17,6 @@ for details.
    :local:
    :backlinks: entry
 
-.. todo::
-
-  Add link to Configuration section once it exists.
 
 Categories of Noise
 -------------------
@@ -54,11 +51,6 @@ column shows the name of the noise type in the configuration system.
   * - Omit a row
     - ``omit_row``
     - Neglecting to file a tax form on time
-  * - Duplicate a row
-    - ``duplicate_row``
-    - College student being reported both at their university and their guardian's
-      home address
-
 
 .. list-table:: Types of column-based noise (``column_noise``)
   :widths: 1 2 5 
@@ -76,34 +68,22 @@ column shows the name of the noise type in the configuration system.
   * - Optical character recognition (OCR) error
     - ``make_ocr_errors``
     - Misreading an 'S' instead of a '5'
-  * - Phonetic error
-    - ``make_phonetic_errors``
-    - Mishearing a 't' for a 'd'
   * - Make typos
     - ``make_typos``
     - Accidentally typing an 'l' instead of a 'k' because they are 
       right next to each other on a QWERTY keyboard
-  * - Nicknames
-    - ``use_nickname``
-    - Writing 'Alex' instead of legal name 'Alexander'
+  * - Misreport age
+    - ``misreport_age``
+    - Reporting that you are 28 years old when you are actually 27
+  * - Write the wrong digits
+    - ``write_wrong_digits``
+    - Writing "2022" instead of "2002" in your date of birth
+  * - Write the wrong zipcode digits 
+    - ``write_wrong_zipcode_digits``
+    - Writing ZIP code 98118 when you actually live in 98112
   * - Fake names
     - ``use_fake_name``
     - Using 'Mr' rather than actual first name
-  * - Numeric miswriting 
-    - ``write_wrong_digits``
-    - Writing "2022" instead of "2002" in your date of birth
-  * - Age miswriting
-    - ``misreport_age``
-    - Reporting that you are 28 years old when you are actually 27
-  * - ZIP code miswriting
-    - ``write_wrong_zipcode_digits``
-    - Writing ZIP code 98118 when you actually live in 98112
-  * - Copy from within household
-    - ``copy_from_household_member``
-    - Accidentally writing the age of another person in your household in the line for your age
-  * - Month and day swap
-    - ``swap_morth_and_day``
-    - Reporting 17/05/1976 when a survey asks for the date in MM/DD/YYYY format
 
 
 Default Noise Types for Each Column
