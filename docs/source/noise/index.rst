@@ -97,7 +97,7 @@ column shows the name of the noise type in the configuration system.
     - Reporting that you are 28 years old when you are actually 27
   * - ZIP code miswriting
     - ``write_wrong_zipcode_digits``
-    - Listing incorrect ZIP code
+    - Writing ZIP code 98118 when you actually live in 98112
   * - Copy from within household
     - ``copy_from_household_member``
     - Copying survey responses from another household member
