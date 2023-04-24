@@ -107,7 +107,7 @@ def _generate_dataset(
         noised_data = _extract_columns(dataset.columns, noised_data)
         noised_dataset.append(noised_data)
 
-    noised_dataset = pd.concat(noised_dataset, ignore_index=True)
+    noised_dataset = pd.concat(noised_dataset)
 
     # Known pandas bug: pd.concat does not preserve category dtypes so we coerce
     # again after concat (https://github.com/pandas-dev/pandas/issues/51362)
