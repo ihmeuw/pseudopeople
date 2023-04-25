@@ -32,6 +32,7 @@ Currently, pseudopeople implements two kinds of typos: inserting extra character
 directly preceding characters that are adjacent on a keyboard, or replacing a character with one that is adjacent.
 When pseudopeople introduces typos, 10% of them are inserted characters, while the other 90% are replaced characters.
 This is currently not configurable.
+In either kind of typo, all adjacent characters are equally likely to be chosen.
 
 To define "adjacent", we use a grid version of a QWERTY keyboard layout
 (left-justified, which is not exactly accurate to most keyboards' half-key-offset layout) and accompanying number pad.
