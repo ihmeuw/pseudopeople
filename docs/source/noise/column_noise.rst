@@ -31,7 +31,7 @@ Leave a field blank
 Often some of the data in certain columns of a dataset will be missing.
 This could be because the input for that field was left blank, an answer was refused,
 or the answer was illegible or unintelligible.
-When this type of noise occurs, pseudopeople will replace the value in the relevant cell with
+To simulate this type of noise, pseudopeople will replace the value in the relevant cell with
 :code:`numpy.nan` to indicate that the value is missing.
 
 This noise type is called :code:`leave_blank` in the configuration. It takes one parameter:
@@ -109,7 +109,7 @@ Misreport age
 
 When someone reports their age in years, or especially when someone reports the age of someone else such as a family member,
 they may not get the value exactly right.
-When this noise type occurs, the reported age is off by some amount, for example a year or two older or younger than the
+For this type of simulated noise, the reported age is off by some amount, for example a year or two older or younger than the
 person actually is.
 
 This noise type is called :code:`misreport_age` in the configuration.
@@ -131,8 +131,9 @@ It takes two parameters:
         * A list of possible differences to add to the true age to get the misreported age.
           A negative number means that the reported age is too young, while a positive number means it is too old.
           Each difference is equally likely.
-        * A dictionary mapping from possible differences to the corresponding probabilities of those differences.
-          This is like the list option except that it allows some age differences to be more likely than others.
+        * A dictionary, where the keys are the possible differences and
+          the values are the probabilities of those differences.
+          This is like the list option, except that it allows some age differences to be more likely than others.
           The probabilities must add up to 1.
       
       Zero (no change) is not allowed as a possible difference.
@@ -177,5 +178,81 @@ It takes two parameters:
 Use a fake name
 ---------------
 
+Sometimes when people respond to a survey or fill out a form, they don't want to share their personal information.
+If the survey or form (whether online, on paper, or in person) requires a response, they might just make
+something up.
+
+The "Use a fake name" noise type in pseudopeople simulates these kinds of responses for first and last names.
+Instead of the person's real name, pseudopeople records a randomly selected value from the
+"List of First Names Considered Fake or Incomplete" (for first names) or the "List of Last Names Considered Fake or Incomplete" (for last names)
+found in the
+`NORC assessment of the Census Bureau's Person Identification Validation System <https://www.norc.org/Research/Projects/Pages/census-personal-validation-system-assessment-pvs.aspx>`_.
+
+This noise type is called :code:`use_fake_name` in the configuration. It takes one parameter:
+
+.. list-table:: Parameters to the use_fake_name noise type
+  :widths: 1 5 1
+  :header-rows: 1
+
+  * - Parameter
+    - Description
+    - Default
+  * - :code:`cell_probability`
+    - The probability that, for a cell in the column (either first or last name), a fake name is recorded.
+    - 0.01 (1%)
+
 Make typos
 ----------
+
+Typos occur in survey and administrative datasets when someone -- a survey respondent, a canvasser,
+or someone entering their own information on a form -- types a value incorrectly.
+
+Currently, pseudopeople implements two kinds of typos: inserting extra characters
+directly preceding characters that are adjacent on a keyboard, or replacing a character with one that is adjacent.
+When pseudopeople introduces typos, 10% of them are inserted characters, while the other 90% are replaced characters.
+This is currently not configurable.
+In either kind of typo, all adjacent characters are equally likely to be chosen.
+
+To define "adjacent", we use a grid version of a QWERTY keyboard layout
+(left-justified, which is not exactly accurate to most keyboards' half-key-offset layout) and accompanying number pad.
+This approach is inspired by the GeCO project, with some changes to include capital letters and have a complete numberpad.
+Two characters are considered adjacent if they are touching, either on a side or diagonally:
+
+.. code-block:: text
+
+  qwertyuiop
+  asdfghjkl
+  zxcvbnm
+
+  QWERTYUIOP
+  ASDFGHJKL
+  ZXCVBNM
+
+  789
+  456
+  123
+  0
+
+Note that there are empty lines above, which separate the parts.
+Therefore, a number is never replaced by a letter (or vice versa), and a capital letter is never replaced by a lowercase letter (or vice versa).
+There are currently no typos involving special characters.
+
+This noise type is called :code:`make_typos` in the configuration. It takes two parameters:
+
+.. list-table:: Parameters to the leave_blank noise type
+  :widths: 1 5 1
+  :header-rows: 1
+
+  * - Parameter
+    - Description
+    - Default
+  * - :code:`cell_probability`
+    - The probability of a cell being *considered* to have this noise type.
+      One way to think about this is the probability that a value is typed carelessly.
+      Whether or not there are actually any errors depends on the next parameter.
+    - 0.01 (1%)
+  * - :code:`token_probability`
+    - The probability of each character (which we call a "token") having a typo
+      **given that the cell is being considered for this noise type**.
+      One way to think about this is the probability of a typo on any given character when the value is being typed carelessly.
+    - 0.1 (10%)

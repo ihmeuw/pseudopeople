@@ -37,7 +37,7 @@ Quickstart
 ----------
 
 pseudopeople requires a version of `Python <https://www.python.org/>`_ between 3.7 and 3.10 (inclusive) to be installed.
-Once Python is installed, you can install pseudopeople with pip by running the command:
+Once Python is installed, you can install pseudopeople with `pip <https://pip.pypa.io/en/stable/>`_ by running the command:
 
 .. highlight:: console
 
@@ -98,7 +98,8 @@ And W-2 and 1099 tax forms from the same fake population:
 
 The simulated people in these datasets are called "simulants."
 Both datasets have a :code:`simulant_id` column that uniquely identifies an individual.
-This is our truth deck, which we wouldn't have for a real linkage task.
+The unique :code:`simulant_id` present in both datasets provides us with a truth deck,
+which we wouldn't have for a linkage task with real, sensitive data.
 
 ::
 
