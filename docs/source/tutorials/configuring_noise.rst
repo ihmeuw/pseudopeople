@@ -87,7 +87,7 @@ Increasing noise in first names
 -------------------------------
 
 Imagine we also want to increase the probability of a fake first name from its default of 1%.
-We can do this by using a modified configuration dictionary:
+We can do this by modifying the configuration dictionary. This time, we'll save the configuration dictionary to a variable before using it to generate the dataset:
 
 .. code-block:: python
 
