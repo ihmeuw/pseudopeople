@@ -47,6 +47,8 @@ This noise type is called :code:`leave_blank` in the configuration. It takes one
     - The probability that a cell in the column being configured is blank.
     - 0.01 (1%)
 
+.. _choose_the_wrong_option:
+
 Choose the wrong option
 -----------------------
 
@@ -169,6 +171,8 @@ It takes two parameters:
     - The conditional probability, given that a numeric cell has been selected for noise eligibility, that any given digit in the true number will be replaced by a different digit.
     - 0.1 (10%)
 
+
+.. _use_a_fake_name:
 
 Use a fake name
 ---------------

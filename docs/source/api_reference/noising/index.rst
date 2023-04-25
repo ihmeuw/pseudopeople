@@ -1,3 +1,5 @@
+.. _api_reference_noising:
+
 .. Display the module's docstring (not at top level of pseudopeople)
 
 .. automodule:: pseudopeople.interface
