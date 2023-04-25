@@ -22,8 +22,7 @@ Write the wrong digits
 Sometimes people may write the wrong number for numeric data such as a street
 number, date, or social security number. This could be intentional or
 accidental. pseudopeople simulates this type of noise in numeric columns by
-randomly selecting some digits from the true number and replacing each selected
-digit with a diferent digit selected uniformly at random.
+randomly replacing some digits with a different digit selected uniformly at random.
 
 This noise type is called :code:`write_wrong_digits` in the configuration.
 It takes two parameters:
