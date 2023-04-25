@@ -20,6 +20,8 @@ the configuration system---see the Configuration section for details.
 
   Add link to Configuration section once it exists.
 
+.. _categories_of_noise:
+
 Categories of Noise
 -------------------
 
@@ -34,6 +36,8 @@ Each type of row-based noise operates on the entire dataset (selecting rows to
 include or exclude), while each type of column-based noise operates on one
 column of data at a time (selecting cells within that column to noise).
 Currently, errors added in different columns are independent of each other.
+
+.. _available_noise_types:
 
 Available Noise Types
 ---------------------
@@ -81,7 +85,9 @@ column shows the name of the noise type in the configuration system.
 Default Noise Types for Each Column
 -----------------------------------
 
-Noise Function Details
+.. _noise_type_details:
+
+Noise Type Details
 ----------------------
 
 .. toctree::
