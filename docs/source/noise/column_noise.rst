@@ -178,6 +178,29 @@ It takes two parameters:
 Use a fake name
 ---------------
 
+Sometimes when people respond to a survey or fill out a form, they don't want to share their personal information.
+If the survey or form (whether online, on paper, or in person) requires a response, they might just make
+something up.
+
+The "Use a fake name" noise type in pseudopeople simulates these kinds of responses for first and last names.
+Instead of the person's real name, pseudopeople records a randomly selected value from the
+"List of First Names Considered Fake or Incomplete" (for first names) or the "List of Last Names Considered Fake or Incomplete" (for last names)
+found in the
+`NORC assessment of the Census Bureau's Person Identification Validation System <https://www.norc.org/Research/Projects/Pages/census-personal-validation-system-assessment-pvs.aspx>`.
+
+This noise type is called :code:`use_a_fake_name` in the configuration. It takes one parameter:
+
+.. list-table:: Parameters to the use_a_fake_name noise type
+  :widths: 1 5 1
+  :header-rows: 1
+
+  * - Parameter
+    - Description
+    - Default
+  * - :code:`cell_probability`
+    - The probability that, for a cell in the column (either first or last name), a fake name is recorded.
+    - 0.01 (1%)
+
 Make typos
 ----------
 
