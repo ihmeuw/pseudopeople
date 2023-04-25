@@ -138,6 +138,7 @@ here are some next steps:
    :hidden:
    :maxdepth: 2
 
+   self
    datasets/index
    input_data/index
    noise/index
