@@ -33,3 +33,6 @@ Glossary
 
     Record linkage
         Another term for entity resolution.
+
+    Simulant
+        A simulated person represented in a pseudopeople-generated dataset.
