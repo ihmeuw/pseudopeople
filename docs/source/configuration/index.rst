@@ -67,7 +67,7 @@ For example to change the probability of row omission in the Decennial Census, t
 
     config = {
         'decennial_census': { # Dataset
-            'row_noise': { # "Omit a row" is in the column-based noise category
+            'row_noise': { # "Omit a row" is in the row-based noise category
                 'omit_row': { # Noise type
                     'row_probability': 0.05, # Parameter (and value)
                 },
@@ -78,7 +78,7 @@ For example to change the probability of row omission in the Decennial Census, t
 .. code-block:: yaml
 
     decennial_census: # Dataset
-        row_noise: # "Omit a row" is in the column-based noise category
+        row_noise: # "Omit a row" is in the row-based noise category
             omit_row: # Noise type
                 row_probability: 0.05 # Parameter (and value)
 
