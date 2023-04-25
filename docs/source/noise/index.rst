@@ -97,7 +97,7 @@ Default Noise Types for Each Column
   :widths: 20 20 20 20
   :header-rows: 0
 
-  * - Attribute name
+  * - Column name
     - Datasets present
     - Types of noise
     - Notes
