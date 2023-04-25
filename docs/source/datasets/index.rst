@@ -309,7 +309,7 @@ The Social Security Administration (SSA) is the US federal government agency tha
 that consists of retirement, disability and survivor benefits. To find out more about this program, visit the `SSA homepage <https://www.ssa.gov/about-ssa>`_.
 
 pseudopeople can generate a simulated version of a subset of the administrative data that would be recorded by SSA.
-Currently, the simulated SSA data includes records of SSA creation and dates of death.
+Currently, the simulated SSA data includes records of SSN creation and dates of death.
 This is a yearly data file that is **cumulative** -- when you specify a year, you will recieve all records *up to the end of*
 that year.
 
