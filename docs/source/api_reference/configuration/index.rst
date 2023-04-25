@@ -11,7 +11,7 @@ For example, if you wanted to double the cell probability parameter of every noi
 or set all noise types to zero to get a perfectly recorded dataset,
 it would be easier to access the defaults as a data structure in Python and modify them that way.
 
-We currently have one function that facilitates this kind of use of the configuration.
+We currently have one function that facilitates this kind of use of the configuration, shown below.
 We may add more functionality in this area in a future release of pseudopeople.
 
 .. autofunction:: pseudopeople.get_config
