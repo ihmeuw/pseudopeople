@@ -95,7 +95,7 @@ Default Noise Types for Each Column
 
 .. list-table:: Types of noise for each column
   :widths: 20 20 20 20
-  :header-rows: 0
+  :header-rows: 1
 
   * - Column name
     - Datasets present
