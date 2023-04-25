@@ -1,8 +1,8 @@
 .. _noise_main:
 
-======
- Noise
-======
+=====
+Noise
+=====
 
 In order to have a realistic challenge with entity resolution, it is essential
 to add noise to the simulated data. "Noise" refers to various types of errors
@@ -20,7 +20,7 @@ for details.
 
 .. _categories_of_noise:
 
-Categories of Noise
+Categories of noise
 -------------------
 
 pseudopeople can add two broad categories of noise to the datasets it generates:
@@ -37,7 +37,7 @@ Currently, errors added in different columns are independent of each other.
 
 .. _available_noise_types:
 
-Available Noise Types
+Available noise types
 ---------------------
 
 The table lists all the available noise types, but not every
@@ -90,12 +90,12 @@ column shows the name of the noise type in the configuration system.
     - Using "Mr" rather than actual first name
 
 
-Default Noise Types for Each Column
+Noise types for each column
 -----------------------------------
 
 .. _noise_type_details:
 
-Noise Type Details
+Noise type details
 ----------------------
 
 .. toctree::
