@@ -75,5 +75,5 @@ This noise type is called :code:`make_typos` in the configuration. It takes two 
   * - :code:`token_probability`
     - The probability of each character (which we call a "token") having a typo
       **given that the cell is being considered for this noise type**.
-      One way to think about this is the probability of an typo on any given character when the value is being typed carelessly.
+      One way to think about this is the probability of a typo on any given character when the value is being typed carelessly.
     - 0.1 (10%)
