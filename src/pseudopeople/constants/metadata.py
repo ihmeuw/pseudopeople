@@ -9,3 +9,13 @@ class DatasetNames:
     TAXES_W2_1099 = "taxes_w2_and_1099"
     TAXES_DEPENDENTS = "taxes_dependents"
     WIC = "women_infants_and_children"
+
+
+class __DateFormats:
+    """Container that contains information about date formats"""
+
+    EVENT_DATE = "%Y%m%d"
+    DATE_OF_BIRTH = "%m/%d/%Y"
+
+
+DATEFORMATS = __DateFormats()

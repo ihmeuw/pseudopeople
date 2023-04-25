@@ -131,16 +131,29 @@ def swap_months_and_days(
     :param additional_key: Key for RandomnessStream
     :return: Noised pd.Series where some dates have month and day swapped.
     """
-    if column.name == "event_date":
+    from pseudopeople.schema_entities import COLUMNS, DATEFORMATS
+
+    column_type = COLUMNS.get_column(column.name)
+    try:
+        date_format = column_type.additional_attributes["date_format"]
+    except KeyError:
+        print(f"{column.name} does not have attribute date format. ")
+
+    # todo: catch KeyError and test
+    if date_format == DATEFORMATS.EVENT_DATE:  # YYYYMMDD
         year = column.str[:4]
-        month = column.str[4:7]
-        day = column.str[7:]
+        month = column.str[4:6]
+        day = column.str[6:]
         noised = year + day + month
-    else:
+    elif date_format == DATEFORMATS.DATE_OF_BIRTH:  # MM/DD/YYYY
         year = column.str[6:]
         month = column.str[:3]
         day = column.str[3:6]
         noised = day + month + year
+    else:
+        raise ValueError(
+            f"Invalid datetime format in {column.name}.  Please check input data."
+        )
 
     return noised
 

@@ -81,7 +81,9 @@ def dummy_dataset():
     first_name_series = pd.Series(first_names * int(num_simulants / len(first_names)))
     last_names = ["A last name", "another last name", "other last name", "last name", ""]
     last_name_series = pd.Series(last_names * int(num_simulants / len(last_names)))
-    date_of_birth_list = ["01/31/1950", "05/01/1990", "10/01/2000", "12/31/2010", ""]
+    event_date_list = ["19900125", "19950530", "20001001", "20101231", np.nan]
+    event_date_series = pd.Series(event_date_list * int(num_simulants / len(event_date_list)))
+    date_of_birth_list = ["01/31/1950", "05/01/1990", "10/01/2000", "12/31/2010", np.nan]
     date_of_birth_series = pd.Series(
         date_of_birth_list * int(num_simulants / len(date_of_birth_list))
     )
@@ -96,6 +98,7 @@ def dummy_dataset():
             "zipcode": zipcode_series,
             "first_name": first_name_series,
             "last_name": last_name_series,
+            "event_date": event_date_series,
             "date_of_birth": date_of_birth_series,
         }
     )
@@ -180,21 +183,34 @@ def test_generate_within_household_copies():
 
 def test_swap_months_and_days(dummy_dataset):
 
-    data = dummy_dataset["date_of_birth"]
-    config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE]["date_of_birth"][
-        NOISE_TYPES.month_day_swap.name
-    ]
-    expected_noise = config[Keys.CELL_PROBABILITY]
-    noised_data = NOISE_TYPES.month_day_swap(data, config, RANDOMNESS0, "test_swap_month_day")
+    for col in ["event_date", "date_of_birth"]:
+        data = dummy_dataset[col]
+        if col == "event_date":
+            config = get_configuration()[DATASETS.ssa.name][Keys.COLUMN_NOISE][col][
+                NOISE_TYPES.month_day_swap.name
+            ]
+        else:
+            config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE][col][
+                NOISE_TYPES.month_day_swap.name
+            ]
+        expected_noise = config[Keys.CELL_PROBABILITY]
+        noised_data = NOISE_TYPES.month_day_swap(
+            data, config, RANDOMNESS0, f"test_swap_month_day_{col}"
+        )
 
-    # Confirm missing data remains missing
-    orig_missing = data == ""
-    assert (noised_data[orig_missing] == "").all()
+        # Confirm missing data remains missing
+        orig_missing = data.isna()
+        assert (noised_data[orig_missing].isna()).all()
 
-    assert (data[~orig_missing].str[6:] == noised_data[~orig_missing].str[6:]).all()
-    assert np.isclose(
-        expected_noise, (data[~orig_missing] != noised_data[~orig_missing]).mean(), rtol=0.02
-    )
+        if col == "event_date":
+            assert (data[~orig_missing].str[:4] == noised_data[~orig_missing].str[:4]).all()
+        else:
+            assert (data[~orig_missing].str[6:] == noised_data[~orig_missing].str[6:]).all()
+        assert np.isclose(
+            expected_noise,
+            (data[~orig_missing] != noised_data[~orig_missing]).mean(),
+            rtol=0.02,
+        )
 
 
 def test_miswrite_zipcodes(dummy_dataset):

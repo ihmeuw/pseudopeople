@@ -352,3 +352,21 @@ def test_get_config(caplog):
 
     with pytest.raises(ConfigurationError, match="bad_form_name"):
         get_config("bad_form_name")
+
+
+def test_date_format_config():
+    # Test that columns with date format attribute are only columns with swap months and days noise type
+
+    # Columns that have additional attribute date_format
+    date_attribute_cols = []
+    # Columns that have swap_months_days noise type
+    noise_cols = []
+
+    for dataset in DATASETS:
+        for col in dataset.columns:
+            if NOISE_TYPES.month_day_swap in col.noise_types:
+                noise_cols.append(col.name)
+            if "date_format" in col.additional_attributes.keys():
+                date_attribute_cols.append(col.name)
+
+    assert set(noise_cols).issubset(date_attribute_cols)
