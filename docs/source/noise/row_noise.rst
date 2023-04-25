@@ -5,16 +5,16 @@ Row-based Noise
 ===============
 
 Row-based noise operates on one row of data at a time, for example by
-introducing errors to certain cells within a row, or by omitting or duplicating
+introducing errors in cells within certain rows, or by omitting or duplicating
 entire rows.
 
 Omit a row
 ----------
 
 Sometimes an entire record may be missing from a dataset where one would
-normally expect to find it. For example, if someone didn't file their taxes on
-time, then their tax record for that year would missing. Or perhaps a record is
-missing by mistake because of a clerical error.
+normally expect to find it. For example, a WIC record could be missing by
+mistake because of a clerical error, or someone's tax record could be missing
+because they didn't file their taxes on time.
 
 This noise type is called :code:`omit_row` in the configuration. It takes one parameter:
 
@@ -28,3 +28,6 @@ This noise type is called :code:`omit_row` in the configuration. It takes one pa
   * - :code:`row_probability`
     - The probability that a row is missing from the dataset.
     - 0.01 (1%)
+
+When applying :code:`omit_row` noise, each row of data is seleceted for omission
+independently with probability :code:`row_probability`.
