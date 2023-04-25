@@ -25,6 +25,21 @@ Types of column-based noise:
    :depth: 2
    :local:
 
+"Borrowed" SSN
+--------------
+
+The W-2 and 1099 tax forms require a Social Security Number (SSN).
+Many people who are employed in the US do not have an SSN,
+but they or their employer still file W-2 or 1099 forms, presumably using someone else's
+SSN or a made-up SSN.
+
+As a simple way to replicate this behavior, when a simulant without an SSN has a W-2 or 1099 filed,
+pseudopeople uses an SSN borrowed from a randomly selected simulant in their household who does have one.
+If there is nobody in their household with an SSN, a totally random SSN is created and used on the form.
+
+This type of noise cannot be configured.
+It is always present on all W-2 and 1099 forms about a simulant who does not have an SSN.
+
 Leave a field blank
 -------------------
 
@@ -74,35 +89,33 @@ It takes one parameter:
     - The probability that, for a cell in the column being configured, the wrong option is chosen.
     - 0.01 (1%)
 
-Write the wrong ZIP code digits
--------------------------------
+.. _use_a_fake_name:
 
-When reporting a ZIP code on a survey or form, people may misremember or misreport
-the digits.
-They are probably more likely to do this for the last few digits (which identify
-the small, specific area) than the first few (which will be the same over a larger area).
+Use a fake name
+---------------
 
-This noise type is called :code:`write_wrong_zipcode_digits` in the configuration.
-It takes two parameters:
+Sometimes when people respond to a survey or fill out a form, they don't want to share their personal information.
+If the survey or form (whether online, on paper, or in person) requires a response, they might just make
+something up.
 
-.. list-table:: Parameters to the write_wrong_zipcode_digits noise type
-  :widths: 1 5 3
+The "Use a fake name" noise type in pseudopeople simulates these kinds of responses for first and last names.
+Instead of the person's real name, pseudopeople records a randomly selected value from the
+"List of First Names Considered Fake or Incomplete" (for first names) or the "List of Last Names Considered Fake or Incomplete" (for last names)
+found in the
+`NORC assessment of the Census Bureau's Person Identification Validation System <https://www.norc.org/Research/Projects/Pages/census-personal-validation-system-assessment-pvs.aspx>`_.
+
+This noise type is called :code:`use_fake_name` in the configuration. It takes one parameter:
+
+.. list-table:: Parameters to the use_fake_name noise type
+  :widths: 1 5 1
   :header-rows: 1
 
   * - Parameter
     - Description
     - Default
   * - :code:`cell_probability`
-    - The probability of a cell being *considered* to have this noise type.
-      One way to think about this is the probability that a ZIP code is reported by someone who isn't sure of their ZIP code.
-      Whether or not there are actually any errors depends on the next parameter.
+    - The probability that, for a cell in the column (either first or last name), a fake name is recorded.
     - 0.01 (1%)
-  * - :code:`digit_probabilities`
-    - A list of five probabilities, one for each digit in a (5-digit) ZIP code.
-      The first value in this list is the probability that the first digit of the ZIP code will be wrong
-      **given that the cell is being considered for this noise type**.
-      The second value in the list is the corresponding probability for the second digit, and so on.
-    - [0.04, 0.04, 0.20, 0.36, 0.36]
 
 Misreport age
 -------------
@@ -172,34 +185,38 @@ It takes two parameters:
     - The conditional probability, given that a numeric cell has been selected for noise eligibility, that any given digit in the true number will be replaced by a different digit.
     - 0.1 (10%)
 
+Write the wrong ZIP code digits
+-------------------------------
 
-.. _use_a_fake_name:
+When reporting a ZIP code on a survey or form, people may misremember or misreport
+the digits.
+They are probably more likely to do this for the last few digits (which identify
+the small, specific area) than the first few (which will be the same over a larger area).
+The "Write the wrong ZIP code digits" noise type is just like "Write the wrong digits"
+except that it can capture this difference between digits in different positions.
+The ZIP code column uses this noise type instead of "Write the wrong digits" for this reason.
 
-Use a fake name
----------------
+This noise type is called :code:`write_wrong_zipcode_digits` in the configuration.
+It takes two parameters:
 
-Sometimes when people respond to a survey or fill out a form, they don't want to share their personal information.
-If the survey or form (whether online, on paper, or in person) requires a response, they might just make
-something up.
-
-The "Use a fake name" noise type in pseudopeople simulates these kinds of responses for first and last names.
-Instead of the person's real name, pseudopeople records a randomly selected value from the
-"List of First Names Considered Fake or Incomplete" (for first names) or the "List of Last Names Considered Fake or Incomplete" (for last names)
-found in the
-`NORC assessment of the Census Bureau's Person Identification Validation System <https://www.norc.org/Research/Projects/Pages/census-personal-validation-system-assessment-pvs.aspx>`_.
-
-This noise type is called :code:`use_fake_name` in the configuration. It takes one parameter:
-
-.. list-table:: Parameters to the use_fake_name noise type
-  :widths: 1 5 1
+.. list-table:: Parameters to the write_wrong_zipcode_digits noise type
+  :widths: 1 5 3
   :header-rows: 1
 
   * - Parameter
     - Description
     - Default
   * - :code:`cell_probability`
-    - The probability that, for a cell in the column (either first or last name), a fake name is recorded.
+    - The probability of a cell being *considered* to have this noise type.
+      One way to think about this is the probability that a ZIP code is reported by someone who isn't sure of their ZIP code.
+      Whether or not there are actually any errors depends on the next parameter.
     - 0.01 (1%)
+  * - :code:`digit_probabilities`
+    - A list of five probabilities, one for each digit in a (5-digit) ZIP code.
+      The first value in this list is the probability that the first digit of the ZIP code will be wrong
+      **given that the cell is being considered for this noise type**.
+      The second value in the list is the corresponding probability for the second digit, and so on.
+    - [0.04, 0.04, 0.20, 0.36, 0.36]
 
 Make typos
 ----------
