@@ -338,7 +338,8 @@ The following columns are included in this dataset:
      - Formatted as YYYY-MM-DD.
    * - Social security number
      - :code:`ssn`
-     -      
+     - By default, the SSN column in the SSA dataset has no :ref:`column-based noise <column_noise>`.
+       However, it can be :ref:`configured <configuration_main>` to have noise if desired.
    * - Date of event
      - :code:`event_date`
      - Formatted as YYYY-MM-DD.  
