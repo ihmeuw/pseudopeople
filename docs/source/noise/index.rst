@@ -121,7 +121,7 @@ Default Noise Types for Each Column
     - Census, Household Surveys, WIC, Taxes (both), SSA
     - Leave a field blank, write the wrong digits, make typos
     -
-  * - Street number for any address (Home OR Mailing OR Employer)
+  * - Street number for any address (physical, mailing, or employer)
     - Census, Household Surveys, WIC, Taxes (both)
     - Leave a field blank, write the wrong digits, make typos
     - Noise for all types of addresses will work in the same way
