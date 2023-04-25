@@ -11,5 +11,10 @@ There are currently three collections of pseudopeople input data:
 - Rhode Island (a fictional population of ~1,000,000 simulants living in a simulated state of Rhode Island)
 - United States (a fictional population of ~330,000,000 simulants living throughout a simulated United States)
 
-A collection of small-scale sample datasets is included with the software, and pseudopeople uses this sample data by default unless an explicit path to another directory containing pseudopeople input data is specified.
-There is a data access request process to obtain larger-scale data that can be used with pseudopeople. Currently
+When generating a dataset, pseudopeople uses the included sample data by default unless an explicit path to another directory containing pseudopeople input data is specified.
+To gain access to the larger-scale datasets (Rhode Island and United States), follow these steps:
+
+#. Log in to GitHub (you must first create a GitHub account if you don't have one).
+#. Open a new `Data access request issue <https://github.com/ihmeuw/pseudopeople/issues/new?assignees=&labels=&template=data_access_request.yml>`- using the template under the Issues tab pseudopeople's GitHub page.
+#. Fill out the information on the access request form to tell us about your project. You can simply put "Data access request" in the title field.
+#. We will get back to you after we receive your request!
