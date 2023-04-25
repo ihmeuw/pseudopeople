@@ -22,7 +22,7 @@ is specified.
 Accessing the large-scale input data
 ------------------------------------
 
-To gain access to the larger-scale input data (Rhode Island and United States),
+To gain access to the larger-scale input data (i.e., Rhode Island and United States),
 follow these steps:
 
 #. Log in to `GitHub <https://github.com/>`_ (you must first create a GitHub account if you don't have one).
