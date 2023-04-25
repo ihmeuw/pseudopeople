@@ -106,83 +106,79 @@ Default Noise Types for Each Column
     - Leave a field blank, use a fake name, make typos
     -
   * - Middle initial
-    - Census, Household Surveys, WIC, Taxes (both), SSA
+    - Decennial Census, ACS, CPS, WIC, W-2 and 1099, SSA
     - Leave a field blank, make typos
     -
   * - Last name
-    - Census, Household Surveys, WIC, Taxes (both), SSA
+    - Decennial Census, ACS, CPS, WIC, W-2 and 1099, SSA
     - Leave a field blank, use a fake name, make typos
     - The list of fake names will be different than the first names
   * - Age
-    - Census, Household Surveys, Taxes (both)
+    - Decennial Census, ACS, CPS, W-2 and 1099
     - Leave a field blank, misreport age, make typos
     -
   * - Date of birth
-    - Census, Household Surveys, WIC, Taxes (both), SSA
+    - Decennial Census, ACS, CPS, WIC, W-2 and 1099, SSA
     - Leave a field blank, write the wrong digits, make typos
     -
   * - Street number for any address (physical, mailing, or employer)
-    - Census, Household Surveys, WIC, Taxes (both)
+    - Decennial Census, ACS, CPS, WIC, W-2 and 1099
     - Leave a field blank, write the wrong digits, make typos
-    - Noise for all types of addresses will work in the same way
+    - Noise for all types of addresses works in the same way
   * - Street name for any address (Home OR Mailing OR Employer)
-    - Census, Household Surveys, WIC, Taxes (both)
+    - Decennial Census, ACS, CPS, WIC, W-2 and 1099
     - Leave a field blank, make typos
-    - Noise for all types of addresses will work in the same way
+    - Noise for all types of addresses works in the same way
   * - Unit number for any address (Home OR Mailing OR Employer)
-    - Census, Household Surveys, WIC, Taxes (both)
+    - Decennial Census, ACS, CPS, WIC, W-2 and 1099
     - Leave a field blank, write the wrong digits, make typos
-    - Noise for all types of addresses will work in the same way
+    - Noise for all types of addresses works in the same way
   * - PO Box for mailing address
-    - Taxes (both)
+    - W-2 and 1099
     - Leave a field blank, write the wrong digits, make typos
     -
-  * - City name for any address (Home OR Mailing OR Employer)
-    - Census, Household Surveys, WIC, Taxes (both)
+  * - City name for any address (physical, mailing, or employer)
+    - Decennial Census, ACS, CPS, WIC, W-2 and 1099
     - Leave a field blank, make typos
-    - Noise for all types of addresses will work in the same way
-  * - State for any address (Home OR Mailing OR Employer)
-    - Census, Household Surveys, WIC, Taxes (both)
+    - Noise for all types of addresses works in the same way
+  * - State for any address (physical, mailing, or employer)
+    - Decennial Census, ACS, CPS, WIC, W-2 and 1099
     - Leave a field blank 
-    - Noise for all types of addresses will work in the same way
-  * - Zip code for any address (Home OR Mailing OR Employer)
-    - Census, Household Surveys, WIC, Taxes (both)
+    - Noise for all types of addresses works in the same way
+  * - Zip code for any address (physical, mailing, or employer)
+    - Decennial Census, ACS, CPS, WIC, W-2 and 1099
     - Leave a field blank, write the wrong zipcode digits, make typos
     -
   * - Relationship to head of household
-    - Census
+    - Decennial Census
     - Leave a field blank
     -
   * - Sex
-    - Census, Household Surveys, WIC
+    - Decennial Census, ACS, CPS, WIC
     - Leave a field blank
     -
   * - Race/ethnicity
-    - Census, Household Surveys, WIC
+    - Decennial Census, ACS, CPS, WIC
     - Leave a field blank
     -
   * - SSN
-    - Taxes (both), SSA
+    - W-2 and 1099, SSA
     - "Borrowed" SSN, leave a field blank, write the wrong digits, make typos
-    - Note that not all types of noise apply to all datasets
-  * - ITIN
-    - Taxes 1040
-    - Leave a field blank, write the wrong digits, make typos
-    - Note that not all types of noise apply to all datasets
+    - Note that "borrowed" SSN only applies to the W-2 and 1099 dataset
   * - Income / wages
-    - Taxes (both)
+    - W-2 and 1099
     - Leave a field blank, make typos
     - Note that wages and income are on separate tax forms and noise is applied to each separately
   * - Employer ID
-    - Taxes (both)
+    - W-2 and 1099
     - Leave a field blank, write the wrong digits, make typos
     - 
   * - Employer name
-    - Taxes (both)
+    - W-2 and 1099
     - Leave a field blank, make typos
     -
   * - Type of tax form
-    - Taxes (both)
+    - W-2 and 1099
     - Leave a field blank
     -
   * - Type of SSA event
