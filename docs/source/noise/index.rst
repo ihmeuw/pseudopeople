@@ -125,11 +125,11 @@ Default Noise Types for Each Column
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
     - Leave a field blank, write the wrong digits, make typos
     - Noise for all types of addresses works in the same way
-  * - Street name for any address (Home OR Mailing OR Employer)
+  * - Street name for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
     - Leave a field blank, make typos
     - Noise for all types of addresses works in the same way
-  * - Unit number for any address (Home OR Mailing OR Employer)
+  * - Unit number for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
     - Leave a field blank, write the wrong digits, make typos
     - Noise for all types of addresses works in the same way
