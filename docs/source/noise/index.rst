@@ -93,6 +93,108 @@ column shows the name of the noise type in the configuration system.
 Default Noise Types for Each Column
 -----------------------------------
 
+.. list-table:: Types of noise for each column
+  :widths: 20 20 20 20
+  :header-rows: 0
+
+  * - Attribute name
+    - Datasets present
+    - Types of noise
+    - Notes
+  * - First name
+    - Census, Household Surveys, WIC, Taxes (both), SSA
+    - Leave a field blank, use a fake name, make typos
+    -
+  * - Middle initial
+    - Census, Household Surveys, WIC, Taxes (both), SSA
+    - Leave a field blank, make typos
+    -
+  * - Last name
+    - Census, Household Surveys, WIC, Taxes (both), SSA
+    - Leave a field blank, use a fake name, make typos
+    - The list of fake names will be different than the first names
+  * - Age
+    - Census, Household Surveys, Taxes (both)
+    - Leave a field blank, Misreport age, make typos
+    -
+  * - Date of birth
+    - Census, Household Surveys, WIC, Taxes (both), SSA
+    - Leave a field blank, write the wrong digits, make typos
+    -
+  * - Street number for any address (Home OR Mailing OR Employer)
+    - Census, Household Surveys, WIC, Taxes (both)
+    - Leave a field blank, write the wrong digits, make typos
+    - Noise for all types of addresses will work in the same way
+  * - Street name for any address (Home OR Mailing OR Employer)
+    - Census, Household Surveys, WIC, Taxes (both)
+    - Leave a field blank, make typos
+    - Noise for all types of addresses will work in the same way
+  * - Unit number for any address (Home OR Mailing OR Employer)
+    - Census, Household Surveys, WIC, Taxes (both)
+    - Leave a field blank, write the wrong digits, make typos
+    - Noise for all types of addresses will work in the same way
+  * - PO Box for mailing address
+    - Taxes (both)
+    - Leave a field blank, write the wrong digits, make typos
+    -
+  * - City name for any address (Home OR Mailing OR Employer)
+    - Census, Household Surveys, WIC, Taxes (both)
+    - Leave a field blank, make typos
+    - Noise for all types of addresses will work in the same way
+  * - State for any address (Home OR Mailing OR Employer)
+    - Census, Household Surveys, WIC, Taxes (both)
+    - Leave a field blank 
+    - Noise for all types of addresses will work in the same way
+  * - Zip code for any address (Home OR Mailing OR Employer)
+    - Census, Household Surveys, WIC, Taxes (both)
+    - Leave a field blank, write the wrong zipcode digits, make typos
+    -
+  * - Relationship to head of household
+    - Census
+    - Leave a field blank
+    -
+  * - Sex
+    - Census, Household Surveys, WIC
+    - Leave a field blank
+    -
+  * - Race/Ethnicity
+    - Census, Household Surveys, WIC
+    - Leave a field blank
+    -
+  * - SSN
+    - Taxes (both), SSA
+    - "Borrowed" SSN, leave a field blank, write the wrong digits, make typos
+    - Note that not all types of noise apply to all datasets
+  * - ITIN
+    - Taxes 1040
+    - Leave a field blank, write the wrong digits, make typos
+    - Note that not all types of noise apply to all datasets
+  * - Income / Wages
+    - Taxes (both)
+    - Leave a field blank, make typos
+    - Note that wages and income are on separate tax forms and noise is applied to each separately
+  * - Employer ID
+    - Taxes (both)
+    - Leave a field blank, write the wrong digits, make typos
+    - 
+  * - Employer Name
+    - Taxes (both)
+    - Leave a field blank, make typos
+    -
+  * - Type of Tax Form
+    - Taxes (both)
+    - Leave a field blank
+    -
+  * - Type of SSA Event
+    - SSA
+    - Leave a field blank
+    -
+  * - Date of SSA Event
+    - SSA
+    - Leave a field blank, write the wrong digits, make typos
+    -
+
+
 .. _noise_type_details:
 
 Noise Type Details
