@@ -1,7 +1,7 @@
 .. image:: ../Pseudopeople-logo_FINAL_2023.04.11_psdppl-logo_blue-ombre.png
 
-Pseudopeople is a Python package that generates realistic simulated data about a
-fictional United States population, for use in testing record linkage (entity resolution)
+pseudopeople is a Python package that generates realistic simulated data about a
+fictional United States population over multiple decades, for use in testing entity resolution (record linkage)
 methods.
 
 | 🙈 **Simulated**: These are made-up people! No need to worry about confidentiality.
@@ -10,7 +10,7 @@ methods.
 | ⚙️ **Customizable**: Configure the levels of noise in each dataset.
 | 💪 **Full-scale**: Supports generating datasets at the size of the real-life US population.
 
-Pseudopeople is currently in an alpha release.
+Pseudopeople is currently in a public beta release.
 Things are still in flux!
 If you notice any issues, please let us know `on GitHub <https://github.com/ihmeuw/pseudopeople/issues>`_.
 
@@ -117,6 +117,23 @@ Just save your datasets as files, for example CSV files:
    >>> taxes.to_csv('taxes.csv')
 
 Now you can load these datasets in any environment that can read CSV.
+
+What's Next?
+------------
+
+Now that you've generated a simulated dataset with pseudopeople,
+here are some next steps:
+
+.. 
+  * To get started with customizing the noise in your datasets,
+    try out the :ref:`tutorial`
+
+* To learn more about the kinds of simulated datasets that are available,
+  check out our :ref:`Datasets page <datasets_main>`.
+* If you need larger datasets with millions instead of thousands of rows,
+  take a look at the :ref:`Input Data page <input_data_main>`.
+* To dive deeper into noise, read the docs about :ref:`noise <noise_main>` and
+  :ref:`noise configuration <configuration_main>`.
 
 .. toctree::
    :hidden:
