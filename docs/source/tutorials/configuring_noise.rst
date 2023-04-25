@@ -55,40 +55,43 @@ Let's take a look at the names in our generated CPS dataset:
 
     >>> cps_2025[['first_name', 'middle_initial', 'last_name']]
        first_name middle_initial          last_name
-    0      Regina              S                COH
+    0      Regina              S                Coh
     1         Pat              J              Posey
     2   Stephanie              Y             Martin
-    3      Alaina              S               RESP
-    4       Haley              T                GOH
+    3      Alaina              S               Resp
+    4       Haley              T                Goh
     5     Katrina              V            Deltoro
     6     Gregory              D             Talley
     7   Catherine              R           Benjamin
     8      Dustin              J           Benjamin
     9        John              S              Bakal
     10  Catherine              K            Trexler
-    11     Tamela              V             FEMALE
+    11     Tamela              V             Female
     12       Reed              J                  F
     13    William              D            Masters
     14    Michael              D      Serna Marquez
     15    Addison              I            Thomson
     16     Denise              A     Harting-Conant
-    17      David              J                GOH
-    18       Mary              A  LADY OD THE HOUSE
+    17      David              J                Goh
+    18       Mary              A  Lady Od The House
     19     Pamela              M               Reed
     20       Alex              S             Ojukwu
 
 As expected, we see a number of strings in the last name column that are unlikely to be true last names.
-There are seven such strings, which is almost exactly 30% of our 21 respondents.
+We can check exactly which ones are fake names by comparing to the same dataset without fake name noise in
+the last name column.
+For brevity, we do not show the steps to do this here, but
+we would find that there are seven such strings, which is almost exactly 30% of our 21 respondents.
 
 Increasing noise in first names
 -------------------------------
 
 Imagine we also want to increase the probability of a fake first name from its default of 1%.
-We can do this by modifying our configuration dictionary:
+We can do this by using a modified configuration dictionary:
 
 .. code-block:: python
 
-    cps_2025 = psp.generate_current_population_survey(year=2025, config={
+    config = {
         'current_population_survey': {
             'column_noise': {
                 'last_name': {
@@ -103,7 +106,8 @@ We can do this by modifying our configuration dictionary:
                 },
             },
         },
-    })
+    }
+    cps_2025 = psp.generate_current_population_survey(year=2025, config=config)
 
 By specifying multiple keys within :code:`column_noise`, we are able to independently adjust noise settings
 for different columns.
@@ -115,25 +119,25 @@ Let's see how our CPS data look now:
 
     >>> cps_2025[['first_name', 'middle_initial', 'last_name']]
        first_name middle_initial          last_name
-    0      Regina              S                COH
+    0      Regina              S                Coh
     1         Pat              J              Posey
     2   Stephanie              Y             Martin
-    3      Alaina              S               RESP
-    4       Haley              T                GOH
+    3      Alaina              S               Resp
+    4       Haley              T                Goh
     5     Katrina              V            Deltoro
     6     Gregory              D             Talley
     7   Catherine              R           Benjamin
     8      Dustin              J           Benjamin
     9        John              S              Bakal
     10  Catherine              K            Trexler
-    11     Tamela              V             FEMALE
-    12   DAUGHTER              J                  F
+    11     Tamela              V             Female
+    12   Daughter              J                  F
     13    William              D            Masters
     14    Michael              D      Serna Marquez
     15    Addison              I            Thomson
     16     Denise              A     Harting-Conant
-    17      David              J                GOH
-    18       Mary              A  LADY OD THE HOUSE
+    17      David              J                Goh
+    18       Mary              A  Lady Od The House
     19     Pamela              M               Reed
     20          B              S             Ojukwu
 

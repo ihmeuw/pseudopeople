@@ -35,7 +35,7 @@ In either case, the structure is the same:
 * Finally, each noise type has parameters.
 
 As an example, say we wanted to change the cell probability parameter (which is the probability of a cell being wrong)
-of the :ref:`Choose the wrong option <choose_the_wrong_option>` noise type, for the sex column of the decennial Census dataset.
+of the :ref:`Choose the wrong option <choose_the_wrong_option>` noise type, for the sex column of the Decennial Census dataset.
 Here are the configurations to do this in Python and YAML, respectively:
 
 .. code-block:: python
@@ -61,7 +61,7 @@ Here are the configurations to do this in Python and YAML, respectively:
                     cell_probability: 0.05 # Parameter (and value)
 
 Row-based noise is similar, except that there is no key to specify the column, since it is not column-specific.
-For example to change the probability of row omission in the decennial Census, the configuration would be:
+For example to change the probability of row omission in the Decennial Census, the configuration would be:
 
 .. code-block:: python
 
@@ -82,12 +82,12 @@ For example to change the probability of row omission in the decennial Census, t
             omit_row: # Noise type
                 row_probability: 0.05 # Parameter (and value)
 
-Passing configuration
----------------------
+How to pass configuration to pseudopeople
+-----------------------------------------
 
 Each of pseudopeople's :ref:`dataset generation functions <api_reference_noising>` takes a :code:`config`
 argument.
-This argument can either be passed a Python dictionary, or the path to a YAML file.
+This argument can be passed either a Python dictionary or the path to a YAML file.
 
 Configurable parameters
 -----------------------
