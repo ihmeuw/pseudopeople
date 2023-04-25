@@ -40,16 +40,16 @@ Currently, errors added in different columns are independent of each other.
 Available Noise Types
 ---------------------
 
-The table lists all the available noise types, but not every
-type of noise will necessarily be applied to every dataset or every column. The
-configuration determines which noise types are actually used. The "Noise Type"
-column shows the name of the noise type in the configuration system.
+These tables list all the available noise types, but not every
+type of noise will necessarily be applied to every dataset or every column.
+Noise types are applied in the order they are listed here.
+The "Config key" column shows the name of the noise type in the :ref:`configuration system <configuration_main>`.
 
 .. list-table:: Types of row-based noise (``row_noise``)
   :widths: 1 2 5 
   :header-rows: 1
 
-  * - Noise Type
+  * - Noise type
     - Config key 
     - Example cause
   * - Omit a row
@@ -60,34 +60,34 @@ column shows the name of the noise type in the configuration system.
   :widths: 1 2 5 
   :header-rows: 1
 
-  * - Noise Type
+  * - Noise type
     - Config key
     - Example cause
   * - "Borrowed" SSN
     - Not configurable
-    - Using your housemate's SSN for a survey because you do not have one
+    - Using your housemate's SSN on a W-2 because you do not have one
   * - Leave a field blank
     - ``leave_blank``
     - Forgetting to write your name on the designated line
   * - Choose the wrong option
     - ``choose_wrong_option``
     - Marking the "Male" box when you meant "Female"
+  * - Use a fake name
+    - ``use_fake_name``
+    - Using "Mr" rather than actual first name
+  * - Misreport age
+    - ``misreport_age``
+    - Reporting that you are 28 years old when you are actually 27
+  * - Write the wrong digits
+    - ``write_wrong_digits``
+    - Writing "732 Main St" as your street address instead of "932 Main St"
+  * - Write the wrong ZIP code digits 
+    - ``write_wrong_zipcode_digits``
+    - Writing ZIP code 98118 when you actually live in 98112
   * - Make typos
     - ``make_typos``
     - Accidentally typing an "l" instead of a "k" because they are 
       right next to each other on a QWERTY keyboard
-  * - Write the wrong digits
-    - ``write_wrong_digits``
-    - Writing "732 Main St" as your street address instead of "932 Main St"
-  * - Misreport age
-    - ``misreport_age``
-    - Reporting that you are 28 years old when you are actually 27
-  * - Write the wrong zipcode digits 
-    - ``write_wrong_zipcode_digits``
-    - Writing ZIP code 98118 when you actually live in 98112
-  * - Use a fake name
-    - ``use_fake_name``
-    - Using "Mr" rather than actual first name
 
 
 Default Noise Types for Each Column
