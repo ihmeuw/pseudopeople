@@ -77,7 +77,7 @@ column shows the name of the noise type in the configuration system.
     - Reporting that you are 28 years old when you are actually 27
   * - Write the wrong digits
     - ``write_wrong_digits``
-    - Writing "2022" instead of "2002" in your date of birth
+    - Writing "732 Main St" as your street address instead of "932 Main St"
   * - Write the wrong zipcode digits 
     - ``write_wrong_zipcode_digits``
     - Writing ZIP code 98118 when you actually live in 98112
