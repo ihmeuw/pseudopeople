@@ -157,7 +157,7 @@ Default Noise Types for Each Column
     - Census, Household Surveys, WIC
     - Leave a field blank
     -
-  * - Race/Ethnicity
+  * - Race/ethnicity
     - Census, Household Surveys, WIC
     - Leave a field blank
     -
@@ -169,7 +169,7 @@ Default Noise Types for Each Column
     - Taxes 1040
     - Leave a field blank, write the wrong digits, make typos
     - Note that not all types of noise apply to all datasets
-  * - Income / Wages
+  * - Income / wages
     - Taxes (both)
     - Leave a field blank, make typos
     - Note that wages and income are on separate tax forms and noise is applied to each separately
@@ -177,19 +177,19 @@ Default Noise Types for Each Column
     - Taxes (both)
     - Leave a field blank, write the wrong digits, make typos
     - 
-  * - Employer Name
+  * - Employer name
     - Taxes (both)
     - Leave a field blank, make typos
     -
-  * - Type of Tax Form
+  * - Type of tax form
     - Taxes (both)
     - Leave a field blank
     -
-  * - Type of SSA Event
+  * - Type of SSA event
     - SSA
     - Leave a field blank
     -
-  * - Date of SSA Event
+  * - Date of SSA event
     - SSA
     - Leave a field blank, write the wrong digits, make typos
     -
