@@ -96,6 +96,7 @@ fake_first_names = [
     "GENTLEMEN",
     "MOH",
 ]
+fake_first_names = [fake_name.title() for fake_name in fake_first_names]
 
 fake_last_names = [
     "HH",
@@ -186,3 +187,4 @@ fake_last_names = [
     "H AGE",
     "OF THE HOME",
 ]
+fake_last_names = [fake_name.title() for fake_name in fake_last_names]
