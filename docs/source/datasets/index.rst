@@ -16,8 +16,7 @@ records. To read more about the different kinds of noise that can be applied to 
 Most datasets are yearly and can be generated for any year between 2020 and 2040 (inclusive).
 It is only possible to generate Decennial Census data for decennial years -- 2020, 2030, and 2040.
 
-The datasets that can be generated are listed below. Each row of a given dataset represents
-an individual record, with the columns representing different record attributes, such as name, age, sex, et cetera.
+The datasets that can be generated are listed below.
 
 .. contents::
    :depth: 2
