@@ -43,4 +43,4 @@ States), unzip the contents to the desired location on your computer.
   generating functions to fail.
 
 Once you've unzipped the input data, you can pass the directory path to the
-dataset generating functions to generate large-scale datasets!
+:ref:`dataset generation functions <dataset_generation_functions>` to generate large-scale datasets!
