@@ -102,7 +102,7 @@ Default Noise Types for Each Column
     - Types of noise
     - Notes
   * - First name
-    - Census, Household Surveys, WIC, Taxes (both), SSA
+    - Decennial Census, ACS, CPS, WIC, W-2 and 1099, SSA
     - Leave a field blank, use a fake name, make typos
     -
   * - Middle initial
