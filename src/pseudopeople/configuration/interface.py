@@ -1,27 +1,3 @@
-"""
-===========================
-The Configuration Interface
-===========================
-
-An interface for users to interact with the pseudopeople noising configuration (config).
-
-In pseudopeople a configuration is used to provide the parameters that
-get passed to the relevant functions to apply various types of noise to given datasets.
-Users can provide their own configuration that will override the default values.
-
-::
-
-    import pseudopeople as psp
-    psp.get_config("decennial_census")
-    user_config = {"decennial_census": {"row_noise": {"probability": {"omit_rows": 0.1},},},}
-    psp.get_config("decennial_census", user_config)
-
-Note that the configuration is a hierarchical structure. When overriding default values, the entire path to the value
-of interest needs to be provided. The configuration path includes keys for dataset, column or row noise, noise type,
-and probability or other parameters unique to the specific noise type.
-
-"""
-
 from pathlib import Path
 from typing import Dict, Union
 
@@ -34,7 +10,29 @@ from pseudopeople.schema_entities import DATASETS
 
 def get_config(dataset_name: str = None, user_config: Union[Path, str, Dict] = None) -> Dict:
     """
-    Function that displays the configuration for the user.
+    Function that returns the pseudopeople configuration,
+    including all default values.
+    If :code:`dataset_name` is None (the default), the returned dictionary has exactly
+    the structure described on the :ref:`Configuration page <configuration_main>`.
+    If a dataset name is supplied, only returns the part of the configuration for that
+    dataset, i.e. :code:`get_config(dataset_name)` is equivalent to
+    :code:`get_config()[dataset_name]`.
+
+    To get the default probability of omission in the Decennial Census dataset:
+
+    .. code-block:: pycon
+
+        >>> import pseudopeople as psp
+        >>> psp.get_config('decennial_census')['row_noise']['omit_row']
+        {'row_probability': 0.0145}
+
+    To view that same part of the configuration after applying a user override:
+
+    .. code-block:: pycon
+
+        >>> user_config = {'decennial_census': {'row_noise': {'omit_row': {'row_probability': 0.1}}}}
+        >>> psp.get_config('decennial_census', user_config)['row_noise']['omit_row']
+        {'row_probability': 0.1}
 
     :param dataset_name: An optional name of dataset to return the configuration
         for (defaults to all dataset configurations). Providing this argument returns

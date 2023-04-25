@@ -85,7 +85,7 @@ For example to change the probability of row omission in the Decennial Census, t
 How to pass configuration to pseudopeople
 -----------------------------------------
 
-Each of pseudopeople's :ref:`dataset generation functions <api_reference_noising>` takes a :code:`config`
+Each of pseudopeople's :ref:`dataset generation functions <dataset_generation_functions>` takes a :code:`config`
 argument.
 This argument can be passed either a Python dictionary or the path to a YAML file.
 
