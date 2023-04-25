@@ -112,7 +112,7 @@ Default Noise Types for Each Column
   * - Last name
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, SSA
     - Leave a field blank, use a fake name, make typos
-    - The list of fake names will be different than the first names
+    -
   * - Age
     - Decennial Census, ACS, CPS, W-2 and 1099
     - Leave a field blank, misreport age, make typos
