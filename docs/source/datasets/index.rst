@@ -13,8 +13,10 @@ simulating how administrative records can be corrupted or distorted, which creat
 records. To read more about the different kinds of noise that can be applied to the different datasets, please see the
 :ref:`Noise page <noise_main>`.
 
-Most datasets are yearly and can be generated for any year between 2020 and 2040 (inclusive).
-It is only possible to generate Decennial Census data for decennial years -- 2020, 2030, and 2040.
+pseudopeople generates datasets about a single simulated US population, which is followed through
+time between January 1st, 2019 and May 1st, 2041.
+Most datasets are yearly and can be generated for any year between 2019 and 2041 (inclusive),
+though 2041 data will be partial.
 
 The datasets that can be generated are listed below.
 
@@ -30,7 +32,9 @@ The Decennial Census dataset is a simulated enumeration of the US Census Bureau'
 To find out more about the Decennial Census, please visit the Decennial Census
 `homepage <https://www.census.gov/programs-surveys/decennial-census.html>`_.   
 
-Generate Decennial Census data with :func:`pseudopeople.generate_decennial_census`
+It is only possible to generate Decennial Census data for decennial years -- 2020, 2030, and 2040.
+
+Generate Decennial Census data with :func:`pseudopeople.generate_decennial_census`.
 
 The following columns are included in this dataset:
 
@@ -238,6 +242,7 @@ homepage <https://www.fns.usda.gov/wic>`_.
 
 pseudopeople can generate a simulated version of the administrative data that would be recorded by WIC. This is a yearly file of information about all 
 simulants enrolled in the program as of the end of that year.
+For the final year available, 2041, the file includes those enrolled as of May 1st, because this is the end of our simulated timespan.
 
 Generate WIC data with :func:`pseudopeople.generate_women_infants_and_children`.
 
@@ -304,9 +309,11 @@ The Social Security Administration (SSA) is the US federal government agency tha
 that consists of retirement, disability and survivor benefits. To find out more about this program, visit the `SSA homepage <https://www.ssa.gov/about-ssa>`_.
 
 pseudopeople can generate a simulated version of a subset of the administrative data that would be recorded by SSA.
+Currently, the simulated SSA data includes records of SSA creation and dates of death.
 This is a yearly data file that is **cumulative** -- when you specify a year, you will recieve all records *up to the end of*
 that year.
-Currently, the simulated SSA data includes records of SSA creation and dates of death.
+The simulated SSA data files will only include records about simulants who were alive during our simulated timespan of 2019-2041.
+Therefore, while SSA data files can be generated for years prior to 2019, they will only include records for SSA creation.
 
 Generate SSA data with :func:`pseudopeople.generate_social_security`.
 
@@ -356,6 +363,7 @@ contractors or self-employed individuals, while a W-2 form is used for employees
 pseudopeople can generate a simulated version of the data collected by W-2 and 1099 forms.
 This is a yearly dataset, where the user-specified year is the **tax year** of the data.
 That is, the data for 2022 will be the result of tax forms filed in early 2023.
+Tax data can be generated for tax years 2019 through 2040 (inclusive).
 
 Generate W-2 and 1099 data with :func:`pseudopeople.generate_taxes_w2_and_1099`.
 
