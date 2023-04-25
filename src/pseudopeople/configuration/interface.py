@@ -27,7 +27,7 @@ def get_config(dataset_name: str = None, user_config: Union[Path, str, Dict] = N
         {'row_probability': 0.0145}
 
     To view that same part of the configuration after applying a user override:
-    
+
     .. code-block:: pycon
 
         >>> user_config = {'decennial_census': {'row_noise': {'omit_row': {'row_probability': 0.1}}}}
