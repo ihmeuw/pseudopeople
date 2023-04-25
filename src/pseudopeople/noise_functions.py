@@ -88,7 +88,7 @@ def omit_target_rows(
     """
     Applies targeted omission based on demographic model for census and surveys.
 
-    :param dataset_name: Form object name being noised
+    :param dataset_name: Dataset object name being noised
     :param dataset_data:  pd.DataFrame of one of the form types used in Pseudopeople
     :param configuration: ConfigTree object containing noise level values
     :param randomness_stream: RandomnessStream object to make random selection for noise
