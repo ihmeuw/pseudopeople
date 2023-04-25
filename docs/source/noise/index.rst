@@ -115,7 +115,7 @@ Default Noise Types for Each Column
     - The list of fake names will be different than the first names
   * - Age
     - Census, Household Surveys, Taxes (both)
-    - Leave a field blank, Misreport age, make typos
+    - Leave a field blank, misreport age, make typos
     -
   * - Date of birth
     - Census, Household Surveys, WIC, Taxes (both), SSA
