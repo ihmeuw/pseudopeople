@@ -119,7 +119,7 @@ Just save your datasets as files, for example CSV files:
 
 Now you can load these datasets in any environment that can read CSV.
 
-What's Next?
+What's next?
 ------------
 
 Now that you've generated a simulated dataset with pseudopeople,
@@ -140,10 +140,10 @@ here are some next steps:
    :maxdepth: 2
 
    self
+   tutorials/index
    datasets/index
    input_data/index
    noise/index
    configuration/index
-   tutorials/index
    api_reference/index
    glossary
