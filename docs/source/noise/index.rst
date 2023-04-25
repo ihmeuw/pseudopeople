@@ -145,7 +145,7 @@ Default Noise Types for Each Column
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
     - Leave a field blank 
     - Noise for all types of addresses works in the same way
-  * - Zip code for any address (physical, mailing, or employer)
+  * - ZIP code for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
     - Leave a field blank, write the wrong zipcode digits, make typos
     -
