@@ -4,8 +4,7 @@
 Row-based Noise
 ===============
 
-Row-based noise operates on one row of data at a time, for example by
-introducing errors in cells within certain rows, or by omitting or duplicating
+Row-based noise operates on an entire row of data at a time, for example by omitting or duplicating
 entire rows.
 
 Omit a row
