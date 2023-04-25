@@ -1,3 +1,7 @@
+**0.6.3 - 04/24/23**
+ - Updated documentation
+ - Added data access request to issue template
+
 **0.6.2 - 04/21/23**
  - Updated documentation
  - Updated progress bar behavior

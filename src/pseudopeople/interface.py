@@ -7,7 +7,7 @@ An interface for users to generate pseudopeople datasets.
 
 This module contains the tools required to generate specific pseudopeople
 datasets. Each dataset to be generated has its own `generate_*` function. For
-example, to generate the decennial census dataset we would use :meth:`generate_decennial_census`.
+example, to generate the decennial census dataset we would use :func:`pseudopeople.generate_decennial_census`.
 
 All of the `generate_*` functions have the same (optional) parameters.
 Notable parameters include:
