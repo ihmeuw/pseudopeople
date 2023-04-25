@@ -4,8 +4,8 @@
 Row-based Noise
 ===============
 
-Row-based noise operates on an entire row of data at a time, for example by omitting or duplicating
-entire rows.
+Row-based noise operates on one row of data at a time, for example by omitting
+or duplicating entire rows.
 
 Omit a row
 ----------
@@ -15,7 +15,8 @@ normally expect to find it. For example, a WIC record could be missing by
 mistake because of a clerical error, or someone's tax record could be missing
 because they didn't file their taxes on time.
 
-This noise type is called :code:`omit_row` in the configuration. It takes one parameter:
+This noise type is called :code:`omit_row` in the configuration. It takes one
+parameter:
 
 .. list-table:: Parameters to the omit_row noise type
   :widths: 1 5 1
