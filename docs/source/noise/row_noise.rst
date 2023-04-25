@@ -29,5 +29,5 @@ This noise type is called :code:`omit_row` in the configuration. It takes one pa
     - The probability that a row is missing from the dataset.
     - 0.01 (1%)
 
-When applying :code:`omit_row` noise, each row of data is seleceted for omission
+When applying :code:`omit_row` noise, each row of data is selected for omission
 independently with probability :code:`row_probability`.
