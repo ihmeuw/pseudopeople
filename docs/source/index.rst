@@ -124,10 +124,9 @@ What's Next?
 Now that you've generated a simulated dataset with pseudopeople,
 here are some next steps:
 
-.. 
-  * To get started with customizing the noise in your datasets,
-    try out the :ref:`tutorial`
 
+* To get started with customizing the noise in your datasets,
+  try out the :ref:`tutorial on configuring noise <tutorial_configuring_noise>`.
 * To learn more about the kinds of simulated datasets that are available,
   check out our :ref:`Datasets page <datasets_main>`.
 * If you need larger datasets with millions instead of thousands of rows,
