@@ -4,7 +4,7 @@
 Input Data
 ==========
 
-pseudpoeple leverages the power of the `Vivarium
+pseudopeople leverages the power of the `Vivarium
 <https://vivarium.readthedocs.io/en/latest/>`_ microsimulation platform to
 incorporate real, publicly-accessible data about the US population. The input
 data for pseudopeople is the output of a Vivarium simulation and must be in a
