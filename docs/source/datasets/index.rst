@@ -312,8 +312,10 @@ pseudopeople can generate a simulated version of a subset of the administrative 
 Currently, the simulated SSA data includes records of SSA creation and dates of death.
 This is a yearly data file that is **cumulative** -- when you specify a year, you will recieve all records *up to the end of*
 that year.
-The simulated SSA data files will only include records about simulants who were alive during our simulated timespan of 2019-2041.
-Therefore, while SSA data files can be generated for years prior to 2019, they will only include records for SSA creation.
+
+The simulated SSA data files will not include records about simulants who died before 2019 (the start of our simulated timespan).
+Therefore, while SSA data files can be generated for years prior to 2019, they will only include records for SSN creation,
+and only for simulants who were still alive in 2019.
 
 Generate SSA data with :func:`pseudopeople.generate_social_security`.
 
