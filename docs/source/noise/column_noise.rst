@@ -31,7 +31,7 @@ Leave a field blank
 Often some of the data in certain columns of a dataset will be missing.
 This could be because the input for that field was left blank, an answer was refused,
 or the answer was illegible or unintelligible.
-When this type of noise occurs, pseudopeople will replace the value in the relevant cell with
+To simulate this type of noise, pseudopeople will replace the value in the relevant cell with
 :code:`numpy.nan` to indicate that the value is missing.
 
 This noise type is called :code:`leave_blank` in the configuration. It takes one parameter:
@@ -109,7 +109,7 @@ Misreport age
 
 When someone reports their age in years, or especially when someone reports the age of someone else such as a family member,
 they may not get the value exactly right.
-When this noise type occurs, the reported age is off by some amount, for example a year or two older or younger than the
+For this type of simulated noise, the reported age is off by some amount, for example a year or two older or younger than the
 person actually is.
 
 This noise type is called :code:`misreport_age` in the configuration.
@@ -131,8 +131,9 @@ It takes two parameters:
         * A list of possible differences to add to the true age to get the misreported age.
           A negative number means that the reported age is too young, while a positive number means it is too old.
           Each difference is equally likely.
-        * A dictionary mapping from possible differences to the corresponding probabilities of those differences.
-          This is like the list option except that it allows some age differences to be more likely than others.
+        * A dictionary, where the keys are the possible differences and
+          the values are the probabilities of those differences.
+          This is like the list option, except that it allows some age differences to be more likely than others.
           The probabilities must add up to 1.
       
       Zero (no change) is not allowed as a possible difference.
