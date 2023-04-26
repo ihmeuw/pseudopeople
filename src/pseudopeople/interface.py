@@ -1,35 +1,3 @@
-"""
-============================
-Dataset Generation Interface
-============================
-
-An interface for users to generate pseudopeople datasets.
-
-This module contains the tools required to generate specific pseudopeople
-datasets. Each dataset to be generated has its own `generate_*` function. For
-example, to generate the decennial census dataset we would use :func:`pseudopeople.generate_decennial_census`.
-
-All of the `generate_*` functions have the same (optional) parameters.
-Notable parameters include:
-
-    - a `source` path to the root directory of pseudopeople input data (defaults to using the pseudopeople sample datasets).
-    - a `config` path to a YAML file or a Python dictionary to override the default configuration.
-    - a `year` to subset to and noise (defaults to 2020).
-
-Example
--------
-To generate sample decennial census data for the year 2030 using all
-default noising parameters except for the probability of row omission which
-should be 5%:
-
-::
-
-    import pseudopeople as psp
-    override = {"decennial_census": {"row_noise": {"omit_row": {"probability": 0.05}}}}
-    noised_census = psp.generate_decennial_census(config=override, year=2030)
-
-"""
-
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 

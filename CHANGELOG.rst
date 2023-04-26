@@ -1,3 +1,6 @@
+**0.6.4 - 04/25/23**
+ - Updated documentation
+
 **0.6.3 - 04/24/23**
  - Updated documentation
  - Added data access request to issue template
