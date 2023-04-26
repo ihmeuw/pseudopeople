@@ -1,7 +1,7 @@
-from dataclasses import dataclass
-from typing import NamedTuple, Tuple
+from dataclasses import dataclass, field
+from typing import Dict, NamedTuple, Tuple
 
-from pseudopeople.constants.metadata import DatasetNames
+from pseudopeople.constants.metadata import DATEFORMATS, Attributes, DatasetNames
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 
@@ -19,6 +19,7 @@ class Column:
     name: str
     noise_types: Tuple[ColumnNoiseType, ...] = tuple()
     dtype_name: str = DtypeNames.OBJECT  # string dtype is 'object'
+    additional_attributes: Dict = field(default_factory=dict)
 
 
 class __Columns(NamedTuple):
@@ -48,11 +49,12 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             # NOISE_TYPES.copy_from_within_household,
-            # NOISE_TYPES.month_day_swap,
+            NOISE_TYPES.month_day_swap,
             NOISE_TYPES.numeric_miswriting,
             # NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
+        additional_attributes={Attributes.DATE_FORMAT: DATEFORMATS.MM_DD_YYYY},
     )
     employer_city: Column = Column(
         "employer_city",
@@ -269,11 +271,12 @@ class __Columns(NamedTuple):
         "event_date",
         (
             NOISE_TYPES.missing_data,
-            # NOISE_TYPES.month_day_swap,
+            NOISE_TYPES.month_day_swap,
             NOISE_TYPES.numeric_miswriting,
             # NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
+        additional_attributes={Attributes.DATE_FORMAT: DATEFORMATS.YYYYMMDD},
     )
     ssa_event_type: Column = Column(
         "event_type",
@@ -349,6 +352,9 @@ class __Columns(NamedTuple):
             NOISE_TYPES.typographic,
         ),
     )
+
+    def get_column(self, column_name: str) -> Column:
+        return [c for c in self if c.name == column_name][0]
 
 
 COLUMNS = __Columns()
