@@ -27,7 +27,7 @@ To gain access to the larger-scale input data (i.e., Rhode Island and United Sta
 follow these steps:
 
 #. Log in to `GitHub <https://github.com/>`_ (you must first create a GitHub account if you don't have one).
-#. Open a new `Data access request <https://github.com/ihmeuw/pseudopeople/issues/new?assignees=&labels=&template=data_access_request.yml>`_ using the template under the Issues tab on pseudopeople's GitHub page.
+#. Open a new `Data access request <https://github.com/ihmeuw/pseudopeople/issues/new?assignees=&labels=&template=data_access_request.yml>`_ using the template under the `Issues tab <https://github.com/ihmeuw/pseudopeople/issues>`_ on pseudopeople's GitHub page.
 #. Fill out the information on the access request form to tell us about your project. You can simply put "Data access request" in the title field.
 #. We will get back to you after we receive your request!
 
