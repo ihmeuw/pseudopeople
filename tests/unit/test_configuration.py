@@ -5,6 +5,7 @@ from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
 from pseudopeople.configuration.interface import get_config
 from pseudopeople.configuration.validator import ConfigurationError
+from pseudopeople.constants.metadata import Attributes
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
 
@@ -352,3 +353,20 @@ def test_get_config(caplog):
 
     with pytest.raises(ConfigurationError, match="bad_form_name"):
         get_config("bad_form_name")
+
+
+def test_date_format_config():
+    # Test that columns with date format attribute are only columns with swap months and days noise type
+
+    # Columns that have additional attribute date_format
+    date_attribute_cols = set()
+    # Columns that have swap_months_days noise type
+    noise_cols = set()
+
+    for column in COLUMNS:
+        if NOISE_TYPES.month_day_swap in column.noise_types:
+            noise_cols.add(column.name)
+        if Attributes.DATE_FORMAT in column.additional_attributes.keys():
+            date_attribute_cols.add(column.name)
+
+    assert noise_cols.issubset(date_attribute_cols)
