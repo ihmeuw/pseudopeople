@@ -189,6 +189,19 @@ def test_swap_months_and_days(dummy_dataset):
             config = get_configuration()[DATASETS.ssa.name][Keys.COLUMN_NOISE][col][
                 NOISE_TYPES.month_day_swap.name
             ]
+            config.update(
+                {
+                    DATASETS.ssa.name: {
+                        Keys.COLUMN_NOISE: {
+                            col: {
+                                NOISE_TYPES.month_day_swap.name: {
+                                    Keys.CELL_PROBABILITY: 0.25,
+                                },
+                            },
+                        },
+                    },
+                }
+            )
         else:
             config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE][col][
                 NOISE_TYPES.month_day_swap.name

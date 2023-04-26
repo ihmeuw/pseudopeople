@@ -358,15 +358,14 @@ def test_date_format_config():
     # Test that columns with date format attribute are only columns with swap months and days noise type
 
     # Columns that have additional attribute date_format
-    date_attribute_cols = []
+    date_attribute_cols = set()
     # Columns that have swap_months_days noise type
-    noise_cols = []
+    noise_cols = set()
 
-    for dataset in DATASETS:
-        for col in dataset.columns:
-            if NOISE_TYPES.month_day_swap in col.noise_types:
-                noise_cols.append(col.name)
-            if "date_format" in col.additional_attributes.keys():
-                date_attribute_cols.append(col.name)
+    for column in COLUMNS:
+        if NOISE_TYPES.month_day_swap in column.noise_types:
+            noise_cols.add(column.name)
+        if "date_format" in column.additional_attributes.keys():
+            date_attribute_cols.add(column.name)
 
-    assert set(noise_cols).issubset(date_attribute_cols)
+    assert noise_cols.issubset(date_attribute_cols)

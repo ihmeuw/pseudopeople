@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, NamedTuple, Tuple
 
-from pseudopeople.constants.metadata import DATEFORMATS, DatasetNames
+from pseudopeople.constants.metadata import DATEFORMATS, Attributes, DatasetNames
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 
@@ -54,7 +54,7 @@ class __Columns(NamedTuple):
             # NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
-        additional_attributes={"date_format": DATEFORMATS.DATE_OF_BIRTH},
+        additional_attributes={Attributes.DATE_FORMAT: DATEFORMATS.MM_DD_YYYY},
     )
     employer_city: Column = Column(
         "employer_city",
@@ -276,7 +276,7 @@ class __Columns(NamedTuple):
             # NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
-        additional_attributes={"date_format": DATEFORMATS.EVENT_DATE},
+        additional_attributes={Attributes.DATE_FORMAT: DATEFORMATS.YYYYMMDD},
     )
     ssa_event_type: Column = Column(
         "event_type",

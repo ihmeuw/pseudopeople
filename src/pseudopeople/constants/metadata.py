@@ -14,8 +14,12 @@ class DatasetNames:
 class __DateFormats:
     """Container that contains information about date formats"""
 
-    EVENT_DATE = "%Y%m%d"
-    DATE_OF_BIRTH = "%m/%d/%Y"
+    YYYYMMDD = "%Y%m%d"
+    MM_DD_YYYY = "%m/%d/%Y"
 
 
 DATEFORMATS = __DateFormats()
+
+
+class Attributes:
+    DATE_FORMAT = "date_format"

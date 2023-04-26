@@ -8,8 +8,9 @@ from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import paths
-from pseudopeople.constants.metadata import DatasetNames
+from pseudopeople.constants.metadata import Attributes, DatasetNames
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
+from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.utilities import get_index_to_noise, vectorized_choice
 
 
@@ -135,17 +136,19 @@ def swap_months_and_days(
 
     column_type = COLUMNS.get_column(column.name)
     try:
-        date_format = column_type.additional_attributes["date_format"]
+        date_format = column_type.additional_attributes[Attributes.DATE_FORMAT]
     except KeyError:
-        print(f"{column.name} does not have attribute date format. ")
+        raise ConfigurationError(
+            f"Error while running noise function `swap_months_and_days' on column '{column.name}'. "
+            f"'{column.name}' does not have attribute date format. "
+        )
 
-    # todo: catch KeyError and test
-    if date_format == DATEFORMATS.EVENT_DATE:  # YYYYMMDD
+    if date_format == DATEFORMATS.YYYYMMDD:  # YYYYMMDD
         year = column.str[:4]
         month = column.str[4:6]
         day = column.str[6:]
         noised = year + day + month
-    elif date_format == DATEFORMATS.DATE_OF_BIRTH:  # MM/DD/YYYY
+    elif date_format == DATEFORMATS.MM_DD_YYYY:  # MM/DD/YYYY
         year = column.str[6:]
         month = column.str[:3]
         day = column.str[3:6]
