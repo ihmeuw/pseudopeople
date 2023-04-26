@@ -5,6 +5,7 @@ from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
 from pseudopeople.configuration.interface import get_config
 from pseudopeople.configuration.validator import ConfigurationError
+from pseudopeople.constants.metadata import Attributes
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
 
@@ -365,7 +366,7 @@ def test_date_format_config():
     for column in COLUMNS:
         if NOISE_TYPES.month_day_swap in column.noise_types:
             noise_cols.add(column.name)
-        if "date_format" in column.additional_attributes.keys():
+        if Attributes.DATE_FORMAT in column.additional_attributes.keys():
             date_attribute_cols.add(column.name)
 
     assert noise_cols.issubset(date_attribute_cols)
