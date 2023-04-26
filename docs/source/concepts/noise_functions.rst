@@ -15,7 +15,7 @@
 What is a noise function?
 -------------------------
 
-A noise function is ultimately where the configuration (add link) provided is
+A noisedsafsdfasd function is ultimately where the configuration (add link) provided is
 applied to the raw data which is then noised or altered and returned to the user
 in a state where real world data error have been added to each dataset (add link).
 Noise functions will be applied to datasets by column or by row.  There are
