@@ -8,8 +8,9 @@ pseudopeople leverages the power of the `Vivarium
 <https://vivarium.readthedocs.io/en/latest/>`_ microsimulation platform to
 incorporate real, publicly accessible data about the US population. The input
 data for pseudopeople is the output of a Vivarium simulation and must be in a
-specific format for the dataset generating functions to work. There are
-currently three collections of pseudopeople input data:
+specific format for the :ref:`dataset generation functions
+<dataset_generation_functions>` to work. There are currently three collections
+of pseudopeople input data:
 
 - Sample data (a fictional population of ~10,000 simulants living in Anytown, US, included with the pseudopeople package)
 - Rhode Island (a fictional population of ~1,000,000 simulants living in a simulated state of Rhode Island)
@@ -40,7 +41,7 @@ States), unzip the contents to the desired location on your computer.
 
   Do not modify the contents of the directory containing the unzipped input
   data! Modifications to the pseudopeople input data may cause the dataset
-  generating functions to fail.
+  generation functions to fail.
 
 Once you've unzipped the input data, you can pass the directory path to the
 :ref:`dataset generation functions <dataset_generation_functions>` to generate large-scale datasets!
