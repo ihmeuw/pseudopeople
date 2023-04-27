@@ -100,7 +100,7 @@ def test__get_census_omission_noise_levels(age, race_ethnicity, sex, expected_le
         columns=["age", "race_ethnicity", "sex"],
     )
     result = _get_census_omission_noise_levels(pop)
-    assert (np.isclose(result, expected_level, rtol=0.01)).all()
+    assert (np.isclose(result, expected_level, rtol=0.0001)).all()
 
 
 def test_do_not_respond_missing_columns(dummy_data):
