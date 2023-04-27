@@ -5,6 +5,7 @@ from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.noise_entities import NOISE_TYPES
+from pseudopeople.noise_functions import _get_census_omission_noise_levels
 from pseudopeople.schema_entities import DATASETS
 
 RANDOMNESS = RandomnessStream(
@@ -32,11 +33,11 @@ def dummy_data():
 
 
 def test_omission(dummy_data):
-    config = get_configuration()[DATASETS.census.name][Keys.ROW_NOISE][
+    config = get_configuration()[DATASETS.tax_w2_1099.name][Keys.ROW_NOISE][
         NOISE_TYPES.omission.name
     ]
     dataset_name_1 = "dummy_dataset_name"
-    dataset_name_2 = DATASETS.acs.name
+    dataset_name_2 = DATASETS.tax_w2_1099.name
     noised_data1 = NOISE_TYPES.omission(dataset_name_1, dummy_data, config, RANDOMNESS)
     noised_data2 = NOISE_TYPES.omission(dataset_name_2, dummy_data, config, RANDOMNESS)
 
@@ -45,12 +46,62 @@ def test_omission(dummy_data):
     assert set(noised_data1.columns) == set(dummy_data.columns)
     assert (noised_data1.dtypes == dummy_data.dtypes).all()
 
+
+def test_do_not_respond(mocker, dummy_data):
+    config = get_configuration()[DATASETS.census.name][Keys.ROW_NOISE][
+        NOISE_TYPES.do_not_respond.name
+    ]
+    mocker.patch(
+        "pseudopeople.noise_functions._get_census_do_not_respond_demographic_probabilities",
+        side_effect=(lambda *_: config[Keys.ROW_PROBABILITY]),
+    )
+    dataset_name_1 = DATASETS.census.name
+    dataset_name_2 = DATASETS.acs.name
+    noised_data1 = NOISE_TYPES.do_not_respond(dataset_name_1, dummy_data, config, RANDOMNESS)
+    noised_data2 = NOISE_TYPES.do_not_respond(dataset_name_2, dummy_data, config, RANDOMNESS)
+
+    # Test that noising affects expected proportion with expected types
+    assert np.isclose(
+        1 - len(noised_data1) / len(dummy_data), config[Keys.ROW_PROBABILITY], rtol=0.02
+    )
+    assert set(noised_data1.columns) == set(dummy_data.columns)
+    assert (noised_data1.dtypes == dummy_data.dtypes).all()
+
     # Check ACS data is scaled properly due to oversampling
-    expected_noise_2 = 0.5 + config[Keys.ROW_PROBABILITY] / 2
-    assert np.isclose(1 - len(noised_data2) / len(dummy_data), expected_noise_2, rtol=0.02)
+    expected_noise = 0.5 + config[Keys.ROW_PROBABILITY] / 2
+    assert np.isclose(1 - len(noised_data2) / len(dummy_data), expected_noise, rtol=0.02)
     assert set(noised_data2.columns) == set(dummy_data.columns)
     assert (noised_data2.dtypes == dummy_data.dtypes).all()
     assert len(noised_data1) != len(noised_data2)
+    assert True
+
+
+@pytest.mark.parametrize(
+    "age, race_ethnicity, sex, expected_level",
+    [
+        (3, "White", "Female", 0.0091),
+        (35, "Black", "Male", 0.0611),
+        (55, "Asian", "Female", 0),
+    ],
+)
+def test__get_census_omission_noise_levels(age, race_ethnicity, sex, expected_level):
+    """Test helper function for do_not_respond noising based on demography of age, race/ethnicity, and sex"""
+    pop = pd.DataFrame(
+        [[age, race_ethnicity, sex] for i in range(10)],
+        index=range(10),
+        columns=["age", "race_ethnicity", "sex"],
+    )
+    result = _get_census_omission_noise_levels(pop)
+    assert (np.isclose(result, expected_level, rtol=0.01)).all()
+
+
+def test_do_not_respond_missing_columns(dummy_data):
+    """Test do_not_respond only applies to expected datasets."""
+    config = get_configuration()[DATASETS.census.name][Keys.ROW_NOISE][
+        NOISE_TYPES.do_not_respond.name
+    ]
+    with pytest.raises(ValueError, match="missing required columns"):
+        _ = NOISE_TYPES.do_not_respond("silly_dataset", dummy_data, config, RANDOMNESS)
 
 
 @pytest.mark.skip(reason="TODO")

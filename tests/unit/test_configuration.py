@@ -192,7 +192,11 @@ def test_format_miswrite_ages(user_config, expected):
             "Invalid noise type '.*' provided for dataset '.*'. ",
         ),
         (
-            {DATASETS.acs.name: {Keys.ROW_NOISE: {NOISE_TYPES.omission.name: {"fake": {}}}}},
+            {
+                DATASETS.acs.name: {
+                    Keys.ROW_NOISE: {NOISE_TYPES.do_not_respond.name: {"fake": {}}}
+                }
+            },
             "Invalid parameter '.*' provided for dataset '.*' and noise type '.*'. ",
         ),
         (
@@ -370,3 +374,15 @@ def test_date_format_config():
             date_attribute_cols.add(column.name)
 
     assert noise_cols.issubset(date_attribute_cols)
+
+def test_omit_rows_do_not_respond_mutex_default_configuration():
+    """Test that omit_rows and do_not_respond are not both defined in the default configuration"""
+    config = get_configuration()
+    for dataset in DATASETS:
+        has_omit_rows = (
+            NOISE_TYPES.omission.name in config[dataset.name][Keys.ROW_NOISE].keys()
+        )
+        has_do_not_respond = (
+            NOISE_TYPES.do_not_respond.name in config[dataset.name][Keys.ROW_NOISE].keys()
+        )
+        assert not has_do_not_respond or not has_omit_rows
