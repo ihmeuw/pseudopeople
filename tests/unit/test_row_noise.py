@@ -52,7 +52,7 @@ def test_do_not_respond(mocker, dummy_data):
         NOISE_TYPES.do_not_respond.name
     ]
     mocker.patch(
-        "pseudopeople.noise_functions._get_census_do_not_respond_demographic_probabilities",
+        "pseudopeople.noise_functions._get_census_omission_noise_levels",
         side_effect=(lambda *_: config[Keys.ROW_PROBABILITY]),
     )
     dataset_name_1 = DATASETS.census.name
