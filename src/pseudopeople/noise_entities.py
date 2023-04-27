@@ -30,10 +30,10 @@ class __NoiseTypes(NamedTuple):
     #     "copy_from_household_member",
     #     noise_functions.generate_within_household_copies,
     # )
-    # month_day_swap: ColumnNoiseType = ColumnNoiseType(
-    #     "swap_month_and_day",
-    #     noise_functions.swap_months_and_days,
-    # )
+    month_day_swap: ColumnNoiseType = ColumnNoiseType(
+        "swap_month_and_day",
+        noise_functions.swap_months_and_days,
+    )
     zipcode_miswriting: ColumnNoiseType = ColumnNoiseType(
         "write_wrong_zipcode_digits",
         noise_functions.miswrite_zipcodes,

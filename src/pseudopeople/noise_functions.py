@@ -8,8 +8,9 @@ from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import paths
-from pseudopeople.constants.metadata import DatasetNames
+from pseudopeople.constants.metadata import Attributes, DatasetNames
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
+from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.utilities import get_index_to_noise, vectorized_choice
 
 
@@ -116,22 +117,48 @@ def generate_incorrect_selections(
 #     return column
 
 
-# def swap_months_and_days(
-#     column: pd.Series,
-#     configuration: ConfigTree,
-#     randomness_stream: RandomnessStream,
-#     additional_key: Any,
-# ) -> pd.Series:
-#     """
+def swap_months_and_days(
+    column: pd.Series,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
+) -> pd.Series:
+    """
+    Function that swaps month and day of dates.
 
-#     :param column:
-#     :param configuration:
-#     :param randomness_stream:
-#     :param additional_key: Key for RandomnessStream
-#     :return:
-#     """
-#     # todo actually duplicate rows
-#     return column
+    :param column: pd.Series containing dates with the format YYYY-MM-DD
+    :param configuration: ConfigTree object containing noise level values
+    :param randomness_stream: Randomness Stream object for random choices using vivarium CRN framework
+    :param additional_key: Key for RandomnessStream
+    :return: Noised pd.Series where some dates have month and day swapped.
+    """
+    from pseudopeople.schema_entities import COLUMNS, DATEFORMATS
+
+    column_type = COLUMNS.get_column(column.name)
+    try:
+        date_format = column_type.additional_attributes[Attributes.DATE_FORMAT]
+    except KeyError:
+        raise ConfigurationError(
+            f"Error while running noise function `swap_months_and_days' on column '{column.name}'. "
+            f"'{column.name}' does not have attribute date format. "
+        )
+
+    if date_format == DATEFORMATS.YYYYMMDD:  # YYYYMMDD
+        year = column.str[:4]
+        month = column.str[4:6]
+        day = column.str[6:]
+        noised = year + day + month
+    elif date_format == DATEFORMATS.MM_DD_YYYY:  # MM/DD/YYYY
+        year = column.str[6:]
+        month = column.str[:3]
+        day = column.str[3:6]
+        noised = day + month + year
+    else:
+        raise ValueError(
+            f"Invalid datetime format in {column.name}.  Please check input data."
+        )
+
+    return noised
 
 
 def miswrite_zipcodes(
