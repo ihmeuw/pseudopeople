@@ -375,6 +375,7 @@ def test_date_format_config():
 
     assert noise_cols.issubset(date_attribute_cols)
 
+
 def test_omit_rows_do_not_respond_mutex_default_configuration():
     """Test that omit_rows and do_not_respond are not both defined in the default configuration"""
     config = get_configuration()
