@@ -70,10 +70,11 @@ def _get_census_omission_noise_levels(
             data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_SEX_AGE[sex]
         ).astype(float)
     probabilities[probabilities < 0.0] = 0.0
+    probabilities[probabilities > 1.0] = 1.0
     return probabilities
 
 
-def omit_target_rows(
+def apply_do_not_respond(
     dataset_name: str,
     dataset_data: pd.DataFrame,
     configuration: ConfigTree,

@@ -359,11 +359,7 @@ class Dataset:
     name: str
     columns: Tuple[Column, ...]  # This defines the output column order
     date_column: str
-
-    row_noise_types: Tuple[RowNoiseType, ...] = (
-        NOISE_TYPES.omission,
-        # NOISE_TYPES.duplication,
-    )
+    row_noise_types: Tuple[RowNoiseType, ...]
 
 
 class __Datasets(NamedTuple):
@@ -465,6 +461,10 @@ class __Datasets(NamedTuple):
             COLUMNS.race_ethnicity,
         ),
         date_column="year",
+        row_noise_types=(
+            NOISE_TYPES.omission,
+            # NOISE_TYPES.duplication,
+        ),
     )
     ssa: Dataset = Dataset(
         DatasetNames.SSA,
@@ -479,6 +479,10 @@ class __Datasets(NamedTuple):
             COLUMNS.ssa_event_date,
         ),
         date_column="event_date",
+        row_noise_types=(
+            NOISE_TYPES.omission,
+            # NOISE_TYPES.duplication,
+        ),
     )
     tax_w2_1099: Dataset = Dataset(
         DatasetNames.TAXES_W2_1099,
@@ -509,6 +513,10 @@ class __Datasets(NamedTuple):
             COLUMNS.tax_form,
         ),
         date_column="tax_year",
+        row_noise_types=(
+            NOISE_TYPES.omission,
+            # NOISE_TYPES.duplication,
+        ),
     )
     # tax_1040: Dataset = Dataset(
     #     Datasets.TAXES_1040,

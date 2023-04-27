@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 import pandas as pd
 
@@ -17,7 +17,7 @@ DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_RACE: Dict[str, float] = {
     "White": -0.0188,
 }
 
-DO_NOT_RESPOND_AGE_INTERVALS = [
+DO_NOT_RESPOND_AGE_INTERVALS: List[pd.Interval] = [
     pd.Interval(0, 4),
     pd.Interval(5, 9),
     pd.Interval(10, 17),
