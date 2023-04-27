@@ -37,9 +37,7 @@ def test_omission(dummy_data):
         NOISE_TYPES.omission.name
     ]
     dataset_name_1 = "dummy_dataset_name"
-    dataset_name_2 = DATASETS.tax_w2_1099.name
     noised_data1 = NOISE_TYPES.omission(dataset_name_1, dummy_data, config, RANDOMNESS)
-    noised_data2 = NOISE_TYPES.omission(dataset_name_2, dummy_data, config, RANDOMNESS)
 
     expected_noise_1 = config[Keys.ROW_PROBABILITY]
     assert np.isclose(1 - len(noised_data1) / len(dummy_data), expected_noise_1, rtol=0.02)
