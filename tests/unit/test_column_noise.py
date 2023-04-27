@@ -182,7 +182,6 @@ def test_generate_within_household_copies():
 
 
 def test_swap_months_and_days(dummy_dataset):
-
     for col in ["event_date", "date_of_birth"]:
         data = dummy_dataset[col]
         if col == "event_date":
