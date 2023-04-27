@@ -67,12 +67,6 @@ class __Columns(NamedTuple):
     )
     employer_id: Column = Column(
         "employer_id",
-        (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.numeric_miswriting,
-            # NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
-        ),
     )
     employer_name: Column = Column(
         "employer_name",
