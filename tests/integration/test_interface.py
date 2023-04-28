@@ -102,6 +102,14 @@ def test_generate_dataset_and_col_noising(
             for noise_type in COLUMNS.ssa_event_type.noise_types
         }
 
+    # Set row-level noise to zero since we're just testing columns here.
+    config[dataset.name][Keys.ROW_NOISE] = {
+        noise_type.name: {
+            Keys.ROW_PROBABILITY: 0,
+        }
+        for noise_type in dataset.row_noise_types
+    }
+
     noised_data = noising_function(seed=0, source=source, year=None, config=config)
     noised_data_same_seed = noising_function(seed=0, source=source, year=None, config=config)
     noised_data_different_seed = noising_function(
