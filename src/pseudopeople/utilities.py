@@ -7,6 +7,7 @@ from loguru import logger
 from vivarium.framework.randomness import RandomnessStream, random
 
 from pseudopeople.constants import paths
+from pseudopeople.noise_functions import _load_nicknames_data
 
 
 def get_randomness_stream(dataset_name: str, seed: int) -> RandomnessStream:
@@ -87,14 +88,15 @@ def get_index_to_noise(
     return to_noise_idx
 
 
-def noise_scaling_incorrect_selection(name: str) -> float:
+def noise_scaling_incorrect_selection(column: pd.Series) -> float:
     """
     Function to scale noising for incorrect selection to adjust for the possibility of noising with the original values.
     """
+    from pseudopeople.schema_entities import COLUMNS
     selection_type = {
-        "employer_state": "state",
-        "mailing_address_state": "state",
-    }.get(name, name)
+        COLUMNS.employer_state.name: COLUMNS.state.name,
+        COLUMNS.mailing_address_state.name: COLUMNS.state.name,
+    }.get(column.name, column.name)
 
     selection_options = pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
     # Get possible noise values
@@ -168,3 +170,10 @@ def two_d_array_choice(
     new = pd.Series(options.reindex(cols, axis=1).to_numpy()[np.arange(len(options)), idx], index=data.index)
 
     return new
+
+
+def scale_nicknames(column: pd.Series) -> float:
+    nicknames = _load_nicknames_data()
+    have_nickname_idx = column.index[column.isin(nicknames.index)]
+    proportion_have_nickname = len(have_nickname_idx) / len(column)
+    return 1/proportion_have_nickname

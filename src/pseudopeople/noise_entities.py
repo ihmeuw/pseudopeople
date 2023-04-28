@@ -61,6 +61,7 @@ class __NoiseTypes(NamedTuple):
     nickname: ColumnNoiseType = ColumnNoiseType(
         "use_nickname",
         noise_functions.generate_nicknames,
+        noise_level_scaling_function=utilities.scale_nicknames,
     )
     fake_name: ColumnNoiseType = ColumnNoiseType(
         "use_fake_name",
