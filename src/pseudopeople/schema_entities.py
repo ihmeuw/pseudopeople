@@ -371,11 +371,7 @@ class Dataset:
     name: str
     columns: Tuple[Column, ...]  # This defines the output column order
     date_column: str
-
-    row_noise_types: Tuple[RowNoiseType, ...] = (
-        NOISE_TYPES.omission,
-        # NOISE_TYPES.duplication,
-    )
+    row_noise_types: Tuple[RowNoiseType, ...]
 
 
 class __Datasets(NamedTuple):
@@ -402,6 +398,10 @@ class __Datasets(NamedTuple):
             COLUMNS.year,
         ),
         date_column=COLUMNS.year.name,
+        row_noise_types=(
+            NOISE_TYPES.do_not_respond,
+            # NOISE_TYPES.duplication,
+        ),
     )
     acs: Dataset = Dataset(
         DatasetNames.ACS,
@@ -424,6 +424,10 @@ class __Datasets(NamedTuple):
             COLUMNS.race_ethnicity,
         ),
         date_column=COLUMNS.survey_date.name,
+        row_noise_types=(
+            NOISE_TYPES.do_not_respond,
+            # NOISE_TYPES.duplication,
+        ),
     )
     cps: Dataset = Dataset(
         DatasetNames.CPS,
@@ -446,6 +450,10 @@ class __Datasets(NamedTuple):
             COLUMNS.race_ethnicity,
         ),
         date_column=COLUMNS.survey_date.name,
+        row_noise_types=(
+            NOISE_TYPES.do_not_respond,
+            # NOISE_TYPES.duplication,
+        ),
     )
     wic: Dataset = Dataset(
         DatasetNames.WIC,
@@ -467,6 +475,10 @@ class __Datasets(NamedTuple):
             COLUMNS.year,
         ),
         date_column=COLUMNS.year.name,
+        row_noise_types=(
+            NOISE_TYPES.omission,
+            # NOISE_TYPES.duplication,
+        ),
     )
     ssa: Dataset = Dataset(
         DatasetNames.SSA,
@@ -481,6 +493,10 @@ class __Datasets(NamedTuple):
             COLUMNS.ssa_event_date,
         ),
         date_column=COLUMNS.ssa_event_date.name,
+        row_noise_types=(
+            NOISE_TYPES.omission,
+            # NOISE_TYPES.duplication,
+        ),
     )
     tax_w2_1099: Dataset = Dataset(
         DatasetNames.TAXES_W2_1099,
@@ -512,6 +528,10 @@ class __Datasets(NamedTuple):
             COLUMNS.tax_year,
         ),
         date_column=COLUMNS.tax_year.name,
+        row_noise_types=(
+            NOISE_TYPES.omission,
+            # NOISE_TYPES.duplication,
+        ),
     )
     # tax_1040: Dataset = Dataset(
     #     Datasets.TAXES_1040,

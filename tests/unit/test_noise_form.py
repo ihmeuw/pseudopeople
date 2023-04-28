@@ -88,7 +88,7 @@ def dummy_config_noise_numbers():
                     "duplication": {
                         Keys.ROW_PROBABILITY: 0.01,
                     },
-                    NOISE_TYPES.omission.name: {
+                    NOISE_TYPES.do_not_respond.name: {
                         Keys.ROW_PROBABILITY: 0.01,
                     },
                 },
@@ -113,7 +113,7 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
     for field in NOISE_TYPES._fields:
         mock_return = (
             dummy_data[["event_type"]]
-            if field in ["omission", "duplication"]
+            if field in ["do_not_respond", "duplication"]
             else dummy_data["event_type"]
         )
         mock.attach_mock(
@@ -129,7 +129,8 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
 
     call_order = [x[0] for x in mock.mock_calls if not x[0].startswith("__")]
     expected_call_order = [
-        "omission",
+        # "omit_rows",   # Census doesn't use omit_rows
+        "do_not_respond",
         # "duplication",
         "missing_data",
         "incorrect_selection",

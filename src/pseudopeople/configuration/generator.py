@@ -6,6 +6,7 @@ from vivarium.config_tree import ConfigTree
 
 from pseudopeople.configuration import Keys
 from pseudopeople.configuration.validator import validate_user_configuration
+from pseudopeople.constants.data_values import DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
 
@@ -14,22 +15,28 @@ from pseudopeople.schema_entities import COLUMNS, DATASETS
 DEFAULT_NOISE_VALUES = {
     DATASETS.census.name: {
         Keys.ROW_NOISE: {
-            NOISE_TYPES.omission.name: {
-                Keys.ROW_PROBABILITY: 0.0145,
-            },
+            NOISE_TYPES.do_not_respond.name: {
+                Keys.ROW_PROBABILITY: DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY[
+                    DATASETS.census.name
+                ],
+            }
         },
     },
     DATASETS.acs.name: {
         Keys.ROW_NOISE: {
-            NOISE_TYPES.omission.name: {
-                Keys.ROW_PROBABILITY: 0.0145,
+            NOISE_TYPES.do_not_respond.name: {
+                Keys.ROW_PROBABILITY: DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY[
+                    DATASETS.acs.name
+                ],
             },
         },
     },
     DATASETS.cps.name: {
         Keys.ROW_NOISE: {
-            NOISE_TYPES.omission.name: {
-                Keys.ROW_PROBABILITY: 0.2905,
+            NOISE_TYPES.do_not_respond.name: {
+                Keys.ROW_PROBABILITY: DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY[
+                    DATASETS.cps.name
+                ],
             },
         },
     },
