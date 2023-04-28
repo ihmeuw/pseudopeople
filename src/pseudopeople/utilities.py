@@ -126,3 +126,45 @@ def add_logging_sink(sink, verbose, colorize=False, serialize=False):
         logger.add(
             sink, colorize=colorize, level="INFO", format=message_format, serialize=serialize
         )
+
+
+def two_d_array_choice(
+    data: pd.Series,
+    options: pd.DataFrame,
+    randomness_stream: RandomnessStream,
+    additional_key: str,
+):
+    """
+    Makes vectorized choice for 2D array options.
+    :param data: pd.Series which should be a subset of options.index
+    :param options: pd.DataFrame where the index is the values of data and columns are available choices.
+    :param randomness_stream: RandomnessStream object
+    :param additional_key: key for randomness_stream
+    :returns: pd.Series with new choices replacing the original values in data.
+    """
+
+    # Change columns to be integers for datawrangling later
+    options.columns = list(range(len(options.columns)))
+    # Get subset of options where we will choose new values
+    data_idx = pd.Index(data.values)
+    options = options.loc[data_idx]
+    # Get number of options per name
+    n = options.count(axis=1)
+
+    # Find null values and calculate weights
+    not_na = options.notna()
+    row_weights = np.ones(len(n)) / n
+    weights = not_na.mul(row_weights, axis=0)
+    pmf = weights.div(weights.sum(axis=1), axis=0)
+    cdf = np.cumsum(pmf, axis=1)
+    # Get draw for each row
+    probs = randomness_stream.get_draw(pd.Index(data.index), additional_key=additional_key)
+
+    # Select indices of nickname to choose based on random draw
+    choice_index = (probs.values[np.newaxis].T > cdf).sum(axis=1)
+    options["choice_index"] = choice_index
+    idx, cols = pd.factorize(options['choice_index'])
+    # 2D array lookup to make an array for the series value
+    new = pd.Series(options.reindex(cols, axis=1).to_numpy()[np.arange(len(options)), idx], index=data.index)
+
+    return new

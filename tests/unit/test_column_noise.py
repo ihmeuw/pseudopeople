@@ -7,8 +7,10 @@ import pytest
 from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.constants import paths
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_entities import NOISE_TYPES
+from pseudopeople.noise_functions import _load_nicknames_data
 from pseudopeople.schema_entities import DATASETS
 
 RANDOMNESS0 = RandomnessStream(
@@ -72,11 +74,11 @@ def dummy_dataset():
     zipcodes = ["12345", "98765", "02468", "13579", ""]
     zipcode_series = pd.Series(zipcodes * int(num_simulants / len(zipcodes)))
     first_names = [
-        "first name",
-        "another first name",
-        "other first name",
-        "other other first name",
-        "",
+        "Abigail",
+        "Bill",
+        "Catherine",
+        "Fake name",
+        np.nan,
     ]
     first_name_series = pd.Series(first_names * int(num_simulants / len(first_names)))
     last_names = ["A last name", "another last name", "other last name", "last name", ""]
@@ -515,10 +517,36 @@ def test_miswrite_numerics(string_series):
             assert (noised_data[ssn].str[i].str.isdigit()).all()
 
 
-@pytest.mark.skip(reason="TODO")
-def test_generate_nicknames():
-    pass
+def test_generate_nicknames(dummy_dataset):
 
+    config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE]["first_name"][
+        NOISE_TYPES.nickname.name
+    ]
+    expected_noise = config[Keys.CELL_PROBABILITY]
+    data = dummy_dataset["first_name"]
+    noised_data = NOISE_TYPES.nickname(
+        data, config, RANDOMNESS0, "test_nicknames"
+    )
+
+    # Validate
+    orig_missing = data.isna()
+    assert (noised_data[orig_missing].isna()).all()
+    no_nickname = data == "Fake name"
+    assert (noised_data[no_nickname] == "Fake name").all()
+    assert np.isclose(expected_noise,
+                      (noised_data[~orig_missing] != data[~orig_missing]).mean(),
+                      rtol=0.02)
+
+    # Verify options chosen are valid nicknames for original names that were noised
+    both = pd.DataFrame({"data": data, "noised_data": noised_data})
+    nicknames = _load_nicknames_data()
+    names_list = pd.Series(nicknames.values.tolist(), index=nicknames.index)
+    for real_name in both["data"].unique() and real_name in names_list.index:
+        for nickname in both.loc[both["data"] == real_name, "noised_data"].unique():
+            options = names_list.loc[real_name]
+            assert nickname in options
+
+    # todo: add test for
 
 def test_generate_fake_names(dummy_dataset):
     """

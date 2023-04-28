@@ -11,7 +11,7 @@ from pseudopeople.constants import data_values, paths
 from pseudopeople.constants.metadata import Attributes, DatasetNames
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.exceptions import ConfigurationError
-from pseudopeople.utilities import get_index_to_noise, vectorized_choice
+from pseudopeople.utilities import get_index_to_noise, two_d_array_choice, vectorized_choice
 
 
 def omit_rows(
@@ -354,22 +354,35 @@ def miswrite_numerics(
     return noised_column
 
 
-# def generate_nicknames(
-#     column: pd.Series,
-#     configuration: ConfigTree,
-#     randomness_stream: RandomnessStream,
-#     additional_key: Any,
-# ) -> pd.Series:
-#     """
+def _load_nicknames_data():
+    # Load and format nicknames dataset
+    nicknames = pd.read_csv(paths.NICKNAMES_DATA)
+    nicknames = nicknames.apply(lambda x: x.astype(str).str.title()).set_index("name")
+    nicknames = nicknames.replace("Nan", np.nan)
+    return nicknames
 
-#     :param column:
-#     :param configuration:
-#     :param randomness_stream:
-#     :param additional_key: Key for RandomnessStream
-#     :return:
-#     """
-#     # todo actually generate nicknames
-#     return column
+
+def generate_nicknames(
+    column: pd.Series,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
+) -> pd.Series:
+    """
+    Function that replaces a name with a choice of potential nicknames.
+
+    :param column: pd.Series of names
+    :param configuration: ConfigTree object containing noise level values
+    :param randomness_stream: RandomnessStream object to use vivarium CRN framework.
+    :param additional_key: Key for RandomnessStream
+    :return: pd.Series of nicknames replacing original names
+    """
+    nicknames = _load_nicknames_data()
+
+    have_nickname_idx = column.index[column.isin(nicknames.index)]
+    noised = two_d_array_choice(column.loc[have_nickname_idx], nicknames, randomness_stream, additional_key)
+    column.loc[have_nickname_idx] = noised
+    return column
 
 
 def generate_fake_names(

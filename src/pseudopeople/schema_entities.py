@@ -124,7 +124,7 @@ class __Columns(NamedTuple):
         "first_name",
         (
             NOISE_TYPES.missing_data,
-            # NOISE_TYPES.nickname,
+            NOISE_TYPES.nickname,
             NOISE_TYPES.fake_name,
             # NOISE_TYPES.phonetic,
             # NOISE_TYPES.ocr,

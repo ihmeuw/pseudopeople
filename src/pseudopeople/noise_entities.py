@@ -58,10 +58,10 @@ class __NoiseTypes(NamedTuple):
             Keys.TOKEN_PROBABILITY: 0.1,
         },
     )
-    # nickname: ColumnNoiseType = ColumnNoiseType(
-    #     "use_nickname",
-    #     noise_functions.generate_nicknames,
-    # )
+    nickname: ColumnNoiseType = ColumnNoiseType(
+        "use_nickname",
+        noise_functions.generate_nicknames,
+    )
     fake_name: ColumnNoiseType = ColumnNoiseType(
         "use_fake_name",
         noise_functions.generate_fake_names,
