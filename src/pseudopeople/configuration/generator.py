@@ -16,7 +16,7 @@ DEFAULT_NOISE_VALUES = {
         Keys.ROW_NOISE: {
             NOISE_TYPES.omission.name: {
                 Keys.ROW_PROBABILITY: 0.0145,
-            }
+            },
         },
     },
     DATASETS.acs.name: {
@@ -48,8 +48,8 @@ DEFAULT_NOISE_VALUES = {
                     Keys.CELL_PROBABILITY: 0.0,
                 }
                 for noise_type in COLUMNS.ssn.noise_types
-            }
-        }
+            },
+        },
     },
 }
 

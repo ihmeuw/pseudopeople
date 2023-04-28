@@ -64,7 +64,6 @@ def _generate_dataset(
         if len(data_paths) > 1
         else data_paths
     )
-    # for data_path in tqdm(data_paths, desc="Noising data", leave=False):
     for data_path in iterator:
         logger.debug(f"Loading data from {data_path}.")
         data = _load_data_from_path(data_path, year_filter)
@@ -75,7 +74,7 @@ def _generate_dataset(
         noised_data = _extract_columns(dataset.columns, noised_data)
         noised_dataset.append(noised_data)
 
-    noised_dataset = pd.concat(noised_dataset)
+    noised_dataset = pd.concat(noised_dataset, ignore_index=True)
 
     # Known pandas bug: pd.concat does not preserve category dtypes so we coerce
     # again after concat (https://github.com/pandas-dev/pandas/issues/51362)

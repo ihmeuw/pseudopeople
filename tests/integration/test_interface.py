@@ -3,7 +3,9 @@ from typing import Callable
 import numpy as np
 import pandas as pd
 import pytest
+from loguru import logger
 
+from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants import metadata, paths
 from pseudopeople.interface import (
     _reformat_dates_for_noising,
@@ -19,7 +21,12 @@ from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
 # TODO: Move into a metadata file and import metadata into prl
 DATA_COLUMNS = ["year", "event_date", "survey_date", "tax_year"]
 
+# TODO [MIC-4038]: Refactor all of these noised datasets into module-level fixtures
 
+
+# TODO [MIC-4040]: Break this up into multiple different tests once MIC-4038 is
+# complete (creates fixtures out of the noised data so we don't have to
+# re-noise the same stuff over and over)
 @pytest.mark.parametrize(
     "dataset, noising_function, use_sample_data",
     [
@@ -39,8 +46,8 @@ DATA_COLUMNS = ["year", "event_date", "survey_date", "tax_year"]
         ("DATASETS.tax_1040", "todo", False),
     ],
 )
-def test_generate_dataset(
-    dataset: Dataset, noising_function: Callable, use_sample_data: bool, tmpdir
+def test_generate_dataset_and_col_noising(
+    dataset: Dataset, noising_function: Callable, use_sample_data: bool, tmpdir, mocker
 ):
     """Tests that noised datasets are generated and as expected. The 'use_sample_data'
     parameter determines whether to use the sample data (if True) or
@@ -61,40 +68,106 @@ def test_generate_dataset(
     else:
         source = _generate_non_default_data_root(dataset.name, tmpdir, sample_data_path, data)
 
-    noised_data = noising_function(seed=0, source=source, year=None)
-    noised_data_same_seed = noising_function(seed=0, source=source, year=None)
-    noised_data_different_seed = noising_function(seed=1, source=source, year=None)
+    # Update unit number cell probabilities because there are so few of them
+    # that nothing gets noised with default levels
+    config = {
+        dataset.name: {
+            Keys.COLUMN_NOISE: {
+                column.name: {
+                    noise_type.name: {
+                        Keys.CELL_PROBABILITY: 0.25,
+                    }
+                    for noise_type in COLUMNS.unit_number.noise_types
+                }
+                for column in dataset.columns
+                if "unit_number" in column.name
+            },
+        },
+    }
+
+    # Update SSA dataset to noise 'ssn' but NOT noise 'ssa_event_type' since that
+    # will be used as an identifier along with simulant_id
+    # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
+    if dataset.name == DATASETS.ssa.name:
+        config[dataset.name][Keys.COLUMN_NOISE][COLUMNS.ssn.name] = {
+            noise_type.name: {
+                Keys.CELL_PROBABILITY: 0.01,
+            }
+            for noise_type in COLUMNS.ssn.noise_types
+        }
+        config[dataset.name][Keys.COLUMN_NOISE][COLUMNS.ssa_event_type.name] = {
+            noise_type.name: {
+                Keys.CELL_PROBABILITY: 0,
+            }
+            for noise_type in COLUMNS.ssa_event_type.noise_types
+        }
+
+    noised_data = noising_function(seed=0, source=source, year=None, config=config)
+    noised_data_same_seed = noising_function(seed=0, source=source, year=None, config=config)
+    noised_data_different_seed = noising_function(
+        seed=1, source=source, year=None, config=config
+    )
 
     assert not data.equals(noised_data)
     assert noised_data.equals(noised_data_same_seed)
     assert not noised_data.equals(noised_data_different_seed)
 
-    # Check each column
-    shared_idx = pd.Index(set(data.index).intersection(set(noised_data.index)))
-    check_original = _reformat_dates_for_noising(data.loc[shared_idx], dataset)
-    check_noised = noised_data.loc[shared_idx]
+    # Check each column. We set the index for each dataset to be unique
+    # identifiers b/c the original index gets reset after noising. Note that
+    # the uniquely identifying columns must NOT be noised.
+    # TODO: Replace this with the record ID column when implemented (MIC-4039)
+    idx_cols = {
+        DATASETS.census.name: [COLUMNS.simulant_id.name, COLUMNS.year.name],
+        DATASETS.acs.name: [COLUMNS.simulant_id.name, COLUMNS.survey_date.name],
+        DATASETS.cps.name: [COLUMNS.simulant_id.name, COLUMNS.survey_date.name],
+        DATASETS.wic.name: [COLUMNS.simulant_id.name, COLUMNS.year.name],
+        DATASETS.ssa.name: [COLUMNS.simulant_id.name, COLUMNS.ssa_event_type.name],
+        DATASETS.tax_w2_1099.name: [
+            COLUMNS.simulant_id.name,
+            COLUMNS.tax_year.name,
+            COLUMNS.employer_id.name,
+        ],
+        # DATASETS.tax_1040.name: "todo",
+    }.get(dataset.name)
+    check_original = _reformat_dates_for_noising(data, dataset).set_index(idx_cols)
+    check_noised = noised_data.set_index(idx_cols)
+    assert check_original.index.duplicated().sum() == 0
+    assert check_noised.index.duplicated().sum() == 0
+    shared_idx = pd.Index(set(check_original.index).intersection(set(check_noised.index)))
+    check_original = check_original.loc[shared_idx]
+    check_noised = check_noised.loc[shared_idx]
 
-    for col_name in noised_data.columns:
-        col = [c for c in COLUMNS if c.name == col_name][0]
+    for col_name in check_noised.columns:
+        col = COLUMNS.get_column(col_name)
         # Check dtype is correct
         expected_dtype = col.dtype_name
         if expected_dtype == np.dtype(str):
             # str dtype is 'object'
             expected_dtype = np.dtype(object)
         assert noised_data[col_name].dtype == expected_dtype
-        # Check if noised
-        shared_not_missing_idx = shared_idx[
-            check_original[col_name].notna() & check_noised[col_name].notna()
-        ]
+
+        # Check that originally missing data remained missing
+        originally_missing_idx = check_original.index[check_original[col_name].isna()]
+        assert check_noised.loc[originally_missing_idx, col_name].isna().all()
+
+        # Check for noising where applicable
+        shared_not_missing_idx = shared_idx.difference(originally_missing_idx)
         if col.noise_types:
             assert (
-                check_original.loc[shared_not_missing_idx, col_name]
-                != check_noised.loc[shared_not_missing_idx, col_name]
-            ).mean() <= 0.04
+                check_original.loc[shared_not_missing_idx, col_name].values
+                != check_noised.loc[shared_not_missing_idx, col_name].values
+            ).any()
+            # Check that the amount of noising seems reasonable
+            # NOTE: This threshold is guessed at since it's complicated to know accurately
+            threshold = 0.6 if "unit" in col.name else 0.06
+            assert (
+                check_original.loc[shared_not_missing_idx, col_name].values
+                != check_noised.loc[shared_not_missing_idx, col_name].values
+            ).mean() <= threshold
         else:
             assert (
-                check_original.loc[shared_not_missing_idx, col_name]
-                == check_noised.loc[shared_not_missing_idx, col_name]
+                check_original.loc[shared_not_missing_idx, col_name].values
+                == check_noised.loc[shared_not_missing_idx, col_name].values
             ).all()
 
 
@@ -130,6 +203,7 @@ def _generate_non_default_data_root(data_dir_name, tmpdir, sample_data_path, dat
     return tmpdir
 
 
+# TODO: Test against multiple datasets being loaded and concated
 @pytest.mark.parametrize(
     "data_dir_name, noising_function",
     [
@@ -162,6 +236,7 @@ def _mock_extract_columns(columns_to_keep, noised_dataset):
     return noised_dataset
 
 
+# TODO: Test against multiple datasets being loaded and concated
 @pytest.mark.parametrize(
     "data_dir_name, noising_function, date_column",
     [
@@ -199,6 +274,7 @@ def _mock_noise_dataset(
     return dataset_data
 
 
+# TODO: Test against multiple datasets being loaded and concated
 @pytest.mark.parametrize(
     "data_dir_name, noising_function, dataset",
     [

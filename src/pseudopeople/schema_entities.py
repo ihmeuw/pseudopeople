@@ -328,6 +328,9 @@ class __Columns(NamedTuple):
         ),
         DtypeNames.CATEGORICAL,
     )
+    tax_year: Column = Column(
+        "tax_year",
+    )
     unit_number: Column = Column(
         "unit_number",
         (
@@ -336,6 +339,9 @@ class __Columns(NamedTuple):
             # NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
+    )
+    year: Column = Column(
+        "year",
     )
     zipcode: Column = Column(
         "zipcode",
@@ -347,8 +353,14 @@ class __Columns(NamedTuple):
         ),
     )
 
-    def get_column(self, column_name: str) -> Column:
-        return [c for c in self if c.name == column_name][0]
+    ##################
+    # Helper methods #
+    ##################
+
+    @staticmethod
+    def get_column(name: str) -> Column:
+        """Return the respective Column object given the column name"""
+        return [c for c in COLUMNS if c.name == name][0]
 
 
 COLUMNS = __Columns()
@@ -387,8 +399,9 @@ class __Datasets(NamedTuple):
             COLUMNS.relation_to_reference_person,
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
+            COLUMNS.year,
         ),
-        date_column="year",
+        date_column=COLUMNS.year.name,
     )
     acs: Dataset = Dataset(
         DatasetNames.ACS,
@@ -410,7 +423,7 @@ class __Datasets(NamedTuple):
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
         ),
-        date_column="survey_date",
+        date_column=COLUMNS.survey_date.name,
     )
     cps: Dataset = Dataset(
         DatasetNames.CPS,
@@ -432,7 +445,7 @@ class __Datasets(NamedTuple):
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
         ),
-        date_column="survey_date",
+        date_column=COLUMNS.survey_date.name,
     )
     wic: Dataset = Dataset(
         DatasetNames.WIC,
@@ -451,8 +464,9 @@ class __Datasets(NamedTuple):
             COLUMNS.zipcode,
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
+            COLUMNS.year,
         ),
-        date_column="year",
+        date_column=COLUMNS.year.name,
     )
     ssa: Dataset = Dataset(
         DatasetNames.SSA,
@@ -466,7 +480,7 @@ class __Datasets(NamedTuple):
             COLUMNS.ssa_event_type,
             COLUMNS.ssa_event_date,
         ),
-        date_column="event_date",
+        date_column=COLUMNS.ssa_event_date.name,
     )
     tax_w2_1099: Dataset = Dataset(
         DatasetNames.TAXES_W2_1099,
@@ -495,8 +509,9 @@ class __Datasets(NamedTuple):
             COLUMNS.employer_state,
             COLUMNS.employer_zipcode,
             COLUMNS.tax_form,
+            COLUMNS.tax_year,
         ),
-        date_column="tax_year",
+        date_column=COLUMNS.tax_year.name,
     )
     # tax_1040: Dataset = Dataset(
     #     Datasets.TAXES_1040,
