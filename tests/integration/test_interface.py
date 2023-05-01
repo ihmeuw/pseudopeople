@@ -16,7 +16,7 @@ from pseudopeople.interface import (
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
-from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
+from pseudopeople.schema_entities import COLUMNS, DATASETS, NOISE_TYPES, Dataset
 
 # TODO: Move into a metadata file and import metadata into prl
 DATA_COLUMNS = ["year", "event_date", "survey_date", "tax_year"]
@@ -68,48 +68,28 @@ def test_generate_dataset_and_col_noising(
     else:
         source = _generate_non_default_data_root(dataset.name, tmpdir, sample_data_path, data)
 
-    # Update unit number cell probabilities because there are so few of them
-    # that nothing gets noised with default levels
-    config = {
-        dataset.name: {
-            Keys.COLUMN_NOISE: {
-                column.name: {
-                    noise_type.name: {
-                        Keys.CELL_PROBABILITY: 0.25,
-                    }
-                    for noise_type in COLUMNS.unit_number.noise_types
-                }
-                for column in dataset.columns
-                if "unit_number" in column.name
-            },
-        },
-    }
+    # Increase cell probability (except for omit_row) because sample data is smallish
+    cell_probability = 0.25
+    config = {dataset.name: {Keys.COLUMN_NOISE: {}}}  # initialize
+    for col in [c for c in dataset.columns if c.noise_types]:
+        config[dataset.name][Keys.COLUMN_NOISE][col.name] = {
+            noise_type.name: {
+                Keys.CELL_PROBABILITY: cell_probability,
+            }
+            for noise_type in col.noise_types
+            if noise_type != NOISE_TYPES.missing_data
+        }
 
     # Update SSA dataset to noise 'ssn' but NOT noise 'ssa_event_type' since that
     # will be used as an identifier along with simulant_id
     # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
     if dataset.name == DATASETS.ssa.name:
-        config[dataset.name][Keys.COLUMN_NOISE][COLUMNS.ssn.name] = {
-            noise_type.name: {
-                Keys.CELL_PROBABILITY: 0.01,
-            }
-            for noise_type in COLUMNS.ssn.noise_types
-        }
         config[dataset.name][Keys.COLUMN_NOISE][COLUMNS.ssa_event_type.name] = {
             noise_type.name: {
                 Keys.CELL_PROBABILITY: 0,
             }
             for noise_type in COLUMNS.ssa_event_type.noise_types
         }
-
-    # FIXME: Do not set the row-level probability to zero
-    # Set row-level noise to zero since we're just testing columns here.
-    config[dataset.name][Keys.ROW_NOISE] = {
-        noise_type.name: {
-            Keys.ROW_PROBABILITY: 0,
-        }
-        for noise_type in dataset.row_noise_types
-    }
 
     noised_data = noising_function(seed=0, source=source, year=None, config=config)
     noised_data_same_seed = noising_function(seed=0, source=source, year=None, config=config)
@@ -167,8 +147,11 @@ def test_generate_dataset_and_col_noising(
                 != check_noised.loc[shared_not_missing_idx, col_name].values
             ).any()
             # Check that the amount of noising seems reasonable
-            # NOTE: This threshold is guessed at since it's complicated to know accurately
-            threshold = 0.6 if "unit" in col.name else 0.06
+            threshold = 1 - cell_probability ** len(col.noise_types)
+            # NOTE: The threshold is not perfect - it is very underconservative
+            #   because it does not account for token-level noising which could
+            #   result in no actual changes to a value despite being chosen
+            # TODO: generate more accurate thresholds
             assert (
                 check_original.loc[shared_not_missing_idx, col_name].values
                 != check_noised.loc[shared_not_missing_idx, col_name].values
