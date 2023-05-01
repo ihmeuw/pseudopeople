@@ -147,15 +147,16 @@ def test_generate_dataset_and_col_noising(
                 != check_noised.loc[shared_not_missing_idx, col_name].values
             ).any()
             # Check that the amount of noising seems reasonable
-            threshold = 1 - cell_probability ** len(col.noise_types)
+            threshold = 1 - (1 - cell_probability) ** len(col.noise_types)
             # NOTE: The threshold is not perfect - it is very underconservative
             #   because it does not account for token-level noising which could
             #   result in no actual changes to a value despite being chosen
             # TODO: generate more accurate thresholds
-            assert (
+            noise_level = (
                 check_original.loc[shared_not_missing_idx, col_name].values
                 != check_noised.loc[shared_not_missing_idx, col_name].values
-            ).mean() <= threshold
+            ).mean()
+            assert noise_level <= threshold
         else:
             assert (
                 check_original.loc[shared_not_missing_idx, col_name].values
