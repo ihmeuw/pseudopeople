@@ -102,6 +102,7 @@ def test_generate_dataset_and_col_noising(
             for noise_type in COLUMNS.ssa_event_type.noise_types
         }
 
+    # FIXME: Do not set the row-level probability to zero
     # Set row-level noise to zero since we're just testing columns here.
     config[dataset.name][Keys.ROW_NOISE] = {
         noise_type.name: {
