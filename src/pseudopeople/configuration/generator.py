@@ -55,8 +55,8 @@ DEFAULT_NOISE_VALUES = {
                     Keys.CELL_PROBABILITY: 0.0,
                 }
                 for noise_type in COLUMNS.ssn.noise_types
-            }
-        }
+            },
+        },
     },
 }
 
