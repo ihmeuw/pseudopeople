@@ -161,7 +161,7 @@ def test_generate_dataset_and_col_noising(
             ]
             # NOTE: The threshold assigned when we have token-level noising
             # is guessed at since it's difficult to calculate.
-            # TODO: Come up with a more accurate values. There are token probabilities
+            # TODO [MIC-4052]: Come up with a more accurate values. There are token probabilities
             # and additional parameters to consider as well as the rtol when the
             # number of compared is small.
             expected_noise = 1 - (1 - cell_probability) ** len(col.noise_types)
