@@ -116,6 +116,7 @@ def _load_data_from_path(data_path: Path, year_filter: Dict[str, List]):
 
 def _reformat_dates_for_noising(data: pd.DataFrame, dataset: Dataset):
     """Formats SSA event_date and dates of birth, so they can be noised."""
+    data = data.copy()
     if COLUMNS.ssa_event_date.name in data.columns and dataset == DATASETS.ssa:
         # event_date -> YYYYMMDD
         data[COLUMNS.ssa_event_date.name] = data[COLUMNS.ssa_event_date.name].dt.strftime(

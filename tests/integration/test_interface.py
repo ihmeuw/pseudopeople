@@ -16,7 +16,7 @@ from pseudopeople.interface import (
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
-from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
+from pseudopeople.schema_entities import COLUMNS, DATASETS, NOISE_TYPES, Dataset
 
 # TODO: Move into a metadata file and import metadata into prl
 DATA_COLUMNS = ["year", "event_date", "survey_date", "tax_year"]
@@ -68,53 +68,34 @@ def test_generate_dataset_and_col_noising(
     else:
         source = _generate_non_default_data_root(dataset.name, tmpdir, sample_data_path, data)
 
-    # Update unit number cell probabilities because there are so few of them
-    # that nothing gets noised with default levels
-    config = {
-        dataset.name: {
-            Keys.COLUMN_NOISE: {
-                column.name: {
-                    noise_type.name: {
-                        Keys.CELL_PROBABILITY: 0.25,
-                    }
-                    for noise_type in COLUMNS.unit_number.noise_types
-                }
-                for column in dataset.columns
-                if "unit_number" in column.name
-            },
-        },
-    }
+    # Increase cell probability
+    cell_probability = 0.25
+    custom_config = {dataset.name: {Keys.COLUMN_NOISE: {}}}  # initialize
+    for col in [c for c in dataset.columns if c.noise_types]:
+        custom_config[dataset.name][Keys.COLUMN_NOISE][col.name] = {
+            noise_type.name: {
+                Keys.CELL_PROBABILITY: cell_probability,
+            }
+            for noise_type in col.noise_types
+        }
 
     # Update SSA dataset to noise 'ssn' but NOT noise 'ssa_event_type' since that
     # will be used as an identifier along with simulant_id
     # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
     if dataset.name == DATASETS.ssa.name:
-        config[dataset.name][Keys.COLUMN_NOISE][COLUMNS.ssn.name] = {
-            noise_type.name: {
-                Keys.CELL_PROBABILITY: 0.01,
-            }
-            for noise_type in COLUMNS.ssn.noise_types
-        }
-        config[dataset.name][Keys.COLUMN_NOISE][COLUMNS.ssa_event_type.name] = {
+        custom_config[dataset.name][Keys.COLUMN_NOISE][COLUMNS.ssa_event_type.name] = {
             noise_type.name: {
                 Keys.CELL_PROBABILITY: 0,
             }
             for noise_type in COLUMNS.ssa_event_type.noise_types
         }
 
-    # FIXME: Do not set the row-level probability to zero
-    # Set row-level noise to zero since we're just testing columns here.
-    config[dataset.name][Keys.ROW_NOISE] = {
-        noise_type.name: {
-            Keys.ROW_PROBABILITY: 0,
-        }
-        for noise_type in dataset.row_noise_types
-    }
-
-    noised_data = noising_function(seed=0, source=source, year=None, config=config)
-    noised_data_same_seed = noising_function(seed=0, source=source, year=None, config=config)
+    noised_data = noising_function(seed=0, source=source, year=None, config=custom_config)
+    noised_data_same_seed = noising_function(
+        seed=0, source=source, year=None, config=custom_config
+    )
     noised_data_different_seed = noising_function(
-        seed=1, source=source, year=None, config=config
+        seed=1, source=source, year=None, config=custom_config
     )
 
     assert not data.equals(noised_data)
@@ -146,6 +127,7 @@ def test_generate_dataset_and_col_noising(
     check_original = check_original.loc[shared_idx]
     check_noised = check_noised.loc[shared_idx]
 
+    config = get_configuration(custom_config)
     for col_name in check_noised.columns:
         col = COLUMNS.get_column(col_name)
         # Check dtype is correct
@@ -160,23 +142,35 @@ def test_generate_dataset_and_col_noising(
         assert check_noised.loc[originally_missing_idx, col_name].isna().all()
 
         # Check for noising where applicable
-        shared_not_missing_idx = shared_idx.difference(originally_missing_idx)
+        to_compare_idx = shared_idx.difference(originally_missing_idx)
         if col.noise_types:
             assert (
-                check_original.loc[shared_not_missing_idx, col_name].values
-                != check_noised.loc[shared_not_missing_idx, col_name].values
+                check_original.loc[to_compare_idx, col_name].values
+                != check_noised.loc[to_compare_idx, col_name].values
             ).any()
+
+            noise_level = (
+                check_original.loc[to_compare_idx, col_name].values
+                != check_noised.loc[to_compare_idx, col_name].values
+            ).mean()
+
             # Check that the amount of noising seems reasonable
-            # NOTE: This threshold is guessed at since it's complicated to know accurately
-            threshold = 0.6 if "unit" in col.name else 0.06
+            tmp_config = config[dataset.name][Keys.COLUMN_NOISE][col_name]
+            includes_token_noising = [
+                c for c in tmp_config if Keys.TOKEN_PROBABILITY in tmp_config[c].keys()
+            ]
+            # NOTE: The threshold assigned when we have token-level noising
+            # is guessed at since it's difficult to calculate.
+            # TODO [MIC-4052]: Come up with a more accurate values. There are token probabilities
+            # and additional parameters to consider as well as the rtol when the
+            # number of compared is small.
+            expected_noise = 1 - (1 - cell_probability) ** len(col.noise_types)
+            rtol = 0.5 if includes_token_noising else 0.11
+            assert np.isclose(noise_level, expected_noise, rtol=rtol)
+        else:  # No noising - should be identical
             assert (
-                check_original.loc[shared_not_missing_idx, col_name].values
-                != check_noised.loc[shared_not_missing_idx, col_name].values
-            ).mean() <= threshold
-        else:
-            assert (
-                check_original.loc[shared_not_missing_idx, col_name].values
-                == check_noised.loc[shared_not_missing_idx, col_name].values
+                check_original.loc[to_compare_idx, col_name].values
+                == check_noised.loc[to_compare_idx, col_name].values
             ).all()
 
 
