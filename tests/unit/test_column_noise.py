@@ -9,7 +9,6 @@ from vivarium.framework.randomness import RandomnessStream
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.noise_functions import _load_nicknames_data
 from pseudopeople.schema_entities import DATASETS
 
 RANDOMNESS0 = RandomnessStream(
@@ -537,22 +536,26 @@ def test_generate_nicknames(dummy_dataset):
     #                   rtol=0.02)
 
     # Verify options chosen are valid nicknames for original names that were noised
+    from pseudopeople.noise_scaling import _load_nicknames_data
     nicknames = _load_nicknames_data()
+    # The lists in each row of this series have nans
     names_list = pd.Series(nicknames.values.tolist(), index=nicknames.index)
     for real_name in data.dropna().unique():
         if real_name not in names_list.index:
             assert (data.loc[data == real_name] == noised_data[data == real_name]).all()
         else:
-            # todo make cleaner
-            assert set(noised_data.loc[noised_data == real_name].dropna().unique()).issubset(set(names_list.loc[real_name]
-                                                                                          + [real_name]))
-    # todo: add test for
-    # Validate nicknames are chosen at random
-
-    # for each name that has potential nicknames
-    # get index where real name has been changed to nicknames
-    # get value counts for each nickname per real name
-    # validate they are about the same
+            real_name_idx = data.index[data == real_name]
+            assert set(noised_data.loc[real_name_idx].dropna().unique()).issubset(
+                set(names_list.loc[real_name] + [real_name]))
+            name_sub = noised_data.loc[real_name_idx.difference(noised_data.index[noised_data == real_name])]
+            chosen_nickname_weights = pd.Series(name_sub.value_counts() / sum(name_sub.value_counts()))
+            options = pd.Series(names_list.loc[real_name]).dropna()
+            name_weight = 1 / len(options)
+            assert np.isclose(
+                chosen_nickname_weights,
+                name_weight,
+                rtol=0.02
+            ).all()
 
 
 def test_generate_fake_names(dummy_dataset):

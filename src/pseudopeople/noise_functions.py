@@ -6,6 +6,7 @@ import yaml
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
+from pseudopeople.noise_scaling import _load_nicknames_data
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import data_values, paths
 from pseudopeople.constants.metadata import Attributes, DatasetNames
@@ -352,14 +353,6 @@ def miswrite_numerics(
     noised_column.str.strip()
 
     return noised_column
-
-
-def _load_nicknames_data():
-    # Load and format nicknames dataset
-    nicknames = pd.read_csv(paths.NICKNAMES_DATA)
-    nicknames = nicknames.apply(lambda x: x.astype(str).str.title()).set_index("name")
-    nicknames = nicknames.replace("Nan", np.nan)
-    return nicknames
 
 
 def generate_nicknames(

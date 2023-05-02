@@ -88,27 +88,6 @@ def get_index_to_noise(
     return to_noise_idx
 
 
-def noise_scaling_incorrect_selection(column: pd.Series) -> float:
-    """
-    Function to scale noising for incorrect selection to adjust for the possibility of noising with the original values.
-    """
-    from pseudopeople.schema_entities import COLUMNS
-    selection_type = {
-        COLUMNS.employer_state.name: COLUMNS.state.name,
-        COLUMNS.mailing_address_state.name: COLUMNS.state.name,
-    }.get(column.name, column.name)
-
-    selection_options = pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
-    # Get possible noise values
-    # todo: Update with exclusive resampling when vectorized_choice is improved
-    options = selection_options.loc[selection_options[selection_type].notna(), selection_type]
-
-    # Scale to adjust for possibility of noising with original value
-    noise_scaling_value = 1 / (1 - 1 / len(options))
-
-    return noise_scaling_value
-
-
 def configure_logging_to_terminal(verbose: bool = False):
     logger.remove()  # Clear default configuration
     add_logging_sink(sys.stdout, verbose, colorize=True)
@@ -170,10 +149,3 @@ def two_d_array_choice(
     new = pd.Series(options.reindex(cols, axis=1).to_numpy()[np.arange(len(options)), idx], index=data.index)
 
     return new
-
-
-def scale_nicknames(column: pd.Series) -> float:
-    nicknames = _load_nicknames_data()
-    have_nickname_idx = column.index[column.isin(nicknames.index)]
-    proportion_have_nickname = len(have_nickname_idx) / len(column)
-    return 1/proportion_have_nickname

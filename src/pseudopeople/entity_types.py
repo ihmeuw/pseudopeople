@@ -71,6 +71,12 @@ class ColumnNoiseType:
         noise_level = configuration[
             Keys.CELL_PROBABILITY
         ] * self.noise_level_scaling_function(column)
+        # Certain columns have a their noise level scaled so we must check to make sure the noise level is within the
+        # allowed range between 0 and 1 for probabilities
+        if noise_level > 1:
+            logger.warning(f"Configuration for '{column.name}' is invalid due to rescaling. Maximum configuration "
+                           f"value for {column.name}' is {1/self.noise_level_scaling_function(column)}. Noise level "
+                           "has been adjust to 1 or 100% of rows will be noised.")
         to_noise_idx = get_index_to_noise(
             column, noise_level, randomness_stream, f"{self.name}_{additional_key}"
         )
