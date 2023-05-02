@@ -27,7 +27,8 @@ def noise_scaling_incorrect_selection(column: pd.Series) -> float:
 
 def scale_nicknames(column: pd.Series) -> float:
     # Constant calculated by number of names with nicknames / number of names used in PRL name mapping
-    proportion_have_nickname = metadata.NICKNAMES_PROPORTION
+    nicknames = _load_nicknames_data()
+    proportion_have_nickname = column.isin(nicknames.index).mean()
     return 1 / proportion_have_nickname
 
 
