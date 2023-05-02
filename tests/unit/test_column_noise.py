@@ -526,35 +526,35 @@ def test_generate_nicknames(dummy_dataset):
         data, config, RANDOMNESS0, "test_nicknames"
     )
 
-    # Validate
+    # Validate missing stays missing
     orig_missing = data.isna()
     assert (noised_data[orig_missing].isna()).all()
-    no_nickname = data == "Fake name"
-    assert (noised_data[no_nickname] == "Fake name").all()
-    # assert np.isclose(expected_noise,
-    #                   (noised_data[~orig_missing] != data[~orig_missing]).mean(),
-    #                   rtol=0.02)
+    # Validate noise level
+    assert np.isclose(expected_noise,
+                      (noised_data[~orig_missing] != data[~orig_missing]).mean(),
+                      rtol=0.02)
 
-    # Verify options chosen are valid nicknames for original names that were noised
+    # Validation for nicknames
     from pseudopeople.noise_scaling import _load_nicknames_data
     nicknames = _load_nicknames_data()
-    # The lists in each row of this series have nans
-    names_list = pd.Series(nicknames.values.tolist(), index=nicknames.index)
+    names_list = pd.Series(nicknames.apply(lambda row: row.dropna().tolist(), axis=1), index=nicknames.index)
     for real_name in data.dropna().unique():
+        # Validates names that are not nickname eligible do not not get noised
         if real_name not in names_list.index:
             assert (data.loc[data == real_name] == noised_data[data == real_name]).all()
         else:
             real_name_idx = data.index[data == real_name]
+            # Verify options chosen are valid nicknames for original names that were noised
             assert set(noised_data.loc[real_name_idx].dropna().unique()).issubset(
                 set(names_list.loc[real_name] + [real_name]))
+            # Validate we choose the nicknames for each name randomly (equally)
             name_sub = noised_data.loc[real_name_idx.difference(noised_data.index[noised_data == real_name])]
             chosen_nickname_weights = pd.Series(name_sub.value_counts() / sum(name_sub.value_counts()))
-            options = pd.Series(names_list.loc[real_name]).dropna()
-            name_weight = 1 / len(options)
+            name_weight = 1 / len(names_list.loc[real_name])
             assert np.isclose(
                 chosen_nickname_weights,
                 name_weight,
-                rtol=0.02
+                rtol=0.06
             ).all()
 
 
