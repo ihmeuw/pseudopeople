@@ -11,7 +11,7 @@ from pseudopeople.interface import (
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
-from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
+from pseudopeople.schema_entities import COLUMNS, DATASETS
 
 CELL_PROBABILITY = 0.25
 SEED = 0

@@ -1,11 +1,8 @@
-from typing import Callable
-
 import numpy as np
 import pandas as pd
 import pytest
 
 from pseudopeople.configuration import Keys, get_configuration
-from pseudopeople.constants import metadata
 from pseudopeople.interface import (
     _reformat_dates_for_noising,
     generate_american_community_survey,
@@ -15,7 +12,7 @@ from pseudopeople.interface import (
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
-from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
+from pseudopeople.schema_entities import COLUMNS, DATASETS
 from tests.integration.conftest import CELL_PROBABILITY, SEED
 
 IDX_COLS = {
@@ -32,7 +29,7 @@ IDX_COLS = {
     # DATASETS.tax_1040.name: "todo",
 }
 
-DATASET_FUNCS = {
+DATASET_GENERATION_FUNCS = {
     DATASETS.census.name: generate_decennial_census,
     DATASETS.acs.name: generate_american_community_survey,
     DATASETS.cps.name: generate_current_population_survey,
@@ -64,8 +61,8 @@ def test_generate_dataset_from_sample_and_source(dataset_name: str, config, tmpd
 
     data = request.getfixturevalue(f"sample_data_{dataset_name}")
     source = _generate_non_sample_data_root(dataset_name, tmpdir, data)
-    noising_function = DATASET_FUNCS.get(dataset_name)
     noised_sample = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
+    noising_function = DATASET_GENERATION_FUNCS.get(dataset_name)
     noised_dataset = noising_function(seed=SEED, year=None, source=source, config=config)
     assert noised_dataset.shape == noised_sample.shape
     assert noised_dataset.columns.equals(noised_sample.columns)
@@ -119,11 +116,11 @@ def test_generate_dataset_and_col_noising(dataset_name: str, config, request):
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
 
-    noising_function = DATASET_FUNCS.get(dataset_name)
+    noising_function = DATASET_GENERATION_FUNCS.get(dataset_name)
     dataset = DATASETS.get_dataset(dataset_name)
 
     data = request.getfixturevalue(f"sample_data_{dataset_name}")
-    noised_data = noising_function(seed=SEED, year=None, config=config)
+    noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
 
     _check_seed_behavior(noising_function, data, config, noised_data)
 
@@ -276,11 +273,19 @@ def test_dataset_filter_by_year_with_full_dates(mocker, request, dataset_name: s
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
     noised_data = request.getfixturevalue(f"noised_sample_data_2030_{dataset_name}")
     dataset = DATASETS.get_dataset(dataset_name)
-    dates = pd.DatetimeIndex(noised_data[dataset.date_column])
-    if dataset == DATASETS.ssa:
-        assert (dates.year <= 2030).all()
+    date_format = COLUMNS.get_column(dataset.date_column).additional_attributes.get(
+        "date_format"
+    )
+    if date_format:
+        # The date is a string type and we cannot expect to use datetime objects
+        # due to the month/day swaps
+        years = noised_data[dataset.date_column].str[0:4].astype(int)
     else:
-        assert (dates.year == 2030).all()
+        years = noised_data[dataset.date_column].dt.year
+    if dataset == DATASETS.ssa:
+        assert (years <= 2030).all()
+    else:
+        assert (years == 2030).all()
 
 
 ####################
