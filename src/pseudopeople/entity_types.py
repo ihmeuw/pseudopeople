@@ -67,6 +67,8 @@ class ColumnNoiseType:
         randomness_stream: RandomnessStream,
         additional_key: Any,
     ) -> pd.Series:
+        if column.empty:
+            return column
         column = column.copy()
         noise_level = configuration[
             Keys.CELL_PROBABILITY

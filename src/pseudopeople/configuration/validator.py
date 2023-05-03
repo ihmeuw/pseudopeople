@@ -31,7 +31,11 @@ def validate_user_configuration(user_config: Dict, default_config: ConfigTree) -
                 default_row_noise_config, noise_type, "noise type", dataset
             )
             _validate_noise_type_config(
-                noise_type_config, default_noise_type_config, dataset, noise_type
+                noise_type_config,
+                default_noise_type_config,
+                dataset,
+                noise_type,
+                DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP,
             )
 
         for column, column_config in dataset_config.get(Keys.COLUMN_NOISE, {}).items():
@@ -48,7 +52,12 @@ def validate_user_configuration(user_config: Dict, default_config: ConfigTree) -
                     }
                 }.get(noise_type, DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP)
                 _validate_noise_type_config(
-                    noise_type_config, default_noise_type_config, dataset, noise_type, column, parameter_config_validator_map,
+                    noise_type_config,
+                    default_noise_type_config,
+                    dataset,
+                    noise_type,
+                    parameter_config_validator_map,
+                    column,
                 )
 
 
@@ -57,15 +66,17 @@ def _validate_noise_type_config(
     default_noise_type_config: ConfigTree,
     dataset: str,
     noise_type: str,
+    parameter_config_validator_map: Dict[str, Callable],
     column: str = None,
-    parameter_config_validator_map: Dict[str, Callable] = None,
 ) -> None:
     """
     Validates that all parameters are allowed for this noise function.
     Additionally, validates that the configuration values are permissible.
     """
     for parameter, parameter_config in noise_type_config.items():
-        parameter_config_validator = parameter_config_validator_map.get(parameter, _validate_probability)
+        parameter_config_validator = parameter_config_validator_map.get(
+            parameter, _validate_probability
+        )
 
         _ = _get_default_config_node(
             default_noise_type_config, parameter, "parameter", dataset, column, noise_type
@@ -185,8 +196,8 @@ def _validate_nickname_probability(
     _validate_probability(noise_type_config, parameter, base_error_message)
     if noise_type_config > metadata.NICKNAMES_PROPORTION:
         logger.warning(
-            base_error_message +
-            f"Maximum configuration value is {1/metadata.NICKNAMES_PROPORTION}. "
+            base_error_message
+            + f"Maximum configuration value is {1/metadata.NICKNAMES_PROPORTION}. "
             f"Noise level has been adjusted to {1/metadata.NICKNAMES_PROPORTION}."
         )
 

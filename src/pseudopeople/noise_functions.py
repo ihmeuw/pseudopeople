@@ -377,7 +377,9 @@ def generate_nicknames(
     nicknames = _load_nicknames_data()
 
     have_nickname_idx = column.index[column.isin(nicknames.index)]
-    noised = two_d_array_choice(column.loc[have_nickname_idx], nicknames, randomness_stream, additional_key)
+    noised = two_d_array_choice(
+        column.loc[have_nickname_idx], nicknames, randomness_stream, additional_key
+    )
     column.loc[have_nickname_idx] = noised
     return column
 

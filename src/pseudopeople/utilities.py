@@ -144,8 +144,11 @@ def two_d_array_choice(
     # Select indices of nickname to choose based on random draw
     choice_index = (probs.values[np.newaxis].T > cdf).sum(axis=1)
     options["choice_index"] = choice_index
-    idx, cols = pd.factorize(options['choice_index'])
+    idx, cols = pd.factorize(options["choice_index"])
     # 2D array lookup to make an array for the series value
-    new = pd.Series(options.reindex(cols, axis=1).to_numpy()[np.arange(len(options)), idx], index=data.index)
+    new = pd.Series(
+        options.reindex(cols, axis=1).to_numpy()[np.arange(len(options)), idx],
+        index=data.index,
+    )
 
     return new
