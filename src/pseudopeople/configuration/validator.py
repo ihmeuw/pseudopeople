@@ -1,16 +1,13 @@
-from typing import Dict, List, Union, Callable
+from typing import Callable, Dict, List, Union
 
-from loguru import logger
 import numpy as np
+from loguru import logger
 from vivarium.config_tree import ConfigTree, ConfigurationKeyError
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import metadata
 from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.noise_entities import NOISE_TYPES
-
-
-
 
 
 def validate_user_configuration(user_config: Dict, default_config: ConfigTree) -> None:

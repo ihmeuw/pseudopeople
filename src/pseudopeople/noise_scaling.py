@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from pseudopeople.constants import paths, metadata
+from pseudopeople.constants import metadata, paths
 
 
 def noise_scaling_incorrect_selection(column: pd.Series) -> float:

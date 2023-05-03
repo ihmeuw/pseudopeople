@@ -1,6 +1,6 @@
 from typing import NamedTuple
 
-from pseudopeople import noise_functions, utilities, noise_scaling
+from pseudopeople import noise_functions, noise_scaling, utilities
 from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 

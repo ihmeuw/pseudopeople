@@ -28,4 +28,4 @@ class Attributes:
 # Value calculated for noise scaling for nicknames
 # Constant calculated by number of names with nicknames / number of names used in PRL name mapping
 # Found in PRL data.nickname_proportions.get_nickname_proportion()
-NICKNAMES_PROPORTION = 0.6215756809796128
+NICKNAMES_PROPORTION = 0.5522180596459583

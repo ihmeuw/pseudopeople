@@ -6,13 +6,17 @@ import yaml
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
-from pseudopeople.noise_scaling import _load_nicknames_data
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import data_values, paths
 from pseudopeople.constants.metadata import Attributes, DatasetNames
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.exceptions import ConfigurationError
-from pseudopeople.utilities import get_index_to_noise, two_d_array_choice, vectorized_choice
+from pseudopeople.noise_scaling import _load_nicknames_data
+from pseudopeople.utilities import (
+    get_index_to_noise,
+    two_d_array_choice,
+    vectorized_choice,
+)
 
 
 def omit_rows(
