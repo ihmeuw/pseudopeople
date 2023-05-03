@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from pseudopeople.configuration import Keys, get_configuration
-from pseudopeople.constants import metadata, paths
+from pseudopeople.constants import metadata
 from pseudopeople.interface import (
     _reformat_dates_for_noising,
     generate_american_community_survey,
@@ -16,6 +16,8 @@ from pseudopeople.interface import (
     generate_women_infants_and_children,
 )
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
+from tests.integration.conftest import SEED
+
 
 IDX_COLS = {
     DATASETS.census.name: [COLUMNS.simulant_id.name, COLUMNS.year.name],
@@ -54,33 +56,18 @@ DATASET_FUNCS = {
         "todo - DATASETS.tax_1040.name",
     ],
 )
-def test_generate_dataset_from_sample_and_source(dataset_name: str, tmpdir):
+def test_generate_dataset_from_sample_and_source(dataset_name: str, config, tmpdir, request):
     """Tests that the amount of noising is approximately the same whether we
     noise a single sample dataset or we concatenate and noise multiple datasets
     """
     if "todo" in dataset_name:
         pytest.skip(reason=f"TODO: implement dataset {dataset_name}")
 
-    data = _load_sample_data(dataset_name)
+    data = request.getfixturevalue(f"sample_data_{dataset_name}")
     source = _generate_non_sample_data_root(dataset_name, tmpdir, data)
-
-    # Update SSA dataset to noise 'ssn' but NOT noise 'ssa_event_type' since that
-    # will be used as an identifier along with simulant_id
-    # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
-    if dataset_name == DATASETS.ssa.name:
-        config = {dataset_name: {Keys.COLUMN_NOISE: {}}}  # initialize
-        config[dataset_name][Keys.COLUMN_NOISE][COLUMNS.ssa_event_type.name] = {
-            noise_type.name: {
-                Keys.CELL_PROBABILITY: 0,
-            }
-            for noise_type in COLUMNS.ssa_event_type.noise_types
-        }
-    else:
-        config = None
-
     noising_function = DATASET_FUNCS.get(dataset_name)
-    noised_sample = noising_function(seed=0, year=None, config=config)
-    noised_dataset = noising_function(seed=0, year=None, source=source, config=config)
+    noised_sample = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
+    noised_dataset = noising_function(seed=SEED, year=None, source=source, config=config)
     assert noised_dataset.shape == noised_sample.shape
     assert noised_dataset.columns.equals(noised_sample.columns)
 
@@ -128,36 +115,14 @@ def test_generate_dataset_from_sample_and_source(dataset_name: str, tmpdir):
         ("DATASETS.tax_1040", "todo"),
     ],
 )
-def test_generate_dataset_and_col_noising(dataset: Dataset, noising_function: Callable):
+def test_generate_dataset_and_col_noising(dataset: Dataset, noising_function: Callable, config, request):
     """Tests that noised datasets are generated and columns are noised as expected"""
     if noising_function == "todo":
         pytest.skip(reason=f"TODO: implement dataset {dataset}")
 
-    data = _load_sample_data(dataset.name)
+    data = request.getfixturevalue(f"sample_data_{dataset.name}")
 
-    # Increase cell probability
-    cell_probability = 0.25
-    custom_config = {dataset.name: {Keys.COLUMN_NOISE: {}}}  # initialize
-    for col in [c for c in dataset.columns if c.noise_types]:
-        custom_config[dataset.name][Keys.COLUMN_NOISE][col.name] = {
-            noise_type.name: {
-                Keys.CELL_PROBABILITY: cell_probability,
-            }
-            for noise_type in col.noise_types
-        }
-
-    # Update SSA dataset to noise 'ssn' but NOT noise 'ssa_event_type' since that
-    # will be used as an identifier along with simulant_id
-    # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
-    if dataset.name == DATASETS.ssa.name:
-        custom_config[dataset.name][Keys.COLUMN_NOISE][COLUMNS.ssa_event_type.name] = {
-            noise_type.name: {
-                Keys.CELL_PROBABILITY: 0,
-            }
-            for noise_type in COLUMNS.ssa_event_type.noise_types
-        }
-
-    noised_data = noising_function(seed=0, year=None, config=custom_config)
+    noised_data = noising_function(seed=SEED, year=None, config=custom_config)
 
     _check_seed_behavior(noising_function, data, custom_config, noised_data)
 
@@ -209,8 +174,8 @@ def _generate_non_sample_data_root(data_dir_name, tmpdir, data):
 
 
 def _check_seed_behavior(noising_function, data, custom_config, noised_data):
-    noised_data_same_seed = noising_function(seed=0, year=None, config=custom_config)
-    noised_data_different_seed = noising_function(seed=1, year=None, config=custom_config)
+    noised_data_same_seed = noising_function(seed=SEED, year=None, config=custom_config)
+    noised_data_different_seed = noising_function(seed=SEED+1, year=None, config=custom_config)
 
     assert not data.equals(noised_data)
     assert noised_data.equals(noised_data_same_seed)
@@ -269,15 +234,15 @@ def _check_column_noising(
         ("DATASETS.tax_1040.name", "todo"),
     ],
 )
-def test_generate_dataset_with_year(data_dir_name: str, noising_function: Callable):
+def test_generate_dataset_with_year(data_dir_name: str, noising_function: Callable, request):
     if noising_function == "todo":
         pytest.skip(reason=f"TODO: implement dataset {data_dir_name}")
     year = 2030  # not default 2020
-    data = _load_sample_data(data_dir_name)
+    data = request.getfixturevalue(f"sample_data_{data_dir_name}")
 
-    noised_data = noising_function(year=year, seed=0)
-    noised_data_same_seed = noising_function(year=year, seed=0)
-    noised_data_different_seed = noising_function(year=year, seed=1)
+    noised_data = noising_function(year=year, seed=SEED)
+    noised_data_same_seed = noising_function(year=year, seed=SEED)
+    noised_data_different_seed = noising_function(year=year, seed=SEED+1)
 
     assert not data.equals(noised_data)
     assert noised_data.equals(noised_data_same_seed)
@@ -337,12 +302,6 @@ def test_dataset_filter_by_year_with_full_dates(
 ####################
 # HELPER FUNCTIONS #
 ####################
-
-
-def _load_sample_data(dataset):
-    data_path = paths.SAMPLE_DATA_ROOT / dataset / f"{dataset}.parquet"
-    return pd.read_parquet(data_path)
-
 
 def _mock_extract_columns(columns_to_keep, noised_dataset):
     return noised_dataset
