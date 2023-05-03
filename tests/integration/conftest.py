@@ -1,6 +1,5 @@
-import pytest
-
 import pandas as pd
+import pytest
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants import paths
@@ -14,9 +13,9 @@ from pseudopeople.interface import (
 )
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
 
-
 CELL_PROBABILITY = 0.25
 SEED = 0
+
 
 @pytest.fixture(scope="module")
 def config():
@@ -114,13 +113,50 @@ def noised_sample_data_taxes_w2_and_1099(config):
 
 
 # @pytest.fixture(scope="module")
-# def noised_sample_data_taxes_1040():
+# def noised_sample_data_taxes_1040(config):
 #     return generate_taxes_1040(seed=SEED, year=None, config=config)
+
+
+# Noised sample datasets for year=2030
+@pytest.fixture(scope="module")
+def noised_sample_data_2030_decennial_census():
+    return generate_decennial_census(seed=SEED, year=2030)
+
+
+@pytest.fixture(scope="module")
+def noised_sample_data_2030_american_community_survey():
+    return generate_american_community_survey(seed=SEED, year=2030)
+
+
+@pytest.fixture(scope="module")
+def noised_sample_data_2030_current_population_survey():
+    return generate_current_population_survey(seed=SEED, year=2030)
+
+
+@pytest.fixture(scope="module")
+def noised_sample_data_2030_women_infants_and_children():
+    return generate_women_infants_and_children(seed=SEED, year=2030)
+
+
+@pytest.fixture(scope="module")
+def noised_sample_data_2030_social_security():
+    return generate_social_security(seed=SEED, year=2030)
+
+
+@pytest.fixture(scope="module")
+def noised_sample_data_2030_taxes_w2_and_1099():
+    return generate_taxes_w2_and_1099(seed=SEED, year=2030)
+
+
+# @pytest.fixture(scope="module")
+# def noised_sample_data_2030_taxes_1040():
+#     return generate_taxes_1040(seed=SEED, year=2030)
 
 
 ####################
 # HELPER FUNCTIONS #
 ####################
+
 
 def _load_sample_data(dataset):
     data_path = paths.SAMPLE_DATA_ROOT / dataset / f"{dataset}.parquet"
