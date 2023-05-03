@@ -6,9 +6,6 @@ import pandas as pd
 from loguru import logger
 from vivarium.framework.randomness import RandomnessStream, random
 
-from pseudopeople.constants import paths
-from pseudopeople.noise_functions import _load_nicknames_data
-
 
 def get_randomness_stream(dataset_name: str, seed: int) -> RandomnessStream:
     return RandomnessStream(dataset_name, lambda: pd.Timestamp("2020-04-01"), seed)
