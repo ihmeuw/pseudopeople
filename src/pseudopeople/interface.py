@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 import pyarrow.parquet as pq
@@ -11,7 +11,7 @@ from pseudopeople.constants import paths
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.noise import noise_dataset
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
-from pseudopeople.utilities import configure_logging_to_terminal
+from pseudopeople.utilities import configure_logging_to_terminal, get_state_abbreviation
 
 
 def _generate_dataset(
@@ -19,7 +19,7 @@ def _generate_dataset(
     source: Union[Path, str],
     seed: int,
     config: Union[Path, str, Dict],
-    year_filter: Dict[str, List],
+    user_filter: List[tuple],
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -33,8 +33,8 @@ def _generate_dataset(
         Seed for controlling randomness
     :param config:
         Object to configure noise levels
-    :param year_filter:
-        Dictionary with keys 'hdf' and 'parquet' and values filter lists
+    :param user_filter:
+        List of parquet filter(s), used in year and state filtering
     :param verbose:
         Log with verbosity if True. Default is False.
     :return:
@@ -66,7 +66,7 @@ def _generate_dataset(
     )
     for data_path in iterator:
         logger.debug(f"Loading data from {data_path}.")
-        data = _load_data_from_path(data_path, year_filter)
+        data = _load_data_from_path(data_path, user_filter)
 
         data = _reformat_dates_for_noising(data, dataset)
         data = _coerce_dtypes(data, dataset)
@@ -94,17 +94,15 @@ def _coerce_dtypes(data: pd.DataFrame, dataset: Dataset):
     return data
 
 
-def _load_data_from_path(data_path: Path, year_filter: Dict[str, List]):
+def _load_data_from_path(data_path: Path, user_filter: List[Tuple]):
     """Load data from a data file given a data_path and a year_filter."""
-    if data_path.suffix == ".hdf":
-        with pd.HDFStore(str(data_path), mode="r") as hdf_store:
-            data = hdf_store.select("data", where=year_filter["hdf"])
-    elif data_path.suffix == ".parquet":
-        data = pq.read_table(data_path, filters=year_filter["parquet"]).to_pandas()
+    if data_path.suffix == ".parquet":
+        if len(user_filter) == 0:
+            user_filter = None  # pyarrow.parquet.read_table doesn't accept an empty list
+        data = pq.read_table(data_path, filters=user_filter).to_pandas()
     else:
         raise DataSourceError(
-            "Source path must either be a .hdf or a .parquet file. Provided "
-            f"{data_path.suffix}"
+            f"Source path must be a .parquet file. Provided {data_path.suffix}"
         )
     if not isinstance(data, pd.DataFrame):
         raise DataSourceError(
@@ -140,6 +138,7 @@ def generate_decennial_census(
     seed: int = 0,
     config: Union[Path, str, Dict[str, Dict]] = None,
     year: Optional[int] = 2020,
+    state: Optional[str] = None,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -155,16 +154,23 @@ def generate_decennial_census(
         year (e.g. 2020, 2030, 2040). Will return an empty pd.DataFrame if there are no
         data with this year. If None is provided, data from all years are
         included in the dataset.
+    :param state: The state string to include in the dataset. Either full name or
+        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
+        data pertaining to this state. If None is provided, data from all locations are
+        included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated decennial census data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
-    year_filter = {"hdf": None, "parquet": None}
+    user_filters = []
     if year:
-        year_filter["hdf"] = [f"{DATASETS.census.date_column} == {year}."]
-        year_filter["parquet"] = [(DATASETS.census.date_column, "==", year)]
-    return _generate_dataset(DATASETS.census, source, seed, config, year_filter, verbose)
+        user_filters.append((DATASETS.census.date_column, "==", year))
+    if state:
+        user_filters.append(
+            (DATASETS.census.state_column, "==", get_state_abbreviation(state))
+        )
+    return _generate_dataset(DATASETS.census, source, seed, config, user_filters, verbose)
 
 
 def generate_american_community_survey(
@@ -172,6 +178,7 @@ def generate_american_community_survey(
     seed: int = 0,
     config: Union[Path, str, Dict[str, Dict]] = None,
     year: Optional[int] = 2020,
+    state: Optional[str] = None,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -192,22 +199,27 @@ def generate_american_community_survey(
     :param year: The survey date year (format YYYY) to include in the dataset. Will
         return an empty pd.DataFrame if there are no data with this year. If None is
         provided, data from all years are included in the dataset.
+    :param state: The state string to include in the dataset. Either full name or
+        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
+        data pertaining to this state. If None is provided, data from all locations are
+        included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated ACS data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
-    year_filter = {"hdf": None, "parquet": None}
+    user_filters = []
     if year:
-        year_filter["hdf"] = [
-            f"{DATASETS.acs.date_column} >= '{year}-01-01' and {DATASETS.acs.date_column} <= '{year}-12-31'"
-        ]
-        year_filter["parquet"] = [
-            (DATASETS.acs.date_column, ">=", pd.Timestamp(f"{year}-01-01")),
-            (DATASETS.acs.date_column, "<=", pd.Timestamp(f"{year}-12-31")),
-        ]
+        user_filters.extend(
+            [
+                (DATASETS.acs.date_column, ">=", pd.Timestamp(f"{year}-01-01")),
+                (DATASETS.acs.date_column, "<=", pd.Timestamp(f"{year}-12-31")),
+            ]
+        )
         seed = seed * 10_000 + year
-    return _generate_dataset(DATASETS.acs, source, seed, config, year_filter, verbose)
+    if state:
+        user_filters.append((DATASETS.acs.state_column, "==", get_state_abbreviation(state)))
+    return _generate_dataset(DATASETS.acs, source, seed, config, user_filters, verbose)
 
 
 def generate_current_population_survey(
@@ -215,6 +227,7 @@ def generate_current_population_survey(
     seed: int = 0,
     config: Union[Path, str, Dict[str, Dict]] = None,
     year: Optional[int] = 2020,
+    state: Optional[str] = None,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -236,22 +249,27 @@ def generate_current_population_survey(
     :param year: The survey date year (format YYYY) to include in the dataset. Will
         return an empty pd.DataFrame if there are no data with this year. If None is
         provided, data from all years are included in the dataset.
+    :param state: The state string to include in the dataset. Either full name or
+        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
+        data pertaining to this state. If None is provided, data from all locations are
+        included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated CPS data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
-    year_filter = {"hdf": None, "parquet": None}
+    user_filters = []
     if year:
-        year_filter["hdf"] = [
-            f"{DATASETS.cps.date_column} >= '{year}-01-01' and {DATASETS.cps.date_column} <= '{year}-12-31'"
-        ]
-        year_filter["parquet"] = [
-            (DATASETS.cps.date_column, ">=", pd.Timestamp(f"{year}-01-01")),
-            (DATASETS.cps.date_column, "<=", pd.Timestamp(f"{year}-12-31")),
-        ]
+        user_filters.extend(
+            [
+                (DATASETS.cps.date_column, ">=", pd.Timestamp(f"{year}-01-01")),
+                (DATASETS.cps.date_column, "<=", pd.Timestamp(f"{year}-12-31")),
+            ]
+        )
         seed = seed * 10_000 + year
-    return _generate_dataset(DATASETS.cps, source, seed, config, year_filter, verbose)
+    if state:
+        user_filters.append((DATASETS.cps.state_column, "==", get_state_abbreviation(state)))
+    return _generate_dataset(DATASETS.cps, source, seed, config, user_filters, verbose)
 
 
 def generate_taxes_w2_and_1099(
@@ -259,6 +277,7 @@ def generate_taxes_w2_and_1099(
     seed: int = 0,
     config: Union[Path, str, Dict[str, Dict]] = None,
     year: Optional[int] = 2020,
+    state: Optional[str] = None,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -273,17 +292,26 @@ def generate_taxes_w2_and_1099(
     :param year: The tax year (format YYYY) to include in the dataset. Will return
         an empty pd.DataFrame if there are no data with this year. If None is provided,
         data from all years are included in the dataset.
+    :param state: The state string to include in the dataset. Either full name or
+        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
+        data pertaining to this state. If None is provided, data from all locations are
+        included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated W2 and 1099 tax data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
-    year_filter = {"hdf": None, "parquet": None}
+    user_filters = []
     if year:
-        year_filter["hdf"] = [f"{DATASETS.tax_w2_1099.date_column} == {year}."]
-        year_filter["parquet"] = [(DATASETS.tax_w2_1099.date_column, "==", year)]
+        user_filters.append((DATASETS.tax_w2_1099.date_column, "==", year))
         seed = seed * 10_000 + year
-    return _generate_dataset(DATASETS.tax_w2_1099, source, seed, config, year_filter, verbose)
+    if state:
+        user_filters.append(
+            (DATASETS.tax_w2_1099.state_column, "==", get_state_abbreviation(state))
+        )
+    return _generate_dataset(
+        DATASETS.tax_w2_1099, source, seed, config, user_filters, verbose
+    )
 
 
 def generate_women_infants_and_children(
@@ -291,6 +319,7 @@ def generate_women_infants_and_children(
     seed: int = 0,
     config: Union[Path, str, Dict[str, Dict]] = None,
     year: Optional[int] = 2020,
+    state: Optional[str] = None,
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -310,17 +339,22 @@ def generate_women_infants_and_children(
     :param year: The year (format YYYY) to include in the dataset. Will return an
         empty pd.DataFrame if there are no data with this year. If None is provided,
         data from all years are included in the dataset.
+    :param state: The state string to include in the dataset. Either full name or
+        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
+        data pertaining to this state. If None is provided, data from all locations are
+        included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated WIC data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
-    year_filter = {"hdf": None, "parquet": None}
+    user_filters = []
     if year:
-        year_filter["hdf"] = [f"{DATASETS.wic.date_column} == {year}."]
-        year_filter["parquet"] = [(DATASETS.wic.date_column, "==", year)]
+        user_filters.append((DATASETS.wic.date_column, "==", year))
         seed = seed * 10_000 + year
-    return _generate_dataset(DATASETS.wic, source, seed, config, year_filter, verbose)
+    if state:
+        user_filters.append((DATASETS.wic.state_column, "==", get_state_abbreviation(state)))
+    return _generate_dataset(DATASETS.wic, source, seed, config, user_filters, verbose)
 
 
 def generate_social_security(
@@ -348,11 +382,8 @@ def generate_social_security(
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
-    year_filter = {"hdf": None, "parquet": None}
+    user_filters = []
     if year:
-        year_filter["hdf"] = [f"{DATASETS.ssa.date_column} <= {year}."]
-        year_filter["parquet"] = [
-            (DATASETS.ssa.date_column, "<=", pd.Timestamp(f"{year}-12-31"))
-        ]
+        user_filters.append((DATASETS.ssa.date_column, "<=", pd.Timestamp(f"{year}-12-31")))
         seed = seed * 10_000 + year
-    return _generate_dataset(DATASETS.ssa, source, seed, config, year_filter, verbose)
+    return _generate_dataset(DATASETS.ssa, source, seed, config, user_filters, verbose)

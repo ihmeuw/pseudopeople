@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -13,7 +15,7 @@ from pseudopeople.interface import (
     generate_women_infants_and_children,
 )
 from pseudopeople.schema_entities import COLUMNS, DATASETS
-from tests.integration.conftest import CELL_PROBABILITY, SEED
+from tests.integration.conftest import CELL_PROBABILITY, SEED, STATE
 
 IDX_COLS = {
     DATASETS.census.name: [COLUMNS.simulant_id.name, COLUMNS.year.name],
@@ -307,6 +309,164 @@ def test_dataset_filter_by_year_with_full_dates(mocker, dataset_name: str):
         assert (years <= year).all()
     else:
         assert (years == year).all()
+
+
+@pytest.mark.parametrize(
+    "dataset_name",
+    [
+        DATASETS.census.name,
+        DATASETS.acs.name,
+        DATASETS.cps.name,
+        DATASETS.tax_w2_1099.name,
+        DATASETS.wic.name,
+        "TODO: tax_1040",
+    ],
+)
+def test_generate_dataset_with_state_noised(dataset_name: str, request, tmpdir):
+    """Test that dataset generation filtered by state noises data differently with different seeds"""
+    if "TODO" in dataset_name:
+        pytest.skip(reason=dataset_name)
+    data = request.getfixturevalue(f"sample_data_{dataset_name}_state_edit")
+    _generate_non_sample_data_root(dataset_name, tmpdir, data)
+
+    noising_function = DATASET_GENERATION_FUNCS[dataset_name]
+    noised_data = noising_function(source=tmpdir, seed=0, state=STATE)
+    noised_data_same_seed = noising_function(source=tmpdir, seed=0, state=STATE)
+    noised_data_different_seed = noising_function(source=tmpdir, seed=1, state=STATE)
+
+    assert not data.equals(noised_data)
+    assert noised_data.equals(noised_data_same_seed)
+    assert not noised_data.equals(noised_data_different_seed)
+
+
+@pytest.mark.parametrize(
+    "dataset_name",
+    [
+        DATASETS.census.name,
+        DATASETS.acs.name,
+        DATASETS.cps.name,
+        DATASETS.tax_w2_1099.name,
+        DATASETS.wic.name,
+        "TODO: tax_1040",
+    ],
+)
+def test_generate_dataset_with_state_filtered(dataset_name: str, request, mocker, tmpdir):
+    """Test that values returned by dataset generators are only for the specified state"""
+    if "TODO" in dataset_name:
+        pytest.skip(reason=dataset_name)
+    dataset = DATASETS.get_dataset(dataset_name)
+    data = request.getfixturevalue(f"sample_data_{dataset_name}_state_edit")
+    _generate_non_sample_data_root(dataset_name, tmpdir, data)
+
+    # Skip noising (noising can incorrect select another state)
+    mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
+
+    noising_function = DATASET_GENERATION_FUNCS[dataset_name]
+    noised_data = noising_function(source=tmpdir, state=STATE)
+
+    assert (noised_data[dataset.state_column] == STATE).all()
+
+
+@pytest.mark.parametrize(
+    "dataset_name",
+    [
+        DATASETS.census.name,
+        DATASETS.acs.name,
+        DATASETS.cps.name,
+        DATASETS.tax_w2_1099.name,
+        DATASETS.wic.name,
+        "TODO: tax_1040",
+    ],
+)
+def test_generate_dataset_with_state_unfiltered(dataset_name: str, request, mocker, tmpdir):
+    """Test that values returned by dataset generators are for all locations if state unspecified"""
+    if "TODO" in dataset_name:
+        pytest.skip(reason=dataset_name)
+    dataset = DATASETS.get_dataset(dataset_name)
+    data = request.getfixturevalue(f"sample_data_{dataset_name}_state_edit")
+    _generate_non_sample_data_root(dataset_name, tmpdir, data)
+
+    # Skip noising (noising can incorrect select another state)
+    mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
+
+    noising_function = DATASET_GENERATION_FUNCS[dataset_name]
+    noised_data = noising_function(source=tmpdir)
+
+    assert (noised_data[dataset.state_column] == STATE).any()
+    assert (noised_data[dataset.state_column] != STATE).any()
+
+
+@pytest.mark.parametrize(
+    "dataset_name",
+    [DATASETS.census.name, DATASETS.tax_w2_1099.name, DATASETS.wic.name, "TODO: tax_1040"],
+)
+def test_dataset_filter_by_state_and_year(mocker, tmpdir, request, dataset_name: str):
+    """Test that dataset generation works with state and year filters in conjunction"""
+    if "TODO" in dataset_name:
+        pytest.skip(reason=dataset_name)
+    year = 2030  # not default 2020
+    data = request.getfixturevalue(f"sample_data_{dataset_name}_state_edit")
+    _generate_non_sample_data_root(dataset_name, tmpdir, data)
+    mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
+    mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
+    noising_function = DATASET_GENERATION_FUNCS[dataset_name]
+    noised_data = noising_function(source=tmpdir, year=year, state=STATE)
+    dataset = DATASETS.get_dataset(dataset_name)
+    assert (noised_data[dataset.date_column] == year).all()
+    assert (noised_data[dataset.state_column] == STATE).all()
+
+
+@pytest.mark.parametrize(
+    "dataset_name",
+    [DATASETS.acs.name, DATASETS.cps.name],
+)
+def test_dataset_filter_by_state_and_year_with_full_dates(
+    mocker, tmpdir, request, dataset_name: str
+):
+    """Test that dataset generation works with state and year filters in conjunction"""
+    year = 2030  # not default 2020
+    data = request.getfixturevalue(f"sample_data_{dataset_name}_state_edit")
+    _generate_non_sample_data_root(dataset_name, tmpdir, data)
+    mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
+    mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
+    noising_function = DATASET_GENERATION_FUNCS[dataset_name]
+    noised_data = noising_function(source=tmpdir, year=year, state=STATE)
+    dataset = DATASETS.get_dataset(dataset_name)
+    date_format = COLUMNS.get_column(dataset.date_column).additional_attributes.get(
+        "date_format"
+    )
+    if date_format:
+        # The date is a string type, and we cannot expect to use datetime objects
+        # due to the month/day swaps
+        years = noised_data[dataset.date_column].str[0:4].astype(int)
+    else:
+        years = noised_data[dataset.date_column].dt.year
+    assert (years == year).all()
+    assert (noised_data[dataset.state_column] == STATE).all()
+
+
+@pytest.mark.parametrize(
+    "dataset_name",
+    [
+        DATASETS.census.name,
+        DATASETS.acs.name,
+        DATASETS.cps.name,
+        DATASETS.tax_w2_1099.name,
+        DATASETS.wic.name,
+        "TODO: tax_1040",
+    ],
+)
+def test_generate_dataset_with_bad_state(dataset_name: str, request, tmpdir):
+    """Test that bad state values result in informative ValueErrors"""
+    if "TODO" in dataset_name:
+        pytest.skip(reason=dataset_name)
+    data = request.getfixturevalue(f"sample_data_{dataset_name}_state_edit")
+    _generate_non_sample_data_root(dataset_name, tmpdir, data)
+    bad_state = "Silly State That Doesn't Exist"
+
+    noising_function = DATASET_GENERATION_FUNCS[dataset_name]
+    with pytest.raises(ValueError, match=bad_state.upper()):
+        _ = noising_function(source=tmpdir, state=bad_state)
 
 
 ####################

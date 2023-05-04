@@ -6,6 +6,8 @@ import pandas as pd
 from loguru import logger
 from vivarium.framework.randomness import RandomnessStream, random
 
+from pseudopeople.constants import metadata, paths
+
 
 def get_randomness_stream(dataset_name: str, seed: int) -> RandomnessStream:
     return RandomnessStream(dataset_name, lambda: pd.Timestamp("2020-04-01"), seed)
@@ -149,3 +151,23 @@ def two_d_array_choice(
     )
 
     return new
+
+
+def get_state_abbreviation(state: str) -> str:
+    """
+    Get the two letter abbreviation of a state in the US.
+
+    :param state: A string representation of the state.
+    :return: A string of length 2
+    """
+    state = state.upper()
+    if len(state) == 2:
+        if state in metadata.US_STATE_ABBRV_MAP.values():
+            return state
+        else:
+            raise ValueError(f"Unexpected state input: '{state}'")
+    else:
+        try:
+            return metadata.US_STATE_ABBRV_MAP[state]
+        except KeyError:
+            raise ValueError(f"Unexpected state input: '{state}'")
