@@ -198,5 +198,5 @@ def _validate_nickname_probability(
 DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP = {
     NOISE_TYPES.nickname.name: _validate_nickname_probability,
     Keys.POSSIBLE_AGE_DIFFERENCES: _validate_possible_age_differences,
-    Keys.ZIPCODE_DIGIT_PROBABILITIES: _validate_zipcode_digit_probabilities
+    Keys.ZIPCODE_DIGIT_PROBABILITIES: _validate_zipcode_digit_probabilities,
 }

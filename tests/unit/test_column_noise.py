@@ -546,15 +546,15 @@ def test_generate_nicknames(dummy_dataset):
         else:
             real_name_idx = data.index[data == real_name]
             # Verify options chosen are valid nicknames for original names that were noised
-            assert set(noised_data.loc[real_name_idx].dropna().unique()).issubset(
+            assert set(noised_data.loc[real_name_idx].dropna()).issubset(
                 set(names_list.loc[real_name] + [real_name])
             )
             # Validate we choose the nicknames for each name randomly (equally)
-            name_sub = noised_data.loc[
+            chosen_nicknames = noised_data.loc[
                 real_name_idx.difference(noised_data.index[noised_data == real_name])
             ]
             chosen_nickname_weights = pd.Series(
-                name_sub.value_counts() / sum(name_sub.value_counts())
+                chosen_nicknames.value_counts() / sum(chosen_nicknames.value_counts())
             )
             name_weight = 1 / len(names_list.loc[real_name])
             # We are weighting are rtol to adjust for variance depending on number of nicknames
