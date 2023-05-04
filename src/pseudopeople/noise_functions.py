@@ -11,7 +11,7 @@ from pseudopeople.constants import data_values, paths
 from pseudopeople.constants.metadata import Attributes, DatasetNames
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.exceptions import ConfigurationError
-from pseudopeople.noise_scaling import _load_nicknames_data
+from pseudopeople.noise_scaling import load_nicknames_data
 from pseudopeople.utilities import (
     get_index_to_noise,
     two_d_array_choice,
@@ -374,7 +374,7 @@ def generate_nicknames(
     :param additional_key: Key for RandomnessStream
     :return: pd.Series of nicknames replacing original names
     """
-    nicknames = _load_nicknames_data()
+    nicknames = load_nicknames_data()
 
     have_nickname_idx = column.index[column.isin(nicknames.index)]
     noised = two_d_array_choice(

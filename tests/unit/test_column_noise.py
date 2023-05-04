@@ -533,9 +533,9 @@ def test_generate_nicknames(dummy_dataset):
     )
 
     # Validation for nicknames
-    from pseudopeople.noise_scaling import _load_nicknames_data
+    from pseudopeople.noise_scaling import load_nicknames_data
 
-    nicknames = _load_nicknames_data()
+    nicknames = load_nicknames_data()
     names_list = pd.Series(
         nicknames.apply(lambda row: row.dropna().tolist(), axis=1), index=nicknames.index
     )
