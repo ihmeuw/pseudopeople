@@ -43,13 +43,13 @@ DATASET_GENERATION_FUNCS = {
 @pytest.mark.parametrize(
     "dataset_name",
     [
-        # DATASETS.census.name,
-        # DATASETS.acs.name,
-        # DATASETS.cps.name,
+        DATASETS.census.name,
+        DATASETS.acs.name,
+        DATASETS.cps.name,
         DATASETS.ssa.name,
-        # DATASETS.tax_w2_1099.name,
-        # DATASETS.wic.name,
-        # "TODO: tax_1040",
+        DATASETS.tax_w2_1099.name,
+        DATASETS.wic.name,
+        "TODO: tax_1040",
     ],
 )
 def test_generate_dataset_from_sample_and_source(dataset_name: str, config, tmpdir, request):
@@ -244,15 +244,15 @@ def test_generate_dataset_with_year(dataset_name: str, request):
 
 
 @pytest.mark.parametrize(
-    "dataset_name, date_column",
+    "dataset_name",
     [
-        (DATASETS.census.name, DATASETS.census.date_column),
-        (DATASETS.tax_w2_1099.name, DATASETS.tax_w2_1099.date_column),
-        (DATASETS.wic.name, DATASETS.wic.date_column),
-        ("TODO: tax_1040", "todo"),
+        DATASETS.census.name,
+        DATASETS.tax_w2_1099.name,
+        DATASETS.wic.name,
+        "TODO: tax_1040",
     ],
 )
-def test_dataset_filter_by_year(mocker, request, dataset_name: str, date_column: str):
+def test_dataset_filter_by_year(mocker, dataset_name: str):
     """Mock the noising function so that it returns the date column of interest
     with the original (unnoised) values to ensure filtering is happening
     """
@@ -263,7 +263,8 @@ def test_dataset_filter_by_year(mocker, request, dataset_name: str, date_column:
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
     noising_function = DATASET_GENERATION_FUNCS[dataset_name]
     noised_data = noising_function(year=year)
-    assert (noised_data[date_column] == year).all()
+    dataset = DATASETS.get_dataset(dataset_name)
+    assert (noised_data[dataset.date_column] == year).all()
 
 
 @pytest.mark.parametrize(
@@ -274,7 +275,7 @@ def test_dataset_filter_by_year(mocker, request, dataset_name: str, date_column:
         DATASETS.ssa.name,
     ],
 )
-def test_dataset_filter_by_year_with_full_dates(mocker, request, dataset_name: str):
+def test_dataset_filter_by_year_with_full_dates(mocker, dataset_name: str):
     """Mock the noising function so that it returns the date column of interest
     with the original (unnoised) values to ensure filtering is happening
     """
