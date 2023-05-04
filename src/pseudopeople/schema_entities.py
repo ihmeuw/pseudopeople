@@ -537,5 +537,14 @@ class __Datasets(NamedTuple):
     #     Datasets.TAXES_1040,
     # )
 
+    ##################
+    # Helper methods #
+    ##################
+
+    @staticmethod
+    def get_dataset(name: str) -> Dataset:
+        """Return the respective Dataset object given the dataset name"""
+        return [d for d in DATASETS if d.name == name][0]
+
 
 DATASETS = __Datasets()
