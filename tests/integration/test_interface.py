@@ -66,6 +66,7 @@ def test_generate_dataset_from_sample_and_source(dataset_name: str, config, tmpd
     split_idx = int(len(data) / 2)
     data[:split_idx].to_parquet(outdir / f"{dataset_name}_1.parquet")
     data[split_idx:].to_parquet(outdir / f"{dataset_name}_2.parquet")
+    # Generate a new (non-fixture) noised dataset from the split data in tmpdir
     noising_function = DATASET_GENERATION_FUNCS.get(dataset_name)
     noised_dataset = noising_function(seed=SEED, year=None, source=tmpdir, config=config)
 
@@ -123,6 +124,8 @@ def test_seed_behavior(dataset_name: str, config, request):
         pytest.skip(reason=dataset_name)
     data = request.getfixturevalue(f"sample_data_{dataset_name}")
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
+    # Generate new (non-fixture) noised datasets with the same seed and a different
+    # seed as the fixture
     noising_function = DATASET_GENERATION_FUNCS.get(dataset_name)
     noised_data_same_seed = noising_function(seed=SEED, year=None, config=config)
     noised_data_different_seed = noising_function(seed=SEED + 1, year=None, config=config)
@@ -237,6 +240,7 @@ def test_generate_dataset_with_year(dataset_name: str, request):
         pytest.skip(reason=dataset_name)
     year = 2030  # not default 2020
     data = request.getfixturevalue(f"sample_data_{dataset_name}")
+    # Generate a new (non-fixture) noised dataset for a single year
     noising_function = DATASET_GENERATION_FUNCS[dataset_name]
     noised_data = noising_function(year=year)
     assert not data.equals(noised_data)
@@ -258,6 +262,9 @@ def test_dataset_filter_by_year(mocker, dataset_name: str):
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     year = 2030  # not default 2020
+    # Generate a new (non-fixture) noised dataset for a single year but mocked such
+    # that no noise actually happens (otherwise the years would get noised and
+    # we couldn't tell if the filter was working properly)
     mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
     noising_function = DATASET_GENERATION_FUNCS[dataset_name]
@@ -279,6 +286,9 @@ def test_dataset_filter_by_year_with_full_dates(mocker, dataset_name: str):
     with the original (unnoised) values to ensure filtering is happening
     """
     year = 2030  # not default 2020
+    # Generate a new (non-fixture) noised dataset for a single year but mocked such
+    # that no noise actually happens (otherwise the years would get noised and
+    # we couldn't tell if the filter was working properly)
     mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
     noising_function = DATASET_GENERATION_FUNCS[dataset_name]
