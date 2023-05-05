@@ -72,11 +72,11 @@ def dummy_dataset():
     zipcodes = ["12345", "98765", "02468", "13579", ""]
     zipcode_series = pd.Series(zipcodes * int(num_simulants / len(zipcodes)))
     first_names = [
-        "first name",
-        "another first name",
-        "other first name",
-        "other other first name",
-        "",
+        "Abigail",
+        "Catherine",
+        "Bill",
+        "Fake name",
+        np.nan,
     ]
     first_name_series = pd.Series(first_names * int(num_simulants / len(first_names)))
     last_names = ["A last name", "another last name", "other last name", "last name", ""]
@@ -515,9 +515,54 @@ def test_miswrite_numerics(string_series):
             assert (noised_data[ssn].str[i].str.isdigit()).all()
 
 
-@pytest.mark.skip(reason="TODO")
-def test_generate_nicknames():
-    pass
+def test_generate_nicknames(dummy_dataset):
+
+    config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE]["first_name"][
+        NOISE_TYPES.nickname.name
+    ]
+    expected_noise = config[Keys.CELL_PROBABILITY]
+    data = dummy_dataset["first_name"]
+    noised_data = NOISE_TYPES.nickname(data, config, RANDOMNESS0, "test_nicknames")
+
+    # Validate missing stays missing
+    orig_missing = data.isna()
+    assert (noised_data[orig_missing].isna()).all()
+    # Validate noise level
+    assert np.isclose(
+        expected_noise, (noised_data[~orig_missing] != data[~orig_missing]).mean(), rtol=0.02
+    )
+
+    # Validation for nicknames
+    from pseudopeople.noise_scaling import load_nicknames_data
+
+    nicknames = load_nicknames_data()
+    names_list = pd.Series(
+        nicknames.apply(lambda row: row.dropna().tolist(), axis=1), index=nicknames.index
+    )
+    for real_name in data.dropna().unique():
+        # Validates names that are not nickname eligible do not not get noised
+        if real_name not in names_list.index:
+            assert (data.loc[data == real_name] == noised_data[data == real_name]).all()
+        else:
+            real_name_idx = data.index[data == real_name]
+            # Verify options chosen are valid nicknames for original names that were noised
+            assert set(noised_data.loc[real_name_idx].dropna()).issubset(
+                set(names_list.loc[real_name] + [real_name])
+            )
+            # Validate we choose the nicknames for each name randomly (equally)
+            chosen_nicknames = noised_data.loc[
+                real_name_idx.difference(noised_data.index[noised_data == real_name])
+            ]
+            chosen_nickname_weights = pd.Series(
+                chosen_nicknames.value_counts() / sum(chosen_nicknames.value_counts())
+            )
+            name_weight = 1 / len(names_list.loc[real_name])
+            # We are weighting are rtol to adjust for variance depending on number of nicknames
+            assert np.isclose(
+                chosen_nickname_weights,
+                name_weight,
+                rtol=0.025 * len(chosen_nickname_weights),
+            ).all()
 
 
 def test_generate_fake_names(dummy_dataset):

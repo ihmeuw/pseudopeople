@@ -1,6 +1,6 @@
 from typing import NamedTuple
 
-from pseudopeople import noise_functions, utilities
+from pseudopeople import noise_functions, noise_scaling, utilities
 from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 
@@ -27,7 +27,7 @@ class __NoiseTypes(NamedTuple):
     incorrect_selection: ColumnNoiseType = ColumnNoiseType(
         "choose_wrong_option",
         noise_functions.generate_incorrect_selections,
-        noise_level_scaling_function=utilities.noise_scaling_incorrect_selection,
+        noise_level_scaling_function=noise_scaling.noise_scaling_incorrect_selection,
     )
     # copy_from_within_household: ColumnNoiseType = ColumnNoiseType(
     #     "copy_from_household_member",
@@ -58,10 +58,11 @@ class __NoiseTypes(NamedTuple):
             Keys.TOKEN_PROBABILITY: 0.1,
         },
     )
-    # nickname: ColumnNoiseType = ColumnNoiseType(
-    #     "use_nickname",
-    #     noise_functions.generate_nicknames,
-    # )
+    nickname: ColumnNoiseType = ColumnNoiseType(
+        "use_nickname",
+        noise_functions.generate_nicknames,
+        noise_level_scaling_function=noise_scaling.scale_nicknames,
+    )
     fake_name: ColumnNoiseType = ColumnNoiseType(
         "use_fake_name",
         noise_functions.generate_fake_names,

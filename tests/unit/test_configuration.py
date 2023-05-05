@@ -387,3 +387,29 @@ def test_omit_rows_do_not_respond_mutex_default_configuration():
             NOISE_TYPES.do_not_respond.name in config[dataset.name][Keys.ROW_NOISE].keys()
         )
         assert not has_do_not_respond or not has_omit_rows
+
+
+def test_validate_nickname_configuration(caplog):
+    """
+    Tests that warning is thrown if cell probability is higher than nickname proportion.  Also tests noise leve
+    is appropriately adjust if this is the case.
+    """
+    config_values = [0.45, 0.65]
+    for config_value in config_values:
+        get_configuration(
+            {
+                DATASETS.census.name: {
+                    Keys.COLUMN_NOISE: {
+                        COLUMNS.first_name.name: {
+                            NOISE_TYPES.nickname.name: {
+                                Keys.CELL_PROBABILITY: config_value,
+                            },
+                        },
+                    },
+                },
+            },
+        )
+        if config_value == 0.45:
+            assert not caplog.records
+        else:
+            assert "Noise level has been adjusted" in caplog.text

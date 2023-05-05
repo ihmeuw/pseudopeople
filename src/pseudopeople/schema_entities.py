@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, NamedTuple, Tuple
+from typing import Dict, NamedTuple, Optional, Tuple
 
 from pseudopeople.constants.metadata import DATEFORMATS, Attributes, DatasetNames
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
@@ -124,7 +124,7 @@ class __Columns(NamedTuple):
         "first_name",
         (
             NOISE_TYPES.missing_data,
-            # NOISE_TYPES.nickname,
+            NOISE_TYPES.nickname,
             NOISE_TYPES.fake_name,
             # NOISE_TYPES.phonetic,
             # NOISE_TYPES.ocr,
@@ -370,7 +370,8 @@ COLUMNS = __Columns()
 class Dataset:
     name: str
     columns: Tuple[Column, ...]  # This defines the output column order
-    date_column: str
+    date_column_name: str
+    state_column_name: Optional[str]
     row_noise_types: Tuple[RowNoiseType, ...]
 
 
@@ -397,7 +398,8 @@ class __Datasets(NamedTuple):
             COLUMNS.race_ethnicity,
             COLUMNS.year,
         ),
-        date_column=COLUMNS.year.name,
+        date_column_name=COLUMNS.year.name,
+        state_column_name=COLUMNS.state.name,
         row_noise_types=(
             NOISE_TYPES.do_not_respond,
             # NOISE_TYPES.duplication,
@@ -423,7 +425,8 @@ class __Datasets(NamedTuple):
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
         ),
-        date_column=COLUMNS.survey_date.name,
+        date_column_name=COLUMNS.survey_date.name,
+        state_column_name=COLUMNS.state.name,
         row_noise_types=(
             NOISE_TYPES.do_not_respond,
             # NOISE_TYPES.duplication,
@@ -449,7 +452,8 @@ class __Datasets(NamedTuple):
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
         ),
-        date_column=COLUMNS.survey_date.name,
+        date_column_name=COLUMNS.survey_date.name,
+        state_column_name=COLUMNS.state.name,
         row_noise_types=(
             NOISE_TYPES.do_not_respond,
             # NOISE_TYPES.duplication,
@@ -474,7 +478,8 @@ class __Datasets(NamedTuple):
             COLUMNS.race_ethnicity,
             COLUMNS.year,
         ),
-        date_column=COLUMNS.year.name,
+        date_column_name=COLUMNS.year.name,
+        state_column_name=COLUMNS.state.name,
         row_noise_types=(
             NOISE_TYPES.omission,
             # NOISE_TYPES.duplication,
@@ -492,7 +497,8 @@ class __Datasets(NamedTuple):
             COLUMNS.ssa_event_type,
             COLUMNS.ssa_event_date,
         ),
-        date_column=COLUMNS.ssa_event_date.name,
+        date_column_name=COLUMNS.ssa_event_date.name,
+        state_column_name=None,
         row_noise_types=(
             NOISE_TYPES.omission,
             # NOISE_TYPES.duplication,
@@ -527,7 +533,8 @@ class __Datasets(NamedTuple):
             COLUMNS.tax_form,
             COLUMNS.tax_year,
         ),
-        date_column=COLUMNS.tax_year.name,
+        date_column_name=COLUMNS.tax_year.name,
+        state_column_name=COLUMNS.mailing_state.name,
         row_noise_types=(
             NOISE_TYPES.omission,
             # NOISE_TYPES.duplication,

@@ -6,7 +6,7 @@ import pandas as pd
 from loguru import logger
 from vivarium.framework.randomness import RandomnessStream, random
 
-from pseudopeople.constants import paths
+from pseudopeople.constants import metadata, paths
 
 
 def get_randomness_stream(dataset_name: str, seed: int) -> RandomnessStream:
@@ -87,26 +87,6 @@ def get_index_to_noise(
     return to_noise_idx
 
 
-def noise_scaling_incorrect_selection(name: str) -> float:
-    """
-    Function to scale noising for incorrect selection to adjust for the possibility of noising with the original values.
-    """
-    selection_type = {
-        "employer_state": "state",
-        "mailing_address_state": "state",
-    }.get(name, name)
-
-    selection_options = pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
-    # Get possible noise values
-    # todo: Update with exclusive resampling when vectorized_choice is improved
-    options = selection_options.loc[selection_options[selection_type].notna(), selection_type]
-
-    # Scale to adjust for possibility of noising with original value
-    noise_scaling_value = 1 / (1 - 1 / len(options))
-
-    return noise_scaling_value
-
-
 def configure_logging_to_terminal(verbose: bool = False):
     logger.remove()  # Clear default configuration
     add_logging_sink(sys.stdout, verbose, colorize=True)
@@ -126,3 +106,64 @@ def add_logging_sink(sink, verbose, colorize=False, serialize=False):
         logger.add(
             sink, colorize=colorize, level="INFO", format=message_format, serialize=serialize
         )
+
+
+def two_d_array_choice(
+    data: pd.Series,
+    options: pd.DataFrame,
+    randomness_stream: RandomnessStream,
+    additional_key: str,
+):
+    """
+    Makes vectorized choice for 2D array options.
+    :param data: pd.Series which should be a subset of options.index
+    :param options: pd.DataFrame where the index is the values of data and columns are available choices.
+    :param randomness_stream: RandomnessStream object
+    :param additional_key: key for randomness_stream
+    :returns: pd.Series with new choices replacing the original values in data.
+    """
+
+    # Change columns to be integers for datawrangling later
+    options.columns = list(range(len(options.columns)))
+    # Get subset of options where we will choose new values
+    data_idx = pd.Index(data.values)
+    options = options.loc[data_idx]
+    # Get number of options per name
+    number_of_nicknames = options.count(axis=1)
+
+    # Find null values and calculate weights
+    not_na = options.notna()
+    row_weights = np.ones(len(number_of_nicknames)) / number_of_nicknames
+    weights = not_na.mul(row_weights, axis=0)
+    pmf = weights.div(weights.sum(axis=1), axis=0)
+    cdf = np.cumsum(pmf, axis=1)
+    # Get draw for each row
+    probs = randomness_stream.get_draw(pd.Index(data.index), additional_key=additional_key)
+
+    # Select indices of nickname to choose based on random draw
+    choice_index = (probs.values[np.newaxis].T > cdf).sum(axis=1)
+    options["choice_index"] = choice_index
+    idx, cols = pd.factorize(options["choice_index"])
+    # 2D array lookup to make an array for the series value
+    new = pd.Series(
+        options.reindex(cols, axis=1).to_numpy()[np.arange(len(options)), idx],
+        index=data.index,
+    )
+
+    return new
+
+
+def get_state_abbreviation(state: str) -> str:
+    """
+    Get the two letter abbreviation of a state in the US.
+
+    :param state: A string representation of the state.
+    :return: A string of length 2
+    """
+    state = state.upper()
+    if state in metadata.US_STATE_ABBRV_MAP.values():
+        return state
+    try:
+        return metadata.US_STATE_ABBRV_MAP[state]
+    except KeyError:
+        raise ValueError(f"Unexpected state input: '{state}'")
