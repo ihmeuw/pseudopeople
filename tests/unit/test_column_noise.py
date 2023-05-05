@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from vivarium.framework.randomness import RandomnessStream
+from vivarium.framework.randomness.index_map import IndexMap
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
@@ -12,10 +13,16 @@ from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS
 
 RANDOMNESS0 = RandomnessStream(
-    key="test_column_noise", clock=lambda: pd.Timestamp("2020-09-01"), seed=0
+    key="test_column_noise",
+    clock=lambda: pd.Timestamp("2020-09-01"),
+    seed=0,
+    index_map=IndexMap(),
 )
 RANDOMNESS1 = RandomnessStream(
-    key="test_column_noise", clock=lambda: pd.Timestamp("2020-09-01"), seed=1
+    key="test_column_noise",
+    clock=lambda: pd.Timestamp("2020-09-01"),
+    seed=1,
+    index_map=IndexMap(),
 )
 
 

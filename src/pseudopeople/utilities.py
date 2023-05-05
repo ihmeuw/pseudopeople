@@ -4,13 +4,16 @@ from typing import Any, Union
 import numpy as np
 import pandas as pd
 from loguru import logger
-from vivarium.framework.randomness import RandomnessStream, random
+from vivarium.framework.randomness import RandomnessStream
+from vivarium.framework.randomness.index_map import IndexMap
 
 from pseudopeople.constants import metadata, paths
 
 
 def get_randomness_stream(dataset_name: str, seed: int) -> RandomnessStream:
-    return RandomnessStream(dataset_name, lambda: pd.Timestamp("2020-04-01"), seed)
+    return RandomnessStream(
+        dataset_name, lambda: pd.Timestamp("2020-04-01"), seed, IndexMap()
+    )
 
 
 def vectorized_choice(
@@ -50,7 +53,7 @@ def vectorized_choice(
     if randomness_stream is None:
         # Generate an additional_key on-the-fly and use that in randomness.random
         additional_key = f"{additional_key}_{random_seed}"
-        probs = random(str(additional_key), index)
+        probs = np.random.uniform(size=len(index))
     else:
         probs = randomness_stream.get_draw(index, additional_key=additional_key)
 
