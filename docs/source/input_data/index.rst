@@ -31,6 +31,49 @@ follow these steps:
 #. Fill out the information on the access request form to tell us about your project. You can simply put "Data access request" in the title field.
 #. We will get back to you after we receive your request!
 
+Validating pseudopeople input data
+----------------------------------
+
+The following table provides the SHA-256 checksum for the larger-scale input
+data zip files:
+
+.. list-table:: SHA-256 checksums
+  :header-rows: 1
+
+  * - Location
+    - File
+    - SHA-256 checksum
+  * - US
+    - pseudopeople_input_data_usa_1_0_0.zip
+    - 9462cc60b333fb2a3d16554a9e59b5428a81a2b1d2c34ed383883d7b68d2f89f
+  * - Rhode Island
+    - pseudopeople_input_data_ri_1_0_0.zip
+    - d3f1ccdfbfca8b53254c4ceeb18afe17c3d3b3fe02f56cc20d1254f818c39435
+
+These SHA-256 checksums can be used to validate that you've successfully
+downloaded the correct (and uncorrupt) zip file; if the SHA-256 checksum that
+you generate for the downloaded file matches the value provided in the table
+above, you can be sure the download was successful. There are many tools to
+generate SHA-256 checksums, including the terminal/cmd commands below:
+
+Linux:
+
+.. code-block:: console
+
+  $ sha256sum <filename>
+
+Mac:
+
+.. code-block:: console
+
+  $ shasum -a 256 <filename>
+
+Windows:
+
+.. code-block:: console
+
+  $ CertUtil -hashfile <filename> SHA256
+
 Using pseudopeople input data
 -----------------------------
 
