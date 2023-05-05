@@ -272,7 +272,7 @@ def test_dataset_filter_by_year(mocker, dataset_name: str):
     noising_function = DATASET_GENERATION_FUNCS[dataset_name]
     noised_data = noising_function(year=year)
     dataset = DATASETS.get_dataset(dataset_name)
-    assert (noised_data[dataset.date_column] == year).all()
+    assert (noised_data[dataset.date_column_name] == year).all()
 
 
 @pytest.mark.parametrize(
@@ -296,15 +296,17 @@ def test_dataset_filter_by_year_with_full_dates(mocker, dataset_name: str):
     noising_function = DATASET_GENERATION_FUNCS[dataset_name]
     noised_data = noising_function(year=year)
     dataset = DATASETS.get_dataset(dataset_name)
-    date_format = COLUMNS.get_column(dataset.date_column).additional_attributes.get(
+    # NB: conditional on date_format is potentially brittle if we have some noised
+    #  date column with a different format.
+    date_format = COLUMNS.get_column(dataset.date_column_name).additional_attributes.get(
         "date_format"
     )
     if date_format:
-        # The date is a string type and we cannot expect to use datetime objects
+        # The date is a string type, and we cannot expect to use datetime objects
         # due to the month/day swaps
-        years = noised_data[dataset.date_column].str[0:4].astype(int)
+        years = noised_data[dataset.date_column_name].str[0:4].astype(int)
     else:
-        years = noised_data[dataset.date_column].dt.year
+        years = noised_data[dataset.date_column_name].dt.year
     if dataset == DATASETS.ssa:
         assert (years <= year).all()
     else:
@@ -364,7 +366,7 @@ def test_generate_dataset_with_state_filtered(dataset_name: str, request, mocker
     noising_function = DATASET_GENERATION_FUNCS[dataset_name]
     noised_data = noising_function(source=tmpdir, state=STATE)
 
-    assert (noised_data[dataset.state_column] == STATE).all()
+    assert (noised_data[dataset.state_column_name] == STATE).all()
 
 
 @pytest.mark.parametrize(
@@ -392,8 +394,7 @@ def test_generate_dataset_with_state_unfiltered(dataset_name: str, request, mock
     noising_function = DATASET_GENERATION_FUNCS[dataset_name]
     noised_data = noising_function(source=tmpdir)
 
-    assert (noised_data[dataset.state_column] == STATE).any()
-    assert (noised_data[dataset.state_column] != STATE).any()
+    assert len(noised_data[dataset.state_column_name].unique()) > 1
 
 
 @pytest.mark.parametrize(
@@ -412,8 +413,8 @@ def test_dataset_filter_by_state_and_year(mocker, tmpdir, request, dataset_name:
     noising_function = DATASET_GENERATION_FUNCS[dataset_name]
     noised_data = noising_function(source=tmpdir, year=year, state=STATE)
     dataset = DATASETS.get_dataset(dataset_name)
-    assert (noised_data[dataset.date_column] == year).all()
-    assert (noised_data[dataset.state_column] == STATE).all()
+    assert (noised_data[dataset.date_column_name] == year).all()
+    assert (noised_data[dataset.state_column_name] == STATE).all()
 
 
 @pytest.mark.parametrize(
@@ -432,17 +433,19 @@ def test_dataset_filter_by_state_and_year_with_full_dates(
     noising_function = DATASET_GENERATION_FUNCS[dataset_name]
     noised_data = noising_function(source=tmpdir, year=year, state=STATE)
     dataset = DATASETS.get_dataset(dataset_name)
-    date_format = COLUMNS.get_column(dataset.date_column).additional_attributes.get(
+    # NB: conditional on date_format is potentially brittle if we have some noised
+    #  date column with a different format.
+    date_format = COLUMNS.get_column(dataset.date_column_name).additional_attributes.get(
         "date_format"
     )
     if date_format:
         # The date is a string type, and we cannot expect to use datetime objects
         # due to the month/day swaps
-        years = noised_data[dataset.date_column].str[0:4].astype(int)
+        years = noised_data[dataset.date_column_name].str[0:4].astype(int)
     else:
-        years = noised_data[dataset.date_column].dt.year
+        years = noised_data[dataset.date_column_name].dt.year
     assert (years == year).all()
-    assert (noised_data[dataset.state_column] == STATE).all()
+    assert (noised_data[dataset.state_column_name] == STATE).all()
 
 
 @pytest.mark.parametrize(

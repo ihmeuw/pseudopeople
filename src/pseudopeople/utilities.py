@@ -161,13 +161,9 @@ def get_state_abbreviation(state: str) -> str:
     :return: A string of length 2
     """
     state = state.upper()
-    if len(state) == 2:
-        if state in metadata.US_STATE_ABBRV_MAP.values():
-            return state
-        else:
-            raise ValueError(f"Unexpected state input: '{state}'")
-    else:
-        try:
-            return metadata.US_STATE_ABBRV_MAP[state]
-        except KeyError:
-            raise ValueError(f"Unexpected state input: '{state}'")
+    if state in metadata.US_STATE_ABBRV_MAP.values():
+        return state
+    try:
+        return metadata.US_STATE_ABBRV_MAP[state]
+    except KeyError:
+        raise ValueError(f"Unexpected state input: '{state}'")

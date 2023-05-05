@@ -123,7 +123,7 @@ def noised_sample_data_taxes_w2_and_1099(config):
 def sample_data_decennial_census_state_edit():
     data = _load_sample_data(DATASETS.census.name)
     # Set half of the entries to the state we'll filter on
-    data.loc[data.reset_index().index % 2 == 0, DATASETS.census.state_column] = STATE
+    data.loc[data.reset_index().index % 2 == 0, DATASETS.census.state_column_name] = STATE
     return data
 
 
@@ -131,7 +131,7 @@ def sample_data_decennial_census_state_edit():
 def sample_data_american_community_survey_state_edit():
     data = _load_sample_data(DATASETS.acs.name)
     # Set half of the entries to the state we'll filter on
-    data.loc[data.reset_index().index % 2 == 0, DATASETS.acs.state_column] = STATE
+    data.loc[data.reset_index().index % 2 == 0, DATASETS.acs.state_column_name] = STATE
     return data
 
 
@@ -139,7 +139,7 @@ def sample_data_american_community_survey_state_edit():
 def sample_data_current_population_survey_state_edit():
     data = _load_sample_data(DATASETS.cps.name)
     # Set half of the entries to the state we'll filter on
-    data.loc[data.reset_index().index % 2 == 0, DATASETS.cps.state_column] = STATE
+    data.loc[data.reset_index().index % 2 == 0, DATASETS.cps.state_column_name] = STATE
     return data
 
 
@@ -147,7 +147,7 @@ def sample_data_current_population_survey_state_edit():
 def sample_data_women_infants_and_children_state_edit():
     data = _load_sample_data(DATASETS.wic.name)
     # Set half of the entries to the state we'll filter on
-    data.loc[data.reset_index().index % 2 == 0, DATASETS.wic.state_column] = STATE
+    data.loc[data.reset_index().index % 2 == 0, DATASETS.wic.state_column_name] = STATE
     return data
 
 
@@ -155,7 +155,9 @@ def sample_data_women_infants_and_children_state_edit():
 def sample_data_taxes_w2_and_1099_state_edit():
     data = _load_sample_data(DATASETS.tax_w2_1099.name)
     # Set half of the entries to the state we'll filter on
-    data.loc[data.reset_index().index % 2 == 0, DATASETS.tax_w2_1099.state_column] = STATE
+    data.loc[
+        data.reset_index().index % 2 == 0, DATASETS.tax_w2_1099.state_column_name
+    ] = STATE
     return data
 
 

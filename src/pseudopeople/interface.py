@@ -19,7 +19,7 @@ def _generate_dataset(
     source: Union[Path, str],
     seed: int,
     config: Union[Path, str, Dict],
-    user_filter: List[tuple],
+    user_filters: List[tuple],
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
@@ -33,8 +33,8 @@ def _generate_dataset(
         Seed for controlling randomness
     :param config:
         Object to configure noise levels
-    :param user_filter:
-        List of parquet filter(s), used in year and state filtering
+    :param user_filters:
+        List of parquet filters, possibly empty
     :param verbose:
         Log with verbosity if True. Default is False.
     :return:
@@ -66,7 +66,7 @@ def _generate_dataset(
     )
     for data_path in iterator:
         logger.debug(f"Loading data from {data_path}.")
-        data = _load_data_from_path(data_path, user_filter)
+        data = _load_data_from_path(data_path, user_filters)
 
         data = _reformat_dates_for_noising(data, dataset)
         data = _coerce_dtypes(data, dataset)
@@ -94,12 +94,13 @@ def _coerce_dtypes(data: pd.DataFrame, dataset: Dataset):
     return data
 
 
-def _load_data_from_path(data_path: Path, user_filter: List[Tuple]):
+def _load_data_from_path(data_path: Path, user_filters: List[Tuple]):
     """Load data from a data file given a data_path and a year_filter."""
     if data_path.suffix == ".parquet":
-        if len(user_filter) == 0:
-            user_filter = None  # pyarrow.parquet.read_table doesn't accept an empty list
-        data = pq.read_table(data_path, filters=user_filter).to_pandas()
+        if len(user_filters) == 0:
+            # pyarrow.parquet.read_table doesn't accept an empty list
+            user_filters = None
+        data = pq.read_table(data_path, filters=user_filters).to_pandas()
     else:
         raise DataSourceError(
             f"Source path must be a .parquet file. Provided {data_path.suffix}"
@@ -165,10 +166,10 @@ def generate_decennial_census(
     """
     user_filters = []
     if year:
-        user_filters.append((DATASETS.census.date_column, "==", year))
+        user_filters.append((DATASETS.census.date_column_name, "==", year))
     if state:
         user_filters.append(
-            (DATASETS.census.state_column, "==", get_state_abbreviation(state))
+            (DATASETS.census.state_column_name, "==", get_state_abbreviation(state))
         )
     return _generate_dataset(DATASETS.census, source, seed, config, user_filters, verbose)
 
@@ -212,13 +213,15 @@ def generate_american_community_survey(
     if year:
         user_filters.extend(
             [
-                (DATASETS.acs.date_column, ">=", pd.Timestamp(f"{year}-01-01")),
-                (DATASETS.acs.date_column, "<=", pd.Timestamp(f"{year}-12-31")),
+                (DATASETS.acs.date_column_name, ">=", pd.Timestamp(f"{year}-01-01")),
+                (DATASETS.acs.date_column_name, "<=", pd.Timestamp(f"{year}-12-31")),
             ]
         )
         seed = seed * 10_000 + year
     if state:
-        user_filters.append((DATASETS.acs.state_column, "==", get_state_abbreviation(state)))
+        user_filters.append(
+            (DATASETS.acs.state_column_name, "==", get_state_abbreviation(state))
+        )
     return _generate_dataset(DATASETS.acs, source, seed, config, user_filters, verbose)
 
 
@@ -262,13 +265,15 @@ def generate_current_population_survey(
     if year:
         user_filters.extend(
             [
-                (DATASETS.cps.date_column, ">=", pd.Timestamp(f"{year}-01-01")),
-                (DATASETS.cps.date_column, "<=", pd.Timestamp(f"{year}-12-31")),
+                (DATASETS.cps.date_column_name, ">=", pd.Timestamp(f"{year}-01-01")),
+                (DATASETS.cps.date_column_name, "<=", pd.Timestamp(f"{year}-12-31")),
             ]
         )
         seed = seed * 10_000 + year
     if state:
-        user_filters.append((DATASETS.cps.state_column, "==", get_state_abbreviation(state)))
+        user_filters.append(
+            (DATASETS.cps.state_column_name, "==", get_state_abbreviation(state))
+        )
     return _generate_dataset(DATASETS.cps, source, seed, config, user_filters, verbose)
 
 
@@ -303,11 +308,11 @@ def generate_taxes_w2_and_1099(
     """
     user_filters = []
     if year:
-        user_filters.append((DATASETS.tax_w2_1099.date_column, "==", year))
+        user_filters.append((DATASETS.tax_w2_1099.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state:
         user_filters.append(
-            (DATASETS.tax_w2_1099.state_column, "==", get_state_abbreviation(state))
+            (DATASETS.tax_w2_1099.state_column_name, "==", get_state_abbreviation(state))
         )
     return _generate_dataset(
         DATASETS.tax_w2_1099, source, seed, config, user_filters, verbose
@@ -350,10 +355,12 @@ def generate_women_infants_and_children(
     """
     user_filters = []
     if year:
-        user_filters.append((DATASETS.wic.date_column, "==", year))
+        user_filters.append((DATASETS.wic.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state:
-        user_filters.append((DATASETS.wic.state_column, "==", get_state_abbreviation(state)))
+        user_filters.append(
+            (DATASETS.wic.state_column_name, "==", get_state_abbreviation(state))
+        )
     return _generate_dataset(DATASETS.wic, source, seed, config, user_filters, verbose)
 
 
@@ -384,6 +391,8 @@ def generate_social_security(
     """
     user_filters = []
     if year:
-        user_filters.append((DATASETS.ssa.date_column, "<=", pd.Timestamp(f"{year}-12-31")))
+        user_filters.append(
+            (DATASETS.ssa.date_column_name, "<=", pd.Timestamp(f"{year}-12-31"))
+        )
         seed = seed * 10_000 + year
     return _generate_dataset(DATASETS.ssa, source, seed, config, user_filters, verbose)
