@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from vivarium.framework.randomness import RandomnessStream
+from vivarium.framework.randomness.index_map import IndexMap
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.noise_entities import NOISE_TYPES
@@ -9,7 +10,10 @@ from pseudopeople.noise_functions import _get_census_omission_noise_levels
 from pseudopeople.schema_entities import DATASETS
 
 RANDOMNESS = RandomnessStream(
-    key="test_row_noise", clock=lambda: pd.Timestamp("2020-09-01"), seed=0
+    key="test_row_noise",
+    clock=lambda: pd.Timestamp("2020-09-01"),
+    seed=0,
+    index_map=IndexMap(),
 )
 
 
