@@ -33,7 +33,7 @@ if __name__ == "__main__":
     install_requirements = [
         "pandas",
         "pyyaml>=5.1",
-        "vivarium",
+        "vivarium>=1.1.0",
         "pyarrow",
         "tqdm",
     ]
