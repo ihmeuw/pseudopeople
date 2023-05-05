@@ -30,6 +30,8 @@ def scale_nicknames(column: pd.Series) -> float:
     # Constant calculated by number of names with nicknames / number of names used in PRL name mapping
     nicknames = load_nicknames_data()
     proportion_have_nickname = column.isin(nicknames.index).sum() / column.notna().sum()
+    if proportion_have_nickname == 0.0:
+        return 0.0
     return 1 / proportion_have_nickname
 
 
