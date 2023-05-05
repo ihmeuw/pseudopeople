@@ -12,9 +12,11 @@ from pseudopeople.interface import (
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
+from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
 from tests.integration.conftest import CELL_PROBABILITY, SEED
 
+# TODO: Replace this with the record ID column when implemented (MIC-4039)
 IDX_COLS = {
     DATASETS.census.name: [COLUMNS.simulant_id.name, COLUMNS.year.name],
     DATASETS.acs.name: [COLUMNS.simulant_id.name, COLUMNS.survey_date.name],
@@ -52,7 +54,9 @@ DATASET_GENERATION_FUNCS = {
         "TODO: tax_1040",
     ],
 )
-def test_generate_dataset_from_sample_and_source(dataset_name: str, config, tmpdir, request):
+def test_generate_dataset_from_sample_and_source(
+    dataset_name: str, user_config, tmpdir, request
+):
     """Tests that the amount of noising is approximately the same whether we
     noise a single sample dataset or we concatenate and noise multiple datasets
     """
@@ -68,7 +72,7 @@ def test_generate_dataset_from_sample_and_source(dataset_name: str, config, tmpd
     data[split_idx:].to_parquet(outdir / f"{dataset_name}_2.parquet")
     # Generate a new (non-fixture) noised dataset from the split data in tmpdir
     noising_function = DATASET_GENERATION_FUNCS.get(dataset_name)
-    noised_dataset = noising_function(seed=SEED, year=None, source=tmpdir, config=config)
+    noised_dataset = noising_function(seed=SEED, year=None, source=tmpdir, config=user_config)
 
     # Check that shapes and columns are identical
     assert noised_dataset.shape == noised_sample.shape
@@ -118,7 +122,7 @@ def test_generate_dataset_from_sample_and_source(dataset_name: str, config, tmpd
         "TODO: tax_1040",
     ],
 )
-def test_seed_behavior(dataset_name: str, config, request):
+def test_seed_behavior(dataset_name: str, user_config, request):
     """Tests seed behavior"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -127,8 +131,10 @@ def test_seed_behavior(dataset_name: str, config, request):
     # Generate new (non-fixture) noised datasets with the same seed and a different
     # seed as the fixture
     noising_function = DATASET_GENERATION_FUNCS.get(dataset_name)
-    noised_data_same_seed = noising_function(seed=SEED, year=None, config=config)
-    noised_data_different_seed = noising_function(seed=SEED + 1, year=None, config=config)
+    noised_data_same_seed = noising_function(seed=SEED, year=None, config=user_config)
+    noised_data_different_seed = noising_function(
+        seed=SEED + 1, year=None, config=user_config
+    )
     assert not data.equals(noised_data)
     assert noised_data.equals(noised_data_same_seed)
     assert not noised_data.equals(noised_data_different_seed)
@@ -146,14 +152,13 @@ def test_seed_behavior(dataset_name: str, config, request):
         "TODO: tax_1040",
     ],
 )
-def test_column_dtypes(dataset_name: str, config, request):
+def test_column_dtypes(dataset_name: str, request):
     """Tests that column dtypes are as expected"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     data = request.getfixturevalue(f"sample_data_{dataset_name}")
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
     check_noised, _, _ = _get_common_datasets(dataset_name, data, noised_data)
-    config = get_configuration(config)
     for col_name in check_noised.columns:
         col = COLUMNS.get_column(col_name)
         expected_dtype = col.dtype_name
@@ -175,7 +180,7 @@ def test_column_dtypes(dataset_name: str, config, request):
         "TODO: tax_1040",
     ],
 )
-def test_column_noising(dataset_name: str, config, request):
+def test_column_noising(dataset_name: str, user_config, request):
     """Tests that columns are noised as expected"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -184,7 +189,7 @@ def test_column_noising(dataset_name: str, config, request):
     check_noised, check_original, shared_idx = _get_common_datasets(
         dataset_name, data, noised_data
     )
-    config = get_configuration(config)
+    config = get_configuration(user_config)
     for col_name in check_noised.columns:
         col = COLUMNS.get_column(col_name)
 
@@ -221,6 +226,57 @@ def test_column_noising(dataset_name: str, config, request):
                 check_original.loc[to_compare_idx, col.name].values
                 == check_noised.loc[to_compare_idx, col.name].values
             ).all()
+
+
+@pytest.mark.parametrize(
+    "dataset_name",
+    [
+        DATASETS.census.name,
+        DATASETS.acs.name,
+        DATASETS.cps.name,
+        DATASETS.ssa.name,
+        DATASETS.tax_w2_1099.name,
+        DATASETS.wic.name,
+        "TODO: tax_1040",
+    ],
+)
+def test_row_noising_omission_or_do_not_respond(dataset_name: str, user_config, request):
+    """Tests that omission and do not respond row noising are being applied"""
+    if "TODO" in dataset_name:
+        pytest.skip(reason=dataset_name)
+    idx_cols = IDX_COLS.get(dataset_name)
+    data = request.getfixturevalue(f"sample_data_{dataset_name}").set_index(idx_cols)
+    noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}").set_index(
+        idx_cols
+    )
+    config = get_configuration(user_config)[dataset_name][Keys.ROW_NOISE]
+    noise_type = [
+        n for n in config if n in [NOISE_TYPES.omission.name, NOISE_TYPES.do_not_respond.name]
+    ]
+    assert len(noise_type) < 2  # omission and do not respond should be mutually exclusive
+    if not noise_type:  # Check that there are no missing indexes
+        assert noised_data.index.symmetric_difference(data.index).empty
+    else:  # Check that there are some omissions
+        assert noised_data.index.difference(data.index).empty
+        assert not data.index.difference(noised_data.index).empty
+
+
+@pytest.mark.skip(reason="TODO: Implement duplication row noising")
+@pytest.mark.parametrize(
+    "dataset_name",
+    [
+        DATASETS.census.name,
+        DATASETS.acs.name,
+        DATASETS.cps.name,
+        DATASETS.ssa.name,
+        DATASETS.tax_w2_1099.name,
+        DATASETS.wic.name,
+        "TODO: tax_1040",
+    ],
+)
+def test_row_noising_duplication(dataset_name: str, user_config, request):
+    """Tests that duplication row noising is being applied"""
+    ...
 
 
 @pytest.mark.parametrize(
@@ -333,7 +389,6 @@ def _get_common_datasets(dataset_name, data, noised_data):
     unnoised data. Note that we cannot use the original index because that
     gets reset after noising, i.e. the unique columns must NOT be noised.
     """
-    # TODO: Replace this with the record ID column when implemented (MIC-4039)
     idx_cols = IDX_COLS.get(dataset_name)
     dataset = DATASETS.get_dataset(dataset_name)
     check_original = _reformat_dates_for_noising(data, dataset).set_index(idx_cols)

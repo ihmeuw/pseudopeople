@@ -13,18 +13,25 @@ from pseudopeople.interface import (
 )
 from pseudopeople.schema_entities import COLUMNS, DATASETS
 
+ROW_PROBABILITY = 0.05
 CELL_PROBABILITY = 0.25
 SEED = 0
 
 
 @pytest.fixture(scope="module")
-def config():
-    """Returns a custom configuration to be used in noising"""
+def user_config():
+    """Returns a custom configuration dict to be used in noising"""
     config = get_configuration().to_dict()  # default config
 
-    # Increase cell_probability to 25% to ensure we noise spare columns
+    # Increase row noise probabilities to 5% and column cell_probabilities to 25%
     for dataset_name in config:
         dataset = DATASETS.get_dataset(dataset_name)
+        config[dataset.name][Keys.ROW_NOISE] = {
+            noise_type.name: {
+                Keys.ROW_PROBABILITY: ROW_PROBABILITY,
+            }
+            for noise_type in dataset.row_noise_types
+        }
         for col in [c for c in dataset.columns if c.noise_types]:
             config[dataset_name][Keys.COLUMN_NOISE][col.name] = {
                 noise_type.name: {
@@ -83,38 +90,38 @@ def sample_data_taxes_1040():
 
 # Noised sample datasets
 @pytest.fixture(scope="module")
-def noised_sample_data_decennial_census(config):
-    return generate_decennial_census(seed=SEED, year=None, config=config)
+def noised_sample_data_decennial_census(user_config):
+    return generate_decennial_census(seed=SEED, year=None, config=user_config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_american_community_survey(config):
-    return generate_american_community_survey(seed=SEED, year=None, config=config)
+def noised_sample_data_american_community_survey(user_config):
+    return generate_american_community_survey(seed=SEED, year=None, config=user_config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_current_population_survey(config):
-    return generate_current_population_survey(seed=SEED, year=None, config=config)
+def noised_sample_data_current_population_survey(user_config):
+    return generate_current_population_survey(seed=SEED, year=None, config=user_config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_women_infants_and_children(config):
-    return generate_women_infants_and_children(seed=SEED, year=None, config=config)
+def noised_sample_data_women_infants_and_children(user_config):
+    return generate_women_infants_and_children(seed=SEED, year=None, config=user_config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_social_security(config):
-    return generate_social_security(seed=SEED, year=None, config=config)
+def noised_sample_data_social_security(user_config):
+    return generate_social_security(seed=SEED, year=None, config=user_config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_taxes_w2_and_1099(config):
-    return generate_taxes_w2_and_1099(seed=SEED, year=None, config=config)
+def noised_sample_data_taxes_w2_and_1099(user_config):
+    return generate_taxes_w2_and_1099(seed=SEED, year=None, config=user_config)
 
 
 # @pytest.fixture(scope="module")
 # def noised_sample_data_taxes_1040(config):
-#     return generate_taxes_1040(seed=SEED, year=None, config=config)
+#     return generate_taxes_1040(seed=SEED, year=None, config=user_config)
 
 
 ####################
