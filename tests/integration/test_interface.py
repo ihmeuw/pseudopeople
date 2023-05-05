@@ -257,6 +257,7 @@ def test_row_noising_omission_or_do_not_respond(dataset_name: str, user_config, 
     if not noise_type:  # Check that there are no missing indexes
         assert noised_data.index.symmetric_difference(data.index).empty
     else:  # Check that there are some omissions
+        # TODO: assert levels are as expected
         assert noised_data.index.difference(data.index).empty
         assert not data.index.difference(noised_data.index).empty
 
