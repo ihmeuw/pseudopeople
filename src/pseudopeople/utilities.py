@@ -127,11 +127,11 @@ def two_d_array_choice(
     data_idx = pd.Index(data.values)
     options = options.loc[data_idx]
     # Get number of options per name
-    n = options.count(axis=1)
+    number_of_nicknames = options.count(axis=1)
 
     # Find null values and calculate weights
     not_na = options.notna()
-    row_weights = np.ones(len(n)) / n
+    row_weights = np.ones(len(number_of_nicknames)) / number_of_nicknames
     weights = not_na.mul(row_weights, axis=0)
     pmf = weights.div(weights.sum(axis=1), axis=0)
     cdf = np.cumsum(pmf, axis=1)

@@ -46,11 +46,17 @@ def validate_user_configuration(user_config: Dict, default_config: ConfigTree) -
                 default_noise_type_config = _get_default_config_node(
                     default_column_config, noise_type, "noise type", dataset, column
                 )
+                parameter_config_validator_map = {
+                    NOISE_TYPES.nickname.name: {
+                        Keys.CELL_PROBABILITY: _validate_nickname_probability
+                    }
+                }.get(noise_type, DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP)
                 _validate_noise_type_config(
                     noise_type_config,
                     default_noise_type_config,
                     dataset,
                     noise_type,
+                    parameter_config_validator_map,
                     column,
                 )
 
@@ -60,6 +66,7 @@ def _validate_noise_type_config(
     default_noise_type_config: ConfigTree,
     dataset: str,
     noise_type: str,
+    parameter_config_validator_map: Dict[str, Callable],
     column: str = None,
 ) -> None:
     """
@@ -67,7 +74,7 @@ def _validate_noise_type_config(
     Additionally, validates that the configuration values are permissible.
     """
     for parameter, parameter_config in noise_type_config.items():
-        parameter_config_validator = DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP.get(
+        parameter_config_validator = parameter_config_validator_map.get(
             parameter, _validate_probability
         )
 
@@ -196,7 +203,6 @@ def _validate_nickname_probability(
 
 
 DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP = {
-    NOISE_TYPES.nickname.name: _validate_nickname_probability,
     Keys.POSSIBLE_AGE_DIFFERENCES: _validate_possible_age_differences,
     Keys.ZIPCODE_DIGIT_PROBABILITIES: _validate_zipcode_digit_probabilities,
 }
