@@ -505,3 +505,14 @@ def _get_common_datasets(dataset_name, data, noised_data):
     check_original = check_original.loc[shared_idx]
     check_noised = check_noised.loc[shared_idx]
     return check_noised, check_original, shared_idx
+
+
+def _generate_non_sample_data_root(data_dir_name, tmpdir, data):
+    """Helper function to break the single sample dataset into two and save
+    out to tmpdir to be used as a non-default 'source' argument
+    """
+    outdir = tmpdir.mkdir(data_dir_name)
+    split_idx = int(len(data) / 2)
+    data[:split_idx].to_parquet(outdir / f"{data_dir_name}_1.parquet")
+    data[split_idx:].to_parquet(outdir / f"{data_dir_name}_2.parquet")
+    return tmpdir
