@@ -57,7 +57,7 @@ class ColumnNoiseType:
     name: str
     noise_function: Callable[[pd.Series, ConfigTree, RandomnessStream, Any], pd.Series]
     cell_probability: Optional[float] = 0.01
-    noise_level_scaling_function: Callable[[str], float] = lambda x: 1.0
+    noise_level_scaling_function: Callable[[pd.Series], float] = lambda x: 1.0
     additional_parameters: Dict[str, Any] = None
 
     def __call__(
@@ -67,10 +67,15 @@ class ColumnNoiseType:
         randomness_stream: RandomnessStream,
         additional_key: Any,
     ) -> pd.Series:
+        if column.empty:
+            return column
         column = column.copy()
         noise_level = configuration[
             Keys.CELL_PROBABILITY
-        ] * self.noise_level_scaling_function(column.name)
+        ] * self.noise_level_scaling_function(column)
+        # Certain columns have their noise level scaled so we must check to make sure the noise level is within the
+        # allowed range between 0 and 1 for probabilities
+        noise_level = min(noise_level, 1.0)
         to_noise_idx = get_index_to_noise(
             column, noise_level, randomness_stream, f"{self.name}_{additional_key}"
         )
