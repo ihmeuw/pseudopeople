@@ -2,6 +2,9 @@
 
 .. _IHME: https://www.healthdata.org/
 .. _Vivarium: https://vivarium.readthedocs.io/en/latest/
+.. _FEBRL: http://users.cecs.anu.edu.au/~Peter.Christen/Febrl/febrl-0.3/febrldoc-0.3/manual.html
+.. _GeCo: https://dl.acm.org/doi/10.1145/2505515.2508207
+.. _SOG: https://web.archive.org/web/20170830050229/http:/mitiq.mit.edu/ICIQ/Documents/IQ%20Conference%202009/Papers/3-B.pdf
 
 pseudopeople is a Python package that generates realistic simulated data about a
 fictional United States population, designed for use in testing entity
@@ -32,9 +35,9 @@ With sensitive data often required for ER, accessing and testing new methods and
 Our innovative approach creates realistic, simulated data including name, address, and date of birth, without compromising privacy.
 
 Our work builds on the success of previous data synthesis projects, such as
-`FEBRL <http://users.cecs.anu.edu.au/~Peter.Christen/Febrl/febrl-0.3/febrldoc-0.3/manual.html>`_,
-`GeCO <https://dl.acm.org/doi/10.1145/2505515.2508207>`_,
-and `SOG <https://web.archive.org/web/20170830050229/http:/mitiq.mit.edu/ICIQ/Documents/IQ%20Conference%202009/Papers/3-B.pdf>`_,
+FEBRL_,
+GeCo_,
+and SOG_,
 while leveraging the power of our simulation platform Vivarium_ to incorporate real, publicly-accessible data about the US population.
 This allows us to model realistic household and family structures at scale, with relevant geographies.
 We have created a simulation of the US population, including names and addresses, with defined types of data collection (e.g., simulating decennial censuses, surveys, taxes, and other administrative data).
