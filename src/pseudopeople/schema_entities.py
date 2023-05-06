@@ -1,7 +1,7 @@
-from dataclasses import dataclass
-from typing import NamedTuple, Tuple
+from dataclasses import dataclass, field
+from typing import Dict, NamedTuple, Optional, Tuple
 
-from pseudopeople.constants.metadata import DatasetNames
+from pseudopeople.constants.metadata import DATEFORMATS, Attributes, DatasetNames
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 
@@ -19,6 +19,7 @@ class Column:
     name: str
     noise_types: Tuple[ColumnNoiseType, ...] = tuple()
     dtype_name: str = DtypeNames.OBJECT  # string dtype is 'object'
+    additional_attributes: Dict = field(default_factory=dict)
 
 
 class __Columns(NamedTuple):
@@ -48,11 +49,12 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             # NOISE_TYPES.copy_from_within_household,
-            # NOISE_TYPES.month_day_swap,
+            NOISE_TYPES.month_day_swap,
             NOISE_TYPES.numeric_miswriting,
             # NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
+        additional_attributes={Attributes.DATE_FORMAT: DATEFORMATS.MM_DD_YYYY},
     )
     employer_city: Column = Column(
         "employer_city",
@@ -65,12 +67,6 @@ class __Columns(NamedTuple):
     )
     employer_id: Column = Column(
         "employer_id",
-        (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.numeric_miswriting,
-            # NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
-        ),
     )
     employer_name: Column = Column(
         "employer_name",
@@ -128,7 +124,7 @@ class __Columns(NamedTuple):
         "first_name",
         (
             NOISE_TYPES.missing_data,
-            # NOISE_TYPES.nickname,
+            NOISE_TYPES.nickname,
             NOISE_TYPES.fake_name,
             # NOISE_TYPES.phonetic,
             # NOISE_TYPES.ocr,
@@ -269,11 +265,12 @@ class __Columns(NamedTuple):
         "event_date",
         (
             NOISE_TYPES.missing_data,
-            # NOISE_TYPES.month_day_swap,
+            NOISE_TYPES.month_day_swap,
             NOISE_TYPES.numeric_miswriting,
             # NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
+        additional_attributes={Attributes.DATE_FORMAT: DATEFORMATS.YYYYMMDD},
     )
     ssa_event_type: Column = Column(
         "event_type",
@@ -331,6 +328,9 @@ class __Columns(NamedTuple):
         ),
         DtypeNames.CATEGORICAL,
     )
+    tax_year: Column = Column(
+        "tax_year",
+    )
     unit_number: Column = Column(
         "unit_number",
         (
@@ -339,6 +339,9 @@ class __Columns(NamedTuple):
             # NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
+    )
+    year: Column = Column(
+        "year",
     )
     zipcode: Column = Column(
         "zipcode",
@@ -350,6 +353,15 @@ class __Columns(NamedTuple):
         ),
     )
 
+    ##################
+    # Helper methods #
+    ##################
+
+    @staticmethod
+    def get_column(name: str) -> Column:
+        """Return the respective Column object given the column name"""
+        return [c for c in COLUMNS if c.name == name][0]
+
 
 COLUMNS = __Columns()
 
@@ -358,12 +370,9 @@ COLUMNS = __Columns()
 class Dataset:
     name: str
     columns: Tuple[Column, ...]  # This defines the output column order
-    date_column: str
-
-    row_noise_types: Tuple[RowNoiseType, ...] = (
-        NOISE_TYPES.omission,
-        # NOISE_TYPES.duplication,
-    )
+    date_column_name: str
+    state_column_name: Optional[str]
+    row_noise_types: Tuple[RowNoiseType, ...]
 
 
 class __Datasets(NamedTuple):
@@ -387,8 +396,14 @@ class __Datasets(NamedTuple):
             COLUMNS.relation_to_reference_person,
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
+            COLUMNS.year,
         ),
-        date_column="year",
+        date_column_name=COLUMNS.year.name,
+        state_column_name=COLUMNS.state.name,
+        row_noise_types=(
+            NOISE_TYPES.do_not_respond,
+            # NOISE_TYPES.duplication,
+        ),
     )
     acs: Dataset = Dataset(
         DatasetNames.ACS,
@@ -410,7 +425,12 @@ class __Datasets(NamedTuple):
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
         ),
-        date_column="survey_date",
+        date_column_name=COLUMNS.survey_date.name,
+        state_column_name=COLUMNS.state.name,
+        row_noise_types=(
+            NOISE_TYPES.do_not_respond,
+            # NOISE_TYPES.duplication,
+        ),
     )
     cps: Dataset = Dataset(
         DatasetNames.CPS,
@@ -432,7 +452,12 @@ class __Datasets(NamedTuple):
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
         ),
-        date_column="survey_date",
+        date_column_name=COLUMNS.survey_date.name,
+        state_column_name=COLUMNS.state.name,
+        row_noise_types=(
+            NOISE_TYPES.do_not_respond,
+            # NOISE_TYPES.duplication,
+        ),
     )
     wic: Dataset = Dataset(
         DatasetNames.WIC,
@@ -451,8 +476,14 @@ class __Datasets(NamedTuple):
             COLUMNS.zipcode,
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
+            COLUMNS.year,
         ),
-        date_column="year",
+        date_column_name=COLUMNS.year.name,
+        state_column_name=COLUMNS.state.name,
+        row_noise_types=(
+            NOISE_TYPES.omission,
+            # NOISE_TYPES.duplication,
+        ),
     )
     ssa: Dataset = Dataset(
         DatasetNames.SSA,
@@ -466,7 +497,12 @@ class __Datasets(NamedTuple):
             COLUMNS.ssa_event_type,
             COLUMNS.ssa_event_date,
         ),
-        date_column="event_date",
+        date_column_name=COLUMNS.ssa_event_date.name,
+        state_column_name=None,
+        row_noise_types=(
+            NOISE_TYPES.omission,
+            # NOISE_TYPES.duplication,
+        ),
     )
     tax_w2_1099: Dataset = Dataset(
         DatasetNames.TAXES_W2_1099,
@@ -495,12 +531,27 @@ class __Datasets(NamedTuple):
             COLUMNS.employer_state,
             COLUMNS.employer_zipcode,
             COLUMNS.tax_form,
+            COLUMNS.tax_year,
         ),
-        date_column="tax_year",
+        date_column_name=COLUMNS.tax_year.name,
+        state_column_name=COLUMNS.mailing_state.name,
+        row_noise_types=(
+            NOISE_TYPES.omission,
+            # NOISE_TYPES.duplication,
+        ),
     )
     # tax_1040: Dataset = Dataset(
     #     Datasets.TAXES_1040,
     # )
+
+    ##################
+    # Helper methods #
+    ##################
+
+    @staticmethod
+    def get_dataset(name: str) -> Dataset:
+        """Return the respective Dataset object given the dataset name"""
+        return [d for d in DATASETS if d.name == name][0]
 
 
 DATASETS = __Datasets()

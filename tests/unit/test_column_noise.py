@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from vivarium.framework.randomness import RandomnessStream
+from vivarium.framework.randomness.index_map import IndexMap
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
@@ -12,10 +13,16 @@ from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS
 
 RANDOMNESS0 = RandomnessStream(
-    key="test_column_noise", clock=lambda: pd.Timestamp("2020-09-01"), seed=0
+    key="test_column_noise",
+    clock=lambda: pd.Timestamp("2020-09-01"),
+    seed=0,
+    index_map=IndexMap(),
 )
 RANDOMNESS1 = RandomnessStream(
-    key="test_column_noise", clock=lambda: pd.Timestamp("2020-09-01"), seed=1
+    key="test_column_noise",
+    clock=lambda: pd.Timestamp("2020-09-01"),
+    seed=1,
+    index_map=IndexMap(),
 )
 
 
@@ -72,15 +79,21 @@ def dummy_dataset():
     zipcodes = ["12345", "98765", "02468", "13579", ""]
     zipcode_series = pd.Series(zipcodes * int(num_simulants / len(zipcodes)))
     first_names = [
-        "first name",
-        "another first name",
-        "other first name",
-        "other other first name",
-        "",
+        "Abigail",
+        "Catherine",
+        "Bill",
+        "Fake name",
+        np.nan,
     ]
     first_name_series = pd.Series(first_names * int(num_simulants / len(first_names)))
     last_names = ["A last name", "another last name", "other last name", "last name", ""]
     last_name_series = pd.Series(last_names * int(num_simulants / len(last_names)))
+    event_date_list = ["19900125", "19950530", "20001001", "20101231", np.nan]
+    event_date_series = pd.Series(event_date_list * int(num_simulants / len(event_date_list)))
+    date_of_birth_list = ["01/31/1950", "05/01/1990", "10/01/2000", "12/31/2010", np.nan]
+    date_of_birth_series = pd.Series(
+        date_of_birth_list * int(num_simulants / len(date_of_birth_list))
+    )
 
     return pd.DataFrame(
         {
@@ -92,6 +105,8 @@ def dummy_dataset():
             "zipcode": zipcode_series,
             "first_name": first_name_series,
             "last_name": last_name_series,
+            "event_date": event_date_series,
+            "date_of_birth": date_of_birth_series,
         }
     )
 
@@ -173,9 +188,48 @@ def test_generate_within_household_copies():
     pass
 
 
-@pytest.mark.skip(reason="TODO")
-def test_swap_months_and_days():
-    pass
+def test_swap_months_and_days(dummy_dataset):
+    for col in ["event_date", "date_of_birth"]:
+        data = dummy_dataset[col]
+        if col == "event_date":
+            config = get_configuration()[DATASETS.ssa.name][Keys.COLUMN_NOISE][col][
+                NOISE_TYPES.month_day_swap.name
+            ]
+            config.update(
+                {
+                    DATASETS.ssa.name: {
+                        Keys.COLUMN_NOISE: {
+                            col: {
+                                NOISE_TYPES.month_day_swap.name: {
+                                    Keys.CELL_PROBABILITY: 0.25,
+                                },
+                            },
+                        },
+                    },
+                }
+            )
+        else:
+            config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE][col][
+                NOISE_TYPES.month_day_swap.name
+            ]
+        expected_noise = config[Keys.CELL_PROBABILITY]
+        noised_data = NOISE_TYPES.month_day_swap(
+            data, config, RANDOMNESS0, f"test_swap_month_day_{col}"
+        )
+
+        # Confirm missing data remains missing
+        orig_missing = data.isna()
+        assert (noised_data[orig_missing].isna()).all()
+
+        if col == "event_date":
+            assert (data[~orig_missing].str[:4] == noised_data[~orig_missing].str[:4]).all()
+        else:
+            assert (data[~orig_missing].str[6:] == noised_data[~orig_missing].str[6:]).all()
+        assert np.isclose(
+            expected_noise,
+            (data[~orig_missing] != noised_data[~orig_missing]).mean(),
+            rtol=0.02,
+        )
 
 
 def test_miswrite_zipcodes(dummy_dataset):
@@ -468,9 +522,54 @@ def test_miswrite_numerics(string_series):
             assert (noised_data[ssn].str[i].str.isdigit()).all()
 
 
-@pytest.mark.skip(reason="TODO")
-def test_generate_nicknames():
-    pass
+def test_generate_nicknames(dummy_dataset):
+
+    config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE]["first_name"][
+        NOISE_TYPES.nickname.name
+    ]
+    expected_noise = config[Keys.CELL_PROBABILITY]
+    data = dummy_dataset["first_name"]
+    noised_data = NOISE_TYPES.nickname(data, config, RANDOMNESS0, "test_nicknames")
+
+    # Validate missing stays missing
+    orig_missing = data.isna()
+    assert (noised_data[orig_missing].isna()).all()
+    # Validate noise level
+    assert np.isclose(
+        expected_noise, (noised_data[~orig_missing] != data[~orig_missing]).mean(), rtol=0.02
+    )
+
+    # Validation for nicknames
+    from pseudopeople.noise_scaling import load_nicknames_data
+
+    nicknames = load_nicknames_data()
+    names_list = pd.Series(
+        nicknames.apply(lambda row: row.dropna().tolist(), axis=1), index=nicknames.index
+    )
+    for real_name in data.dropna().unique():
+        # Validates names that are not nickname eligible do not not get noised
+        if real_name not in names_list.index:
+            assert (data.loc[data == real_name] == noised_data[data == real_name]).all()
+        else:
+            real_name_idx = data.index[data == real_name]
+            # Verify options chosen are valid nicknames for original names that were noised
+            assert set(noised_data.loc[real_name_idx].dropna()).issubset(
+                set(names_list.loc[real_name] + [real_name])
+            )
+            # Validate we choose the nicknames for each name randomly (equally)
+            chosen_nicknames = noised_data.loc[
+                real_name_idx.difference(noised_data.index[noised_data == real_name])
+            ]
+            chosen_nickname_weights = pd.Series(
+                chosen_nicknames.value_counts() / sum(chosen_nicknames.value_counts())
+            )
+            name_weight = 1 / len(names_list.loc[real_name])
+            # We are weighting are rtol to adjust for variance depending on number of nicknames
+            assert np.isclose(
+                chosen_nickname_weights,
+                name_weight,
+                rtol=0.025 * len(chosen_nickname_weights),
+            ).all()
 
 
 def test_generate_fake_names(dummy_dataset):

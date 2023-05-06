@@ -7,10 +7,16 @@ from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
-from pseudopeople.constants import paths
-from pseudopeople.constants.metadata import DatasetNames
+from pseudopeople.constants import data_values, paths
+from pseudopeople.constants.metadata import Attributes, DatasetNames
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
-from pseudopeople.utilities import get_index_to_noise, vectorized_choice
+from pseudopeople.exceptions import ConfigurationError
+from pseudopeople.noise_scaling import load_nicknames_data
+from pseudopeople.utilities import (
+    get_index_to_noise,
+    two_d_array_choice,
+    vectorized_choice,
+)
 
 
 def omit_rows(
@@ -30,9 +36,6 @@ def omit_rows(
     """
 
     noise_level = configuration[Keys.ROW_PROBABILITY]
-    # Account for ACS and CPS oversampling
-    if dataset_name in [DatasetNames.ACS, DatasetNames.CPS]:
-        noise_level = 0.5 + noise_level / 2
     # Omit rows
     to_noise_index = get_index_to_noise(
         dataset_data,
@@ -41,6 +44,83 @@ def omit_rows(
         f"{dataset_name}_omit_choice",
     )
     noised_data = dataset_data.loc[dataset_data.index.difference(to_noise_index)]
+
+    return noised_data
+
+
+def _get_census_omission_noise_levels(
+    population: pd.DataFrame,
+    base_probability: float = data_values.DO_NOT_RESPOND_BASE_PROBABILITY,
+) -> pd.Series:
+    """
+    Helper function for do_not_respond noising based on demography of age, race/ethnicity, and sex.
+
+    :param population: a dataset containing records of simulants
+    :param base_probability: base probability for do_not_respond
+    :return: a pd.Series of probabilities
+    """
+    probabilities = pd.Series(base_probability, index=population.index)
+    probabilities += (
+        population["race_ethnicity"]
+        .astype(str)
+        .map(data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_RACE)
+    )
+    for sex in ["Female", "Male"]:
+        sex_mask = population["sex"] == sex
+        age_bins = pd.cut(
+            x=population[sex_mask]["age"],
+            bins=data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_SEX_AGE[sex].index,
+        )
+        probabilities[sex_mask] += age_bins.map(
+            data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_SEX_AGE[sex]
+        ).astype(float)
+    probabilities[probabilities < 0.0] = 0.0
+    probabilities[probabilities > 1.0] = 1.0
+    return probabilities
+
+
+def apply_do_not_respond(
+    dataset_name: str,
+    dataset_data: pd.DataFrame,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+) -> pd.DataFrame:
+    """
+    Applies targeted omission based on demographic model for census and surveys.
+
+    :param dataset_name: Dataset object name being noised
+    :param dataset_data:  pd.DataFrame of one of the form types used in Pseudopeople
+    :param configuration: ConfigTree object containing noise level values
+    :param randomness_stream: RandomnessStream object to make random selection for noise
+    :return: pd.DataFrame with rows from the original dataframe removed
+    """
+    required_columns = ("age", "race_ethnicity", "sex")
+    missing_columns = [col for col in required_columns if col not in dataset_data.columns]
+    if len(missing_columns):
+        raise ValueError(
+            f"Dataset {dataset_name} is missing required columns: {missing_columns}"
+        )
+
+    # do_not_respond noise_levels are based on census
+    noise_levels = _get_census_omission_noise_levels(dataset_data)
+
+    # Apply an overall non-response rate of 27.6% for Current Population Survey (CPS)
+    if dataset_name == DatasetNames.CPS:
+        noise_levels += 0.276
+
+    # Apply user-configured noise level
+    configured_noise_level = configuration[Keys.ROW_PROBABILITY]
+    default_noise_level = data_values.DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY[dataset_name]
+    noise_levels = noise_levels * (configured_noise_level / default_noise_level)
+
+    # Account for ACS and CPS oversampling
+    if dataset_name in [DatasetNames.ACS, DatasetNames.CPS]:
+        noise_levels = 0.5 + noise_levels / 2
+
+    to_noise_idx = get_index_to_noise(
+        dataset_data, noise_levels, randomness_stream, f"do_not_respond_{dataset_name}"
+    )
+    noised_data = dataset_data.loc[dataset_data.index.difference(to_noise_idx)]
 
     return noised_data
 
@@ -116,22 +196,48 @@ def generate_incorrect_selections(
 #     return column
 
 
-# def swap_months_and_days(
-#     column: pd.Series,
-#     configuration: ConfigTree,
-#     randomness_stream: RandomnessStream,
-#     additional_key: Any,
-# ) -> pd.Series:
-#     """
+def swap_months_and_days(
+    column: pd.Series,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
+) -> pd.Series:
+    """
+    Function that swaps month and day of dates.
 
-#     :param column:
-#     :param configuration:
-#     :param randomness_stream:
-#     :param additional_key: Key for RandomnessStream
-#     :return:
-#     """
-#     # todo actually duplicate rows
-#     return column
+    :param column: pd.Series containing dates with the format YYYY-MM-DD
+    :param configuration: ConfigTree object containing noise level values
+    :param randomness_stream: Randomness Stream object for random choices using vivarium CRN framework
+    :param additional_key: Key for RandomnessStream
+    :return: Noised pd.Series where some dates have month and day swapped.
+    """
+    from pseudopeople.schema_entities import COLUMNS, DATEFORMATS
+
+    column_type = COLUMNS.get_column(column.name)
+    try:
+        date_format = column_type.additional_attributes[Attributes.DATE_FORMAT]
+    except KeyError:
+        raise ConfigurationError(
+            f"Error while running noise function `swap_months_and_days' on column '{column.name}'. "
+            f"'{column.name}' does not have attribute date format. "
+        )
+
+    if date_format == DATEFORMATS.YYYYMMDD:  # YYYYMMDD
+        year = column.str[:4]
+        month = column.str[4:6]
+        day = column.str[6:]
+        noised = year + day + month
+    elif date_format == DATEFORMATS.MM_DD_YYYY:  # MM/DD/YYYY
+        year = column.str[6:]
+        month = column.str[:3]
+        day = column.str[3:6]
+        noised = day + month + year
+    else:
+        raise ValueError(
+            f"Invalid datetime format in {column.name}.  Please check input data."
+        )
+
+    return noised
 
 
 def miswrite_zipcodes(
@@ -253,22 +359,29 @@ def miswrite_numerics(
     return noised_column
 
 
-# def generate_nicknames(
-#     column: pd.Series,
-#     configuration: ConfigTree,
-#     randomness_stream: RandomnessStream,
-#     additional_key: Any,
-# ) -> pd.Series:
-#     """
+def generate_nicknames(
+    column: pd.Series,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
+) -> pd.Series:
+    """
+    Function that replaces a name with a choice of potential nicknames.
 
-#     :param column:
-#     :param configuration:
-#     :param randomness_stream:
-#     :param additional_key: Key for RandomnessStream
-#     :return:
-#     """
-#     # todo actually generate nicknames
-#     return column
+    :param column: pd.Series of names
+    :param configuration: ConfigTree object containing noise level values
+    :param randomness_stream: RandomnessStream object to use vivarium CRN framework.
+    :param additional_key: Key for RandomnessStream
+    :return: pd.Series of nicknames replacing original names
+    """
+    nicknames = load_nicknames_data()
+
+    have_nickname_idx = column.index[column.isin(nicknames.index)]
+    noised = two_d_array_choice(
+        column.loc[have_nickname_idx], nicknames, randomness_stream, additional_key
+    )
+    column.loc[have_nickname_idx] = noised
+    return column
 
 
 def generate_fake_names(

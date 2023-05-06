@@ -5,6 +5,7 @@ from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
 from pseudopeople.configuration.interface import get_config
 from pseudopeople.configuration.validator import ConfigurationError
+from pseudopeople.constants.metadata import Attributes
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
 
@@ -191,7 +192,11 @@ def test_format_miswrite_ages(user_config, expected):
             "Invalid noise type '.*' provided for dataset '.*'. ",
         ),
         (
-            {DATASETS.acs.name: {Keys.ROW_NOISE: {NOISE_TYPES.omission.name: {"fake": {}}}}},
+            {
+                DATASETS.acs.name: {
+                    Keys.ROW_NOISE: {NOISE_TYPES.do_not_respond.name: {"fake": {}}}
+                }
+            },
             "Invalid parameter '.*' provided for dataset '.*' and noise type '.*'. ",
         ),
         (
@@ -352,3 +357,59 @@ def test_get_config(caplog):
 
     with pytest.raises(ConfigurationError, match="bad_form_name"):
         get_config("bad_form_name")
+
+
+def test_date_format_config():
+    # Test that columns with date format attribute are only columns with swap months and days noise type
+
+    # Columns that have additional attribute date_format
+    date_attribute_cols = set()
+    # Columns that have swap_months_days noise type
+    noise_cols = set()
+
+    for column in COLUMNS:
+        if NOISE_TYPES.month_day_swap in column.noise_types:
+            noise_cols.add(column.name)
+        if Attributes.DATE_FORMAT in column.additional_attributes.keys():
+            date_attribute_cols.add(column.name)
+
+    assert noise_cols.issubset(date_attribute_cols)
+
+
+def test_omit_rows_do_not_respond_mutex_default_configuration():
+    """Test that omit_rows and do_not_respond are not both defined in the default configuration"""
+    config = get_configuration()
+    for dataset in DATASETS:
+        has_omit_rows = (
+            NOISE_TYPES.omission.name in config[dataset.name][Keys.ROW_NOISE].keys()
+        )
+        has_do_not_respond = (
+            NOISE_TYPES.do_not_respond.name in config[dataset.name][Keys.ROW_NOISE].keys()
+        )
+        assert not has_do_not_respond or not has_omit_rows
+
+
+def test_validate_nickname_configuration(caplog):
+    """
+    Tests that warning is thrown if cell probability is higher than nickname proportion.  Also tests noise leve
+    is appropriately adjust if this is the case.
+    """
+    config_values = [0.45, 0.65]
+    for config_value in config_values:
+        get_configuration(
+            {
+                DATASETS.census.name: {
+                    Keys.COLUMN_NOISE: {
+                        COLUMNS.first_name.name: {
+                            NOISE_TYPES.nickname.name: {
+                                Keys.CELL_PROBABILITY: config_value,
+                            },
+                        },
+                    },
+                },
+            },
+        )
+        if config_value == 0.45:
+            assert not caplog.records
+        else:
+            assert "Noise level has been adjusted" in caplog.text
