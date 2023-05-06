@@ -35,13 +35,14 @@ With sensitive data often required for ER, accessing and testing new methods and
 Our innovative approach creates realistic, simulated data including name, address, and date of birth, without compromising privacy.
 
 Our work builds on the success of previous data synthesis projects, such as
-FEBRL_,
-GeCo_,
-and SOG_,
-while leveraging the power of our simulation platform Vivarium_ to incorporate real, publicly-accessible data about the US population.
-This allows us to model realistic household and family structures at scale, with relevant geographies.
-We have created a simulation of the US population, including names and addresses, with defined types of data collection (e.g., simulating decennial censuses, surveys, taxes, and other administrative data).
-By creating realistic, but simulated, data which includes these attributes, we can make ER research and development easier for ourselves and others.
+FEBRL_, GeCo_, and SOG_, while leveraging the power of our simulation platform
+Vivarium_ to incorporate real, publicly-accessible data about the US population.
+This allows us to model realistic household and family structures at scale, with
+relevant geographies. We have created a simulation of the US population,
+including names and addresses, with defined types of data collection (e.g.,
+simulating decennial censuses, surveys, taxes, and other administrative data).
+By creating realistic, but simulated, data which includes these attributes, we
+can make ER research and development easier for ourselves and others.
 
 .. _quickstart:
 
