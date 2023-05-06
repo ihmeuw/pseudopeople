@@ -1,8 +1,14 @@
 .. image:: ../Pseudopeople-logo_FINAL_2023.04.11_psdppl-logo_blue-ombre.png
 
 pseudopeople is a Python package that generates realistic simulated data about a
-fictional United States population over multiple decades, for use in testing entity resolution (record linkage)
-methods.
+fictional United States population, designed for use in testing entity
+resolution (record linkage) methods at scale.
+
+The fictional US population has been stochastically simulated over multiple
+decades using IHME's Vivarium microsimulation platform and is sampled at various
+timepoints throughout the simulation. The pseudopeople package adds noise to the
+sampled data to produce realistic, noisy datasets for use in testing entity
+resolution methods or other data science algorithms and systems.
 
 | 🙈 **Simulated**: These are made-up people! No need to worry about confidentiality.
 | 📝 **Versatile**: Generate multiple datasets about the same population: censuses, surveys, and administrative records.
