@@ -22,7 +22,7 @@ simulated population at various timepoints. The pseudopeople package adds noise
 to the sampled simulated data to produce realistic, noisy datasets for use in
 testing entity resolution methods or other data science algorithms and systems.
 
-Pseudopeople is currently in a public beta release.
+pseudopeople is currently in a public beta release.
 Things are still in flux!
 If you notice any issues, please let us know `on GitHub <https://github.com/ihmeuw/pseudopeople/issues>`_.
 
