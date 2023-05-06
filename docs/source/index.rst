@@ -1,14 +1,17 @@
 .. image:: ../Pseudopeople-logo_FINAL_2023.04.11_psdppl-logo_blue-ombre.png
 
+.. _IHME: https://www.healthdata.org/
+.. _Vivarium: https://vivarium.readthedocs.io/en/latest/
+
 pseudopeople is a Python package that generates realistic simulated data about a
 fictional United States population, designed for use in testing entity
 resolution (record linkage) methods at scale.
 
 The fictional US population has been stochastically simulated over multiple
-decades using IHME's Vivarium microsimulation platform and is sampled at various
-timepoints throughout the simulation. The pseudopeople package adds noise to the
-sampled data to produce realistic, noisy datasets for use in testing entity
-resolution methods or other data science algorithms and systems.
+decades using IHME_'s Vivarium_ microsimulation platform and is sampled at
+various timepoints throughout the simulation. The pseudopeople package adds
+noise to the sampled data to produce realistic, noisy datasets for use in
+testing entity resolution methods or other data science algorithms and systems.
 
 | 🙈 **Simulated**: These are made-up people! No need to worry about confidentiality.
 | 📝 **Versatile**: Generate multiple datasets about the same population: censuses, surveys, and administrative records.
@@ -32,7 +35,7 @@ Our work builds on the success of previous data synthesis projects, such as
 `FEBRL <http://users.cecs.anu.edu.au/~Peter.Christen/Febrl/febrl-0.3/febrldoc-0.3/manual.html>`_,
 `GeCO <https://dl.acm.org/doi/10.1145/2505515.2508207>`_,
 and `SOG <https://web.archive.org/web/20170830050229/http:/mitiq.mit.edu/ICIQ/Documents/IQ%20Conference%202009/Papers/3-B.pdf>`_,
-while leveraging the power of our simulation platform `Vivarium <https://vivarium.readthedocs.io/en/latest/>`_ to incorporate real, publicly-accessible data about the US population.
+while leveraging the power of our simulation platform Vivarium_ to incorporate real, publicly-accessible data about the US population.
 This allows us to model realistic household and family structures at scale, with relevant geographies.
 We have created a simulation of the US population, including names and addresses, with defined types of data collection (e.g., simulating decennial censuses, surveys, taxes, and other administrative data).
 By creating realistic, but simulated, data which includes these attributes, we can make ER research and development easier for ourselves and others.
