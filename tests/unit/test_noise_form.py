@@ -142,8 +142,8 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
         NOISE_TYPES.write_wrong_digits.name,
         NOISE_TYPES.use_nickname.name,
         NOISE_TYPES.use_fake_name.name,
-        # "phonetic",
-        # "ocr",
+        # NOISE_TYPES.make_phonetic_errors.name,
+        # NOISE_TYPES.make_ocr_errors.name,
         NOISE_TYPES.make_typos.name,
     ]
 
