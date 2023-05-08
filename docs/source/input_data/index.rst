@@ -82,7 +82,7 @@ If the generated checksum does not match the one provided in the table above,
 please try re-downloading the dataset.
 
 If after downloading the file a second time the checksums still do not match,
-please open a new `Data access request <https://github.com/ihmeuw/pseudopeople/issues/new?assignees=&labels=&template=data_access_request.yml>`_ 
+please open a `Bug report <https://github.com/ihmeuw/pseudopeople/issues/new?assignees=&labels=&template=bug_report.yml>`_ 
 using the template under the `Issues tab <https://github.com/ihmeuw/pseudopeople/issues>`_ 
 on pseudopeople's GitHub page.
 
