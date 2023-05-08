@@ -52,24 +52,24 @@ def dummy_config_noise_numbers():
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "event_type": {
-                        NOISE_TYPES.missing_data.name: {Keys.CELL_PROBABILITY: 0.01},
-                        NOISE_TYPES.incorrect_selection.name: {Keys.CELL_PROBABILITY: 0.01},
-                        "copy_from_within_household": {Keys.CELL_PROBABILITY: 0.01},
-                        "month_day_swap": {Keys.CELL_PROBABILITY: 0.01},
-                        NOISE_TYPES.zipcode_miswriting.name: {
+                        NOISE_TYPES.leave_blank.name: {Keys.CELL_PROBABILITY: 0.01},
+                        NOISE_TYPES.choose_wrong_option.name: {Keys.CELL_PROBABILITY: 0.01},
+                        "copy_from_household_member": {Keys.CELL_PROBABILITY: 0.01},
+                        NOISE_TYPES.swap_month_and_day.name: {Keys.CELL_PROBABILITY: 0.01},
+                        NOISE_TYPES.write_wrong_zipcode_digits.name: {
                             Keys.CELL_PROBABILITY: 0.01,
                             Keys.ZIPCODE_DIGIT_PROBABILITIES: [0.04, 0.04, 0.2, 0.36, 0.36],
                         },
-                        NOISE_TYPES.age_miswriting.name: {
+                        NOISE_TYPES.misreport_age.name: {
                             Keys.CELL_PROBABILITY: 0.01,
                             Keys.POSSIBLE_AGE_DIFFERENCES: [1, -1],
                         },
-                        NOISE_TYPES.numeric_miswriting.name: {
+                        NOISE_TYPES.write_wrong_digits.name: {
                             Keys.CELL_PROBABILITY: 0.01,
-                            "numeric_miswriting": [0.1],
+                            Keys.TOKEN_PROBABILITY: 0.1,
                         },
-                        "nickname": {Keys.CELL_PROBABILITY: 0.01},
-                        NOISE_TYPES.fake_name.name: {Keys.CELL_PROBABILITY: 0.01},
+                        NOISE_TYPES.use_nickname.name: {Keys.CELL_PROBABILITY: 0.01},
+                        NOISE_TYPES.use_fake_name.name: {Keys.CELL_PROBABILITY: 0.01},
                         "phonetic": {
                             Keys.CELL_PROBABILITY: 0.01,
                             Keys.TOKEN_PROBABILITY: 0.1,
@@ -78,14 +78,14 @@ def dummy_config_noise_numbers():
                             Keys.CELL_PROBABILITY: 0.01,
                             Keys.TOKEN_PROBABILITY: 0.1,
                         },
-                        NOISE_TYPES.typographic.name: {
+                        NOISE_TYPES.make_typos.name: {
                             Keys.CELL_PROBABILITY: 0.01,
                             Keys.TOKEN_PROBABILITY: 0.1,
                         },
                     },
                 },
                 Keys.ROW_NOISE: {
-                    "duplication": {
+                    "duplicate_rows": {
                         Keys.ROW_PROBABILITY: 0.01,
                     },
                     NOISE_TYPES.do_not_respond.name: {
@@ -98,10 +98,11 @@ def dummy_config_noise_numbers():
 
 
 def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
-    """From docs: "Noising should be applied in the following order: omissions, duplications,
-    missing data, incorrect selection, copy from w/in household, month and day
-    swaps, zip code miswriting, age miswriting, numeric miswriting, nicknames,
-    fake names, phonetic, OCR, typographic"
+    """From docs: "Noising should be applied in the following order: omit_row,
+    do_not_respond, duplicate_row, leave_blank, choose_wrong_option,
+    copy_from_household_member, swap_month_and_day, write_wrong_zipcode_digits,
+    misreport_age, write_wrong_digits, use_nickname, use_fake_name,
+    make_phonetic_errors, make_ocr_errors, make_typos
     """
     mock = mocker.MagicMock()
     # Mock the noise_functions functions so that they are not actually called and
@@ -129,21 +130,21 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
 
     call_order = [x[0] for x in mock.mock_calls if not x[0].startswith("__")]
     expected_call_order = [
-        # "omit_rows",   # Census doesn't use omit_rows
-        "do_not_respond",
-        # "duplication",
-        "missing_data",
-        "incorrect_selection",
-        # "copy_from_within_household",
-        # "month_day_swap",
-        "zipcode_miswriting",
-        "age_miswriting",
-        "numeric_miswriting",
-        # "nickname",
-        "fake_name",
+        # NOISE_TYPES.omit_row.name,   # Census doesn't use omit_row
+        NOISE_TYPES.do_not_respond.name,
+        # NOISE_TYPES.duplicate_row.name,
+        NOISE_TYPES.leave_blank.name,
+        NOISE_TYPES.choose_wrong_option.name,
+        # NOISE_TYPES.copy_from_household_member.name,
+        NOISE_TYPES.swap_month_and_day.name,
+        NOISE_TYPES.write_wrong_zipcode_digits.name,
+        NOISE_TYPES.misreport_age.name,
+        NOISE_TYPES.write_wrong_digits.name,
+        NOISE_TYPES.use_nickname.name,
+        NOISE_TYPES.use_fake_name.name,
         # "phonetic",
         # "ocr",
-        "typographic",
+        NOISE_TYPES.make_typos.name,
     ]
 
     assert expected_call_order == call_order
@@ -159,7 +160,7 @@ def test_columns_noised(dummy_data):
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "event_type": {
-                        NOISE_TYPES.missing_data.name: {Keys.CELL_PROBABILITY: 0.1},
+                        NOISE_TYPES.leave_blank.name: {Keys.CELL_PROBABILITY: 0.1},
                     },
                 },
             },

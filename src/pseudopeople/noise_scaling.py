@@ -4,9 +4,10 @@ import pandas as pd
 from pseudopeople.constants import metadata, paths
 
 
-def noise_scaling_incorrect_selection(column: pd.Series) -> float:
+def scale_choose_wrong_option(column: pd.Series) -> float:
     """
-    Function to scale noising for incorrect selection to adjust for the possibility of noising with the original values.
+    Function to scale noising for choose_wrong_option to adjust for the possibility
+    of noising with the original values.
     """
     from pseudopeople.schema_entities import COLUMNS
 

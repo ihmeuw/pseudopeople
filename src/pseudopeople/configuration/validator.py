@@ -47,7 +47,7 @@ def validate_user_configuration(user_config: Dict, default_config: ConfigTree) -
                     default_column_config, noise_type, "noise type", dataset, column
                 )
                 parameter_config_validator_map = {
-                    NOISE_TYPES.nickname.name: {
+                    NOISE_TYPES.use_nickname.name: {
                         Keys.CELL_PROBABILITY: _validate_nickname_probability
                     }
                 }.get(noise_type, DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP)

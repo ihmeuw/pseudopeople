@@ -141,7 +141,7 @@ def apply_do_not_respond(
 #     return dataset_data
 
 
-def generate_incorrect_selections(
+def choose_wrong_options(
     column: pd.Series,
     _: ConfigTree,
     randomness_stream: RandomnessStream,
@@ -178,7 +178,7 @@ def generate_incorrect_selections(
     return pd.Series(new_values, index=column.index, name=column.name)
 
 
-# def generate_within_household_copies(
+# def copy_from_household_members(
 #     column: pd.Series,
 #     configuration: ConfigTree,
 #     randomness_stream: RandomnessStream,
@@ -240,7 +240,7 @@ def swap_months_and_days(
     return noised
 
 
-def miswrite_zipcodes(
+def write_wrong_zipcode_digits(
     column: pd.Series,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
@@ -284,7 +284,7 @@ def miswrite_zipcodes(
     return new_zipcodes
 
 
-def miswrite_ages(
+def misreport_ages(
     column: pd.Series,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
@@ -316,7 +316,7 @@ def miswrite_ages(
     return new_values
 
 
-def miswrite_numerics(
+def write_wrong_digits(
     column: pd.Series,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
@@ -359,9 +359,9 @@ def miswrite_numerics(
     return noised_column
 
 
-def generate_nicknames(
+def use_nicknames(
     column: pd.Series,
-    configuration: ConfigTree,
+    _: ConfigTree,
     randomness_stream: RandomnessStream,
     additional_key: Any,
 ) -> pd.Series:
@@ -384,7 +384,7 @@ def generate_nicknames(
     return column
 
 
-def generate_fake_names(
+def use_fake_names(
     column: pd.Series,
     _: ConfigTree,
     randomness_stream: RandomnessStream,
@@ -413,7 +413,7 @@ def generate_fake_names(
     return pd.Series(new_values, index=column.index, name=column.name)
 
 
-# def generate_phonetic_errors(
+# def make_phonetic_errors(
 #     column: pd.Series,
 #     configuration: ConfigTree,
 #     randomness_stream: RandomnessStream,
@@ -431,7 +431,7 @@ def generate_fake_names(
 #     return column
 
 
-def generate_missing_data(column: pd.Series, *_: Any) -> pd.Series:
+def leave_blanks(column: pd.Series, *_: Any) -> pd.Series:
     """
     Function that takes a column and blanks out all values.
 
@@ -442,7 +442,7 @@ def generate_missing_data(column: pd.Series, *_: Any) -> pd.Series:
     return pd.Series(np.nan, index=column.index)
 
 
-def generate_typographical_errors(
+def make_typos(
     column: pd.Series,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
@@ -504,7 +504,7 @@ def generate_typographical_errors(
     return column
 
 
-# def generate_ocr_errors(
+# def make_ocr_errors(
 #     column: pd.Series,
 #     configuration: ConfigTree,
 #     randomness_stream: RandomnessStream,
