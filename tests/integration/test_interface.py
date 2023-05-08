@@ -242,8 +242,8 @@ def test_column_noising(dataset_name: str, user_config, request):
         "TODO: tax_1040",
     ],
 )
-def test_row_noising_omission_or_do_not_respond(dataset_name: str, user_config, request):
-    """Tests that omission and do not respond row noising are being applied"""
+def test_row_noising_omit_row_or_do_not_respond(dataset_name: str, user_config, request):
+    """Tests that omit_row and do_not_respond row noising are being applied"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     idx_cols = IDX_COLS.get(dataset_name)
@@ -253,9 +253,9 @@ def test_row_noising_omission_or_do_not_respond(dataset_name: str, user_config, 
     )
     config = get_configuration(user_config)[dataset_name][Keys.ROW_NOISE]
     noise_type = [
-        n for n in config if n in [NOISE_TYPES.omission.name, NOISE_TYPES.do_not_respond.name]
+        n for n in config if n in [NOISE_TYPES.omit_row.name, NOISE_TYPES.do_not_respond.name]
     ]
-    assert len(noise_type) < 2  # omission and do not respond should be mutually exclusive
+    assert len(noise_type) < 2  # omit_row and do_not_respond should be mutually exclusive
     if not noise_type:  # Check that there are no missing indexes
         assert noised_data.index.symmetric_difference(data.index).empty
     else:  # Check that there are some omissions

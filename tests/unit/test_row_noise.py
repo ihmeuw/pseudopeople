@@ -36,12 +36,12 @@ def dummy_data():
     )
 
 
-def test_omission(dummy_data):
+def test_omit_row(dummy_data):
     config = get_configuration()[DATASETS.tax_w2_1099.name][Keys.ROW_NOISE][
-        NOISE_TYPES.omission.name
+        NOISE_TYPES.omit_row.name
     ]
     dataset_name_1 = "dummy_dataset_name"
-    noised_data1 = NOISE_TYPES.omission(dataset_name_1, dummy_data, config, RANDOMNESS)
+    noised_data1 = NOISE_TYPES.omit_row(dataset_name_1, dummy_data, config, RANDOMNESS)
 
     expected_noise_1 = config[Keys.ROW_PROBABILITY]
     assert np.isclose(1 - len(noised_data1) / len(dummy_data), expected_noise_1, rtol=0.02)

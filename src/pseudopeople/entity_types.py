@@ -15,8 +15,8 @@ class RowNoiseType:
     """
     Defines a type of noise that can be applied to a row.
 
-    The name is the name of the particular noise function (e.g. "omission" or
-    "duplication").
+    The name is the name of the particular noise type (e.g. "omit_row" or
+    "duplicate_row").
 
     The noise function takes as input a DataFrame, the configuration value
     for this RowNoise operation, and a RandomnessStream for controlling
@@ -45,8 +45,8 @@ class ColumnNoiseType:
     """
     Defines a type of noise that can be applied to a column.
 
-    The name is the name of the particular noise function (e.g. "nickname" or
-    "phonetic").
+    The name is the name of the particular noise type (e.g. use_nickname" or
+    "make_phonetic_errors").
 
     The noise function takes as input a Series, the ConfigTree object for this
     ColumnNoise operation, a RandomnessStream for controlling randomness, and
