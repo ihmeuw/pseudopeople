@@ -45,7 +45,7 @@ class ColumnNoiseType:
     """
     Defines a type of noise that can be applied to a column.
 
-    The name is the name of the particular noise function (e.g. use_nickname" or
+    The name is the name of the particular noise type (e.g. use_nickname" or
     "make_phonetic_errors").
 
     The noise function takes as input a Series, the ConfigTree object for this
