@@ -50,29 +50,41 @@ data zip files:
     - pseudopeople_input_data_ri_1_0_0.zip
     - d3f1ccdfbfca8b53254c4ceeb18afe17c3d3b3fe02f56cc20d1254f818c39435
 
-These SHA-256 checksums can be used to validate that you've successfully
-downloaded the correct (and uncorrupt) zip file; if the SHA-256 checksum that
-you generate for the downloaded file matches the value provided in the table
-above, you can be sure the download was successful. There are many tools to
-generate SHA-256 checksums, including the terminal/cmd commands below:
+These checksums can be used to validate that you've successfully
+downloaded the correct and uncorrupted zip file; if the SHA-256 checksum that
+you generate for the downloaded file matches the value provided above, you can
+be sure you downloaded the file successfully.
 
-Linux:
+Possibly the simplest way to verify checksums is to generate the value using the 
+terminal/cmd command below (be sure to replace `PATH/TO/ZIP`  with the actual path 
+to the zip you downloaded) and visually compare the result to the
+values provided above. Note that if even the first few and last few characters 
+match then it is very likely the entire string matches.
+
+Linux/Mac:
 
 .. code-block:: console
 
-  $ sha256sum <filename>
-
-Mac:
-
-.. code-block:: console
-
-  $ shasum -a 256 <filename>
+  $ sha256sum PATH/TO/ZIP
 
 Windows:
 
 .. code-block:: console
 
-  $ CertUtil -hashfile <filename> SHA256
+  $ CertUtil -hashfile PATH/TO/ZIP SHA256
+
+.. note::
+  
+  Generating the checksum can take a long time for larger files, e.g. several
+  minutes for the Rhode Island dataset and ~1 hour for the United States dataset.
+
+If the generated checksum does not match the one provided in the table above,
+please try re-downloading the dataset.
+
+If after downloading the file a second time the checksums still do not match,
+please open a new `Data access request <https://github.com/ihmeuw/pseudopeople/issues/new?assignees=&labels=&template=data_access_request.yml>`_ 
+using the template under the `Issues tab <https://github.com/ihmeuw/pseudopeople/issues>`_ 
+on pseudopeople's GitHub page.
 
 Using pseudopeople input data
 -----------------------------
