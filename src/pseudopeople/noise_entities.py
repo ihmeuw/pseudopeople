@@ -10,7 +10,7 @@ class __NoiseTypes(NamedTuple):
     omit_row, do_not_respond, duplicate_row, leave_blank, choose_wrong_option,
     copy_from_household_member, swap_month_and_day, write_wrong_zipcode_digits,
     misreport_age, write_wrong_digits, use_nickname, use_fake_name,
-    make_phonetic_errors, make_ocr_errors, make_typos
+    make_phonetic_error, make_ocr_errors, make_typos
 
     NOTE: Any configuration tree overwrites in these objects are what ends up
     in the "baseline" ConfigTree layer.
@@ -68,8 +68,8 @@ class __NoiseTypes(NamedTuple):
         "use_fake_name",
         noise_functions.use_fake_names,
     )
-    # make_phonetic_errors: ColumnNoiseType = ColumnNoiseType(
-    #     "make_phonetic_errors",
+    # make_phonetic_error: ColumnNoiseType = ColumnNoiseType(
+    #     "make_phonetic_error",
     #     noise_functions.make_phonetic_errors,
     #     probability=None,
     #     additional_parameters={

@@ -102,7 +102,7 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
     do_not_respond, duplicate_row, leave_blank, choose_wrong_option,
     copy_from_household_member, swap_month_and_day, write_wrong_zipcode_digits,
     misreport_age, write_wrong_digits, use_nickname, use_fake_name,
-    make_phonetic_errors, make_ocr_errors, make_typos
+    make_phonetic_error, make_ocr_errors, make_typos
     """
     mock = mocker.MagicMock()
     # Mock the noise_functions functions so that they are not actually called and
@@ -142,7 +142,7 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
         NOISE_TYPES.write_wrong_digits.name,
         NOISE_TYPES.use_nickname.name,
         NOISE_TYPES.use_fake_name.name,
-        # NOISE_TYPES.make_phonetic_errors.name,
+        # NOISE_TYPES.make_phonetic_error.name,
         # NOISE_TYPES.make_ocr_errors.name,
         NOISE_TYPES.make_typos.name,
     ]
