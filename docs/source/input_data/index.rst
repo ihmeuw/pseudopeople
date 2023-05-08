@@ -61,11 +61,17 @@ to the zip you downloaded) and visually compare the result to the
 values provided above. Note that if even the first few and last few characters 
 match then it is very likely the entire string matches.
 
-Linux/Mac:
+Linux:
 
 .. code-block:: console
 
   $ sha256sum PATH/TO/ZIP
+
+Mac:
+
+.. code-block:: console
+
+  $ shasum -a 256 PATH/TO/ZIP
 
 Windows:
 
