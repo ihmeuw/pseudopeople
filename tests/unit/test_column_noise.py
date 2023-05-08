@@ -11,6 +11,7 @@ from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS
+from pseudopeople.utilities import load_ocr_errors_dict
 
 RANDOMNESS0 = RandomnessStream(
     key="test_column_noise",
@@ -641,9 +642,71 @@ def test_generate_phonetic_errors():
     pass
 
 
-@pytest.mark.skip(reason="TODO")
-def test_generate_ocr_errors():
-    pass
+@pytest.mark.parametrize(
+    "column",
+    [
+        "numbers",
+        "characters",
+    ],
+)
+def test_generate_ocr_errors(dummy_dataset, column):
+    data = dummy_dataset[column]
+    # Update column name for noise function
+    data.name = "first_name"
+
+    config = get_configuration()
+    config.update(
+        {
+            DATASETS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    column: {
+                        NOISE_TYPES.ocr.name: {
+                            Keys.CELL_PROBABILITY: 0.1,
+                            Keys.TOKEN_PROBABILITY: 0.1,
+                        },
+                    },
+                },
+            },
+        }
+    )
+    config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][
+        NOISE_TYPES.ocr.name
+    ]
+    noised_data = NOISE_TYPES.ocr(data, config, RANDOMNESS0, "test")
+
+    # Validate we do not change any missing data
+    missing_mask = data == ""
+    assert (data[missing_mask] == noised_data[missing_mask]).all()
+
+    # Check expected noise level
+    token_prob = config[Keys.TOKEN_PROBABILITY]
+    cell_prob = config[Keys.CELL_PROBABILITY]
+    str_lengths = data.str.len()  # pd.Series
+    p_token_not_noised = 1 - token_prob
+    # Get probability no tokens are noised in a string
+    p_strings_not_noised = p_token_not_noised ** str_lengths  # pd.Series
+    p_strings_noised = 1 - p_strings_not_noised  # pd.Series
+    expected_noise = cell_prob * p_strings_noised.mean()
+    actual_noise = (data[~missing_mask] != noised_data[~missing_mask]).mean()
+    assert np.isclose(
+        actual_noise,
+        expected_noise,
+        rtol=0.02,
+    )
+    # Check some rows change string length based on OCR replace
+    # todo: get better proportion for this
+    noised_string_length = noised_data.str.len()
+    assert (str_lengths != noised_string_length).any()
+    # Check we error tokens with correct error tokens
+    # Load OCR errors dict
+    ocr_errors_dict = load_ocr_errors_dict()
+    # todo: fixme, we can't do this because strings change lengths
+    for idx in noised_data[~missing_mask].index:
+        for i in range(len(noised_data[idx])):
+            if data[idx][i] == noised_data[idx][i]:
+                continue
+            else:
+                assert(noised_data[idx][i] in ocr_errors_dict[data[idx][i]])
 
 
 @pytest.mark.parametrize(
