@@ -1,3 +1,6 @@
+**0.6.5 - 05/09/23**
+ - Hotfix to pin vivarium dependency
+
 **0.6.4 - 04/25/23**
  - Updated documentation
 
