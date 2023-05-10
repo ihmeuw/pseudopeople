@@ -6,6 +6,7 @@ from vivarium.config_tree import ConfigTree
 
 from pseudopeople.configuration import Keys
 from pseudopeople.configuration.validator import validate_user_configuration
+from pseudopeople.constants.data_values import DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
 
@@ -14,28 +15,34 @@ from pseudopeople.schema_entities import COLUMNS, DATASETS
 DEFAULT_NOISE_VALUES = {
     DATASETS.census.name: {
         Keys.ROW_NOISE: {
-            NOISE_TYPES.omission.name: {
-                Keys.ROW_PROBABILITY: 0.0145,
+            NOISE_TYPES.do_not_respond.name: {
+                Keys.ROW_PROBABILITY: DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY[
+                    DATASETS.census.name
+                ],
             }
         },
     },
     DATASETS.acs.name: {
         Keys.ROW_NOISE: {
-            NOISE_TYPES.omission.name: {
-                Keys.ROW_PROBABILITY: 0.0145,
+            NOISE_TYPES.do_not_respond.name: {
+                Keys.ROW_PROBABILITY: DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY[
+                    DATASETS.acs.name
+                ],
             },
         },
     },
     DATASETS.cps.name: {
         Keys.ROW_NOISE: {
-            NOISE_TYPES.omission.name: {
-                Keys.ROW_PROBABILITY: 0.2905,
+            NOISE_TYPES.do_not_respond.name: {
+                Keys.ROW_PROBABILITY: DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY[
+                    DATASETS.cps.name
+                ],
             },
         },
     },
     DATASETS.tax_w2_1099.name: {
         Keys.ROW_NOISE: {
-            NOISE_TYPES.omission.name: {
+            NOISE_TYPES.omit_row.name: {
                 Keys.ROW_PROBABILITY: 0.005,
             },
         },
@@ -48,8 +55,8 @@ DEFAULT_NOISE_VALUES = {
                     Keys.CELL_PROBABILITY: 0.0,
                 }
                 for noise_type in COLUMNS.ssn.noise_types
-            }
-        }
+            },
+        },
     },
 }
 
@@ -143,25 +150,25 @@ def _format_user_configuration(default_config: ConfigTree, user_dict: Dict) -> D
     """Formats the user's configuration file as necessary, so it can properly
     update noising configuration to be used
     """
-    user_dict = _format_age_miswriting_perturbations(default_config, user_dict)
+    user_dict = _format_misreport_age_perturbations(default_config, user_dict)
     return user_dict
 
 
-def _format_age_miswriting_perturbations(default_config: ConfigTree, user_dict: Dict) -> Dict:
+def _format_misreport_age_perturbations(default_config: ConfigTree, user_dict: Dict) -> Dict:
     # Format any age perturbation lists as a dictionary with uniform probabilities
     for dataset in user_dict:
         user_perturbations = (
             user_dict[dataset]
             .get(Keys.COLUMN_NOISE, {})
             .get("age", {})
-            .get(NOISE_TYPES.age_miswriting.name, {})
+            .get(NOISE_TYPES.misreport_age.name, {})
             .get(Keys.POSSIBLE_AGE_DIFFERENCES, {})
         )
         if not user_perturbations:
             continue
         formatted = {}
         default_perturbations = default_config[dataset][Keys.COLUMN_NOISE]["age"][
-            NOISE_TYPES.age_miswriting.name
+            NOISE_TYPES.misreport_age.name
         ][Keys.POSSIBLE_AGE_DIFFERENCES]
         # Replace default configuration with 0 probabilities
         for perturbation in default_perturbations:
@@ -175,7 +182,7 @@ def _format_age_miswriting_perturbations(default_config: ConfigTree, user_dict: 
             for perturbation, prob in user_perturbations.items():
                 formatted[perturbation] = prob
 
-        user_dict[dataset][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.age_miswriting.name][
+        user_dict[dataset][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.misreport_age.name][
             Keys.POSSIBLE_AGE_DIFFERENCES
         ] = formatted
 

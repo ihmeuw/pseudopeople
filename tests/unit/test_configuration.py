@@ -5,6 +5,7 @@ from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
 from pseudopeople.configuration.interface import get_config
 from pseudopeople.configuration.validator import ConfigurationError
+from pseudopeople.constants.metadata import Attributes
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
 
@@ -100,9 +101,9 @@ def test_get_configuration_with_user_override(mocker):
     mock = mocker.patch("pseudopeople.configuration.generator.ConfigTree")
     config = {
         DATASETS.census.name: {
-            Keys.ROW_NOISE: {NOISE_TYPES.omission.name: {Keys.ROW_PROBABILITY: 0.05}},
+            Keys.ROW_NOISE: {NOISE_TYPES.omit_row.name: {Keys.ROW_PROBABILITY: 0.05}},
             Keys.COLUMN_NOISE: {
-                "first_name": {NOISE_TYPES.typographic.name: {Keys.CELL_PROBABILITY: 0.05}}
+                "first_name": {NOISE_TYPES.make_typos.name: {Keys.CELL_PROBABILITY: 0.05}}
             },
         }
     }
@@ -121,7 +122,7 @@ def test_loading_from_yaml(tmp_path):
         DATASETS.census.name: {
             Keys.COLUMN_NOISE: {
                 COLUMNS.age.name: {
-                    NOISE_TYPES.age_miswriting.name: {
+                    NOISE_TYPES.misreport_age.name: {
                         Keys.CELL_PROBABILITY: 0.5,
                     },
                 },
@@ -134,10 +135,10 @@ def test_loading_from_yaml(tmp_path):
 
     default_config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE][
         COLUMNS.age.name
-    ][NOISE_TYPES.age_miswriting.name].to_dict()
+    ][NOISE_TYPES.misreport_age.name].to_dict()
     updated_config = get_configuration(filepath)[DATASETS.census.name][Keys.COLUMN_NOISE][
         COLUMNS.age.name
-    ][NOISE_TYPES.age_miswriting.name].to_dict()
+    ][NOISE_TYPES.misreport_age.name].to_dict()
 
     assert (
         default_config[Keys.POSSIBLE_AGE_DIFFERENCES]
@@ -163,7 +164,7 @@ def test_format_miswrite_ages(user_config, expected):
         DATASETS.census.name: {
             Keys.COLUMN_NOISE: {
                 COLUMNS.age.name: {
-                    NOISE_TYPES.age_miswriting.name: {
+                    NOISE_TYPES.misreport_age.name: {
                         Keys.POSSIBLE_AGE_DIFFERENCES: user_config,
                     },
                 },
@@ -173,7 +174,7 @@ def test_format_miswrite_ages(user_config, expected):
 
     config = get_configuration(user_config)[DATASETS.census.name][Keys.COLUMN_NOISE][
         COLUMNS.age.name
-    ][NOISE_TYPES.age_miswriting.name][Keys.POSSIBLE_AGE_DIFFERENCES].to_dict()
+    ][NOISE_TYPES.misreport_age.name][Keys.POSSIBLE_AGE_DIFFERENCES].to_dict()
 
     assert config == expected
 
@@ -191,7 +192,11 @@ def test_format_miswrite_ages(user_config, expected):
             "Invalid noise type '.*' provided for dataset '.*'. ",
         ),
         (
-            {DATASETS.acs.name: {Keys.ROW_NOISE: {NOISE_TYPES.omission.name: {"fake": {}}}}},
+            {
+                DATASETS.acs.name: {
+                    Keys.ROW_NOISE: {NOISE_TYPES.do_not_respond.name: {"fake": {}}}
+                }
+            },
             "Invalid parameter '.*' provided for dataset '.*' and noise type '.*'. ",
         ),
         (
@@ -206,7 +211,7 @@ def test_format_miswrite_ages(user_config, expected):
             {
                 DATASETS.acs.name: {
                     Keys.COLUMN_NOISE: {
-                        COLUMNS.age.name: {NOISE_TYPES.missing_data.name: {"fake": 1}}
+                        COLUMNS.age.name: {NOISE_TYPES.leave_blank.name: {"fake": 1}}
                     }
                 }
             },
@@ -249,7 +254,7 @@ def test_validate_standard_parameters_failures(value, match):
                 DATASETS.census.name: {
                     Keys.COLUMN_NOISE: {
                         COLUMNS.age.name: {
-                            NOISE_TYPES.age_miswriting.name: {
+                            NOISE_TYPES.misreport_age.name: {
                                 Keys.CELL_PROBABILITY: value,
                             },
                         },
@@ -290,7 +295,7 @@ def test_validate_miswrite_ages_failures(perturbations, match):
                 DATASETS.census.name: {
                     Keys.COLUMN_NOISE: {
                         COLUMNS.age.name: {
-                            NOISE_TYPES.age_miswriting.name: {
+                            NOISE_TYPES.misreport_age.name: {
                                 Keys.CELL_PROBABILITY: 1,
                                 Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                             },
@@ -319,7 +324,7 @@ def test_validate_miswrite_zipcode_digit_probabilities_failures(probabilities, m
                 DATASETS.census.name: {
                     Keys.COLUMN_NOISE: {
                         COLUMNS.zipcode.name: {
-                            NOISE_TYPES.zipcode_miswriting.name: {
+                            NOISE_TYPES.write_wrong_zipcode_digits.name: {
                                 Keys.CELL_PROBABILITY: 1,
                                 Keys.ZIPCODE_DIGIT_PROBABILITIES: probabilities,
                             },
@@ -335,7 +340,7 @@ def test_get_config(caplog):
         DATASETS.acs.name: {
             Keys.COLUMN_NOISE: {
                 "zipcode": {
-                    NOISE_TYPES.missing_data.name: {
+                    NOISE_TYPES.leave_blank.name: {
                         Keys.CELL_PROBABILITY: 0.25,
                     },
                 },
@@ -352,3 +357,59 @@ def test_get_config(caplog):
 
     with pytest.raises(ConfigurationError, match="bad_form_name"):
         get_config("bad_form_name")
+
+
+def test_date_format_config():
+    # Test that columns with date format attribute are only columns with swap months and days noise type
+
+    # Columns that have additional attribute date_format
+    date_attribute_cols = set()
+    # Columns that have swap_months_days noise type
+    noise_cols = set()
+
+    for column in COLUMNS:
+        if NOISE_TYPES.swap_month_and_day in column.noise_types:
+            noise_cols.add(column.name)
+        if Attributes.DATE_FORMAT in column.additional_attributes.keys():
+            date_attribute_cols.add(column.name)
+
+    assert noise_cols.issubset(date_attribute_cols)
+
+
+def test_omit_rows_do_not_respond_mutex_default_configuration():
+    """Test that omit_rows and do_not_respond are not both defined in the default configuration"""
+    config = get_configuration()
+    for dataset in DATASETS:
+        has_omit_rows = (
+            NOISE_TYPES.omit_row.name in config[dataset.name][Keys.ROW_NOISE].keys()
+        )
+        has_do_not_respond = (
+            NOISE_TYPES.do_not_respond.name in config[dataset.name][Keys.ROW_NOISE].keys()
+        )
+        assert not has_do_not_respond or not has_omit_rows
+
+
+def test_validate_nickname_configuration(caplog):
+    """
+    Tests that warning is thrown if cell probability is higher than nickname proportion.  Also tests noise leve
+    is appropriately adjust if this is the case.
+    """
+    config_values = [0.45, 0.65]
+    for config_value in config_values:
+        get_configuration(
+            {
+                DATASETS.census.name: {
+                    Keys.COLUMN_NOISE: {
+                        COLUMNS.first_name.name: {
+                            NOISE_TYPES.use_nickname.name: {
+                                Keys.CELL_PROBABILITY: config_value,
+                            },
+                        },
+                    },
+                },
+            },
+        )
+        if config_value == 0.45:
+            assert not caplog.records
+        else:
+            assert "Noise level has been adjusted" in caplog.text

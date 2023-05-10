@@ -1,3 +1,9 @@
+**0.6.5 - 05/09/23**
+ - Hotfix to pin vivarium dependency
+
+**0.6.4 - 04/25/23**
+ - Updated documentation
+
 **0.6.3 - 04/24/23**
  - Updated documentation
  - Added data access request to issue template

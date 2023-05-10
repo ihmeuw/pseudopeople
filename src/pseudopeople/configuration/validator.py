@@ -1,10 +1,13 @@
-from typing import Dict, List, Union
+from typing import Callable, Dict, List, Union
 
 import numpy as np
+from loguru import logger
 from vivarium.config_tree import ConfigTree, ConfigurationKeyError
 
 from pseudopeople.configuration import Keys
+from pseudopeople.constants import metadata
 from pseudopeople.exceptions import ConfigurationError
+from pseudopeople.noise_entities import NOISE_TYPES
 
 
 def validate_user_configuration(user_config: Dict, default_config: ConfigTree) -> None:
@@ -28,7 +31,11 @@ def validate_user_configuration(user_config: Dict, default_config: ConfigTree) -
                 default_row_noise_config, noise_type, "noise type", dataset
             )
             _validate_noise_type_config(
-                noise_type_config, default_noise_type_config, dataset, noise_type
+                noise_type_config,
+                default_noise_type_config,
+                dataset,
+                noise_type,
+                DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP,
             )
 
         for column, column_config in dataset_config.get(Keys.COLUMN_NOISE, {}).items():
@@ -39,8 +46,18 @@ def validate_user_configuration(user_config: Dict, default_config: ConfigTree) -
                 default_noise_type_config = _get_default_config_node(
                     default_column_config, noise_type, "noise type", dataset, column
                 )
+                parameter_config_validator_map = {
+                    NOISE_TYPES.use_nickname.name: {
+                        Keys.CELL_PROBABILITY: _validate_nickname_probability
+                    }
+                }.get(noise_type, DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP)
                 _validate_noise_type_config(
-                    noise_type_config, default_noise_type_config, dataset, noise_type, column
+                    noise_type_config,
+                    default_noise_type_config,
+                    dataset,
+                    noise_type,
+                    parameter_config_validator_map,
+                    column,
                 )
 
 
@@ -49,6 +66,7 @@ def _validate_noise_type_config(
     default_noise_type_config: ConfigTree,
     dataset: str,
     noise_type: str,
+    parameter_config_validator_map: Dict[str, Callable],
     column: str = None,
 ) -> None:
     """
@@ -56,10 +74,9 @@ def _validate_noise_type_config(
     Additionally, validates that the configuration values are permissible.
     """
     for parameter, parameter_config in noise_type_config.items():
-        parameter_config_validator = {
-            Keys.POSSIBLE_AGE_DIFFERENCES: _validate_possible_age_differences,
-            Keys.ZIPCODE_DIGIT_PROBABILITIES: _validate_zipcode_digit_probabilities,
-        }.get(parameter, _validate_probability)
+        parameter_config_validator = parameter_config_validator_map.get(
+            parameter, _validate_probability
+        )
 
         _ = _get_default_config_node(
             default_noise_type_config, parameter, "parameter", dataset, column, noise_type
@@ -171,3 +188,21 @@ def _validate_probability(
             base_error_message + f"'{parameter}'s must be between 0 and 1 (inclusive). "
             f"Provided {noise_type_config}."
         )
+
+
+def _validate_nickname_probability(
+    noise_type_config: Union[int, float], parameter: str, base_error_message: str
+) -> None:
+    _validate_probability(noise_type_config, parameter, base_error_message)
+    if noise_type_config > metadata.NICKNAMES_PROPORTION:
+        logger.warning(
+            base_error_message
+            + f"Maximum configuration value is {1/metadata.NICKNAMES_PROPORTION}. "
+            f"Noise level has been adjusted to {1/metadata.NICKNAMES_PROPORTION}."
+        )
+
+
+DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP = {
+    Keys.POSSIBLE_AGE_DIFFERENCES: _validate_possible_age_differences,
+    Keys.ZIPCODE_DIGIT_PROBABILITIES: _validate_zipcode_digit_probabilities,
+}
