@@ -109,7 +109,7 @@ def test_generate_dataset_from_sample_and_source(
             check_original.loc[compare_dataset_idx, col].values
             != check_noised_dataset.loc[compare_dataset_idx, col].values
         ).mean()
-        np.isclose(noise_level_sample, noise_level_dataset, rtol=0.03)
+        assert np.isclose(noise_level_dataset, noise_level_sample, rtol=0.07)
 
 
 @pytest.mark.parametrize(

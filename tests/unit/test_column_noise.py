@@ -155,7 +155,7 @@ def test_leave_blank(dummy_dataset):
     # Check for expected noise level
     expected_noise = config[Keys.CELL_PROBABILITY]
     actual_noise = len(newly_missing_idx) / len(orig_non_missing_idx)
-    assert np.isclose(expected_noise, actual_noise, rtol=0.02)
+    assert np.isclose(actual_noise, expected_noise, rtol=0.01)
 
     # Check that un-noised values are unchanged
     not_noised_idx = noised_data.index[noised_data.notna()]
@@ -176,7 +176,7 @@ def test_choose_wrong_option(categorical_series):
     # Get real expected noise to account for possibility of noising with original value
     # Here we have a a possibility of choosing any of the 50 states for our categorical series fixture
     actual_noise = (noised_data != categorical_series).mean()
-    assert np.isclose(expected_noise, actual_noise, rtol=0.03)
+    assert np.isclose(actual_noise, expected_noise, rtol=0.03)
 
     original_empty_idx = categorical_series.index[categorical_series == ""]
     noised_empty_idx = noised_data.index[noised_data == ""]
@@ -226,9 +226,9 @@ def test_swap_months_and_days(dummy_dataset):
         else:
             assert (data[~orig_missing].str[6:] == noised_data[~orig_missing].str[6:]).all()
         assert np.isclose(
-            expected_noise,
             (data[~orig_missing] != noised_data[~orig_missing]).mean(),
-            rtol=0.02,
+            expected_noise,
+            rtol=0.005,
         )
 
 
@@ -267,9 +267,9 @@ def test_miswrite_zipcodes(dummy_dataset):
     for i in range(5):
         digit_prob = config["digit_probabilities"][i]
         assert np.isclose(
-            digit_prob * probability,
             (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).mean(),
-            rtol=0.02,
+            digit_prob * probability,
+            rtol=0.003,
         )
 
 
@@ -287,10 +287,9 @@ def test_miswrite_ages_default_config(dummy_dataset):
     not_missing_idx = data.index[data != ""]
     expected_noise = config[Keys.CELL_PROBABILITY]
     actual_noise = (noised_data[not_missing_idx] != data[not_missing_idx]).mean()
-    # NOTE: we increase the relative tolerance a bit here because the expected
-    # noise calculated above does not account for the fact that if a perturbed
-    # age ends up being the same as the original age, then 1 is subtracted.
-    assert np.isclose(expected_noise, actual_noise, rtol=0.03)
+    # NOTE: the expected noise calculated above does not account for the fact that
+    # if a perturbed age ends up being the same as the original age, then 1 is subtracted.
+    assert np.isclose(actual_noise, expected_noise, rtol=0.0003)
 
     # Check that missing data remains missing
     original_missing_idx = data.index[data == ""]
@@ -462,8 +461,8 @@ def test_miswrite_numerics(string_series):
 
     for i in range(4):  # "1234"
         assert np.isclose(
-            expected_noise,
             (data[id_number].str[i] != noised_data[id_number].str[i]).mean(),
+            expected_noise,
             rtol=0.02,
         )
         assert (noised_data[id_number].str[i].str.isdigit()).all()
@@ -473,8 +472,8 @@ def test_miswrite_numerics(string_series):
             assert (data[alt_str].str[i] == noised_data[alt_str].str[i]).all()
         else:
             assert np.isclose(
-                expected_noise,
                 (data[alt_str].str[i] != noised_data[alt_str].str[i]).mean(),
+                expected_noise,
                 rtol=0.02,
             )
             assert (noised_data[alt_str].str[i].str.isdigit()).all()
@@ -482,9 +481,9 @@ def test_miswrite_numerics(string_series):
     for i in range(7):  # "Unit 1A"
         if i == 5:
             assert np.isclose(
-                expected_noise,
                 (data[unit_number].str[i] != noised_data[unit_number].str[i]).mean(),
-                rtol=0.02,
+                expected_noise,
+                rtol=0.004,
             )
             assert (noised_data[unit_number].str[i].str.isdigit()).all()
         else:
@@ -495,8 +494,8 @@ def test_miswrite_numerics(string_series):
             assert (data[income].str[i] == noised_data[income].str[i]).all()
         else:
             assert np.isclose(
-                expected_noise,
                 (data[income].str[i] != noised_data[income].str[i]).mean(),
+                expected_noise,
                 rtol=0.02,
             )
             assert (noised_data[income].str[i].str.isdigit()).all()
@@ -506,9 +505,9 @@ def test_miswrite_numerics(string_series):
             assert (data[date_of_birth].str[i] == noised_data[date_of_birth].str[i]).all()
         else:
             assert np.isclose(
-                expected_noise,
                 (data[date_of_birth].str[i] != noised_data[date_of_birth].str[i]).mean(),
-                rtol=0.02,
+                expected_noise,
+                rtol=0.007,
             )
             assert (noised_data[date_of_birth].str[i].str.isdigit()).all()
 
@@ -517,8 +516,8 @@ def test_miswrite_numerics(string_series):
             assert (data[ssn].str[i] == noised_data[ssn].str[i]).all()
         else:
             assert np.isclose(
-                expected_noise,
                 (data[ssn].str[i] != noised_data[ssn].str[i]).mean(),
+                expected_noise,
                 rtol=0.02,
             )
             assert (noised_data[ssn].str[i].str.isdigit()).all()
@@ -537,7 +536,7 @@ def test_use_nickname(dummy_dataset):
     assert (noised_data[orig_missing].isna()).all()
     # Validate noise level
     assert np.isclose(
-        expected_noise, (noised_data[~orig_missing] != data[~orig_missing]).mean(), rtol=0.02
+        (noised_data[~orig_missing] != data[~orig_missing]).mean(), expected_noise, rtol=0.01
     )
 
     # Validation for nicknames
@@ -621,14 +620,14 @@ def test_use_fake_name(dummy_dataset):
     # todo: equal across fake values
     # Check noised values
     assert np.isclose(
-        first_name_config[Keys.CELL_PROBABILITY],
         (first_name_data[~orig_missing] != noised_first_names[~orig_missing]).mean(),
-        rtol=0.02,
+        first_name_config[Keys.CELL_PROBABILITY],
+        rtol=0.002,
     )
     assert np.isclose(
-        last_name_config[Keys.CELL_PROBABILITY],
         (last_name_data[~orig_missing] != noised_last_names[~orig_missing]).mean(),
-        rtol=0.02,
+        last_name_config[Keys.CELL_PROBABILITY],
+        rtol=0.002,
     )
     # Get raw fake names lists to check noised values
     fake_first = fake_first_names
@@ -695,7 +694,7 @@ def test_make_typos(dummy_dataset, column):
     p_strings_noised = 1 - p_strings_not_noised  # pd.Series
     expected_noise = p_row_noise * p_strings_noised.mean()
     actual_noise = (check_noised != check_original).mean()
-    assert np.isclose(expected_noise, actual_noise, rtol=0.06)
+    assert np.isclose(actual_noise, expected_noise, rtol=0.007)
 
     # Check for expected string growth due to keeping original noised token
     assert (check_noised.str.len() >= check_original.str.len()).all()
@@ -708,7 +707,7 @@ def test_make_typos(dummy_dataset, column):
     p_strings_increase_length = 1 - p_strings_do_not_increase_length  # pd.Series
     expected_changed_length = p_row_noise * p_strings_increase_length.mean()
     actual_changed_length = (check_noised.str.len() != check_original.str.len()).mean()
-    assert np.isclose(expected_changed_length, actual_changed_length, rtol=0.06)
+    assert np.isclose(actual_changed_length, expected_changed_length, rtol=0.003)
 
     # Check that we did not touch the missing data
     assert (
