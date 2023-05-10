@@ -31,7 +31,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.missing_data,
             # NOISE_TYPES.copy_from_within_household,
             NOISE_TYPES.age_miswriting,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -40,7 +40,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             # NOISE_TYPES.phonetic,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -51,7 +51,7 @@ class __Columns(NamedTuple):
             # NOISE_TYPES.copy_from_within_household,
             NOISE_TYPES.month_day_swap,
             NOISE_TYPES.numeric_miswriting,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
         additional_attributes={Attributes.DATE_FORMAT: DATEFORMATS.MM_DD_YYYY},
@@ -61,7 +61,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             # NOISE_TYPES.phonetic,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -72,7 +72,7 @@ class __Columns(NamedTuple):
         "employer_name",
         (
             NOISE_TYPES.missing_data,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -89,7 +89,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             # NOISE_TYPES.phonetic,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -98,7 +98,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             NOISE_TYPES.numeric_miswriting,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -107,7 +107,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             NOISE_TYPES.numeric_miswriting,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -116,7 +116,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             NOISE_TYPES.zipcode_miswriting,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -127,7 +127,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.nickname,
             NOISE_TYPES.fake_name,
             # NOISE_TYPES.phonetic,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -139,7 +139,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             NOISE_TYPES.numeric_miswriting,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -149,7 +149,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.missing_data,
             # NOISE_TYPES.copy_from_within_household,
             NOISE_TYPES.numeric_miswriting,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -159,7 +159,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.missing_data,
             NOISE_TYPES.fake_name,
             # NOISE_TYPES.phonetic,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -168,7 +168,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             # NOISE_TYPES.phonetic,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -177,7 +177,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             NOISE_TYPES.numeric_miswriting,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -194,7 +194,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             # NOISE_TYPES.phonetic,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -203,7 +203,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             NOISE_TYPES.numeric_miswriting,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -212,7 +212,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             NOISE_TYPES.numeric_miswriting,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -221,7 +221,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             NOISE_TYPES.zipcode_miswriting,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -230,7 +230,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             # NOISE_TYPES.phonetic,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -267,7 +267,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.missing_data,
             NOISE_TYPES.month_day_swap,
             NOISE_TYPES.numeric_miswriting,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
         additional_attributes={Attributes.DATE_FORMAT: DATEFORMATS.YYYYMMDD},
@@ -286,7 +286,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.missing_data,
             # NOISE_TYPES.copy_from_within_household,
             NOISE_TYPES.numeric_miswriting,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -303,7 +303,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             # NOISE_TYPES.phonetic,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -312,7 +312,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             NOISE_TYPES.numeric_miswriting,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -336,7 +336,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             NOISE_TYPES.numeric_miswriting,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )
@@ -348,7 +348,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.missing_data,
             NOISE_TYPES.zipcode_miswriting,
-            # NOISE_TYPES.ocr,
+            NOISE_TYPES.ocr,
             NOISE_TYPES.typographic,
         ),
     )

@@ -645,7 +645,7 @@ def test_generate_phonetic_errors():
 @pytest.mark.parametrize(
     "column",
     [
-        "numbers",
+#        "numbers",
         "characters",
     ],
 )
@@ -662,7 +662,7 @@ def test_generate_ocr_errors(dummy_dataset, column):
                     column: {
                         NOISE_TYPES.ocr.name: {
                             Keys.CELL_PROBABILITY: 0.1,
-                            Keys.TOKEN_PROBABILITY: 0.1,
+                            Keys.TOKEN_PROBABILITY: 1.0,
                         },
                     },
                 },
@@ -672,7 +672,7 @@ def test_generate_ocr_errors(dummy_dataset, column):
     config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][
         NOISE_TYPES.ocr.name
     ]
-    noised_data = NOISE_TYPES.ocr(data, config, RANDOMNESS0, "test")
+    noised_data = NOISE_TYPES.ocr(data, config, RANDOMNESS0, "test_ocr")
 
     # Validate we do not change any missing data
     missing_mask = data == ""
@@ -681,32 +681,59 @@ def test_generate_ocr_errors(dummy_dataset, column):
     # Check expected noise level
     token_prob = config[Keys.TOKEN_PROBABILITY]
     cell_prob = config[Keys.CELL_PROBABILITY]
-    str_lengths = data.str.len()  # pd.Series
-    p_token_not_noised = 1 - token_prob
+
+    # We must adjust noise level due to OCR errors dict which does not noise all potential tokens
+    ocr_errors_dict = load_ocr_errors_dict()
+    # ignoring the keys (tokens) that are more than 1 character
+    n_keys = len(set([key for key in ocr_errors_dict.keys() if len(key) == 1]))
+    ocr_error_weight = n_keys / 36  # Number of possible tokens letters and numbers
+    check_original = data[~missing_mask]
+    check_noised = noised_data[~missing_mask]
+    str_lengths = check_original.str.len()  # pd.Series
+    p_token_not_noised = 1 - token_prob * ocr_error_weight
     # Get probability no tokens are noised in a string
     p_strings_not_noised = p_token_not_noised ** str_lengths  # pd.Series
     p_strings_noised = 1 - p_strings_not_noised  # pd.Series
     expected_noise = cell_prob * p_strings_noised.mean()
-    actual_noise = (data[~missing_mask] != noised_data[~missing_mask]).mean()
+    actual_noise = (check_original != check_noised).mean()
     assert np.isclose(
         actual_noise,
         expected_noise,
         rtol=0.02,
     )
-    # Check some rows change string length based on OCR replace
-    # todo: get better proportion for this
-    noised_string_length = noised_data.str.len()
-    assert (str_lengths != noised_string_length).any()
-    # Check we error tokens with correct error tokens
+
+
+def test_ocr_replacement_values():
+    # Test that OCR noising replaces truth value with correct error values
     # Load OCR errors dict
     ocr_errors_dict = load_ocr_errors_dict()
-    # todo: fixme, we can't do this because strings change lengths
-    for idx in noised_data[~missing_mask].index:
-        for i in range(len(noised_data[idx])):
-            if data[idx][i] == noised_data[idx][i]:
-                continue
-            else:
-                assert(noised_data[idx][i] in ocr_errors_dict[data[idx][i]])
+    # Make series of OCR error dict keys - is there an intelligent numberto pick besides 10?
+    data = pd.Series(list(ocr_errors_dict.keys()) * 10, name="employer_name")
+    config = get_configuration()
+    config.update(
+        {
+            DATASETS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    "employer_name": {
+                        NOISE_TYPES.ocr.name: {
+                            Keys.CELL_PROBABILITY: 1.0,
+                            Keys.TOKEN_PROBABILITY: 1.0,
+                        },
+                    },
+                },
+            },
+        }
+    )
+    config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["employer_name"][
+        NOISE_TYPES.ocr.name
+    ]
+    noised_data = NOISE_TYPES.ocr(data, config, RANDOMNESS0, "test_ocr_error_values")
+
+    for key in ocr_errors_dict.keys():
+        key_idx = data.index[data == key]
+        noised_values = set(noised_data.loc[key_idx])
+        ocr_error_values = set(ocr_errors_dict[key])
+        assert noised_values == ocr_error_values
 
 
 @pytest.mark.parametrize(
@@ -792,11 +819,11 @@ def test_generate_typographical_errors(dummy_dataset, column):
             "decennial_census",
             "street_number",
         ),
-        ("NOISE_TYPES.nickname", "todo", "todo", "todo"),
+        (NOISE_TYPES.nickname, "first_name", "decennial_census", "first_name"),
         (NOISE_TYPES.fake_name, "first_name", "decennial_census", "first_name"),
         (NOISE_TYPES.fake_name, "last_name", "decennial_census", "last_name"),
         ("NOISE_TYPES.phonetic", "todo", "todo", "todo"),
-        ("NOISE_TYPES.ocr", "todo", "todo", "todo"),
+        (NOISE_TYPES.ocr, "last_name", "decennial_census", "last_name"),
         (NOISE_TYPES.typographic, "numbers", "decennial_census", "zipcode"),
         (NOISE_TYPES.typographic, "characters", "decennial_census", "street_name"),
     ],

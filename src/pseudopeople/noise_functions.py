@@ -523,7 +523,7 @@ def generate_ocr_errors(
     # Load OCR error dict
     ocr_error_dict = load_ocr_errors_dict()
 
-    def keyboard_corrupt(truth, corrupted_pr, rng):
+    def ocr_corrupt(truth, corrupted_pr, rng):
         err = ''
         i = 0
         while i < len(truth):
@@ -535,6 +535,7 @@ def generate_ocr_errors(
                         err += rng.choice(ocr_error_dict[token])
                         i += token_length
                         error_introduced = True
+                        break
             if not error_introduced:
                 err += truth[i:(i + 1)]
                 i += 1
@@ -546,7 +547,7 @@ def generate_ocr_errors(
     # Column should already be a string categorical?
     #column = column.astype(str)
     for idx in column.index:
-        noised_value = keyboard_corrupt(
+        noised_value = ocr_corrupt(
             column[idx],
             token_noise_level,
             rng,
