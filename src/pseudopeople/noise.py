@@ -46,7 +46,7 @@ def noise_dataset(
     :return:
         Noised dataset data
     """
-    randomness = get_randomness_stream(dataset.name, seed)
+    randomness = get_randomness_stream(dataset.name, seed, len(dataset_data))
 
     noise_configuration = configuration[dataset.name]
     for noise_type in tqdm(NOISE_TYPES, desc="Applying noise", unit="type", leave=False):

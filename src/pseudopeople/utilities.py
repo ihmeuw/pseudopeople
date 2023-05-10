@@ -10,9 +10,12 @@ from vivarium.framework.randomness.index_map import IndexMap
 from pseudopeople.constants import metadata
 
 
-def get_randomness_stream(dataset_name: str, seed: int) -> RandomnessStream:
+def get_randomness_stream(dataset_name: str, seed: int, data_size: int) -> RandomnessStream:
     return RandomnessStream(
-        dataset_name, lambda: pd.Timestamp("2020-04-01"), seed, IndexMap(size=10_000_000)
+        key=dataset_name,
+        clock=lambda: pd.Timestamp("2020-04-01"),
+        seed=seed,
+        index_map=IndexMap(size=data_size * 10),
     )
 
 
