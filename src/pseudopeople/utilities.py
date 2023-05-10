@@ -16,7 +16,7 @@ def get_randomness_stream(dataset_name: str, seed: int, index: pd.Index) -> Rand
         key=dataset_name,
         clock=lambda: pd.Timestamp("2020-04-01"),
         seed=seed,
-        index_map=IndexMap(size=map_size,
+        index_map=IndexMap(size=map_size),
     )
 
 
