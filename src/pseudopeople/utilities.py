@@ -11,11 +11,12 @@ from pseudopeople.constants import metadata
 
 
 def get_randomness_stream(dataset_name: str, seed: int, index: pd.Index) -> RandomnessStream:
+    map_size = max(1_000_000, max(index)*2)
     return RandomnessStream(
         key=dataset_name,
         clock=lambda: pd.Timestamp("2020-04-01"),
         seed=seed,
-        index_map=IndexMap(size=max(index) + 1),
+        index_map=IndexMap(size=map_size,
     )
 
 
