@@ -34,7 +34,7 @@ def dummy_dataset():
 
     # Add a column of integer strings
     integer_series = pd.Series([str(x) for x in range(num_simulants)])
-    # Add missing data from `generate_missing_data` function
+    # Add missing data from `leave_blanks` function
     missing_idx = pd.Index([x for x in dummy_idx if x % 3 == 0])
     integer_series.loc[missing_idx] = ""
 
@@ -48,7 +48,7 @@ def dummy_dataset():
             for _ in range(num_simulants)
         ]
     )
-    # Add missing data from `generate_missing_data` function
+    # Add missing data from `leave_blanks` function
     character_series.loc[missing_idx] = ""
 
     # Add a categorical series state column
@@ -127,16 +127,16 @@ def string_series():
     )
 
 
-def test_generate_missing_data(dummy_dataset):
+def test_leave_blank(dummy_dataset):
     config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE]["zipcode"][
-        NOISE_TYPES.missing_data.name
+        NOISE_TYPES.leave_blank.name
     ]
     config.update(
         {
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "zipcode": {
-                        NOISE_TYPES.missing_data.name: {
+                        NOISE_TYPES.leave_blank.name: {
                             Keys.CELL_PROBABILITY: 0.25,
                         },
                     },
@@ -145,7 +145,7 @@ def test_generate_missing_data(dummy_dataset):
         }
     )
     data = dummy_dataset["numbers"]
-    noised_data = NOISE_TYPES.missing_data(data, config, RANDOMNESS0, "test")
+    noised_data = NOISE_TYPES.leave_blank(data, config, RANDOMNESS0, "test")
 
     # Calculate newly missing data, ie data that didn't come in as already missing
     orig_non_missing_idx = data.index[(data.notna()) & (data != "")]
@@ -156,28 +156,28 @@ def test_generate_missing_data(dummy_dataset):
     # Check for expected noise level
     expected_noise = config[Keys.CELL_PROBABILITY]
     actual_noise = len(newly_missing_idx) / len(orig_non_missing_idx)
-    assert np.isclose(expected_noise, actual_noise, rtol=0.02)
+    assert np.isclose(actual_noise, expected_noise, rtol=0.01)
 
     # Check that un-noised values are unchanged
     not_noised_idx = noised_data.index[noised_data.notna()]
     assert (data[not_noised_idx] == noised_data[not_noised_idx]).all()
 
 
-def test_incorrect_selection(categorical_series):
+def test_choose_wrong_option(categorical_series):
     config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE]["state"][
-        NOISE_TYPES.incorrect_selection.name
+        NOISE_TYPES.choose_wrong_option.name
     ]
-    noised_data = NOISE_TYPES.incorrect_selection(
+    noised_data = NOISE_TYPES.choose_wrong_option(
         categorical_series, config, RANDOMNESS0, "test"
     )
 
     # Check for expected noise level
     expected_noise = config[Keys.CELL_PROBABILITY]
-    # todo: Update when generate_incorrect_selection uses exclusive resampling
+    # todo: Update when choose_wrong_options uses exclusive resampling
     # Get real expected noise to account for possibility of noising with original value
     # Here we have a a possibility of choosing any of the 50 states for our categorical series fixture
     actual_noise = (noised_data != categorical_series).mean()
-    assert np.isclose(expected_noise, actual_noise, rtol=0.03)
+    assert np.isclose(actual_noise, expected_noise, rtol=0.03)
 
     original_empty_idx = categorical_series.index[categorical_series == ""]
     noised_empty_idx = noised_data.index[noised_data == ""]
@@ -194,14 +194,14 @@ def test_swap_months_and_days(dummy_dataset):
         data = dummy_dataset[col]
         if col == "event_date":
             config = get_configuration()[DATASETS.ssa.name][Keys.COLUMN_NOISE][col][
-                NOISE_TYPES.month_day_swap.name
+                NOISE_TYPES.swap_month_and_day.name
             ]
             config.update(
                 {
                     DATASETS.ssa.name: {
                         Keys.COLUMN_NOISE: {
                             col: {
-                                NOISE_TYPES.month_day_swap.name: {
+                                NOISE_TYPES.swap_month_and_day.name: {
                                     Keys.CELL_PROBABILITY: 0.25,
                                 },
                             },
@@ -211,11 +211,11 @@ def test_swap_months_and_days(dummy_dataset):
             )
         else:
             config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE][col][
-                NOISE_TYPES.month_day_swap.name
+                NOISE_TYPES.swap_month_and_day.name
             ]
         expected_noise = config[Keys.CELL_PROBABILITY]
-        noised_data = NOISE_TYPES.month_day_swap(
-            data, config, RANDOMNESS0, f"test_swap_month_day_{col}"
+        noised_data = NOISE_TYPES.swap_month_and_day(
+            data, config, RANDOMNESS0, f"test_swap_month_and_day_{col}"
         )
 
         # Confirm missing data remains missing
@@ -227,9 +227,9 @@ def test_swap_months_and_days(dummy_dataset):
         else:
             assert (data[~orig_missing].str[6:] == noised_data[~orig_missing].str[6:]).all()
         assert np.isclose(
-            expected_noise,
             (data[~orig_missing] != noised_data[~orig_missing]).mean(),
-            rtol=0.02,
+            expected_noise,
+            rtol=0.005,
         )
 
 
@@ -241,7 +241,7 @@ def test_miswrite_zipcodes(dummy_dataset):
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "zipcode": {
-                        NOISE_TYPES.zipcode_miswriting.name: {
+                        NOISE_TYPES.write_wrong_zipcode_digits.name: {
                             Keys.CELL_PROBABILITY: 0.5,
                             Keys.ZIPCODE_DIGIT_PROBABILITIES: dummy_digit_probabilities,
                         },
@@ -251,13 +251,15 @@ def test_miswrite_zipcodes(dummy_dataset):
         }
     )
     config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["zipcode"][
-        NOISE_TYPES.zipcode_miswriting.name
+        NOISE_TYPES.write_wrong_zipcode_digits.name
     ]
 
     # Get configuration values for each piece of 5 digit zipcode
     probability = config[Keys.CELL_PROBABILITY]
     data = dummy_dataset["zipcode"]
-    noised_data = NOISE_TYPES.zipcode_miswriting(data, config, RANDOMNESS0, "test_zipcode")
+    noised_data = NOISE_TYPES.write_wrong_zipcode_digits(
+        data, config, RANDOMNESS0, "test_zipcode"
+    )
 
     # Confirm missing data remains missing
     orig_missing = data == ""
@@ -266,9 +268,9 @@ def test_miswrite_zipcodes(dummy_dataset):
     for i in range(5):
         digit_prob = config["digit_probabilities"][i]
         assert np.isclose(
-            digit_prob * probability,
             (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).mean(),
-            rtol=0.02,
+            digit_prob * probability,
+            rtol=0.003,
         )
 
 
@@ -277,19 +279,18 @@ def test_miswrite_ages_default_config(dummy_dataset):
     no perturbation probabilities defaults to uniform distribution,
     perturbation probabilities"""
     config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][
-        NOISE_TYPES.age_miswriting.name
+        NOISE_TYPES.misreport_age.name
     ]
     data = dummy_dataset["age"]
-    noised_data = NOISE_TYPES.age_miswriting(data, config, RANDOMNESS0, "test")
+    noised_data = NOISE_TYPES.misreport_age(data, config, RANDOMNESS0, "test")
 
     # Check for expected noise level
     not_missing_idx = data.index[data != ""]
     expected_noise = config[Keys.CELL_PROBABILITY]
     actual_noise = (noised_data[not_missing_idx] != data[not_missing_idx]).mean()
-    # NOTE: we increase the relative tolerance a bit here because the expected
-    # noise calculated above does not account for the fact that if a perturbed
-    # age ends up being the same as the original age, then 1 is subtracted.
-    assert np.isclose(expected_noise, actual_noise, rtol=0.03)
+    # NOTE: the expected noise calculated above does not account for the fact that
+    # if a perturbed age ends up being the same as the original age, then 1 is subtracted.
+    assert np.isclose(actual_noise, expected_noise, rtol=0.0003)
 
     # Check that missing data remains missing
     original_missing_idx = data.index[data == ""]
@@ -311,7 +312,7 @@ def test_miswrite_ages_uniform_probabilities():
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "age": {
-                        NOISE_TYPES.age_miswriting.name: {
+                        NOISE_TYPES.misreport_age.name: {
                             Keys.CELL_PROBABILITY: 1,
                             Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                         },
@@ -319,10 +320,10 @@ def test_miswrite_ages_uniform_probabilities():
                 },
             },
         },
-    )[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.age_miswriting.name]
+    )[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.misreport_age.name]
 
     data = pd.Series([str(original_age)] * num_rows, name="age")
-    noised_data = NOISE_TYPES.age_miswriting(data, config, RANDOMNESS0, "test")
+    noised_data = NOISE_TYPES.misreport_age(data, config, RANDOMNESS0, "test")
     expected_noise = 1 / len(perturbations)
     for perturbation in perturbations:
         actual_noise = (noised_data.astype(int) - original_age == perturbation).mean()
@@ -340,7 +341,7 @@ def test_miswrite_ages_provided_probabilities():
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "age": {
-                        NOISE_TYPES.age_miswriting.name: {
+                        NOISE_TYPES.misreport_age.name: {
                             Keys.CELL_PROBABILITY: 1,
                             Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                         },
@@ -348,10 +349,10 @@ def test_miswrite_ages_provided_probabilities():
                 },
             },
         },
-    )[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.age_miswriting.name]
+    )[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.misreport_age.name]
 
     data = pd.Series([str(original_age)] * num_rows, name="age")
-    noised_data = NOISE_TYPES.age_miswriting(data, config, RANDOMNESS0, "test")
+    noised_data = NOISE_TYPES.misreport_age(data, config, RANDOMNESS0, "test")
     for perturbation in perturbations:
         expected_noise = perturbations[perturbation]
         actual_noise = (noised_data.astype(int) - original_age == perturbation).mean()
@@ -373,7 +374,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "age": {
-                        NOISE_TYPES.age_miswriting.name: {
+                        NOISE_TYPES.misreport_age.name: {
                             Keys.CELL_PROBABILITY: 1,
                             Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                         },
@@ -381,10 +382,10 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
                 },
             },
         },
-    )[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.age_miswriting.name]
+    )[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.misreport_age.name]
 
     data = pd.Series([str(age)] * num_rows, name="age")
-    noised_data = NOISE_TYPES.age_miswriting(data, config, RANDOMNESS0, "test")
+    noised_data = NOISE_TYPES.misreport_age(data, config, RANDOMNESS0, "test")
 
     assert (noised_data == 0).all()
 
@@ -400,7 +401,7 @@ def test_miswrite_ages_flips_negative_to_positive():
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "age": {
-                        NOISE_TYPES.age_miswriting.name: {
+                        NOISE_TYPES.misreport_age.name: {
                             Keys.CELL_PROBABILITY: 1,
                             Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                         },
@@ -408,10 +409,10 @@ def test_miswrite_ages_flips_negative_to_positive():
                 },
             },
         },
-    )[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.age_miswriting.name]
+    )[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.misreport_age.name]
 
     data = pd.Series([str(age)] * num_rows, name="age")
-    noised_data = NOISE_TYPES.age_miswriting(data, config, RANDOMNESS0, "test")
+    noised_data = NOISE_TYPES.misreport_age(data, config, RANDOMNESS0, "test")
 
     assert (noised_data == 4).all()
 
@@ -426,7 +427,7 @@ def test_miswrite_numerics(string_series):
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "street_number": {
-                        NOISE_TYPES.numeric_miswriting.name: {
+                        NOISE_TYPES.write_wrong_digits.name: {
                             Keys.CELL_PROBABILITY: 0.4,
                             Keys.TOKEN_PROBABILITY: 0.5,
                         },
@@ -436,7 +437,7 @@ def test_miswrite_numerics(string_series):
         }
     )
     config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["street_number"][
-        NOISE_TYPES.numeric_miswriting.name
+        NOISE_TYPES.write_wrong_digits.name
     ]
     p_row_noise = config[Keys.CELL_PROBABILITY]
     p_token_noise = config[Keys.TOKEN_PROBABILITY]
@@ -444,7 +445,7 @@ def test_miswrite_numerics(string_series):
     # Hack: we need to name the series something with the miswrite_numeric noising
     # function applied to check dtypes.
     data.name = "ssn"
-    noised_data = NOISE_TYPES.numeric_miswriting(data, config, RANDOMNESS0, "test")
+    noised_data = NOISE_TYPES.write_wrong_digits(data, config, RANDOMNESS0, "test")
 
     # Get masks for helper groups, each string in categorical string purpose is to mimic possible string types
     empty_str = data == ""
@@ -461,8 +462,8 @@ def test_miswrite_numerics(string_series):
 
     for i in range(4):  # "1234"
         assert np.isclose(
-            expected_noise,
             (data[id_number].str[i] != noised_data[id_number].str[i]).mean(),
+            expected_noise,
             rtol=0.02,
         )
         assert (noised_data[id_number].str[i].str.isdigit()).all()
@@ -472,8 +473,8 @@ def test_miswrite_numerics(string_series):
             assert (data[alt_str].str[i] == noised_data[alt_str].str[i]).all()
         else:
             assert np.isclose(
-                expected_noise,
                 (data[alt_str].str[i] != noised_data[alt_str].str[i]).mean(),
+                expected_noise,
                 rtol=0.02,
             )
             assert (noised_data[alt_str].str[i].str.isdigit()).all()
@@ -481,9 +482,9 @@ def test_miswrite_numerics(string_series):
     for i in range(7):  # "Unit 1A"
         if i == 5:
             assert np.isclose(
-                expected_noise,
                 (data[unit_number].str[i] != noised_data[unit_number].str[i]).mean(),
-                rtol=0.02,
+                expected_noise,
+                rtol=0.004,
             )
             assert (noised_data[unit_number].str[i].str.isdigit()).all()
         else:
@@ -494,8 +495,8 @@ def test_miswrite_numerics(string_series):
             assert (data[income].str[i] == noised_data[income].str[i]).all()
         else:
             assert np.isclose(
-                expected_noise,
                 (data[income].str[i] != noised_data[income].str[i]).mean(),
+                expected_noise,
                 rtol=0.02,
             )
             assert (noised_data[income].str[i].str.isdigit()).all()
@@ -505,9 +506,9 @@ def test_miswrite_numerics(string_series):
             assert (data[date_of_birth].str[i] == noised_data[date_of_birth].str[i]).all()
         else:
             assert np.isclose(
-                expected_noise,
                 (data[date_of_birth].str[i] != noised_data[date_of_birth].str[i]).mean(),
-                rtol=0.02,
+                expected_noise,
+                rtol=0.007,
             )
             assert (noised_data[date_of_birth].str[i].str.isdigit()).all()
 
@@ -516,28 +517,27 @@ def test_miswrite_numerics(string_series):
             assert (data[ssn].str[i] == noised_data[ssn].str[i]).all()
         else:
             assert np.isclose(
-                expected_noise,
                 (data[ssn].str[i] != noised_data[ssn].str[i]).mean(),
+                expected_noise,
                 rtol=0.02,
             )
             assert (noised_data[ssn].str[i].str.isdigit()).all()
 
 
-def test_generate_nicknames(dummy_dataset):
-
+def test_use_nickname(dummy_dataset):
     config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE]["first_name"][
-        NOISE_TYPES.nickname.name
+        NOISE_TYPES.use_nickname.name
     ]
     expected_noise = config[Keys.CELL_PROBABILITY]
     data = dummy_dataset["first_name"]
-    noised_data = NOISE_TYPES.nickname(data, config, RANDOMNESS0, "test_nicknames")
+    noised_data = NOISE_TYPES.use_nickname(data, config, RANDOMNESS0, "test_use_nickname")
 
     # Validate missing stays missing
     orig_missing = data.isna()
     assert (noised_data[orig_missing].isna()).all()
     # Validate noise level
     assert np.isclose(
-        expected_noise, (noised_data[~orig_missing] != data[~orig_missing]).mean(), rtol=0.02
+        (noised_data[~orig_missing] != data[~orig_missing]).mean(), expected_noise, rtol=0.01
     )
 
     # Validation for nicknames
@@ -573,7 +573,7 @@ def test_generate_nicknames(dummy_dataset):
             ).all()
 
 
-def test_generate_fake_names(dummy_dataset):
+def test_use_fake_name(dummy_dataset):
     """
     Function to test that fake names are noised and replace raw values at a configured percentage
     """
@@ -583,20 +583,22 @@ def test_generate_fake_names(dummy_dataset):
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "first_name": {
-                        NOISE_TYPES.fake_name.name: {
+                        NOISE_TYPES.use_fake_name.name: {
                             Keys.CELL_PROBABILITY: 0.4,
                         },
                     },
-                    "last_name": {NOISE_TYPES.fake_name.name: {Keys.CELL_PROBABILITY: 0.5}},
+                    "last_name": {
+                        NOISE_TYPES.use_fake_name.name: {Keys.CELL_PROBABILITY: 0.5}
+                    },
                 },
             },
         }
     )
     first_name_config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["first_name"][
-        NOISE_TYPES.fake_name.name
+        NOISE_TYPES.use_fake_name.name
     ]
     last_name_config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["last_name"][
-        NOISE_TYPES.fake_name.name
+        NOISE_TYPES.use_fake_name.name
     ]
 
     # For this test, using the dummy_dataset fixture the "string_series" column will be used as both names columns
@@ -605,11 +607,11 @@ def test_generate_fake_names(dummy_dataset):
     first_name_data = first_name_data.rename("first_name")
     last_name_data = dummy_dataset["string_series"]
     last_name_data = last_name_data.rename("last_name")
-    noised_first_names = NOISE_TYPES.fake_name(
-        first_name_data, first_name_config, RANDOMNESS0, "test_fake_names"
+    noised_first_names = NOISE_TYPES.use_fake_name(
+        first_name_data, first_name_config, RANDOMNESS0, "test_use_fake_first_names"
     )
-    noised_last_names = NOISE_TYPES.fake_name(
-        last_name_data, last_name_config, RANDOMNESS0, "test_fake_names "
+    noised_last_names = NOISE_TYPES.use_fake_name(
+        last_name_data, last_name_config, RANDOMNESS0, "test_use_fake_last_names"
     )
 
     # Check missing are unchanged
@@ -619,14 +621,14 @@ def test_generate_fake_names(dummy_dataset):
     # todo: equal across fake values
     # Check noised values
     assert np.isclose(
-        first_name_config[Keys.CELL_PROBABILITY],
         (first_name_data[~orig_missing] != noised_first_names[~orig_missing]).mean(),
-        rtol=0.02,
+        first_name_config[Keys.CELL_PROBABILITY],
+        rtol=0.002,
     )
     assert np.isclose(
-        last_name_config[Keys.CELL_PROBABILITY],
         (last_name_data[~orig_missing] != noised_last_names[~orig_missing]).mean(),
-        rtol=0.02,
+        last_name_config[Keys.CELL_PROBABILITY],
+        rtol=0.002,
     )
     # Get raw fake names lists to check noised values
     fake_first = fake_first_names
@@ -738,9 +740,9 @@ def test_ocr_replacement_values():
         "characters",
     ],
 )
-def test_generate_typographical_errors(dummy_dataset, column):
+def test_make_typos(dummy_dataset, column):
     data = dummy_dataset[column]
-    # Hack: we need to name the series something with the typographic noising
+    # Hack: we need to name the series something with the make_typos noising
     # function applied to check dtypes.
     data.name = "first_name"
 
@@ -750,7 +752,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     column: {
-                        NOISE_TYPES.typographic.name: {
+                        NOISE_TYPES.make_typos.name: {
                             Keys.CELL_PROBABILITY: 0.1,
                             Keys.TOKEN_PROBABILITY: 0.1,
                         },
@@ -760,9 +762,9 @@ def test_generate_typographical_errors(dummy_dataset, column):
         }
     )
     config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][
-        NOISE_TYPES.typographic.name
+        NOISE_TYPES.make_typos.name
     ]
-    noised_data = NOISE_TYPES.typographic(data, config, RANDOMNESS0, "test")
+    noised_data = NOISE_TYPES.make_typos(data, config, RANDOMNESS0, "test")
 
     not_missing_idx = data.index[(data.notna()) & (data != "")]
     check_original = data.loc[not_missing_idx]
@@ -777,7 +779,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
     p_strings_noised = 1 - p_strings_not_noised  # pd.Series
     expected_noise = p_row_noise * p_strings_noised.mean()
     actual_noise = (check_noised != check_original).mean()
-    assert np.isclose(expected_noise, actual_noise, rtol=0.06)
+    assert np.isclose(actual_noise, expected_noise, rtol=0.007)
 
     # Check for expected string growth due to keeping original noised token
     assert (check_noised.str.len() >= check_original.str.len()).all()
@@ -790,7 +792,7 @@ def test_generate_typographical_errors(dummy_dataset, column):
     p_strings_increase_length = 1 - p_strings_do_not_increase_length  # pd.Series
     expected_changed_length = p_row_noise * p_strings_increase_length.mean()
     actual_changed_length = (check_noised.str.len() != check_original.str.len()).mean()
-    assert np.isclose(expected_changed_length, actual_changed_length, rtol=0.06)
+    assert np.isclose(actual_changed_length, expected_changed_length, rtol=0.003)
 
     # Check that we did not touch the missing data
     assert (
@@ -802,25 +804,25 @@ def test_generate_typographical_errors(dummy_dataset, column):
 @pytest.mark.parametrize(
     "noise_type, data_col, dataset, dataset_col",
     [
-        (NOISE_TYPES.missing_data, "numbers", "decennial_census", "zipcode"),
-        (NOISE_TYPES.incorrect_selection, "state", "decennial_census", "state"),
+        (NOISE_TYPES.leave_blank, "numbers", "decennial_census", "zipcode"),
+        (NOISE_TYPES.choose_wrong_option, "state", "decennial_census", "state"),
         ("NOISE_TYPES.copy_from_within_household", "todo", "todo", "todo"),
-        ("NOISE_TYPES.month_day_swap", "todo", "todo", "todo"),
-        (NOISE_TYPES.zipcode_miswriting, "zipcode", "decennial_census", "zipcode"),
-        (NOISE_TYPES.age_miswriting, "age", "decennial_census", "age"),
+        (NOISE_TYPES.swap_month_and_day, "event_date", "social_security", "event_date"),
+        (NOISE_TYPES.write_wrong_zipcode_digits, "zipcode", "decennial_census", "zipcode"),
+        (NOISE_TYPES.misreport_age, "age", "decennial_census", "age"),
         (
-            NOISE_TYPES.numeric_miswriting,
+            NOISE_TYPES.write_wrong_digits,
             "string_series",
             "decennial_census",
             "street_number",
         ),
-        (NOISE_TYPES.nickname, "first_name", "decennial_census", "first_name"),
-        (NOISE_TYPES.fake_name, "first_name", "decennial_census", "first_name"),
-        (NOISE_TYPES.fake_name, "last_name", "decennial_census", "last_name"),
+        (NOISE_TYPES.use_nickname, "first_name", "decennial_census", "first_name"),
+        (NOISE_TYPES.use_fake_name, "first_name", "decennial_census", "first_name"),
+        (NOISE_TYPES.use_fake_name, "last_name", "decennial_census", "last_name"),
         ("NOISE_TYPES.phonetic", "todo", "todo", "todo"),
-        (NOISE_TYPES.ocr, "last_name", "decennial_census", "last_name"),
-        (NOISE_TYPES.typographic, "numbers", "decennial_census", "zipcode"),
-        (NOISE_TYPES.typographic, "characters", "decennial_census", "street_name"),
+        (NOISE_TYPES.ocr, "first_name", "decennial_census", "first_name"),
+        (NOISE_TYPES.make_typos, "numbers", "decennial_census", "zipcode"),
+        (NOISE_TYPES.make_typos, "characters", "decennial_census", "street_name"),
     ],
 )
 def test_seeds_behave_as_expected(noise_type, data_col, dataset, dataset_col, dummy_dataset):

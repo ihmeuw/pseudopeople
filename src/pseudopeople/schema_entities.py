@@ -28,41 +28,41 @@ class __Columns(NamedTuple):
     age: Column = Column(
         "age",
         (
-            NOISE_TYPES.missing_data,
+            NOISE_TYPES.leave_blank,
             # NOISE_TYPES.copy_from_within_household,
-            NOISE_TYPES.age_miswriting,
+            NOISE_TYPES.misreport_age,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     city: Column = Column(
         "city",
         (
-            NOISE_TYPES.missing_data,
+            NOISE_TYPES.leave_blank,
             # NOISE_TYPES.phonetic,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     dob: Column = Column(
         "date_of_birth",
         (
-            NOISE_TYPES.missing_data,
+            NOISE_TYPES.leave_blank,
             # NOISE_TYPES.copy_from_within_household,
-            NOISE_TYPES.month_day_swap,
-            NOISE_TYPES.numeric_miswriting,
+            NOISE_TYPES.swap_month_and_day,
+            NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
         additional_attributes={Attributes.DATE_FORMAT: DATEFORMATS.MM_DD_YYYY},
     )
     employer_city: Column = Column(
         "employer_city",
         (
-            NOISE_TYPES.missing_data,
+            NOISE_TYPES.leave_blank,
             # NOISE_TYPES.phonetic,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     employer_id: Column = Column(
@@ -71,64 +71,64 @@ class __Columns(NamedTuple):
     employer_name: Column = Column(
         "employer_name",
         (
-            NOISE_TYPES.missing_data,
+            NOISE_TYPES.leave_blank,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     employer_state: Column = Column(
         "employer_state",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.incorrect_selection,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.choose_wrong_option,
         ),
         DtypeNames.CATEGORICAL,
     )
     employer_street_name: Column = Column(
         "employer_street_name",
         (
-            NOISE_TYPES.missing_data,
+            NOISE_TYPES.leave_blank,
             # NOISE_TYPES.phonetic,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     employer_street_number: Column = Column(
         "employer_street_number",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.numeric_miswriting,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     employer_unit_number: Column = Column(
         "employer_unit_number",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.numeric_miswriting,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     employer_zipcode: Column = Column(
         "employer_zipcode",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.zipcode_miswriting,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.write_wrong_zipcode_digits,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     first_name: Column = Column(
         "first_name",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.nickname,
-            NOISE_TYPES.fake_name,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.use_nickname,
+            NOISE_TYPES.use_fake_name,
             # NOISE_TYPES.phonetic,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     household_id: Column = Column(
@@ -137,124 +137,124 @@ class __Columns(NamedTuple):
     income: Column = Column(
         "income",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.numeric_miswriting,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     itin: Column = Column(
         "itin",
         (
-            NOISE_TYPES.missing_data,
+            NOISE_TYPES.leave_blank,
             # NOISE_TYPES.copy_from_within_household,
-            NOISE_TYPES.numeric_miswriting,
+            NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     last_name: Column = Column(
         "last_name",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.fake_name,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.use_fake_name,
             # NOISE_TYPES.phonetic,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     mailing_city: Column = Column(
         "mailing_address_city",
         (
-            NOISE_TYPES.missing_data,
+            NOISE_TYPES.leave_blank,
             # NOISE_TYPES.phonetic,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     mailing_po_box: Column = Column(
         "mailing_address_po_box",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.numeric_miswriting,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     mailing_state: Column = Column(
         "mailing_address_state",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.incorrect_selection,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.choose_wrong_option,
         ),
         DtypeNames.CATEGORICAL,
     )
     mailing_street_name: Column = Column(
         "mailing_address_street_name",
         (
-            NOISE_TYPES.missing_data,
+            NOISE_TYPES.leave_blank,
             # NOISE_TYPES.phonetic,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     mailing_street_number: Column = Column(
         "mailing_address_street_number",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.numeric_miswriting,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     mailing_unit_number: Column = Column(
         "mailing_address_unit_number",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.numeric_miswriting,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     mailing_zipcode: Column = Column(
         "mailing_address_zipcode",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.zipcode_miswriting,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.write_wrong_zipcode_digits,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     middle_initial: Column = Column(
         "middle_initial",
         (
-            NOISE_TYPES.missing_data,
+            NOISE_TYPES.leave_blank,
             # NOISE_TYPES.phonetic,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     race_ethnicity: Column = Column(
         "race_ethnicity",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.incorrect_selection,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.choose_wrong_option,
         ),
         DtypeNames.CATEGORICAL,
     )
     relation_to_reference_person: Column = Column(
         "relation_to_reference_person",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.incorrect_selection,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.choose_wrong_option,
         ),
         DtypeNames.CATEGORICAL,
     )
     sex: Column = Column(
         "sex",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.incorrect_selection,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.choose_wrong_option,
         ),
         DtypeNames.CATEGORICAL,
     )
@@ -264,56 +264,56 @@ class __Columns(NamedTuple):
     ssa_event_date: Column = Column(
         "event_date",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.month_day_swap,
-            NOISE_TYPES.numeric_miswriting,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.swap_month_and_day,
+            NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
         additional_attributes={Attributes.DATE_FORMAT: DATEFORMATS.YYYYMMDD},
     )
     ssa_event_type: Column = Column(
         "event_type",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.incorrect_selection,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.choose_wrong_option,
         ),
         DtypeNames.CATEGORICAL,
     )
     ssn: Column = Column(
         "ssn",
         (
-            NOISE_TYPES.missing_data,
+            NOISE_TYPES.leave_blank,
             # NOISE_TYPES.copy_from_within_household,
-            NOISE_TYPES.numeric_miswriting,
+            NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     state: Column = Column(
         "state",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.incorrect_selection,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.choose_wrong_option,
         ),
         DtypeNames.CATEGORICAL,
     )
     street_name: Column = Column(
         "street_name",
         (
-            NOISE_TYPES.missing_data,
+            NOISE_TYPES.leave_blank,
             # NOISE_TYPES.phonetic,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     street_number: Column = Column(
         "street_number",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.numeric_miswriting,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     survey_date: Column = Column(
@@ -323,8 +323,8 @@ class __Columns(NamedTuple):
     tax_form: Column = Column(
         "tax_form",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.incorrect_selection,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.choose_wrong_option,
         ),
         DtypeNames.CATEGORICAL,
     )
@@ -334,10 +334,10 @@ class __Columns(NamedTuple):
     unit_number: Column = Column(
         "unit_number",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.numeric_miswriting,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
     year: Column = Column(
@@ -346,10 +346,10 @@ class __Columns(NamedTuple):
     zipcode: Column = Column(
         "zipcode",
         (
-            NOISE_TYPES.missing_data,
-            NOISE_TYPES.zipcode_miswriting,
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.write_wrong_zipcode_digits,
             NOISE_TYPES.ocr,
-            NOISE_TYPES.typographic,
+            NOISE_TYPES.make_typos,
         ),
     )
 
@@ -481,7 +481,7 @@ class __Datasets(NamedTuple):
         date_column_name=COLUMNS.year.name,
         state_column_name=COLUMNS.state.name,
         row_noise_types=(
-            NOISE_TYPES.omission,
+            NOISE_TYPES.omit_row,
             # NOISE_TYPES.duplication,
         ),
     )
@@ -500,7 +500,7 @@ class __Datasets(NamedTuple):
         date_column_name=COLUMNS.ssa_event_date.name,
         state_column_name=None,
         row_noise_types=(
-            NOISE_TYPES.omission,
+            NOISE_TYPES.omit_row,
             # NOISE_TYPES.duplication,
         ),
     )
@@ -536,7 +536,7 @@ class __Datasets(NamedTuple):
         date_column_name=COLUMNS.tax_year.name,
         state_column_name=COLUMNS.mailing_state.name,
         row_noise_types=(
-            NOISE_TYPES.omission,
+            NOISE_TYPES.omit_row,
             # NOISE_TYPES.duplication,
         ),
     )
