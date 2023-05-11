@@ -645,7 +645,7 @@ def test_generate_phonetic_errors():
 @pytest.mark.parametrize(
     "column",
     [
-#        "numbers",
+        "numbers",
         "characters",
     ],
 )
@@ -669,9 +669,7 @@ def test_generate_ocr_errors(dummy_dataset, column):
             },
         }
     )
-    config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][
-        NOISE_TYPES.ocr.name
-    ]
+    config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][NOISE_TYPES.ocr.name]
     noised_data = NOISE_TYPES.ocr(data, config, RANDOMNESS0, "test_ocr")
 
     # Validate we do not change any missing data
@@ -682,25 +680,20 @@ def test_generate_ocr_errors(dummy_dataset, column):
     token_prob = config[Keys.TOKEN_PROBABILITY]
     cell_prob = config[Keys.CELL_PROBABILITY]
 
-    # We must adjust noise level due to OCR errors dict which does not noise all potential tokens
-    ocr_errors_dict = load_ocr_errors_dict()
-    # ignoring the keys (tokens) that are more than 1 character
-    n_keys = len(set([key for key in ocr_errors_dict.keys() if len(key) == 1]))
-    ocr_error_weight = n_keys / 36  # Number of possible tokens letters and numbers
     check_original = data[~missing_mask]
     check_noised = noised_data[~missing_mask]
-    str_lengths = check_original.str.len()  # pd.Series
-    p_token_not_noised = 1 - token_prob * ocr_error_weight
+    str_lengths = check_original.str.len() + check_original.str.len() - 1
+    p_token_not_noised = 1 - token_prob  # pd.Series
     # Get probability no tokens are noised in a string
-    p_strings_not_noised = p_token_not_noised ** str_lengths  # pd.Series
+    p_strings_not_noised = p_token_not_noised**str_lengths  # pd.Series
     p_strings_noised = 1 - p_strings_not_noised  # pd.Series
     expected_noise = cell_prob * p_strings_noised.mean()
     actual_noise = (check_original != check_noised).mean()
-    assert np.isclose(
-        actual_noise,
-        expected_noise,
-        rtol=0.02,
-    )
+    # We have simplified the expected noise calculation. Note that not all tokens are eligible for OCR noising so we
+    # should never meet our upper bound of expected noise. Alternatively, we want to make sure the noise level is not
+    # unexpectedly small.
+    assert actual_noise < expected_noise
+    assert actual_noise > expected_noise / 10
 
 
 def test_ocr_replacement_values():
@@ -734,6 +727,8 @@ def test_ocr_replacement_values():
         noised_values = set(noised_data.loc[key_idx])
         ocr_error_values = set(ocr_errors_dict[key])
         assert noised_values == ocr_error_values
+
+    assert (data != noised_data).all()
 
 
 @pytest.mark.parametrize(

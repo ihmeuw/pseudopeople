@@ -174,12 +174,11 @@ def get_state_abbreviation(state: str) -> str:
 
 def load_ocr_errors_dict():
     ocr_errors = pd.read_csv(
-        paths.OCR_ERRORS_DATA,
-        skiprows=[0, 1], header=None, names=['ocr_true', 'ocr_err']
+        paths.OCR_ERRORS_DATA, skiprows=[0, 1], header=None, names=["ocr_true", "ocr_err"]
     )
     # Get OCR errors dict for noising
     ocr_error_dict = {}
-    for k, df_k in ocr_errors.groupby('ocr_true'):
+    for k, df_k in ocr_errors.groupby("ocr_true"):
         ocr_error_dict[k] = list(df_k.ocr_err)
 
     return ocr_error_dict
