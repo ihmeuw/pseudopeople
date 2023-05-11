@@ -666,11 +666,12 @@ def test_generate_ocr_errors(dummy_dataset, column):
                             Keys.CELL_PROBABILITY: 0.1,
                             Keys.TOKEN_PROBABILITY: 1.0,
                         },
-                    },
+                    }
                 },
             },
         }
     )
+    # Get node
     config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][
         NOISE_TYPES.make_ocr_errors.name
     ]
