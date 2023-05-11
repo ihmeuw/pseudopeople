@@ -67,7 +67,8 @@ def _generate_dataset(
     for data_path in iterator:
         logger.debug(f"Loading data from {data_path}.")
         data = _load_data_from_path(data_path, user_filters)
-
+        if data.empty:
+            continue
         data = _reformat_dates_for_noising(data, dataset)
         data = _coerce_dtypes(data, dataset)
         noised_data = noise_dataset(dataset, data, configuration_tree, seed)

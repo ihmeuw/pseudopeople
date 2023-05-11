@@ -7,22 +7,25 @@ from loguru import logger
 from vivarium.framework.randomness import RandomnessStream
 from vivarium.framework.randomness.index_map import IndexMap
 
-from pseudopeople.constants import metadata, paths
+from pseudopeople.constants import metadata
 
 
-def get_randomness_stream(dataset_name: str, seed: int) -> RandomnessStream:
+def get_randomness_stream(dataset_name: str, seed: int, index: pd.Index) -> RandomnessStream:
+    map_size = max(1_000_000, max(index) * 2)
     return RandomnessStream(
-        dataset_name, lambda: pd.Timestamp("2020-04-01"), seed, IndexMap()
+        key=dataset_name,
+        clock=lambda: pd.Timestamp("2020-04-01"),
+        seed=seed,
+        index_map=IndexMap(size=map_size),
     )
 
 
 def vectorized_choice(
     options: Union[list, pd.Series],
     n_to_choose: int,
-    randomness_stream: RandomnessStream = None,
+    randomness_stream: RandomnessStream,
     weights: Union[list, pd.Series] = None,
     additional_key: Any = None,
-    random_seed: int = None,
 ):
     """
     Function that takes a list of options and uses Vivarium common random numbers framework to make a given number
@@ -33,16 +36,9 @@ def vectorized_choice(
     :param randomness_stream: RandomnessStream being used for Vivarium's CRN framework
     :param weights: List or series containing weights for each options
     :param additional_key: Key to pass to randomness_stream
-    :param random_seed: Seed to pass to randomness_stream.
-    Note additional_key and random_seed are used to make calls using a RandomnessStream unique
 
     returns: ndarray
     """
-    if not randomness_stream and (additional_key == None and random_seed == None):
-        raise RuntimeError(
-            "An additional_key and a random_seed are required in 'vectorized_choice'"
-            + "if no RandomnessStream is passed in"
-        )
     if weights is None:
         n = len(options)
         weights = np.ones(n) / n
@@ -50,12 +46,7 @@ def vectorized_choice(
         weights = np.array(weights)
     # for each of n_to_choose, sample uniformly between 0 and 1
     index = pd.Index(np.arange(n_to_choose))
-    if randomness_stream is None:
-        # Generate an additional_key on-the-fly and use that in randomness.random
-        additional_key = f"{additional_key}_{random_seed}"
-        probs = np.random.uniform(size=len(index))
-    else:
-        probs = randomness_stream.get_draw(index, additional_key=additional_key)
+    probs = randomness_stream.get_draw(index, additional_key=additional_key)
 
     # build cdf based on weights
     pmf = weights / weights.sum()
