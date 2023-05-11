@@ -662,7 +662,7 @@ def test_generate_ocr_errors(dummy_dataset, column):
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     column: {
-                        NOISE_TYPES.ocr.name: {
+                        NOISE_TYPES.make_ocr_errors.name: {
                             Keys.CELL_PROBABILITY: 0.1,
                             Keys.TOKEN_PROBABILITY: 1.0,
                         },
@@ -671,8 +671,8 @@ def test_generate_ocr_errors(dummy_dataset, column):
             },
         }
     )
-    config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][NOISE_TYPES.ocr.name]
-    noised_data = NOISE_TYPES.ocr(data, config, RANDOMNESS0, "test_ocr")
+    config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][NOISE_TYPES.make_ocr_errors.name]
+    noised_data = NOISE_TYPES.make_ocr_errors(data, config, RANDOMNESS0, "test_ocr")
 
     # Validate we do not change any missing data
     missing_mask = data == ""
@@ -710,7 +710,7 @@ def test_ocr_replacement_values():
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "employer_name": {
-                        NOISE_TYPES.ocr.name: {
+                        NOISE_TYPES.make_ocr_errors.name: {
                             Keys.CELL_PROBABILITY: 1.0,
                             Keys.TOKEN_PROBABILITY: 1.0,
                         },
@@ -720,9 +720,11 @@ def test_ocr_replacement_values():
         }
     )
     config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["employer_name"][
-        NOISE_TYPES.ocr.name
+        NOISE_TYPES.make_ocr_errors.name
     ]
-    noised_data = NOISE_TYPES.ocr(data, config, RANDOMNESS0, "test_ocr_error_values")
+    noised_data = NOISE_TYPES.make_ocr_errors(
+        data, config, RANDOMNESS0, "test_ocr_error_values"
+    )
 
     for key in ocr_errors_dict.keys():
         key_idx = data.index[data == key]
@@ -820,7 +822,7 @@ def test_make_typos(dummy_dataset, column):
         (NOISE_TYPES.use_fake_name, "first_name", "decennial_census", "first_name"),
         (NOISE_TYPES.use_fake_name, "last_name", "decennial_census", "last_name"),
         ("NOISE_TYPES.phonetic", "todo", "todo", "todo"),
-        (NOISE_TYPES.ocr, "first_name", "decennial_census", "first_name"),
+        (NOISE_TYPES.make_ocr_errors, "first_name", "decennial_census", "first_name"),
         (NOISE_TYPES.make_typos, "numbers", "decennial_census", "zipcode"),
         (NOISE_TYPES.make_typos, "characters", "decennial_census", "street_name"),
     ],

@@ -168,8 +168,8 @@ def load_ocr_errors_dict():
         paths.OCR_ERRORS_DATA, skiprows=[0, 1], header=None, names=["ocr_true", "ocr_err"]
     )
     # Get OCR errors dict for noising
-    ocr_error_dict = {}
-    for k, df_k in ocr_errors.groupby("ocr_true"):
-        ocr_error_dict[k] = list(df_k.ocr_err)
+    ocr_error_dict = (
+        ocr_errors.groupby("ocr_true")["ocr_err"].apply(lambda x: list(x)).to_dict()
+    )
 
     return ocr_error_dict

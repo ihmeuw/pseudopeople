@@ -77,7 +77,7 @@ class __NoiseTypes(NamedTuple):
     #         Keys.TOKEN_PROBABILITY: 0.1,
     #     },
     # )
-    ocr: ColumnNoiseType = ColumnNoiseType(
+    make_ocr_errors: ColumnNoiseType = ColumnNoiseType(
         "make_ocr_errors",
         noise_functions.make_ocr_errors,
         additional_parameters={

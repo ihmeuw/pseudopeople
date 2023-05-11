@@ -543,7 +543,6 @@ def make_ocr_errors(
     # Apply keyboard corrupt for OCR to column
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
     rng = np.random.default_rng(seed=randomness_stream.seed)
-    # Column should already be a string categorical?
     column = column.astype(str)
     for idx in column.index:
         noised_value = ocr_corrupt(
