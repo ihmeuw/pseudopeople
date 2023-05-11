@@ -671,7 +671,9 @@ def test_generate_ocr_errors(dummy_dataset, column):
             },
         }
     )
-    config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][NOISE_TYPES.make_ocr_errors.name]
+    config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][
+        NOISE_TYPES.make_ocr_errors.name
+    ]
     noised_data = NOISE_TYPES.make_ocr_errors(data, config, RANDOMNESS0, "test_ocr")
 
     # Validate we do not change any missing data
