@@ -91,7 +91,7 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
     - ``make_typos``
     - Accidentally typing an "l" instead of a "k" because they are 
       right next to each other on a QWERTY keyboard
-  * - Make optical character recognition (OCR) errors
+  * - Make Optical Character Recognition (OCR) errors
     - ``make_ocr_errors``
     - Misreading an 'S' instead of a '5'
 

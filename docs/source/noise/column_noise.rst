@@ -327,7 +327,7 @@ even though it overlapped with :code:`bc`.
 
 This noise type is called :code:`make_ocr_errors` in the configuration. It takes two parameters:
 
-.. list-table:: Parameters to the leave_blank noise type
+.. list-table:: Parameters to the make_ocr_errors noise type
   :widths: 1 5 1
   :header-rows: 1
 
@@ -336,11 +336,11 @@ This noise type is called :code:`make_ocr_errors` in the configuration. It takes
     - Default
   * - :code:`cell_probability`
     - The probability of a cell being *considered* to have this noise type.
-      One way to think about this is the probability that a value is typed carelessly.
+      One way to think about this is the probability that a string is misread.
       Whether or not there are actually any errors depends on the next parameter.
     - 0.01 (1%)
   * - :code:`token_probability`
-    - The probability of each character (which we call a "token") having a typo
+    - The probability of each character (which we call a "token") being misread
       **given that the cell is being considered for this noise type**.
-      One way to think about this is the probability of a typo on any given character when the value is being typed carelessly.
+      One way to think about this is the probability of an OCR error on any given character when a character is misread.
     - 0.1 (10%)
