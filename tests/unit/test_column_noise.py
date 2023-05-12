@@ -11,6 +11,7 @@ from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS
+from pseudopeople.utilities import load_ocr_errors_dict
 
 RANDOMNESS0 = RandomnessStream(
     key="test_column_noise",
@@ -643,9 +644,98 @@ def test_generate_phonetic_errors():
     pass
 
 
-@pytest.mark.skip(reason="TODO")
-def test_generate_ocr_errors():
-    pass
+@pytest.mark.parametrize(
+    "column",
+    [
+        "numbers",
+        "characters",
+    ],
+)
+def test_generate_ocr_errors(dummy_dataset, column):
+    data = dummy_dataset[column]
+    # Update column name for noise function
+    data.name = "first_name"
+
+    config = get_configuration()
+    config.update(
+        {
+            DATASETS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    column: {
+                        NOISE_TYPES.make_ocr_errors.name: {
+                            Keys.CELL_PROBABILITY: 0.1,
+                            Keys.TOKEN_PROBABILITY: 1.0,
+                        },
+                    }
+                },
+            },
+        }
+    )
+    # Get node
+    config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][
+        NOISE_TYPES.make_ocr_errors.name
+    ]
+    noised_data = NOISE_TYPES.make_ocr_errors(data, config, RANDOMNESS0, "test_ocr")
+
+    # Validate we do not change any missing data
+    missing_mask = data == ""
+    assert (data[missing_mask] == noised_data[missing_mask]).all()
+
+    # Check expected noise level
+    token_prob = config[Keys.TOKEN_PROBABILITY]
+    cell_prob = config[Keys.CELL_PROBABILITY]
+
+    check_original = data[~missing_mask]
+    check_noised = noised_data[~missing_mask]
+    str_lengths = check_original.str.len() + check_original.str.len() - 1
+    p_token_not_noised = 1 - token_prob  # pd.Series
+    # Get probability no tokens are noised in a string
+    p_strings_not_noised = p_token_not_noised**str_lengths  # pd.Series
+    p_strings_noised = 1 - p_strings_not_noised  # pd.Series
+    expected_noise = cell_prob * p_strings_noised.mean()
+    actual_noise = (check_original != check_noised).mean()
+    # We have simplified the expected noise calculation. Note that not all tokens are eligible for OCR noising so we
+    # should never meet our upper bound of expected noise. Alternatively, we want to make sure the noise level is not
+    # unexpectedly small.
+    assert actual_noise < expected_noise
+    assert actual_noise > expected_noise / 10
+
+
+def test_ocr_replacement_values():
+    # Test that OCR noising replaces truth value with correct error values
+    # Load OCR errors dict
+    ocr_errors_dict = load_ocr_errors_dict()
+    # Make series of OCR error dict keys - is there an intelligent numberto pick besides 10?
+    data = pd.Series(list(ocr_errors_dict.keys()) * 10, name="employer_name")
+    config = get_configuration()
+    config.update(
+        {
+            DATASETS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    "employer_name": {
+                        NOISE_TYPES.make_ocr_errors.name: {
+                            Keys.CELL_PROBABILITY: 1.0,
+                            Keys.TOKEN_PROBABILITY: 1.0,
+                        },
+                    },
+                },
+            },
+        }
+    )
+    config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["employer_name"][
+        NOISE_TYPES.make_ocr_errors.name
+    ]
+    noised_data = NOISE_TYPES.make_ocr_errors(
+        data, config, RANDOMNESS0, "test_ocr_error_values"
+    )
+
+    for key in ocr_errors_dict.keys():
+        key_idx = data.index[data == key]
+        noised_values = set(noised_data.loc[key_idx])
+        ocr_error_values = set(ocr_errors_dict[key])
+        assert noised_values == ocr_error_values
+
+    assert (data != noised_data).all()
 
 
 @pytest.mark.parametrize(
@@ -722,7 +812,7 @@ def test_make_typos(dummy_dataset, column):
         (NOISE_TYPES.leave_blank, "numbers", "decennial_census", "zipcode"),
         (NOISE_TYPES.choose_wrong_option, "state", "decennial_census", "state"),
         ("NOISE_TYPES.copy_from_within_household", "todo", "todo", "todo"),
-        ("NOISE_TYPES.swap_month_and_day", "todo", "todo", "todo"),
+        (NOISE_TYPES.swap_month_and_day, "event_date", "social_security", "event_date"),
         (NOISE_TYPES.write_wrong_zipcode_digits, "zipcode", "decennial_census", "zipcode"),
         (NOISE_TYPES.misreport_age, "age", "decennial_census", "age"),
         (
@@ -731,11 +821,11 @@ def test_make_typos(dummy_dataset, column):
             "decennial_census",
             "street_number",
         ),
-        (NOISE_TYPES.use_nickname, "todo", "todo", "todo"),
+        (NOISE_TYPES.use_nickname, "first_name", "decennial_census", "first_name"),
         (NOISE_TYPES.use_fake_name, "first_name", "decennial_census", "first_name"),
         (NOISE_TYPES.use_fake_name, "last_name", "decennial_census", "last_name"),
         ("NOISE_TYPES.phonetic", "todo", "todo", "todo"),
-        ("NOISE_TYPES.ocr", "todo", "todo", "todo"),
+        (NOISE_TYPES.make_ocr_errors, "first_name", "decennial_census", "first_name"),
         (NOISE_TYPES.make_typos, "numbers", "decennial_census", "zipcode"),
         (NOISE_TYPES.make_typos, "characters", "decennial_census", "street_name"),
     ],
