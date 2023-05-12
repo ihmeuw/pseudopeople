@@ -77,15 +77,13 @@ class __NoiseTypes(NamedTuple):
     #         Keys.TOKEN_PROBABILITY: 0.1,
     #     },
     # )
-    # make_ocr_errors: ColumnNoiseType = ColumnNoiseType(
-    #     "make_ocr_errors",
-    #     noise_functions.make_ocr_errors,
-    #     probability=None,
-    #     additional_parameters={
-    #         Keys.CELL_PROBABILITY: 0.01,
-    #         Keys.TOKEN_PROBABILITY: 0.1,
-    #     },
-    # )
+    make_ocr_errors: ColumnNoiseType = ColumnNoiseType(
+        "make_ocr_errors",
+        noise_functions.make_ocr_errors,
+        additional_parameters={
+            Keys.TOKEN_PROBABILITY: 0.1,
+        },
+    )
     make_typos: ColumnNoiseType = ColumnNoiseType(
         "make_typos",
         noise_functions.make_typos,

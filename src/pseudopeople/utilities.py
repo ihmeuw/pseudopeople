@@ -7,7 +7,7 @@ from loguru import logger
 from vivarium.framework.randomness import RandomnessStream
 from vivarium.framework.randomness.index_map import IndexMap
 
-from pseudopeople.constants import metadata
+from pseudopeople.constants import metadata, paths
 
 
 def get_randomness_stream(dataset_name: str, seed: int, index: pd.Index) -> RandomnessStream:
@@ -161,3 +161,15 @@ def get_state_abbreviation(state: str) -> str:
         return metadata.US_STATE_ABBRV_MAP[state]
     except KeyError:
         raise ValueError(f"Unexpected state input: '{state}'")
+
+
+def load_ocr_errors_dict():
+    ocr_errors = pd.read_csv(
+        paths.OCR_ERRORS_DATA, skiprows=[0, 1], header=None, names=["ocr_true", "ocr_err"]
+    )
+    # Get OCR errors dict for noising
+    ocr_error_dict = (
+        ocr_errors.groupby("ocr_true")["ocr_err"].apply(lambda x: list(x)).to_dict()
+    )
+
+    return ocr_error_dict

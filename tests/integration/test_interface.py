@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -109,7 +107,7 @@ def test_generate_dataset_from_sample_and_source(
             check_original.loc[compare_dataset_idx, col].values
             != check_noised_dataset.loc[compare_dataset_idx, col].values
         ).mean()
-        assert np.isclose(noise_level_dataset, noise_level_sample, rtol=0.07)
+        assert np.isclose(noise_level_dataset, noise_level_sample, rtol=0.08)
 
 
 @pytest.mark.parametrize(
@@ -221,7 +219,7 @@ def test_column_noising(dataset_name: str, user_config, request):
             # and additional parameters to consider as well as the rtol when the
             # number of compared is small.
             expected_noise = 1 - (1 - CELL_PROBABILITY) ** len(col.noise_types)
-            rtol = 0.5 if includes_token_noising else 0.11
+            rtol = 0.55 if includes_token_noising else 0.11
             assert np.isclose(noise_level, expected_noise, rtol=rtol)
         else:  # No noising - should be identical
             assert (

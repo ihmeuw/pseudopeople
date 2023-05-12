@@ -14,6 +14,7 @@ from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.noise_scaling import load_nicknames_data
 from pseudopeople.utilities import (
     get_index_to_noise,
+    load_ocr_errors_dict,
     two_d_array_choice,
     vectorized_choice,
 )
@@ -504,19 +505,51 @@ def make_typos(
     return column
 
 
-# def make_ocr_errors(
-#     column: pd.Series,
-#     configuration: ConfigTree,
-#     randomness_stream: RandomnessStream,
-#     additional_key: Any,
-# ) -> pd.Series:
-#     """
+def make_ocr_errors(
+    column: pd.Series,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
+) -> pd.Series:
+    """
+    :param column: pd.Series
+    :param configuration: ConfigTree object contain noise and token noise level values
+    :param randomness_stream: RandomnessStream object for CRN
+    :param additional_key: Key for RandomnessStream
+    :return: pd.Series of noised data
+    """
 
-#     :param column:
-#     :param configuration:
-#     :param randomness_stream:
-#     :param additional_key: Key for RandomnessStream
-#     :return:
-#     """
-#     # todo actually generate OCR errors
-#     return column
+    # Load OCR error dict
+    ocr_error_dict = load_ocr_errors_dict()
+
+    def ocr_corrupt(truth, corrupted_pr, rng):
+        err = ""
+        i = 0
+        while i < len(truth):
+            error_introduced = False
+            for token_length in [3, 2, 1]:
+                token = truth[i : (i + token_length)]
+                if token in ocr_error_dict and not error_introduced:
+                    if rng.uniform() < corrupted_pr:
+                        err += rng.choice(ocr_error_dict[token])
+                        i += token_length
+                        error_introduced = True
+                        break
+            if not error_introduced:
+                err += truth[i : (i + 1)]
+                i += 1
+        return err
+
+    # Apply keyboard corrupt for OCR to column
+    token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
+    rng = np.random.default_rng(seed=randomness_stream.seed)
+    column = column.astype(str)
+    for idx in column.index:
+        noised_value = ocr_corrupt(
+            column.loc[idx],
+            token_noise_level,
+            rng,
+        )
+        column[idx] = noised_value
+
+    return column
