@@ -91,7 +91,7 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
     - ``make_typos``
     - Accidentally typing an "l" instead of a "k" because they are 
       right next to each other on a QWERTY keyboard
-  * - Optical character recognition (OCR) error
+  * - Make optical character recognition (OCR) errors
     - ``make_ocr_errors``
     - Misreading an 'S' instead of a '5'
 
@@ -109,43 +109,43 @@ Noise types for each column
     - Notes
   * - First name
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, SSA
-    - Leave a field blank, OCR, use a fake name, nickname, make typos
+    - Leave a field blank, OCR, use a fake name, nickname, make typos, make OCR errors
     -
   * - Middle initial
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, SSA
-    - Leave a field blank, make typos, make OCR error
+    - Leave a field blank, make typos, make OCR errors
     -
   * - Last name
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, SSA
-    - Leave a field blank, use a fake name, make typos, make OCR error
+    - Leave a field blank, use a fake name, make typos, make OCR errors
     -
   * - Age
     - Decennial Census, ACS, CPS, W-2 and 1099
-    - Leave a field blank, misreport age, make typos, make OCR error
+    - Leave a field blank, misreport age, make typos, make OCR errors
     -
   * - Date of birth
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, SSA
-    - Leave a field blank, write the wrong digits, make typos, make OCR error
+    - Leave a field blank, write the wrong digits, make typos, make OCR errors
     -
   * - Street number for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
-    - Leave a field blank, write the wrong digits, make typos, make OCR error
+    - Leave a field blank, write the wrong digits, make typos, make OCR errors
     - Noise for all types of addresses works in the same way
   * - Street name for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
-    - Leave a field blank, make typos, make OCR error
+    - Leave a field blank, make typos, make OCR errors
     - Noise for all types of addresses works in the same way
   * - Unit number for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
-    - Leave a field blank, write the wrong digits, make typos, make OCR error
+    - Leave a field blank, write the wrong digits, make typos, make OCR errors
     - Noise for all types of addresses works in the same way
   * - PO Box for mailing address
     - W-2 and 1099
-    - Leave a field blank, write the wrong digits, make typos, make OCR error
+    - Leave a field blank, write the wrong digits, make typos, make OCR errors
     -
   * - City name for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
-    - Leave a field blank, make typos, make OCR error
+    - Leave a field blank, make typos, make OCR errors
     - Noise for all types of addresses works in the same way
   * - State for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
@@ -153,7 +153,7 @@ Noise types for each column
     - Noise for all types of addresses works in the same way
   * - ZIP code for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
-    - Leave a field blank, write the wrong zipcode digits, make typos, make OCR error
+    - Leave a field blank, write the wrong zipcode digits, make typos, make OCR errors
     -
   * - Relationship to head of household
     - Decennial Census
@@ -169,19 +169,19 @@ Noise types for each column
     -
   * - SSN
     - W-2 and 1099, SSA
-    - "Borrowed" SSN, leave a field blank, write the wrong digits, make typos, make OCR error
+    - "Borrowed" SSN, leave a field blank, write the wrong digits, make typos, make OCR errors
     - Note that "borrowed" SSN only applies to the W-2 and 1099 dataset
   * - Income / wages
     - W-2 and 1099
-    - Leave a field blank, make typos, make OCR error
+    - Leave a field blank, make typos, make OCR errors
     - Note that wages and income are on separate tax forms and noise is applied to each separately
   * - Employer ID
     - W-2 and 1099
-    - Leave a field blank, write the wrong digits, make typos, make OCR error
+    - Leave a field blank, write the wrong digits, make typos, make OCR errors
     - 
   * - Employer name
     - W-2 and 1099
-    - Leave a field blank, make typos, make OCR error
+    - Leave a field blank, make typos, make OCR errors
     -
   * - Type of tax form
     - W-2 and 1099
@@ -193,7 +193,7 @@ Noise types for each column
     -
   * - Date of SSA event
     - SSA
-    - Leave a field blank, write the wrong digits, make typos, make OCR error
+    - Leave a field blank, write the wrong digits, make typos, make OCR errors
     -
 
 
