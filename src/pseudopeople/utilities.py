@@ -166,6 +166,7 @@ def get_state_abbreviation(state: str) -> str:
 ##########################
 # Data utility functions #
 ##########################
+
 def load_ocr_errors_dict():
     ocr_errors = pd.read_csv(
         paths.OCR_ERRORS_DATA, skiprows=[0, 1], header=None, names=["ocr_true", "ocr_err"]
@@ -188,3 +189,4 @@ def load_phonetic_errors_dict():
         phonetic_errors.groupby('orig')["phonetic_err"].apply(lambda x: list(x.str.replace("@", "")))
     )
     return phonetic_error_dict
+
