@@ -72,6 +72,9 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
   * - Choose the wrong option
     - ``choose_wrong_option``
     - Marking the "Male" box when you meant "Female"
+  * - Optical character recognition (OCR) error
+    - ``make_ocr_errors``
+    - Misreading an 'S' instead of a '5'
   * - Use a fake name
     - ``use_fake_name``
     - Using "Mr" rather than actual first name
