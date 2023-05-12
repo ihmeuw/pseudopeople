@@ -17,6 +17,7 @@ from pseudopeople.utilities import (
     load_ocr_errors_dict,
     two_d_array_choice,
     vectorized_choice,
+    load_phonetic_errors_dict,
 )
 
 
@@ -414,22 +415,51 @@ def use_fake_names(
     return pd.Series(new_values, index=column.index, name=column.name)
 
 
-# def make_phonetic_errors(
-#     column: pd.Series,
-#     configuration: ConfigTree,
-#     randomness_stream: RandomnessStream,
-#     additional_key: Any,
-# ) -> pd.Series:
-#     """
+def make_phonetic_errors(
+    column: pd.Series,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+    additional_key: Any,
+) -> pd.Series:
+    """
 
-#     :param column:
-#     :param configuration:
-#     :param randomness_stream:
-#     :param additional_key: Key for RandomnessStream
-#     :return:
-#     """
-#     # todo actually generate fake names
-#     return column
+    :param column: pd.Series of unoised data
+    :param configuration: ConfigTree object with cell probability and noise level values
+    :param randomness_stream: RandomnessStream object for CRN
+    :param additional_key: Key for RandomnessStream
+    :return: pd.Series of noised data
+    """
+
+    phonetic_error_dict = load_phonetic_errors_dict()
+
+    def phonetic_corrupt(truth, corrupted_pr, rng):
+        err = ""
+        i = 0
+        while i < len(truth):
+            error_introduced = False
+            for token_length in [7, 6, 5, 4, 3, 2, 1]:
+                token = truth[i:(i + token_length)]
+                if token in phonetic_error_dict and not error_introduced:
+                    if rng.uniform() < corrupted_pr:
+                        err += rng.choice(phonetic_error_dict[token])
+                        i += token_length
+                        error_introduced = True
+            if not error_introduced:
+                err += truth[i:(i + 1)]
+                i += 1
+        return err
+
+    token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
+    rng = np.random.default_rng(seed=randomness_stream.seed)
+    column = column.astype(str)
+    for idx in column.index:
+        noised_value = phonetic_corrupt(
+            column[idx],
+            token_noise_level,
+            rng,
+        )
+        column[idx] = noised_value
+    return column
 
 
 def leave_blanks(column: pd.Series, *_: Any) -> pd.Series:
