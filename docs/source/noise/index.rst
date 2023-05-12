@@ -75,6 +75,9 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
   * - Use a fake name
     - ``use_fake_name``
     - Using "Mr" rather than actual first name
+  * - Nicknames
+    - ``use_nickname``
+    - Writing 'Alex' instead of legal name 'Alexander'
   * - Misreport age
     - ``misreport_age``
     - Reporting that you are 28 years old when you are actually 27
