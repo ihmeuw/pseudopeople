@@ -68,15 +68,13 @@ class __NoiseTypes(NamedTuple):
         "use_fake_name",
         noise_functions.use_fake_names,
     )
-    # make_phonetic_errors: ColumnNoiseType = ColumnNoiseType(
-    #     "make_phonetic_errors",
-    #     noise_functions.make_phonetic_errors,
-    #     probability=None,
-    #     additional_parameters={
-    #         Keys.CELL_PROBABILITY: 0.01,
-    #         Keys.TOKEN_PROBABILITY: 0.1,
-    #     },
-    # )
+    make_phonetic_errors: ColumnNoiseType = ColumnNoiseType(
+        "make_phonetic_errors",
+        noise_functions.make_phonetic_errors,
+        additional_parameters={
+            Keys.TOKEN_PROBABILITY: 0.1,
+        },
+    )
     make_ocr_errors: ColumnNoiseType = ColumnNoiseType(
         "make_ocr_errors",
         noise_functions.make_ocr_errors,

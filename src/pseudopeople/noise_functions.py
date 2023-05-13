@@ -15,9 +15,9 @@ from pseudopeople.noise_scaling import load_nicknames_data
 from pseudopeople.utilities import (
     get_index_to_noise,
     load_ocr_errors_dict,
+    load_phonetic_errors_dict,
     two_d_array_choice,
     vectorized_choice,
-    load_phonetic_errors_dict,
 )
 
 
@@ -438,14 +438,14 @@ def make_phonetic_errors(
         while i < len(truth):
             error_introduced = False
             for token_length in [7, 6, 5, 4, 3, 2, 1]:
-                token = truth[i:(i + token_length)]
+                token = truth[i : (i + token_length)]
                 if token in phonetic_error_dict and not error_introduced:
                     if rng.uniform() < corrupted_pr:
                         err += rng.choice(phonetic_error_dict[token])
                         i += token_length
                         error_introduced = True
             if not error_introduced:
-                err += truth[i:(i + 1)]
+                err += truth[i : (i + 1)]
                 i += 1
         return err
 
