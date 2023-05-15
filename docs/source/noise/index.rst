@@ -109,7 +109,7 @@ Noise types for each column
     - Notes
   * - First name
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, SSA
-    - Leave a field blank, OCR, use a fake name, nickname, make typos, make OCR errors
+    - Leave a field blank, use a fake name, nickname, make typos, make OCR errors
     -
   * - Middle initial
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, SSA
