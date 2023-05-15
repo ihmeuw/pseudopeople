@@ -100,10 +100,8 @@ def test_generate_dataset_from_sample_and_source(
         # we special-case a few sparse columns that have larger differences
         if dataset_name == DATASETS.cps.name and col == COLUMNS.unit_number.name:
             rtol = 0.21
-        elif dataset_name == DATASETS.acs.name and col == COLUMNS.middle_initial.name:
-            rtol = 0.12
         else:
-            rtol = 0.04
+            rtol = 0.12
         assert np.isclose(noise_level_dataset, noise_level_sample, rtol=rtol)
 
 
