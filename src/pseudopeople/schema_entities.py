@@ -382,6 +382,7 @@ class __Datasets(NamedTuple):
         DatasetNames.CENSUS,
         columns=(  # This defines the output column order
             COLUMNS.simulant_id,
+            COLUMNS.household_id,
             COLUMNS.first_name,
             COLUMNS.middle_initial,
             COLUMNS.last_name,
@@ -408,8 +409,8 @@ class __Datasets(NamedTuple):
     acs: Dataset = Dataset(
         DatasetNames.ACS,
         columns=(  # This defines the output column order
-            COLUMNS.household_id,
             COLUMNS.simulant_id,
+            COLUMNS.household_id,
             COLUMNS.survey_date,
             COLUMNS.first_name,
             COLUMNS.middle_initial,
@@ -435,8 +436,8 @@ class __Datasets(NamedTuple):
     cps: Dataset = Dataset(
         DatasetNames.CPS,
         columns=(  # This defines the output column order
-            COLUMNS.household_id,
             COLUMNS.simulant_id,
+            COLUMNS.household_id,
             COLUMNS.survey_date,
             COLUMNS.first_name,
             COLUMNS.middle_initial,
@@ -462,8 +463,8 @@ class __Datasets(NamedTuple):
     wic: Dataset = Dataset(
         DatasetNames.WIC,
         columns=(  # This defines the output column order
-            COLUMNS.household_id,
             COLUMNS.simulant_id,
+            COLUMNS.household_id,
             COLUMNS.first_name,
             COLUMNS.middle_initial,
             COLUMNS.last_name,
@@ -489,6 +490,7 @@ class __Datasets(NamedTuple):
         DatasetNames.SSA,
         columns=(  # This defines the output column order
             COLUMNS.simulant_id,
+            COLUMNS.household_id,
             COLUMNS.first_name,
             COLUMNS.middle_initial,
             COLUMNS.last_name,
@@ -508,6 +510,7 @@ class __Datasets(NamedTuple):
         DatasetNames.TAXES_W2_1099,
         columns=(  # This defines the output column order
             COLUMNS.simulant_id,
+            COLUMNS.household_id,
             COLUMNS.first_name,
             COLUMNS.middle_initial,
             COLUMNS.last_name,
