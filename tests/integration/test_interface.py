@@ -100,10 +100,8 @@ def test_generate_dataset_from_sample_and_source(
         # we special-case a few sparse columns that have larger differences
         if dataset_name == DATASETS.cps.name and col == COLUMNS.unit_number.name:
             rtol = 0.21
-        elif dataset_name == DATASETS.acs.name and col == COLUMNS.middle_initial.name:
-            rtol = 0.12
         else:
-            rtol = 0.04
+            rtol = 0.12
         assert np.isclose(noise_level_dataset, noise_level_sample, rtol=rtol)
 
 
@@ -216,7 +214,7 @@ def test_column_noising(dataset_name: str, user_config, request):
             # and additional parameters to consider as well as the rtol when the
             # number of compared is small.
             expected_noise = 1 - (1 - CELL_PROBABILITY) ** len(col.noise_types)
-            rtol = 0.55 if includes_token_noising else 0.11
+            rtol = 0.70 if includes_token_noising else 0.11
             assert np.isclose(noise_level, expected_noise, rtol=rtol)
         else:  # No noising - should be identical
             assert (

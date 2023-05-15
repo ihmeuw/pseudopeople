@@ -39,7 +39,7 @@ class __Columns(NamedTuple):
         "city",
         (
             NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.phonetic,
+            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -60,7 +60,7 @@ class __Columns(NamedTuple):
         "employer_city",
         (
             NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.phonetic,
+            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -88,7 +88,7 @@ class __Columns(NamedTuple):
         "employer_street_name",
         (
             NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.phonetic,
+            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -126,7 +126,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.leave_blank,
             NOISE_TYPES.use_nickname,
             NOISE_TYPES.use_fake_name,
-            # NOISE_TYPES.phonetic,
+            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -158,7 +158,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.leave_blank,
             NOISE_TYPES.use_fake_name,
-            # NOISE_TYPES.phonetic,
+            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -167,7 +167,7 @@ class __Columns(NamedTuple):
         "mailing_address_city",
         (
             NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.phonetic,
+            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -193,7 +193,7 @@ class __Columns(NamedTuple):
         "mailing_address_street_name",
         (
             NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.phonetic,
+            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -229,7 +229,7 @@ class __Columns(NamedTuple):
         "middle_initial",
         (
             NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.phonetic,
+            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -302,7 +302,7 @@ class __Columns(NamedTuple):
         "street_name",
         (
             NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.phonetic,
+            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),

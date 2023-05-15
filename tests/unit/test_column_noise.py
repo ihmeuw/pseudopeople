@@ -11,7 +11,7 @@ from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS
-from pseudopeople.utilities import load_ocr_errors_dict
+from pseudopeople.utilities import load_ocr_errors_dict, load_phonetic_errors_dict
 
 RANDOMNESS0 = RandomnessStream(
     key="test_column_noise",
@@ -639,9 +639,82 @@ def test_use_fake_name(dummy_dataset):
     assert noised_last_names.loc[noised_last_names != last_name_data].isin(fake_last).all()
 
 
-@pytest.mark.skip(reason="TODO")
-def test_generate_phonetic_errors():
-    pass
+@pytest.mark.parametrize(
+    "column",
+    [
+        "first_name",
+        "last_name",
+    ],
+)
+def test_generate_phonetic_errors(dummy_dataset, column):
+    data = dummy_dataset[column]
+
+    config = get_configuration(
+        {
+            DATASETS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    column: {
+                        NOISE_TYPES.make_phonetic_errors.name: {
+                            Keys.CELL_PROBABILITY: 0.1,
+                            Keys.TOKEN_PROBABILITY: 0.5,
+                        },
+                    }
+                },
+            },
+        }
+    )
+    # Get node
+    config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][
+        NOISE_TYPES.make_phonetic_errors.name
+    ]
+    noised_data = NOISE_TYPES.make_phonetic_errors(data, config, RANDOMNESS0, "test_ocr")
+
+    # Validate we do not change any missing data
+    missing_mask = data.isna()
+    assert noised_data[missing_mask].isna().all()
+
+    # Check expected noise level
+    cell_prob = config[Keys.CELL_PROBABILITY]
+    check_original = data[~missing_mask]
+    check_noised = noised_data[~missing_mask]
+    actual_noise = (check_original != check_noised).mean()
+    # We are setting lower and upper bounds for testing
+    assert actual_noise < cell_prob
+    assert actual_noise > cell_prob / 10
+
+
+def test_phonetic_error_values():
+    phonetic_errors_dict = load_phonetic_errors_dict()
+    data = pd.Series(list(phonetic_errors_dict.keys()) * 100, name="street_name")
+    config = get_configuration()
+    config.update(
+        {
+            DATASETS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    "street_name": {
+                        NOISE_TYPES.make_phonetic_errors.name: {
+                            Keys.CELL_PROBABILITY: 1.0,
+                            Keys.TOKEN_PROBABILITY: 1.0,
+                        },
+                    },
+                },
+            },
+        }
+    )
+    config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["street_name"][
+        NOISE_TYPES.make_phonetic_errors.name
+    ]
+    noised_data = NOISE_TYPES.make_phonetic_errors(
+        data, config, RANDOMNESS0, "test_phonetic_error_values"
+    )
+
+    for key in phonetic_errors_dict.keys():
+        key_idx = data.index[data == key]
+        noised_values = set(noised_data.loc[key_idx])
+        pho_error_values = set(phonetic_errors_dict[key])
+        assert noised_values == pho_error_values
+
+    assert (data != noised_data).all()
 
 
 @pytest.mark.parametrize(
@@ -687,18 +760,18 @@ def test_generate_ocr_errors(dummy_dataset, column):
 
     check_original = data[~missing_mask]
     check_noised = noised_data[~missing_mask]
-    str_lengths = check_original.str.len() + check_original.str.len() - 1
+    str_lengths = check_original.str.len() * 2 - 1
     p_token_not_noised = 1 - token_prob  # pd.Series
     # Get probability no tokens are noised in a string
     p_strings_not_noised = p_token_not_noised**str_lengths  # pd.Series
     p_strings_noised = 1 - p_strings_not_noised  # pd.Series
-    expected_noise = cell_prob * p_strings_noised.mean()
+    upper_bound = cell_prob * p_strings_noised.mean()
     actual_noise = (check_original != check_noised).mean()
     # We have simplified the expected noise calculation. Note that not all tokens are eligible for OCR noising so we
     # should never meet our upper bound of expected noise. Alternatively, we want to make sure the noise level is not
     # unexpectedly small.
-    assert actual_noise < expected_noise
-    assert actual_noise > expected_noise / 10
+    assert actual_noise < upper_bound
+    assert actual_noise > upper_bound / 10
 
 
 def test_ocr_replacement_values():
