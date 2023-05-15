@@ -649,8 +649,7 @@ def test_use_fake_name(dummy_dataset):
 def test_generate_phonetic_errors(dummy_dataset, column):
     data = dummy_dataset[column]
 
-    config = get_configuration()
-    config.update(
+    config = get_configuration(
         {
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
