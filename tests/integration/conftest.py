@@ -4,6 +4,7 @@ import pytest
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants import paths
 from pseudopeople.interface import (
+    _reformat_dates_for_noising,
     generate_american_community_survey,
     generate_current_population_survey,
     generate_decennial_census,
@@ -17,6 +18,21 @@ ROW_PROBABILITY = 0.05
 CELL_PROBABILITY = 0.25
 SEED = 0
 STATE = "RI"
+
+# TODO: Replace this with the record ID column when implemented (MIC-4039)
+IDX_COLS = {
+    DATASETS.census.name: [COLUMNS.simulant_id.name, COLUMNS.year.name],
+    DATASETS.acs.name: [COLUMNS.simulant_id.name, COLUMNS.survey_date.name],
+    DATASETS.cps.name: [COLUMNS.simulant_id.name, COLUMNS.survey_date.name],
+    DATASETS.wic.name: [COLUMNS.simulant_id.name, COLUMNS.year.name],
+    DATASETS.ssa.name: [COLUMNS.simulant_id.name, COLUMNS.ssa_event_type.name],
+    DATASETS.tax_w2_1099.name: [
+        COLUMNS.simulant_id.name,
+        COLUMNS.tax_year.name,
+        COLUMNS.employer_id.name,
+    ],
+    # DATASETS.tax_1040.name: "todo",
+}
 
 
 @pytest.fixture(scope="module")
@@ -176,3 +192,21 @@ def sample_data_taxes_w2_and_1099_state_edit():
 def _load_sample_data(dataset):
     data_path = paths.SAMPLE_DATA_ROOT / dataset / f"{dataset}.parquet"
     return pd.read_parquet(data_path)
+
+
+def _get_common_datasets(dataset_name, data, noised_data):
+    """Use unique columns to determine shared non-NA rows between noised and
+    unnoised data. Note that we cannot use the original index because that
+    gets reset after noising, i.e. the unique columns must NOT be noised.
+    """
+    idx_cols = IDX_COLS.get(dataset_name)
+    dataset = DATASETS.get_dataset(dataset_name)
+    check_original = _reformat_dates_for_noising(data, dataset).set_index(idx_cols)
+    check_noised = noised_data.set_index(idx_cols)
+    # Ensure the idx_cols are unique
+    assert check_original.index.duplicated().sum() == 0
+    assert check_noised.index.duplicated().sum() == 0
+    shared_idx = pd.Index(set(check_original.index).intersection(set(check_noised.index)))
+    check_original = check_original.loc[shared_idx]
+    check_noised = check_noised.loc[shared_idx]
+    return check_noised, check_original, shared_idx
