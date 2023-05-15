@@ -304,7 +304,7 @@ This noise type is called :code:`make_typos` in the configuration. It takes two 
       One way to think about this is the probability of a typo on any given character when the value is being typed carelessly.
     - 0.1 (10%)
 
-Make Optical Character Recognition (OCR) errors
+Make optical character recognition (OCR) errors
 --------------------------------------------------
 
 An optical character recognition (OCR) error is when a string is misread for another string that is visually similar. Some common examples are
