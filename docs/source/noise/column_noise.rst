@@ -336,7 +336,7 @@ This noise type is called :code:`make_ocr_errors` in the configuration. It takes
     - Default
   * - :code:`cell_probability`
     - The probability of a cell being *considered* to have this noise type.
-      One way to think about this is the probability that a string is misread.
+      One way to think about this is the probability that a string is read by an inaccurate OCR program or human reader.
       Whether or not there are actually any errors depends on the next parameter.
     - 0.01 (1%)
   * - :code:`token_probability`
