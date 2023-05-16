@@ -490,7 +490,6 @@ class __Datasets(NamedTuple):
         DatasetNames.SSA,
         columns=(  # This defines the output column order
             COLUMNS.simulant_id,
-            COLUMNS.household_id,
             COLUMNS.first_name,
             COLUMNS.middle_initial,
             COLUMNS.last_name,
