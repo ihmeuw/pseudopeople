@@ -18,10 +18,14 @@ from tests.integration.conftest import _get_common_datasets
     ],
 )
 def test_unnoised_id_cols(dataset_name: str, request):
-    """Tests that all datasets retain unnoised simulant_id and household_id"""
+    """Tests that all datasets retain unnoised simulant_id and household_id
+    (except for SSA which does not include household_id)
+    """
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
-    unnoised_id_cols = [COLUMNS.simulant_id.name, COLUMNS.household_id.name]
+    unnoised_id_cols = [COLUMNS.simulant_id.name]
+    if dataset_name != DATASETS.ssa.name:
+        unnoised_id_cols.append(COLUMNS.household_id.name)
     data = request.getfixturevalue(f"sample_data_{dataset_name}")
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
     check_noised, check_original, _ = _get_common_datasets(dataset_name, data, noised_data)
