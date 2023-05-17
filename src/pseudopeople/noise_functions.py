@@ -356,7 +356,7 @@ def write_wrong_digits(
         digit = pd.Series(digit, index=column.index, name=column.name)
         digits.append(digit)
         noised_column = noised_column + digits[i]
-    noised_column.str.strip()
+    noised_column = noised_column.str.strip()
 
     return noised_column
 

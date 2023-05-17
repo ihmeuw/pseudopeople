@@ -459,6 +459,8 @@ def test_miswrite_numerics(string_series):
 
     # Check empty strings havent changed
     assert (noised_data[empty_str] == "").all()
+    # Assert string length doesn't change after noising
+    assert (data.str.len() == noised_data.str.len()).all()
 
     for i in range(4):  # "1234"
         assert np.isclose(

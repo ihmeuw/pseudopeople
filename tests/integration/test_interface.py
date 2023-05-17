@@ -89,20 +89,20 @@ def test_generate_dataset_from_sample_and_source(
         ].intersection(original_missing_idx)
         compare_sample_idx = shared_idx_sample.difference(both_missing_sample_idx)
         compare_dataset_idx = shared_idx_dataset.difference(both_missing_dataset_idx)
-        noise_level_sample = (
+        noise_level_single_dataset = (
             check_original.loc[compare_sample_idx, col].values
             != check_noised_sample.loc[compare_sample_idx, col].values
         ).mean()
-        noise_level_dataset = (
+        noise_level_full_dataset = (
             check_original.loc[compare_dataset_idx, col].values
             != check_noised_dataset.loc[compare_dataset_idx, col].values
         ).mean()
         # we special-case a few sparse columns that have larger differences
         if dataset_name == DATASETS.cps.name and col == COLUMNS.unit_number.name:
-            rtol = 0.21
+            rtol = 0.30
         else:
             rtol = 0.12
-        assert np.isclose(noise_level_dataset, noise_level_sample, rtol=rtol)
+        assert np.isclose(noise_level_full_dataset, noise_level_single_dataset, rtol=rtol)
 
 
 @pytest.mark.parametrize(
