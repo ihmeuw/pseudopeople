@@ -313,7 +313,7 @@ An optical character recognition (OCR) error is when a string is misread for ano
 pseudopeople defines the possible OCR substitutions using `this CSV file <https://github.com/ihmeuw/pseudopeople/docs/source/noise/ocr-variations-upper-lower.csv>`_, which was produced by the `GeCO project <https://dl.acm.org/doi/10.1145/2505515.2508207>`_. In the file, the first column is the real string (which we call a "token") and the second column is what it could be misread as (a "corruption").
 The same token can be associated with multiple corruptions.
 
-To implement this, we first select the rows to noise, as in other noise functions.
+To implement this, we first select the rows to noise, as in other noise types.
 For those rows, each corruption-eligible token in the relevant string is selected to be corrupted or not,
 according to the token noise probability.
 Each token selected for corruption is replaced with its corruption according to the above CSV file
