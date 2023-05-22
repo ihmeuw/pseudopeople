@@ -342,5 +342,5 @@ This noise type is called :code:`make_ocr_errors` in the configuration. It takes
   * - :code:`token_probability`
     - The probability of each corruption-eligible token being misread
       **given that the cell is being considered for this noise type**.
-      One way to think about this is the probability of an OCR error on any given character when a character is misread.
+      One way to think about this is the probability of an OCR error on any given corruption-eligible token when a string is being read inaccurately.
     - 0.1 (10%)
