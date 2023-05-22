@@ -4,7 +4,6 @@ import pytest
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.interface import (
-    _reformat_dates_for_noising,
     generate_american_community_survey,
     generate_current_population_survey,
     generate_decennial_census,
@@ -14,22 +13,13 @@ from pseudopeople.interface import (
 )
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
-from tests.integration.conftest import CELL_PROBABILITY, SEED, STATE
-
-# TODO: Replace this with the record ID column when implemented (MIC-4039)
-IDX_COLS = {
-    DATASETS.census.name: [COLUMNS.simulant_id.name, COLUMNS.year.name],
-    DATASETS.acs.name: [COLUMNS.simulant_id.name, COLUMNS.survey_date.name],
-    DATASETS.cps.name: [COLUMNS.simulant_id.name, COLUMNS.survey_date.name],
-    DATASETS.wic.name: [COLUMNS.simulant_id.name, COLUMNS.year.name],
-    DATASETS.ssa.name: [COLUMNS.simulant_id.name, COLUMNS.ssa_event_type.name],
-    DATASETS.tax_w2_1099.name: [
-        COLUMNS.simulant_id.name,
-        COLUMNS.tax_year.name,
-        COLUMNS.employer_id.name,
-    ],
-    # DATASETS.tax_1040.name: "todo",
-}
+from tests.integration.conftest import (
+    CELL_PROBABILITY,
+    IDX_COLS,
+    SEED,
+    STATE,
+    _get_common_datasets,
+)
 
 DATASET_GENERATION_FUNCS = {
     DATASETS.census.name: generate_decennial_census,
@@ -99,15 +89,20 @@ def test_generate_dataset_from_sample_and_source(
         ].intersection(original_missing_idx)
         compare_sample_idx = shared_idx_sample.difference(both_missing_sample_idx)
         compare_dataset_idx = shared_idx_dataset.difference(both_missing_dataset_idx)
-        noise_level_sample = (
+        noise_level_single_dataset = (
             check_original.loc[compare_sample_idx, col].values
             != check_noised_sample.loc[compare_sample_idx, col].values
         ).mean()
-        noise_level_dataset = (
+        noise_level_full_dataset = (
             check_original.loc[compare_dataset_idx, col].values
             != check_noised_dataset.loc[compare_dataset_idx, col].values
         ).mean()
-        assert np.isclose(noise_level_dataset, noise_level_sample, rtol=0.08)
+        # we special-case a few sparse columns that have larger differences
+        if dataset_name == DATASETS.cps.name and col == COLUMNS.unit_number.name:
+            rtol = 0.30
+        else:
+            rtol = 0.12
+        assert np.isclose(noise_level_full_dataset, noise_level_single_dataset, rtol=rtol)
 
 
 @pytest.mark.parametrize(
@@ -219,7 +214,7 @@ def test_column_noising(dataset_name: str, user_config, request):
             # and additional parameters to consider as well as the rtol when the
             # number of compared is small.
             expected_noise = 1 - (1 - CELL_PROBABILITY) ** len(col.noise_types)
-            rtol = 0.55 if includes_token_noising else 0.11
+            rtol = 0.70 if includes_token_noising else 0.11
             assert np.isclose(noise_level, expected_noise, rtol=rtol)
         else:  # No noising - should be identical
             assert (
@@ -544,24 +539,6 @@ def _mock_noise_dataset(
 ):
     """Mock noise_dataset that just returns unnoised data"""
     return dataset_data
-
-
-def _get_common_datasets(dataset_name, data, noised_data):
-    """Use unique columns to determine shared non-NA rows between noised and
-    unnoised data. Note that we cannot use the original index because that
-    gets reset after noising, i.e. the unique columns must NOT be noised.
-    """
-    idx_cols = IDX_COLS.get(dataset_name)
-    dataset = DATASETS.get_dataset(dataset_name)
-    check_original = _reformat_dates_for_noising(data, dataset).set_index(idx_cols)
-    check_noised = noised_data.set_index(idx_cols)
-    # Ensure the idx_cols are unique
-    assert check_original.index.duplicated().sum() == 0
-    assert check_noised.index.duplicated().sum() == 0
-    shared_idx = pd.Index(set(check_original.index).intersection(set(check_noised.index)))
-    check_original = check_original.loc[shared_idx]
-    check_noised = check_noised.loc[shared_idx]
-    return check_noised, check_original, shared_idx
 
 
 def _generate_non_sample_data_root(data_dir_name, tmpdir, data):

@@ -39,7 +39,7 @@ class __Columns(NamedTuple):
         "city",
         (
             NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.phonetic,
+            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -60,7 +60,7 @@ class __Columns(NamedTuple):
         "employer_city",
         (
             NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.phonetic,
+            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -88,7 +88,7 @@ class __Columns(NamedTuple):
         "employer_street_name",
         (
             NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.phonetic,
+            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -126,7 +126,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.leave_blank,
             NOISE_TYPES.use_nickname,
             NOISE_TYPES.use_fake_name,
-            # NOISE_TYPES.phonetic,
+            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -158,7 +158,7 @@ class __Columns(NamedTuple):
         (
             NOISE_TYPES.leave_blank,
             NOISE_TYPES.use_fake_name,
-            # NOISE_TYPES.phonetic,
+            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -167,7 +167,7 @@ class __Columns(NamedTuple):
         "mailing_address_city",
         (
             NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.phonetic,
+            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -193,7 +193,7 @@ class __Columns(NamedTuple):
         "mailing_address_street_name",
         (
             NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.phonetic,
+            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -229,7 +229,7 @@ class __Columns(NamedTuple):
         "middle_initial",
         (
             NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.phonetic,
+            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -302,7 +302,7 @@ class __Columns(NamedTuple):
         "street_name",
         (
             NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.phonetic,
+            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -382,6 +382,7 @@ class __Datasets(NamedTuple):
         DatasetNames.CENSUS,
         columns=(  # This defines the output column order
             COLUMNS.simulant_id,
+            COLUMNS.household_id,
             COLUMNS.first_name,
             COLUMNS.middle_initial,
             COLUMNS.last_name,
@@ -408,8 +409,8 @@ class __Datasets(NamedTuple):
     acs: Dataset = Dataset(
         DatasetNames.ACS,
         columns=(  # This defines the output column order
-            COLUMNS.household_id,
             COLUMNS.simulant_id,
+            COLUMNS.household_id,
             COLUMNS.survey_date,
             COLUMNS.first_name,
             COLUMNS.middle_initial,
@@ -435,8 +436,8 @@ class __Datasets(NamedTuple):
     cps: Dataset = Dataset(
         DatasetNames.CPS,
         columns=(  # This defines the output column order
-            COLUMNS.household_id,
             COLUMNS.simulant_id,
+            COLUMNS.household_id,
             COLUMNS.survey_date,
             COLUMNS.first_name,
             COLUMNS.middle_initial,
@@ -462,8 +463,8 @@ class __Datasets(NamedTuple):
     wic: Dataset = Dataset(
         DatasetNames.WIC,
         columns=(  # This defines the output column order
-            COLUMNS.household_id,
             COLUMNS.simulant_id,
+            COLUMNS.household_id,
             COLUMNS.first_name,
             COLUMNS.middle_initial,
             COLUMNS.last_name,
@@ -508,6 +509,7 @@ class __Datasets(NamedTuple):
         DatasetNames.TAXES_W2_1099,
         columns=(  # This defines the output column order
             COLUMNS.simulant_id,
+            COLUMNS.household_id,
             COLUMNS.first_name,
             COLUMNS.middle_initial,
             COLUMNS.last_name,
