@@ -303,3 +303,46 @@ This noise type is called :code:`make_typos` in the configuration. It takes two 
       **given that the cell is being considered for this noise type**.
       One way to think about this is the probability of a typo on any given character when the value is being typed carelessly.
     - 0.1 (10%)
+
+Make optical character recognition (OCR) errors
+--------------------------------------------------
+
+An optical character recognition (OCR) error is when a string is misread for another string that is visually similar. Some common examples are
+‘S’ instead of ‘5’ and ‘m’ instead of ‘iii’.
+
+pseudopeople defines the possible OCR substitutions using `this CSV file <https://github.com/ihmeuw/pseudopeople/blob/develop/src/pseudopeople/data/ocr_errors.csv>`_, which was produced by the `GeCO project <https://dl.acm.org/doi/10.1145/2505515.2508207>`_. In the file, the first column is the real string (which we call a "token") and the second column is what it could be misread as (a "corruption").
+The same token can be associated with multiple corruptions.
+
+To implement this, we first select the rows to noise, as in other noise types.
+For those rows, each corruption-eligible token in the relevant string is selected to be corrupted or not,
+according to the token noise probability.
+Each token selected for corruption is replaced with its corruption according to the above CSV file
+(choosing uniformly at random in the case of multiple corruption options for a single token),
+**unless a token with any overlapping characters (in the original string) has already been corrupted**.
+
+.. note:: 
+  Tokens are corrupted in the order of the location of their first character in the original string, from beginning to end,
+  breaking ties (e.g. 'l' and 'l>' are both corruption-eligible tokens and may start on the same 'l') by corrupting longer tokens first.
+  Note that in an example :code:`abcd` where :code:`ab`, :code:`bc`, **and** :code:`cd` have **all** been selected to be corrupted,
+  the corruption of :code:`ab` prevents the corruption of :code:`bc` from occurring, which then allows :code:`cd` to be corrupted
+  even though it overlapped with :code:`bc`.
+
+This noise type is called :code:`make_ocr_errors` in the configuration. It takes two parameters:
+
+.. list-table:: Parameters to the make_ocr_errors noise type
+  :widths: 1 5 1
+  :header-rows: 1
+
+  * - Parameter
+    - Description
+    - Default
+  * - :code:`cell_probability`
+    - The probability of a cell being *considered* to have this noise type.
+      One way to think about this is the probability that a string is read by an inaccurate OCR program or human reader.
+      Whether or not there are actually any errors depends on the next parameter.
+    - 0.01 (1%)
+  * - :code:`token_probability`
+    - The probability of each corruption-eligible token being misread
+      **given that the cell is being considered for this noise type**.
+      One way to think about this is the probability of an OCR error on any given corruption-eligible token when a string is being read inaccurately.
+    - 0.1 (10%)
