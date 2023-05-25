@@ -310,7 +310,7 @@ Make optical character recognition (OCR) errors
 An optical character recognition (OCR) error is when a string is misread for another string that is visually similar. Some common examples are
 ‘S’ instead of ‘5’ and ‘m’ instead of ‘iii’.
 
-pseudopeople defines the possible OCR substitutions using `this CSV file <https://github.com/ihmeuw/pseudopeople/docs/source/noise/ocr-variations-upper-lower.csv>`_, which was produced by the `GeCO project <https://dl.acm.org/doi/10.1145/2505515.2508207>`_. In the file, the first column is the real string (which we call a "token") and the second column is what it could be misread as (a "corruption").
+pseudopeople defines the possible OCR substitutions using `this CSV file <https://github.com/ihmeuw/pseudopeople/blob/develop/src/pseudopeople/data/ocr_errors.csv>`_, which was produced by the `GeCO project <https://dl.acm.org/doi/10.1145/2505515.2508207>`_. In the file, the first column is the real string (which we call a "token") and the second column is what it could be misread as (a "corruption").
 The same token can be associated with multiple corruptions.
 
 To implement this, we first select the rows to noise, as in other noise types.
