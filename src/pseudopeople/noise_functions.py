@@ -144,26 +144,26 @@ def apply_do_not_respond(
 
 
 def choose_wrong_options(
-    column: pd.Series,
+    data: pd.DataFrame,
     _: ConfigTree,
     randomness_stream: RandomnessStream,
-    additional_key: Any,
+    column_name: str,
 ) -> pd.Series:
     """
     Function that takes a categorical series and applies noise so some values has been replace with other options from
     a list.
 
-    :param column:  A categorical pd.Series
+    :param data:  A pandas dataframe containing necessary columns for column noise
     :param _: ConfigTree with rate at which to blank the data in column.
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
-    :param additional_key: Key for RandomnessStream
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :returns: pd.Series where data has been noised with other values from a list of possibilities
     """
 
     selection_type = {
         "employer_state": "state",
         "mailing_address_state": "state",
-    }.get(str(column.name), column.name)
+    }.get(str(column_name), column_name)
 
     selection_options = pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
 
@@ -172,12 +172,12 @@ def choose_wrong_options(
     options = selection_options.loc[selection_options[selection_type].notna(), selection_type]
     new_values = vectorized_choice(
         options=options,
-        n_to_choose=len(column),
+        n_to_choose=len(data),
         randomness_stream=randomness_stream,
-        additional_key=f"{additional_key}_incorrect_select_choice",
+        additional_key=f"{column_name}_incorrect_select_choice",
     ).to_numpy()
 
-    return pd.Series(new_values, index=column.index, name=column.name)
+    return pd.Series(new_values, index=data.index, name=data.name)
 
 
 # def copy_from_household_members(
@@ -199,72 +199,75 @@ def choose_wrong_options(
 
 
 def swap_months_and_days(
-    column: pd.Series,
-    configuration: ConfigTree,
+    data: pd.DataFrame,
+    _: ConfigTree,
     randomness_stream: RandomnessStream,
-    additional_key: Any,
+    column_name: str,
 ) -> pd.Series:
     """
     Function that swaps month and day of dates.
 
-    :param column: pd.Series containing dates with the format YYYY-MM-DD
-    :param configuration: ConfigTree object containing noise level values
+    :param data: A pandas dataframe containing necessary columns for column noise
+    :param _: ConfigTree object containing noise level values
     :param randomness_stream: Randomness Stream object for random choices using vivarium CRN framework
-    :param additional_key: Key for RandomnessStream
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: Noised pd.Series where some dates have month and day swapped.
     """
     from pseudopeople.schema_entities import COLUMNS, DATEFORMATS
 
-    column_type = COLUMNS.get_column(column.name)
+    column_type = COLUMNS.get_column(column_name)
     try:
         date_format = column_type.additional_attributes[Attributes.DATE_FORMAT]
     except KeyError:
         raise ConfigurationError(
-            f"Error while running noise function `swap_months_and_days' on column '{column.name}'. "
-            f"'{column.name}' does not have attribute date format. "
+            f"Error while running noise function `swap_months_and_days' on column '{column_name}'. "
+            f"'{column_name}' does not have attribute date format. "
         )
 
+    data = data[column_name]
     if date_format == DATEFORMATS.YYYYMMDD:  # YYYYMMDD
-        year = column.str[:4]
-        month = column.str[4:6]
-        day = column.str[6:]
+        year = data.str[:4]
+        month = data.str[4:6]
+        day = data.str[6:]
         noised = year + day + month
     elif date_format == DATEFORMATS.MM_DD_YYYY:  # MM/DD/YYYY
-        year = column.str[6:]
-        month = column.str[:3]
-        day = column.str[3:6]
+        year = data.str[6:]
+        month = data.str[:3]
+        day = data.str[3:6]
         noised = day + month + year
     else:
         raise ValueError(
-            f"Invalid datetime format in {column.name}.  Please check input data."
+            f"Invalid datetime format in {data.name}.  Please check input data."
         )
 
     return noised
 
 
 def write_wrong_zipcode_digits(
-    column: pd.Series,
+    data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
-    _: Any,
+    column_name: str,
 ) -> pd.Series:
     """
     Function that noises a 5 digit zipcode
 
-    :param column: A pd.Series of 5 digit zipcodes as strings
+    :param data: A pandas dataframe containing necessary columns for column noise
     :param configuration:  Config tree object at column node.
     :param randomness_stream:  RandomnessStream object from Vivarium framework
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: pd.Series of noised zipcodes
     """
 
-    str_len = column.str.len()
+    data = data[column_name]
+    str_len = data.str.len()
     if (str_len != 5).sum() > 0:
         raise ValueError(
             "Zipcode data contains zipcodes that are not 5 digits long. Please check input data."
         )
 
     rng = np.random.default_rng(randomness_stream.seed)
-    shape = (len(column), 5)
+    shape = (len(data), 5)
 
     # todo: Update when vectorized choice is improved
     possible_replacements = list("0123456789")
@@ -278,8 +281,8 @@ def write_wrong_zipcode_digits(
     random_digits = rng.choice(possible_replacements, shape)
     digits = []
     for i in range(5):
-        digit = np.where(replace[:, i], random_digits[:, i], column.str[i])
-        digit = pd.Series(digit, index=column.index, name=column.name)
+        digit = np.where(replace[:, i], random_digits[:, i], data.str[i])
+        digit = pd.Series(digit, index=data.index, name=data.name)
         digits.append(digit)
 
     new_zipcodes = digits[0] + digits[1] + digits[2] + digits[3] + digits[4]
@@ -287,60 +290,64 @@ def write_wrong_zipcode_digits(
 
 
 def misreport_ages(
-    column: pd.Series,
+    data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
-    additional_key: Any,
+    column_name: str,
 ) -> pd.Series:
     """Function to mis-write ages based on perturbation parameters included in
     the config file.
 
-    :param column: pd.Series of ages
-    :param configuration: ConfigTree
-    :param randomness_stream: Vivarium RandomnessStream
-    :param additional_key: additional key used for randomness_stream calls
-    :return:
+    :param data: A pandas dataframe containing necessary columns for column noise
+    :param configuration:  Config tree object at column node.
+    :param randomness_stream:  RandomnessStream object from Vivarium framework
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
+    :return: pd.Series with some values noised from the original
     """
+    
+    data = data[column_name]
     possible_perturbations = configuration[Keys.POSSIBLE_AGE_DIFFERENCES].to_dict()
     perturbations = vectorized_choice(
         options=list(possible_perturbations.keys()),
         weights=list(possible_perturbations.values()),
-        n_to_choose=len(column),
+        n_to_choose=len(data),
         randomness_stream=randomness_stream,
-        additional_key=f"{additional_key}_{column.name}_miswrite_ages",
+        additional_key=f"{column_name}_{data.name}_miswrite_ages",
     )
-    new_values = column.astype(int) + perturbations
+    new_values = data.astype(int) + perturbations
     # Reflect negative values to positive
     new_values[new_values < 0] *= -1
     # If new age == original age, subtract 1
-    new_values[new_values == column.astype(int)] -= 1
+    new_values[new_values == data.astype(int)] -= 1
 
     return new_values
 
 
 def write_wrong_digits(
-    column: pd.Series,
+    data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
-    _: Any,
+    column_name: str,
 ) -> pd.Series:
     """
     Function that noises numeric characters in a series.
 
-    :param column: A pd.Series
-    :param configuration: ConfigTree object containing noise level
-    :param randomness_stream: RandomnessStream for CRN framework.
+    :param data:  A pandas dataframe containing necessary columns for column noise
+    :param configuration: ConfigTree with rate at which to blank the data in column.
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
 
     returns: pd.Series with some numeric values experiencing noise.
     """
-    if column.empty:
-        return column
+    data = data[column_name]
+    if data.empty:
+        return data
     # This is a fix to not replacing the original token for noise options
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY] / 0.9
     rng = np.random.default_rng(randomness_stream.seed)
-    column = column.astype(str)
-    longest_str = column.str.len().max()
-    same_len_col = column.str.pad(longest_str, side="right")
+    data = data.astype(str)
+    longest_str = data.str.len().max()
+    same_len_col = data.str.pad(longest_str, side="right")
     is_number = pd.concat(
         [same_len_col.str[i].str.isdigit() for i in range(longest_str)], axis=1
     )
@@ -349,11 +356,11 @@ def write_wrong_digits(
     random_digits = rng.choice(list("0123456789"), is_number.shape)
 
     # Choose and replace values for a noised series
-    noised_column = pd.Series("", index=column.index, name=column.name)
+    noised_column = pd.Series("", index=data.index, name=data.name)
     digits = []
     for i in range(len(is_number.columns)):
         digit = np.where(replace.iloc[:, i], random_digits[:, i], same_len_col.str[i])
-        digit = pd.Series(digit, index=column.index, name=column.name)
+        digit = pd.Series(digit, index=data.index, name=data.name)
         digits.append(digit)
         noised_column = noised_column + digits[i]
     noised_column = noised_column.str.strip()
@@ -362,45 +369,46 @@ def write_wrong_digits(
 
 
 def use_nicknames(
-    column: pd.Series,
+    data: pd.DataFrame,
     _: ConfigTree,
     randomness_stream: RandomnessStream,
-    additional_key: Any,
+    column_name: str,
 ) -> pd.Series:
     """
     Function that replaces a name with a choice of potential nicknames.
 
-    :param column: pd.Series of names
-    :param configuration: ConfigTree object containing noise level values
-    :param randomness_stream: RandomnessStream object to use vivarium CRN framework.
-    :param additional_key: Key for RandomnessStream
+    :param data:  A pandas dataframe containing necessary columns for column noise
+    :param _: ConfigTree with rate at which to blank the data in column.
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: pd.Series of nicknames replacing original names
     """
     nicknames = load_nicknames_data()
-
-    have_nickname_idx = column.index[column.isin(nicknames.index)]
+    data = data[column_name]
+    have_nickname_idx = data.index[data.isin(nicknames.index)]
     noised = two_d_array_choice(
-        column.loc[have_nickname_idx], nicknames, randomness_stream, additional_key
+        data.loc[have_nickname_idx], nicknames, randomness_stream, column_name
     )
-    column.loc[have_nickname_idx] = noised
-    return column
+    data.loc[have_nickname_idx] = noised
+    return data
 
 
 def use_fake_names(
-    column: pd.Series,
+    data: pd.DataFrame,
     _: ConfigTree,
     randomness_stream: RandomnessStream,
-    additional_key: Any,
+    column_name: str,
 ) -> pd.Series:
     """
 
-    :param column: pd.Series of names
-    :param _:  ConfigTree object with noise level values
-    :param randomness_stream:  RandomnessStream instance of vivarium
-    :param additional_key: Key for RandomnessStream
+    :param data:  A pandas dataframe containing necessary columns for column noise
+    :param _: ConfigTree with rate at which to blank the data in column.
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return:
     """
-    name = column.name
+    data = data[column_name]
+    name = data.name
     fake_first = fake_first_names
     fake_last = fake_last_names
     fake_names = {"first_name": fake_first, "last_name": fake_last}
@@ -408,30 +416,30 @@ def use_fake_names(
 
     new_values = vectorized_choice(
         options=options,
-        n_to_choose=len(column),
+        n_to_choose=len(data),
         randomness_stream=randomness_stream,
-        additional_key=f"{additional_key}_fake_names",
+        additional_key=f"{column_name}_fake_names",
     )
-    return pd.Series(new_values, index=column.index, name=column.name)
+    return pd.Series(new_values, index=data.index, name=data.name)
 
 
 def make_phonetic_errors(
-    column: pd.Series,
+    data: pd.Series,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
-    additional_key: Any,
+    column_name: Any,
 ) -> pd.Series:
     """
 
-    :param column: pd.Series of unoised data
-    :param configuration: ConfigTree object with cell probability and noise level values
-    :param randomness_stream: RandomnessStream object for CRN
-    :param additional_key: Key for RandomnessStream
+    :param data:  A pandas dataframe containing necessary columns for column noise
+    :param configuration: ConfigTree with rate at which to blank the data in column.
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: pd.Series of noised data
     """
 
     phonetic_error_dict = load_phonetic_errors_dict()
-
+    
     def phonetic_corrupt(truth, corrupted_pr, rng):
         err = ""
         i = 0
@@ -451,40 +459,43 @@ def make_phonetic_errors(
 
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
     rng = np.random.default_rng(seed=randomness_stream.seed)
-    column = column.astype(str)
-    for idx in column.index:
+    data = data[column_name]
+    data = data.astype(str)
+    for idx in data.index:
         noised_value = phonetic_corrupt(
-            column[idx],
+            data[idx],
             token_noise_level,
             rng,
         )
-        column[idx] = noised_value
-    return column
+        data[idx] = noised_value
+    return data
 
 
-def leave_blanks(column: pd.Series, *_: Any) -> pd.Series:
+def leave_blanks(data: pd.DataFrame, column_name: str, *_: Any) -> pd.Series:
     """
     Function that takes a column and blanks out all values.
 
-    :param column:  pd.Series of data
+    :param data:  A pandas dataframe containing necessary columns for column noise
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :returns: pd.Series of empty strings with the index of column.
     """
-
-    return pd.Series(np.nan, index=column.index)
+    data = data[column_name]
+    return pd.Series(np.nan, index=data.index)
 
 
 def make_typos(
-    column: pd.Series,
+    data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
-    _: Any,
+    column_name: str,
 ) -> pd.Series:
-    """Function that takes a column and applies noise to the string values
+    """Function that applies noise to the string values
     representative of keyboard mistyping.
 
-    :param column:  pd.Series of data
-    :param configuration: ConfigTree object containing noising parameters
-    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN
+    :param data:  A pandas dataframe containing necessary columns for column noise
+    :param configuration: ConfigTree with rate at which to blank the data in column.
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :returns: pd.Series of column with noised data
     """
 
@@ -522,30 +533,31 @@ def make_typos(
     include_token_probability_level = 0.1
 
     rng = np.random.default_rng(seed=randomness_stream.seed)
-    column = column.astype(str)
-    for idx in column.index:
+    data = data[column_name]
+    data = data.astype(str)
+    for idx in data.index:
         noised_value = keyboard_corrupt(
-            column[idx],
+            data[idx],
             token_noise_level,
             include_token_probability_level,
             rng,
         )
-        column[idx] = noised_value
+        data[idx] = noised_value
 
-    return column
+    return data
 
 
 def make_ocr_errors(
-    column: pd.Series,
+    data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
-    additional_key: Any,
+    column_name: str,
 ) -> pd.Series:
     """
-    :param column: pd.Series
-    :param configuration: ConfigTree object contain noise and token noise level values
-    :param randomness_stream: RandomnessStream object for CRN
-    :param additional_key: Key for RandomnessStream
+    :param data:  A pandas dataframe containing necessary columns for column noise
+    :param configuration: ConfigTree with rate at which to blank the data in column.
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: pd.Series of noised data
     """
 
@@ -573,13 +585,14 @@ def make_ocr_errors(
     # Apply keyboard corrupt for OCR to column
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
     rng = np.random.default_rng(seed=randomness_stream.seed)
-    column = column.astype(str)
-    for idx in column.index:
+    data = data[column_name]
+    data = data.astype(str)
+    for idx in data.index:
         noised_value = ocr_corrupt(
-            column.loc[idx],
+            data.loc[idx],
             token_noise_level,
             rng,
         )
-        column[idx] = noised_value
+        data[idx] = noised_value
 
-    return column
+    return data

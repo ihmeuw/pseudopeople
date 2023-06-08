@@ -58,7 +58,7 @@ def vectorized_choice(
 
 
 def get_index_to_noise(
-    data: Union[pd.DataFrame, pd.Series],
+    data: pd.DataFrame,
     noise_level: float,
     randomness_stream: RandomnessStream,
     additional_key: Any,
@@ -68,10 +68,8 @@ def get_index_to_noise(
     """
 
     # Get rows to noise
-    if isinstance(data, pd.Series):
-        not_empty_idx = data.index[(data != "") & (data.notna())]
-    else:
-        not_empty_idx = data.index
+    missing_idx = data.index[(data.isna().any(axis=1)) | (data.isin([""]).any(axis=1))]
+    not_empty_idx = data.index.difference(missing_idx)
     to_noise_idx = randomness_stream.filter_for_probability(
         not_empty_idx,
         probability=noise_level,

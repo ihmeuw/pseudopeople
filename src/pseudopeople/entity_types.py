@@ -57,42 +57,42 @@ class ColumnNoiseType:
     name: str
     noise_function: Callable[[pd.Series, ConfigTree, RandomnessStream, Any], pd.Series]
     cell_probability: Optional[float] = 0.01
-    noise_level_scaling_function: Callable[[pd.Series], float] = lambda x: 1.0
+    noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x: 1.0
     additional_parameters: Dict[str, Any] = None
 
     def __call__(
         self,
-        column: pd.Series,
+        data: pd.DataFrame,
         configuration: ConfigTree,
         randomness_stream: RandomnessStream,
-        additional_key: Any,
+        column_name: Any,
     ) -> pd.Series:
-        if column.empty:
-            return column
-        column = column.copy()
+        if data.empty:
+            return data
+        data = data.copy()
         noise_level = configuration[
             Keys.CELL_PROBABILITY
-        ] * self.noise_level_scaling_function(column)
+        ] * self.noise_level_scaling_function(data, column_name)
         # Certain columns have their noise level scaled so we must check to make sure the noise level is within the
         # allowed range between 0 and 1 for probabilities
         noise_level = min(noise_level, 1.0)
         to_noise_idx = get_index_to_noise(
-            column, noise_level, randomness_stream, f"{self.name}_{additional_key}"
+            data, noise_level, randomness_stream, f"{self.name}_{column_name}"
         )
         if to_noise_idx.empty:
             logger.debug(
-                f"No cells chosen to noise for noise function {self.name} on column {column.name}. "
+                f"No cells chosen to noise for noise function {self.name} on column {data.name}. "
                 "This is likely due to a combination of the configuration noise levels and the input data."
             )
-            return column
+            return data
         noised_data = self.noise_function(
-            column.loc[to_noise_idx], configuration, randomness_stream, additional_key
+            data.loc[to_noise_idx], configuration, randomness_stream, column_name
         )
 
         # Coerce noised column dtype back to original column's if it has changed
-        if noised_data.dtype.name != column.dtype.name:
-            noised_data = noised_data.astype(column.dtype)
+        if noised_data.dtype.name != data.dtype.name:
+            noised_data = noised_data.astype(data.dtype)
 
-        column.loc[to_noise_idx] = noised_data
+        data.loc[to_noise_idx] = noised_data
 
-        return column
+        return data
