@@ -19,6 +19,9 @@ Due to this fine-grained control, there are a very large number of settings.
 **It is not necessary to configure everything.**
 pseudopeople includes reasonable default noise settings
 and your configuration can override as few or as many of the default values as you like.
+You can also pass the special value :code:`pseudopeople.NO_NOISE`, which prevents all configurable noise types
+from occurring at all.
+
 To learn more about the default settings, see :ref:`Noise Type Details <noise_type_details>`.
 You can access the defaults from your Python code by calling the :func:`pseudopeople.get_config` function.
 
@@ -87,7 +90,8 @@ How to pass configuration to pseudopeople
 
 Each of pseudopeople's :ref:`dataset generation functions <dataset_generation_functions>` takes a :code:`config`
 argument.
-This argument can be passed either a Python dictionary or the path to a YAML file.
+This argument can be passed either a Python dictionary, the path to a YAML file, or the special value
+:code:`pseudopeople.NO_NOISE`, which prevents all configurable noise types from occurring at all.
 
 Configurable parameters
 -----------------------
