@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, NamedTuple, Optional, Tuple
+from typing import Dict, NamedTuple, Optional, Tuple, Union
 
 from pseudopeople.constants.metadata import DATEFORMATS, Attributes, DatasetNames
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
@@ -20,7 +20,6 @@ class Column:
     noise_types: Tuple[ColumnNoiseType, ...] = tuple()
     dtype_name: str = DtypeNames.OBJECT  # string dtype is 'object'
     additional_attributes: Dict = field(default_factory=dict)
-    copy_column: str
 
 
 class __Columns(NamedTuple):
@@ -35,7 +34,6 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
-        copy_column="copy_age",
     )
     city: Column = Column(
         "city",
@@ -57,7 +55,6 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_typos,
         ),
         additional_attributes={Attributes.DATE_FORMAT: DATEFORMATS.MM_DD_YYYY},
-        copy_column="copy_date_of_birth",
     )
     employer_city: Column = Column(
         "employer_city",
@@ -155,7 +152,6 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
-        copy_column="copy_itin",
     )
     last_name: Column = Column(
         "last_name",
@@ -293,7 +289,6 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
-        copy_column="copy_ssn",
     )
     state: Column = Column(
         "state",

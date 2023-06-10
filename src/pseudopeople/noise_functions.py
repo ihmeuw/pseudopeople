@@ -177,7 +177,7 @@ def choose_wrong_options(
         additional_key=f"{column_name}_incorrect_select_choice",
     ).to_numpy()
 
-    return pd.Series(new_values, index=data.index, name=data.name)
+    return pd.Series(new_values, index=data.index, name=column_name)
 
 
 # def copy_from_household_members(
@@ -236,9 +236,7 @@ def swap_months_and_days(
         day = data.str[3:6]
         noised = day + month + year
     else:
-        raise ValueError(
-            f"Invalid datetime format in {data.name}.  Please check input data."
-        )
+        raise ValueError(f"Invalid datetime format in {data.name}.  Please check input data.")
 
     return noised
 
@@ -304,7 +302,7 @@ def misreport_ages(
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: pd.Series with some values noised from the original
     """
-    
+
     data = data[column_name]
     possible_perturbations = configuration[Keys.POSSIBLE_AGE_DIFFERENCES].to_dict()
     perturbations = vectorized_choice(
@@ -439,7 +437,7 @@ def make_phonetic_errors(
     """
 
     phonetic_error_dict = load_phonetic_errors_dict()
-    
+
     def phonetic_corrupt(truth, corrupted_pr, rng):
         err = ""
         i = 0
@@ -471,13 +469,19 @@ def make_phonetic_errors(
     return data
 
 
-def leave_blanks(data: pd.DataFrame, column_name: str, *_: Any) -> pd.Series:
+def leave_blanks(
+    data: pd.DataFrame,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+    column_name: str,
+) -> pd.Series:
     """
     Function that takes a column and blanks out all values.
 
     :param data:  A pandas dataframe containing necessary columns for column noise
+    :param configuration: ConfigTree with rate at which to blank the data in column.
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
-    :returns: pd.Series of empty strings with the index of column.
     """
     data = data[column_name]
     return pd.Series(np.nan, index=data.index)

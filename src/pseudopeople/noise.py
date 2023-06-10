@@ -74,12 +74,8 @@ def noise_dataset(
                 ]
                 # Apply column noise to each column as appropriate
                 for column in columns_to_noise:
-                    _column = COLUMNS.get_column(column)
-                    if _column.copy_column:
-                        required_cols = [column, _column.copy_column]
-                    else:
-                        required_cols = [column]
-                    dataset_data[column.name] = noise_type(
+                    required_cols = [column] + noise_type.additional_column_getter(column)
+                    dataset_data[column] = noise_type(
                         dataset_data[[required_cols]],
                         noise_configuration.column_noise[column][noise_type.name],
                         randomness,

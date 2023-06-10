@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 import pandas as pd
 from loguru import logger
@@ -57,18 +57,19 @@ class ColumnNoiseType:
     name: str
     noise_function: Callable[[pd.Series, ConfigTree, RandomnessStream, Any], pd.Series]
     cell_probability: Optional[float] = 0.01
-    noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x: 1.0
+    noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0
     additional_parameters: Dict[str, Any] = None
+    additional_column_getter: Callable[[str], List[str]] = lambda column_name: []
 
     def __call__(
         self,
         data: pd.DataFrame,
         configuration: ConfigTree,
         randomness_stream: RandomnessStream,
-        column_name: Any,
+        column_name: str,
     ) -> pd.Series:
-        if data.empty:
-            return data
+        if data[column_name].empty:
+            return data[column_name]
         data = data.copy()
         noise_level = configuration[
             Keys.CELL_PROBABILITY
@@ -90,9 +91,9 @@ class ColumnNoiseType:
         )
 
         # Coerce noised column dtype back to original column's if it has changed
-        if noised_data.dtype.name != data.dtype.name:
-            noised_data = noised_data.astype(data.dtype)
+        if noised_data.dtype.name != data[column_name].dtype.name:
+            noised_data = noised_data.astype(data[column_name].dtype)
 
-        data.loc[to_noise_idx] = noised_data
+        data.loc[to_noise_idx, column_name] = noised_data
 
-        return data
+        return data[column_name]
