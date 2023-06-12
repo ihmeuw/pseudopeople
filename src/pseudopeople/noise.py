@@ -16,7 +16,6 @@ from tqdm import tqdm
 from vivarium import ConfigTree
 
 from pseudopeople.configuration import Keys
-from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, Dataset
