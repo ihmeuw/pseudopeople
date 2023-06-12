@@ -48,9 +48,10 @@ class ColumnNoiseType:
     The name is the name of the particular noise type (e.g. use_nickname" or
     "make_phonetic_errors").
 
-    The noise function takes as input a Series, the ConfigTree object for this
+    The noise function takes as input a dataframe, the ConfigTree object for this
     ColumnNoise operation, a RandomnessStream for controlling randomness, and
-    an additional key for the RandomnessStream. It applies the noising operation
+    a column name, which is the column that will be noised and who's name will be used
+    as the additional key for the RandomnessStream. It applies the noising operation
     to the Series and returns the modified Series.
     """
 
