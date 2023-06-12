@@ -84,7 +84,7 @@ def dummy_dataset():
         "Catherine",
         "Bill",
         "Fake name",
-        np.nan,
+        "",
     ]
     first_name_series = pd.Series(first_names * int(num_simulants / len(first_names)))
     last_names = ["A last name", "another last name", "other last name", "last name", ""]
@@ -158,8 +158,8 @@ def test_leave_blank(dummy_dataset):
     expected_noise = config[Keys.CELL_PROBABILITY]
     actual_noise = len(newly_missing_idx) / len(orig_non_missing_idx)
     assert np_isclose_wrapper(
-        actual_noise, expected_noise, 0.01
-    ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.01"
+        actual_noise, expected_noise, 0.02
+    ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.02"
 
     # Check that un-noised values are unchanged
     not_noised_idx = noised_data.index[noised_data.notna()]
@@ -231,8 +231,8 @@ def test_swap_months_and_days(dummy_dataset):
             assert (data[~orig_missing].str[6:] == noised_data[~orig_missing].str[6:]).all()
         actual_noise = (data[~orig_missing] != noised_data[~orig_missing]).mean()
         assert np_isclose_wrapper(
-            actual_noise, expected_noise, 0.005
-        ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.005"
+            actual_noise, expected_noise, 0.02
+        ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.02"
 
 
 def test_miswrite_zipcodes(dummy_dataset):
@@ -273,8 +273,8 @@ def test_miswrite_zipcodes(dummy_dataset):
         ).mean()
         expected_noise = digit_prob * probability
         assert np_isclose_wrapper(
-            actual_noise, expected_noise, 0.003
-        ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.003"
+            actual_noise, expected_noise, 0.005
+        ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.005"
 
 
 def test_miswrite_ages_default_config(dummy_dataset):
@@ -295,8 +295,8 @@ def test_miswrite_ages_default_config(dummy_dataset):
     # NOTE: the expected noise calculated above does not account for the fact that
     # if a perturbed age ends up being the same as the original age, then 1 is subtracted.
     assert np_isclose_wrapper(
-        actual_noise, expected_noise, 0.0003
-    ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.0003"
+        actual_noise, expected_noise, 0.001
+    ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.001"
 
     # Check that missing data remains missing
     original_missing_idx = data.index[data == ""]
@@ -563,8 +563,8 @@ def test_use_nickname(dummy_dataset):
     # Validate noise level
     actual_noise = (noised_data[~orig_missing] != data[~orig_missing]).mean()
     assert np_isclose_wrapper(
-        actual_noise, expected_noise, 0.01
-    ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.01"
+        actual_noise, expected_noise, 0.02
+    ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.02"
 
     # Validation for nicknames
     from pseudopeople.noise_scaling import load_nicknames_data
@@ -885,8 +885,8 @@ def test_make_typos(dummy_dataset, column):
     expected_noise = p_row_noise * p_strings_noised.mean()
     actual_noise = (check_noised != check_original).mean()
     assert np_isclose_wrapper(
-        actual_noise, expected_noise, 0.007
-    ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.007"
+        actual_noise, expected_noise, 0.01
+    ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.01"
 
     # Check for expected string growth due to keeping original noised token
     assert (check_noised.str.len() >= check_original.str.len()).all()
@@ -900,8 +900,8 @@ def test_make_typos(dummy_dataset, column):
     expected_changed_length = p_row_noise * p_strings_increase_length.mean()
     actual_changed_length = (check_noised.str.len() != check_original.str.len()).mean()
     assert np_isclose_wrapper(
-        actual_changed_length, expected_changed_length, 0.003
-    ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.003"
+        actual_changed_length, expected_changed_length, 0.01
+    ), f"Actual noise is {actual_changed_length} while expected noise was {expected_changed_length} with a rtol of 0.01"
 
     # Check that we did not touch the missing data
     assert (

@@ -78,14 +78,18 @@ class ColumnNoiseType:
         # allowed range between 0 and 1 for probabilities
         noise_level = min(noise_level, 1.0)
         to_noise_idx = get_index_to_noise(
-            data, noise_level, randomness_stream, f"{self.name}_{column_name}"
+            data,
+            noise_level,
+            randomness_stream,
+            f"{self.name}_{column_name}",
+            is_column_noise=True,
         )
         if to_noise_idx.empty:
             logger.debug(
-                f"No cells chosen to noise for noise function {self.name} on column {data.name}. "
+                f"No cells chosen to noise for noise function {self.name} on column {column_name}. "
                 "This is likely due to a combination of the configuration noise levels and the input data."
             )
-            return data
+            return data[column_name]
         noised_data = self.noise_function(
             data.loc[to_noise_idx], configuration, randomness_stream, column_name
         )

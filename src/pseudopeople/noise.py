@@ -76,7 +76,7 @@ def noise_dataset(
                 for column in columns_to_noise:
                     required_cols = [column] + noise_type.additional_column_getter(column)
                     dataset_data[column] = noise_type(
-                        dataset_data[[required_cols]],
+                        dataset_data[required_cols],
                         noise_configuration.column_noise[column][noise_type.name],
                         randomness,
                         column,
