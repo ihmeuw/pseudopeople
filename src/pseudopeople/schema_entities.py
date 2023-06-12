@@ -29,7 +29,7 @@ class __Columns(NamedTuple):
         "age",
         (
             NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.copy_from_within_household,
+            NOISE_TYPES.copy_from_household_member,
             NOISE_TYPES.misreport_age,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
@@ -48,7 +48,7 @@ class __Columns(NamedTuple):
         "date_of_birth",
         (
             NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.copy_from_within_household,
+            NOISE_TYPES.copy_from_household_member,
             NOISE_TYPES.swap_month_and_day,
             NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.make_ocr_errors,
@@ -147,7 +147,7 @@ class __Columns(NamedTuple):
         "itin",
         (
             NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.copy_from_within_household,
+            NOISE_TYPES.copy_from_household_member,
             NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
@@ -284,7 +284,7 @@ class __Columns(NamedTuple):
         "ssn",
         (
             NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.copy_from_within_household,
+            NOISE_TYPES.copy_from_household_member,
             NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,

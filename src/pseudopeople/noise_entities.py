@@ -30,10 +30,10 @@ class __NoiseTypes(NamedTuple):
         noise_functions.choose_wrong_options,
         noise_level_scaling_function=noise_scaling.scale_choose_wrong_option,
     )
-    # copy_from_household_member: ColumnNoiseType = ColumnNoiseType(
-    #     "copy_from_household_member",
-    #     noise_functions.copy_from_household_members,
-    # )
+    copy_from_household_member: ColumnNoiseType = ColumnNoiseType(
+        "copy_from_household_member",
+        noise_functions.copy_from_household_member,
+    )
     swap_month_and_day: ColumnNoiseType = ColumnNoiseType(
         "swap_month_and_day",
         noise_functions.swap_months_and_days,

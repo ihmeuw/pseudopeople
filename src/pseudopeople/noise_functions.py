@@ -8,7 +8,7 @@ from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import data_values, paths
-from pseudopeople.constants.metadata import Attributes, DatasetNames
+from pseudopeople.constants.metadata import Attributes, COPY_HOUSEHOLD_MEMBER_COLS, DatasetNames
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.noise_scaling import load_nicknames_data
@@ -180,22 +180,25 @@ def choose_wrong_options(
     return pd.Series(new_values, index=data.index, name=column_name)
 
 
-# def copy_from_household_members(
-#     column: pd.Series,
-#     configuration: ConfigTree,
-#     randomness_stream: RandomnessStream,
-#     additional_key: Any,
-# ) -> pd.Series:
-#     """
+def copy_from_household_member(
+    data: pd.DataFrame,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+    column_name: str,
+) -> pd.Series:
+    """
 
-#     :param column:
-#     :param configuration:
-#     :param randomness_stream:
-#     :param additional_key: Key for RandomnessStream
-#     :return:
-#     """
-#     # todo actually duplicate rows
-#     return column
+    :param data:  A pandas dataframe containing necessary columns for column noise
+    :param _: ConfigTree with rate at which to blank the data in column.
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
+    :returns: pd.Series where data has been noised with other values from a list of possibilities
+    :return: pd.Series
+    """
+
+    copy_values = data[COPY_HOUSEHOLD_MEMBER_COLS[column_name]]
+    column = pd.Series(copy_values, index=data.index, name=column_name)
+    return column
 
 
 def swap_months_and_days(
