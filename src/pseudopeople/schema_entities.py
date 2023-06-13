@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, NamedTuple, Optional, Tuple, Union
+from typing import Dict, NamedTuple, Optional, Tuple
 
 from pseudopeople.constants.metadata import DATEFORMATS, Attributes, DatasetNames
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType

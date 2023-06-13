@@ -224,19 +224,21 @@ def swap_months_and_days(
             f"'{column_name}' does not have attribute date format. "
         )
 
-    data = data[column_name]
+    column = data[column_name]
     if date_format == DATEFORMATS.YYYYMMDD:  # YYYYMMDD
-        year = data.str[:4]
-        month = data.str[4:6]
-        day = data.str[6:]
+        year = column.str[:4]
+        month = column.str[4:6]
+        day = column.str[6:]
         noised = year + day + month
     elif date_format == DATEFORMATS.MM_DD_YYYY:  # MM/DD/YYYY
-        year = data.str[6:]
-        month = data.str[:3]
-        day = data.str[3:6]
+        year = column.str[6:]
+        month = column.str[:3]
+        day = column.str[3:6]
         noised = day + month + year
     else:
-        raise ValueError(f"Invalid datetime format in {data.name}.  Please check input data.")
+        raise ValueError(
+            f"Invalid datetime format in {column.name}.  Please check input data."
+        )
 
     return noised
 
@@ -257,15 +259,15 @@ def write_wrong_zipcode_digits(
     :return: pd.Series of noised zipcodes
     """
 
-    data = data[column_name]
-    str_len = data.str.len()
+    column = data[column_name]
+    str_len = column.str.len()
     if (str_len != 5).sum() > 0:
         raise ValueError(
             "Zipcode data contains zipcodes that are not 5 digits long. Please check input data."
         )
 
     rng = np.random.default_rng(randomness_stream.seed)
-    shape = (len(data), 5)
+    shape = (len(column), 5)
 
     # todo: Update when vectorized choice is improved
     possible_replacements = list("0123456789")
@@ -279,8 +281,8 @@ def write_wrong_zipcode_digits(
     random_digits = rng.choice(possible_replacements, shape)
     digits = []
     for i in range(5):
-        digit = np.where(replace[:, i], random_digits[:, i], data.str[i])
-        digit = pd.Series(digit, index=data.index, name=data.name)
+        digit = np.where(replace[:, i], random_digits[:, i], column.str[i])
+        digit = pd.Series(digit, index=column.index, name=column.name)
         digits.append(digit)
 
     new_zipcodes = digits[0] + digits[1] + digits[2] + digits[3] + digits[4]
@@ -303,20 +305,20 @@ def misreport_ages(
     :return: pd.Series with some values noised from the original
     """
 
-    data = data[column_name]
+    column = data[column_name]
     possible_perturbations = configuration[Keys.POSSIBLE_AGE_DIFFERENCES].to_dict()
     perturbations = vectorized_choice(
         options=list(possible_perturbations.keys()),
         weights=list(possible_perturbations.values()),
-        n_to_choose=len(data),
+        n_to_choose=len(column),
         randomness_stream=randomness_stream,
-        additional_key=f"{column_name}_{data.name}_miswrite_ages",
+        additional_key=f"{column_name}_{column.name}_miswrite_ages",
     )
-    new_values = data.astype(int) + perturbations
+    new_values = column.astype(int) + perturbations
     # Reflect negative values to positive
     new_values[new_values < 0] *= -1
     # If new age == original age, subtract 1
-    new_values[new_values == data.astype(int)] -= 1
+    new_values[new_values == column.astype(int)] -= 1
 
     return new_values
 
@@ -337,15 +339,15 @@ def write_wrong_digits(
 
     returns: pd.Series with some numeric values experiencing noise.
     """
-    data = data[column_name]
-    if data.empty:
-        return data
+    column = data[column_name]
+    if column.empty:
+        return column
     # This is a fix to not replacing the original token for noise options
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY] / 0.9
     rng = np.random.default_rng(randomness_stream.seed)
-    data = data.astype(str)
-    longest_str = data.str.len().max()
-    same_len_col = data.str.pad(longest_str, side="right")
+    column = column.astype(str)
+    longest_str = column.str.len().max()
+    same_len_col = column.str.pad(longest_str, side="right")
     is_number = pd.concat(
         [same_len_col.str[i].str.isdigit() for i in range(longest_str)], axis=1
     )
@@ -354,11 +356,11 @@ def write_wrong_digits(
     random_digits = rng.choice(list("0123456789"), is_number.shape)
 
     # Choose and replace values for a noised series
-    noised_column = pd.Series("", index=data.index, name=data.name)
+    noised_column = pd.Series("", index=column.index, name=column.name)
     digits = []
     for i in range(len(is_number.columns)):
         digit = np.where(replace.iloc[:, i], random_digits[:, i], same_len_col.str[i])
-        digit = pd.Series(digit, index=data.index, name=data.name)
+        digit = pd.Series(digit, index=column.index, name=column.name)
         digits.append(digit)
         noised_column = noised_column + digits[i]
     noised_column = noised_column.str.strip()
@@ -382,13 +384,13 @@ def use_nicknames(
     :return: pd.Series of nicknames replacing original names
     """
     nicknames = load_nicknames_data()
-    data = data[column_name]
-    have_nickname_idx = data.index[data.isin(nicknames.index)]
+    column = data[column_name]
+    have_nickname_idx = column.index[column.isin(nicknames.index)]
     noised = two_d_array_choice(
-        data.loc[have_nickname_idx], nicknames, randomness_stream, column_name
+        column.loc[have_nickname_idx], nicknames, randomness_stream, column_name
     )
-    data.loc[have_nickname_idx] = noised
-    return data
+    column.loc[have_nickname_idx] = noised
+    return column
 
 
 def use_fake_names(
@@ -405,20 +407,19 @@ def use_fake_names(
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return:
     """
-    data = data[column_name]
-    name = data.name
+    column = data[column_name]
     fake_first = fake_first_names
     fake_last = fake_last_names
     fake_names = {"first_name": fake_first, "last_name": fake_last}
-    options = fake_names[name]
+    options = fake_names[column_name]
 
     new_values = vectorized_choice(
         options=options,
-        n_to_choose=len(data),
+        n_to_choose=len(column),
         randomness_stream=randomness_stream,
         additional_key=f"{column_name}_fake_names",
     )
-    return pd.Series(new_values, index=data.index, name=data.name)
+    return pd.Series(new_values, index=column.index, name=column.name)
 
 
 def make_phonetic_errors(
@@ -457,16 +458,16 @@ def make_phonetic_errors(
 
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
     rng = np.random.default_rng(seed=randomness_stream.seed)
-    data = data[column_name]
-    data = data.astype(str)
-    for idx in data.index:
+    column = data[column_name]
+    column = column.astype(str)
+    for idx in column.index:
         noised_value = phonetic_corrupt(
-            data[idx],
+            column[idx],
             token_noise_level,
             rng,
         )
-        data[idx] = noised_value
-    return data
+        column[idx] = noised_value
+    return column
 
 
 def leave_blanks(
@@ -483,8 +484,7 @@ def leave_blanks(
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     """
-    data = data[column_name]
-    return pd.Series(np.nan, index=data.index)
+    return pd.Series(np.nan, index=data.index, name=column_name)
 
 
 def make_typos(
@@ -537,18 +537,18 @@ def make_typos(
     include_token_probability_level = 0.1
 
     rng = np.random.default_rng(seed=randomness_stream.seed)
-    data = data[column_name]
-    data = data.astype(str)
-    for idx in data.index:
+    column = data[column_name]
+    column = column.astype(str)
+    for idx in column.index:
         noised_value = keyboard_corrupt(
-            data[idx],
+            column[idx],
             token_noise_level,
             include_token_probability_level,
             rng,
         )
-        data[idx] = noised_value
+        column[idx] = noised_value
 
-    return data
+    return column
 
 
 def make_ocr_errors(
@@ -589,14 +589,14 @@ def make_ocr_errors(
     # Apply keyboard corrupt for OCR to column
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
     rng = np.random.default_rng(seed=randomness_stream.seed)
-    data = data[column_name]
-    data = data.astype(str)
-    for idx in data.index:
+    column = data[column_name]
+    column = column.astype(str)
+    for idx in column.index:
         noised_value = ocr_corrupt(
-            data.loc[idx],
+            column.loc[idx],
             token_noise_level,
             rng,
         )
-        data[idx] = noised_value
+        column[idx] = noised_value
 
-    return data
+    return column

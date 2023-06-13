@@ -157,9 +157,7 @@ def test_leave_blank(dummy_dataset):
     # Check for expected noise level
     expected_noise = config[Keys.CELL_PROBABILITY]
     actual_noise = len(newly_missing_idx) / len(orig_non_missing_idx)
-    assert np_isclose_wrapper(
-        actual_noise, expected_noise, 0.02
-    ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.02"
+    is_close_wrapper(actual_noise, expected_noise, 0.02)
 
     # Check that un-noised values are unchanged
     not_noised_idx = noised_data.index[noised_data.notna()]
@@ -179,9 +177,7 @@ def test_choose_wrong_option(dummy_dataset):
     # Get real expected noise to account for possibility of noising with original value
     # Here we have a a possibility of choosing any of the 50 states for our categorical series fixture
     actual_noise = (noised_data != data).mean()
-    assert np_isclose_wrapper(
-        actual_noise, expected_noise, 0.03
-    ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.03"
+    is_close_wrapper(actual_noise, expected_noise, 0.03)
 
     original_empty_idx = data.index[data == ""]
     noised_empty_idx = noised_data.index[noised_data == ""]
@@ -230,9 +226,7 @@ def test_swap_months_and_days(dummy_dataset):
         else:
             assert (data[~orig_missing].str[6:] == noised_data[~orig_missing].str[6:]).all()
         actual_noise = (data[~orig_missing] != noised_data[~orig_missing]).mean()
-        assert np_isclose_wrapper(
-            actual_noise, expected_noise, 0.02
-        ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.02"
+        is_close_wrapper(actual_noise, expected_noise, 0.02)
 
 
 def test_miswrite_zipcodes(dummy_dataset):
@@ -272,9 +266,7 @@ def test_miswrite_zipcodes(dummy_dataset):
             data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]
         ).mean()
         expected_noise = digit_prob * probability
-        assert np_isclose_wrapper(
-            actual_noise, expected_noise, 0.005
-        ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.005"
+        is_close_wrapper(actual_noise, expected_noise, 0.005)
 
 
 def test_miswrite_ages_default_config(dummy_dataset):
@@ -294,9 +286,7 @@ def test_miswrite_ages_default_config(dummy_dataset):
     actual_noise = (noised_data[not_missing_idx] != data[not_missing_idx]).mean()
     # NOTE: the expected noise calculated above does not account for the fact that
     # if a perturbed age ends up being the same as the original age, then 1 is subtracted.
-    assert np_isclose_wrapper(
-        actual_noise, expected_noise, 0.001
-    ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.001"
+    is_close_wrapper(actual_noise, expected_noise, 0.001)
 
     # Check that missing data remains missing
     original_missing_idx = data.index[data == ""]
@@ -334,9 +324,7 @@ def test_miswrite_ages_uniform_probabilities():
     expected_noise = 1 / len(perturbations)
     for perturbation in perturbations:
         actual_noise = (noised_data.astype(int) - original_age == perturbation).mean()
-        assert np_isclose_wrapper(
-            actual_noise, expected_noise, 0.01
-        ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.01"
+        is_close_wrapper(actual_noise, expected_noise, 0.01)
 
 
 def test_miswrite_ages_provided_probabilities():
@@ -366,9 +354,7 @@ def test_miswrite_ages_provided_probabilities():
     for perturbation in perturbations:
         expected_noise = perturbations[perturbation]
         actual_noise = (noised_data.astype(int) - original_age == perturbation).mean()
-        assert np_isclose_wrapper(
-            actual_noise, expected_noise, 0.02
-        ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.02"
+        is_close_wrapper(actual_noise, expected_noise, 0.02)
 
 
 def test_miswrite_ages_handles_perturbation_to_same_age():
@@ -480,17 +466,13 @@ def test_miswrite_numerics(dummy_dataset):
     for i in range(3):  # "fo1", "fo2", "fo3"
         if i == 2:
             actual_noise = (data[ambig_str].str[i] != noised_data[ambig_str].str[i]).mean()
-            assert np_isclose_wrapper(
-                actual_noise, expected_noise, 0.02
-            ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.02"
+            is_close_wrapper(actual_noise, expected_noise, 0.02)
         else:
             assert (data[ambig_str].str[i] == noised_data[ambig_str].str[i]).all()
 
     for i in range(4):  # "1234"
         actual_noise = (data[id_number].str[i] != noised_data[id_number].str[i]).mean()
-        assert np_isclose_wrapper(
-            actual_noise, expected_noise, 0.02
-        ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.02"
+        is_close_wrapper(actual_noise, expected_noise, 0.02)
         assert (noised_data[id_number].str[i].str.isdigit()).all()
 
     for i in range(6):  # "a1b2c3"
@@ -498,9 +480,7 @@ def test_miswrite_numerics(dummy_dataset):
             assert (data[alt_str].str[i] == noised_data[alt_str].str[i]).all()
         else:
             actual_noise = (data[alt_str].str[i] != noised_data[alt_str].str[i]).mean()
-            assert np_isclose_wrapper(
-                actual_noise, expected_noise, 0.02
-            ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.02"
+            is_close_wrapper(actual_noise, expected_noise, 0.02)
             assert (noised_data[alt_str].str[i].str.isdigit()).all()
 
     for i in range(7):  # "Unit 1A"
@@ -508,9 +488,7 @@ def test_miswrite_numerics(dummy_dataset):
             actual_noise = (
                 data[unit_number].str[i] != noised_data[unit_number].str[i]
             ).mean()
-            assert np_isclose_wrapper(
-                actual_noise, expected_noise, 0.02
-            ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.02"
+            is_close_wrapper(actual_noise, expected_noise, 0.02)
             assert (noised_data[unit_number].str[i].str.isdigit()).all()
         else:
             assert (data[unit_number].str[i] == noised_data[unit_number].str[i]).all()
@@ -520,9 +498,7 @@ def test_miswrite_numerics(dummy_dataset):
             assert (data[income].str[i] == noised_data[income].str[i]).all()
         else:
             actual_noise = (data[income].str[i] != noised_data[income].str[i]).mean()
-            assert np_isclose_wrapper(
-                actual_noise, expected_noise, 0.02
-            ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.02"
+            is_close_wrapper(actual_noise, expected_noise, 0.02)
             assert (noised_data[income].str[i].str.isdigit()).all()
 
     for i in range(10):  # "12/31/2020"
@@ -532,9 +508,7 @@ def test_miswrite_numerics(dummy_dataset):
             actual_noise = (
                 data[date_of_birth].str[i] != noised_data[date_of_birth].str[i]
             ).mean()
-            assert np_isclose_wrapper(
-                actual_noise, expected_noise, 0.02
-            ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.02"
+            is_close_wrapper(actual_noise, expected_noise, 0.02)
             assert (noised_data[date_of_birth].str[i].str.isdigit()).all()
 
     for i in range(11):  # "123-45-6789"
@@ -542,9 +516,7 @@ def test_miswrite_numerics(dummy_dataset):
             assert (data[ssn].str[i] == noised_data[ssn].str[i]).all()
         else:
             actual_noise = (data[ssn].str[i] != noised_data[ssn].str[i]).mean()
-            assert np_isclose_wrapper(
-                actual_noise, expected_noise, 0.02
-            ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.02"
+            is_close_wrapper(actual_noise, expected_noise, 0.02)
             assert (noised_data[ssn].str[i].str.isdigit()).all()
 
 
@@ -562,9 +534,7 @@ def test_use_nickname(dummy_dataset):
     assert (noised_data[orig_missing].isna()).all()
     # Validate noise level
     actual_noise = (noised_data[~orig_missing] != data[~orig_missing]).mean()
-    assert np_isclose_wrapper(
-        actual_noise, expected_noise, 0.02
-    ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.02"
+    is_close_wrapper(actual_noise, expected_noise, 0.02)
 
     # Validation for nicknames
     from pseudopeople.noise_scaling import load_nicknames_data
@@ -593,9 +563,7 @@ def test_use_nickname(dummy_dataset):
             name_weight = 1 / len(names_list.loc[real_name])
             # We are weighting our rtol to adjust for variance depending on number of nicknames
             rtol = 0.025 * len(chosen_nickname_weights)
-            assert np_isclose_wrapper(
-                chosen_nickname_weights, name_weight, rtol
-            ).all(), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of {rtol}"
+            is_close_wrapper(chosen_nickname_weights, name_weight, rtol)
 
 
 def test_use_fake_name(dummy_dataset):
@@ -649,17 +617,13 @@ def test_use_fake_name(dummy_dataset):
         first_name_data[~orig_missing] != noised_first_names[~orig_missing]
     ).mean()
     expected_first_name_noise = first_name_config[Keys.CELL_PROBABILITY]
-    assert np_isclose_wrapper(
-        actual_first_name_noise, expected_first_name_noise, 0.002
-    ), f"Actual noise is {actual_first_name_noise} while expected noise was {expected_first_name_noise} with a rtol of 0.002"
+    is_close_wrapper(actual_first_name_noise, expected_first_name_noise, 0.002)
 
     actual_last_name_noise = (
         last_name_data[~orig_missing] != noised_last_names[~orig_missing]
     ).mean()
     expected_last_name_noise = last_name_config[Keys.CELL_PROBABILITY]
-    assert np_isclose_wrapper(
-        actual_last_name_noise, expected_last_name_noise, 0.002
-    ), f"Actual noise is {actual_last_name_noise} while expected noise was {expected_last_name_noise} with a rtol of 0.002"
+    is_close_wrapper(actual_last_name_noise, expected_last_name_noise, 0.002)
 
     # Get raw fake names lists to check noised values
     fake_first = fake_first_names
@@ -884,9 +848,7 @@ def test_make_typos(dummy_dataset, column):
     p_strings_noised = 1 - p_strings_not_noised  # pd.Series
     expected_noise = p_row_noise * p_strings_noised.mean()
     actual_noise = (check_noised != check_original).mean()
-    assert np_isclose_wrapper(
-        actual_noise, expected_noise, 0.01
-    ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of 0.01"
+    is_close_wrapper(actual_noise, expected_noise, 0.01)
 
     # Check for expected string growth due to keeping original noised token
     assert (check_noised.str.len() >= check_original.str.len()).all()
@@ -899,9 +861,7 @@ def test_make_typos(dummy_dataset, column):
     p_strings_increase_length = 1 - p_strings_do_not_increase_length  # pd.Series
     expected_changed_length = p_row_noise * p_strings_increase_length.mean()
     actual_changed_length = (check_noised.str.len() != check_original.str.len()).mean()
-    assert np_isclose_wrapper(
-        actual_changed_length, expected_changed_length, 0.01
-    ), f"Actual noise is {actual_changed_length} while expected noise was {expected_changed_length} with a rtol of 0.01"
+    is_close_wrapper(actual_changed_length, expected_changed_length, 0.01)
 
     # Check that we did not touch the missing data
     assert (
@@ -967,4 +927,12 @@ def test_seeds_behave_as_expected(noise_type, data_col, dataset, dataset_col, du
 
 
 def np_isclose_wrapper(actual_noise, expected_noise, rtol):
-    return np.isclose(actual_noise, expected_noise, rtol)
+    return np.isclose(actual_noise, expected_noise, rtol).all()
+
+
+def is_close_wrapper(actual_noise, expected_noise, rtol):
+    assert np_isclose_wrapper(
+        actual_noise,
+        expected_noise,
+        rtol,
+    ), f"Actual noise is {actual_noise} while expected noise was {expected_noise} with a rtol of {rtol}"

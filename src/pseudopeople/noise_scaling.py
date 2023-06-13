@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from pseudopeople.constants import metadata, paths
+from pseudopeople.constants import paths
 
 
 def scale_choose_wrong_option(data: pd.DataFrame, column_name: str) -> float:
