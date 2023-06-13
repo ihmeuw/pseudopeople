@@ -54,7 +54,7 @@ def dummy_config_noise_numbers():
                     "event_type": {
                         NOISE_TYPES.leave_blank.name: {Keys.CELL_PROBABILITY: 0.01},
                         NOISE_TYPES.choose_wrong_option.name: {Keys.CELL_PROBABILITY: 0.01},
-                        "copy_from_household_member": {Keys.CELL_PROBABILITY: 0.01},
+                        NOISE_TYPES.copy_from_household_member.name: {Keys.CELL_PROBABILITY: 0.01},
                         NOISE_TYPES.swap_month_and_day.name: {Keys.CELL_PROBABILITY: 0.01},
                         NOISE_TYPES.write_wrong_zipcode_digits.name: {
                             Keys.CELL_PROBABILITY: 0.01,
@@ -124,6 +124,14 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
             ),
             field,
         )
+        if field == NOISE_TYPES.copy_from_household_member.name:
+            mock.attach_mock(
+                mocker.patch(
+                    f"pseudopeople.noise.NOISE_TYPES.{field}.additional_column_getter",
+                    return_value=[],
+                ),
+                field,
+            )
 
     # FIXME: would be better to mock the dataset instead of using census
     noise_dataset(DATASETS.census, dummy_data, dummy_config_noise_numbers, 0)
@@ -135,7 +143,7 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
         # NOISE_TYPES.duplicate_row.name,
         NOISE_TYPES.leave_blank.name,
         NOISE_TYPES.choose_wrong_option.name,
-        # NOISE_TYPES.copy_from_household_member.name,
+        NOISE_TYPES.copy_from_household_member.name,
         NOISE_TYPES.swap_month_and_day.name,
         NOISE_TYPES.write_wrong_zipcode_digits.name,
         NOISE_TYPES.misreport_age.name,

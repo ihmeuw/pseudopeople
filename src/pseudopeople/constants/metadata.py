@@ -90,6 +90,6 @@ US_STATE_ABBRV_MAP = {
 COPY_HOUSEHOLD_MEMBER_COLS = {
     "age": "copy_age",
     "date_of_birth": "copy_date_of_birth",
-    "has_ssn": "copy_ssn",
+    "ssn": "copy_ssn",
     # TODO: add itins
 }

@@ -8,7 +8,11 @@ from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import data_values, paths
-from pseudopeople.constants.metadata import Attributes, COPY_HOUSEHOLD_MEMBER_COLS, DatasetNames
+from pseudopeople.constants.metadata import (
+    COPY_HOUSEHOLD_MEMBER_COLS,
+    Attributes,
+    DatasetNames,
+)
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.noise_scaling import load_nicknames_data
@@ -193,7 +197,6 @@ def copy_from_household_member(
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :returns: pd.Series where data has been noised with other values from a list of possibilities
-    :return: pd.Series
     """
 
     copy_values = data[COPY_HOUSEHOLD_MEMBER_COLS[column_name]]
