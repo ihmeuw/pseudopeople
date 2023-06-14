@@ -54,7 +54,9 @@ def dummy_config_noise_numbers():
                     "event_type": {
                         NOISE_TYPES.leave_blank.name: {Keys.CELL_PROBABILITY: 0.01},
                         NOISE_TYPES.choose_wrong_option.name: {Keys.CELL_PROBABILITY: 0.01},
-                        NOISE_TYPES.copy_from_household_member.name: {Keys.CELL_PROBABILITY: 0.01},
+                        NOISE_TYPES.copy_from_household_member.name: {
+                            Keys.CELL_PROBABILITY: 0.01
+                        },
                         NOISE_TYPES.swap_month_and_day.name: {Keys.CELL_PROBABILITY: 0.01},
                         NOISE_TYPES.write_wrong_zipcode_digits.name: {
                             Keys.CELL_PROBABILITY: 0.01,
@@ -114,7 +116,8 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
     for field in NOISE_TYPES._fields:
         mock_return = (
             dummy_data[["event_type"]]
-            if field in [NOISE_TYPES.do_not_respond.name, NOISE_TYPES.omit_row.name, "duplicate_row"]
+            if field
+            in [NOISE_TYPES.do_not_respond.name, NOISE_TYPES.omit_row.name, "duplicate_row"]
             else dummy_data["event_type"]
         )
         mock.attach_mock(
@@ -124,14 +127,18 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
             ),
             field,
         )
-        if field not in  [NOISE_TYPES.do_not_respond.name, NOISE_TYPES.omit_row.name, "duplicate_row"]:
+        if field not in [
+            NOISE_TYPES.do_not_respond.name,
+            NOISE_TYPES.omit_row.name,
+            "duplicate_row",
+        ]:
             mock.attach_mock(
                 mocker.patch(
                     f"pseudopeople.noise.NOISE_TYPES.{field}.additional_column_getter",
                     return_value=[],
                 ),
                 field,
-           )
+            )
 
     # FIXME: would be better to mock the dataset instead of using census
     noise_dataset(DATASETS.census, dummy_data, dummy_config_noise_numbers, 0)
