@@ -18,7 +18,7 @@ from vivarium import ConfigTree
 from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import COLUMNS, Dataset
+from pseudopeople.schema_entities import Dataset
 from pseudopeople.utilities import get_randomness_stream
 
 
