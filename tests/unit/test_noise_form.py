@@ -139,6 +139,13 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
                 ),
                 field,
             )
+            mock.attach_mock(
+                mocker.patch(
+                    f"pseudopeople.noise.NOISE_TYPES.{field}.noise_level_scaling_function",
+                    return_value=1,
+                ),
+                field,
+            )
 
     # FIXME: would be better to mock the dataset instead of using census
     noise_dataset(DATASETS.census, dummy_data, dummy_config_noise_numbers, 0)
