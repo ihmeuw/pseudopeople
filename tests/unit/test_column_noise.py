@@ -197,17 +197,13 @@ def test_generate_copy_from_household_member(dummy_dataset):
 
     # Check for expected noise level
     expected_noise = config[Keys.CELL_PROBABILITY]
-    original_missing_idx = data.index[
-        (data.isna().any(axis=1)) | (data.isin([""]).any(axis=1))
-    ]
+    original_missing_idx = data.index[data["age"] == ""]
     eligible_for_noise_idx = data.index.difference(original_missing_idx)
     data = data["age"]
     actual_noise = (
         noised_data[eligible_for_noise_idx] != data[eligible_for_noise_idx]
     ).mean()
-    assert np_isclose_wrapper(
-        actual_noise, expected_noise, 0.02
-    ), f"Actual noise is {actual_noise} while expected noise is {expected_noise} with an rtol of 0.02."
+    is_close_wrapper(actual_noise, expected_noise, 0.02)
 
     # Noised values should be the same as the copy column
     noised_mask = noised_data[eligible_for_noise_idx] != data[eligible_for_noise_idx]

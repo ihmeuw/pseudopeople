@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from pseudopeople.constants import paths
+from pseudopeople.constants import metadata, paths
 
 
 def scale_choose_wrong_option(data: pd.DataFrame, column_name: str) -> float:
@@ -36,6 +36,15 @@ def scale_nicknames(data: pd.DataFrame, column_name: str) -> float:
     if proportion_have_nickname == 0.0:
         return 0.0
     return 1 / proportion_have_nickname
+
+
+def scale_copy_from_household_member(data: pd.DataFrame, column_name: str) -> float:
+    copy_column = data[metadata.COPY_HOUSEHOLD_MEMBER_COLS[column_name]]
+    eligible_idx = copy_column.index[(copy_column != "") & (copy_column.notna())]
+    proportion_eligible = len(eligible_idx) / len(data)
+    if proportion_eligible == 0.0:
+        return 0.0
+    return 1 / proportion_eligible
 
 
 ####################
