@@ -147,7 +147,7 @@ class __Columns(NamedTuple):
         "itin",
         (
             NOISE_TYPES.leave_blank,
-            NOISE_TYPES.copy_from_household_member,
+            # NOISE_TYPES.copy_from_household_member,
             NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,

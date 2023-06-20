@@ -206,12 +206,14 @@ def test_generate_copy_from_household_member(dummy_dataset):
     is_close_wrapper(actual_noise, expected_noise, 0.02)
 
     # Noised values should be the same as the copy column
-    noised_mask = noised_data[eligible_for_noise_idx] != data[eligible_for_noise_idx]
-    noised_idx = noised_mask[noised_mask].index
+    was_noised_series = noised_data[eligible_for_noise_idx] != data[eligible_for_noise_idx]
+    noised_idx = was_noised_series[was_noised_series].index
     assert (
         dummy_dataset.loc[noised_idx, COPY_HOUSEHOLD_MEMBER_COLS["age"]]
         == noised_data.loc[noised_idx]
     ).all()
+    not_noised_idx = dummy_dataset.index.difference(noised_idx)
+    assert (dummy_dataset.loc[not_noised_idx, "age"] == noised_data.loc[not_noised_idx]).all()
 
 
 def test_swap_months_and_days(dummy_dataset):
@@ -935,10 +937,7 @@ def test_seeds_behave_as_expected(noise_type, data_col, dataset, dataset_col, du
     noised_data = noise_type(data, config, RANDOMNESS0, data_col)
     noised_data_same_seed = noise_type(data, config, RANDOMNESS0, data_col)
     noised_data_different_seed = noise_type(data, config, RANDOMNESS1, data_col)
-    if noise == NOISE_TYPES.copy_from_household_member.name:
-        data = data[data_col]
-    else:
-        data = data.squeeze()
+    data = data[data_col]
 
     assert (noised_data != data).any()
     assert (noised_data.isna() == noised_data_same_seed.isna()).all()
