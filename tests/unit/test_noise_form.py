@@ -150,8 +150,11 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
     # FIXME: would be better to mock the dataset instead of using census
     noise_dataset(DATASETS.census, dummy_data, dummy_config_noise_numbers, 0)
 
-    # This is getting the string of each noise type. It is filtering down to string type for each noise type
-    # while not including mock calls that also contain that string.
+    # This is getting the string of each noise type. There are two mock calls
+    # being made to each noise type with how we are mocking noise type attirbutes
+    # above causing duplicates in the call list. Call order is each instance a noise
+    # function is called. Here we grab the string of the noise type for one mock method
+    # call and no the second mthod.
     call_order = [x[0] for x in mock.mock_calls if type(x[1][0]) == str]
     expected_call_order = [
         # NOISE_TYPES.omit_row.name,   # Census doesn't use omit_row
