@@ -46,6 +46,13 @@ DEFAULT_NOISE_VALUES = {
                 Keys.ROW_PROBABILITY: 0.005,
             },
         },
+        Keys.COLUMN_NOISE: {
+            COLUMNS.ssn.name: {
+                NOISE_TYPES.copy_from_household_member.name: {
+                    Keys.CELL_PROBABILITY: 0.00,
+                }
+            },
+        },
     },
     # No noise of any kind for SSN in the SSA observer
     DATASETS.ssa.name: {

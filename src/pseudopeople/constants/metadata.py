@@ -85,3 +85,11 @@ US_STATE_ABBRV_MAP = {
     "DISTRICT OF COLUMBIA": "DC",
     # "PUERTO RICO": "PR",
 }
+
+
+COPY_HOUSEHOLD_MEMBER_COLS = {
+    "age": "copy_age",
+    "date_of_birth": "copy_date_of_birth",
+    "ssn": "copy_ssn",
+    # TODO: add itins
+}

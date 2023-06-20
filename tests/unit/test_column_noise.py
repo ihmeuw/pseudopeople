@@ -8,6 +8,7 @@ from vivarium.framework.randomness import RandomnessStream
 from vivarium.framework.randomness.index_map import IndexMap
 
 from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS
@@ -95,6 +96,8 @@ def dummy_dataset():
     date_of_birth_series = pd.Series(
         date_of_birth_list * int(num_simulants / len(date_of_birth_list))
     )
+    copy_age_list = ["10", "20", "30", "40", "50", "60", "70", "80", "", "100"]
+    copy_age_series = pd.Series(copy_age_list * int(num_simulants / len(copy_age_list)))
 
     return pd.DataFrame(
         {
@@ -108,6 +111,7 @@ def dummy_dataset():
             "last_name": last_name_series,
             "event_date": event_date_series,
             "date_of_birth": date_of_birth_series,
+            "copy_age": copy_age_series,
         }
     )
 
@@ -184,9 +188,32 @@ def test_choose_wrong_option(dummy_dataset):
     pd.testing.assert_index_equal(original_empty_idx, noised_empty_idx)
 
 
-@pytest.mark.skip(reason="TODO")
-def test_copy_from_household_member():
-    pass
+def test_generate_copy_from_household_member(dummy_dataset):
+    config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][
+        NOISE_TYPES.copy_from_household_member.name
+    ]
+    data = dummy_dataset[["age", "copy_age"]]
+    noised_data = NOISE_TYPES.copy_from_household_member(data, config, RANDOMNESS0, "age")
+
+    # Check for expected noise level
+    expected_noise = config[Keys.CELL_PROBABILITY]
+    original_missing_idx = data.index[data["age"] == ""]
+    eligible_for_noise_idx = data.index.difference(original_missing_idx)
+    data = data["age"]
+    actual_noise = (
+        noised_data[eligible_for_noise_idx] != data[eligible_for_noise_idx]
+    ).mean()
+    is_close_wrapper(actual_noise, expected_noise, 0.02)
+
+    # Noised values should be the same as the copy column
+    was_noised_series = noised_data[eligible_for_noise_idx] != data[eligible_for_noise_idx]
+    noised_idx = was_noised_series[was_noised_series].index
+    assert (
+        dummy_dataset.loc[noised_idx, COPY_HOUSEHOLD_MEMBER_COLS["age"]]
+        == noised_data.loc[noised_idx]
+    ).all()
+    not_noised_idx = dummy_dataset.index.difference(noised_idx)
+    assert (dummy_dataset.loc[not_noised_idx, "age"] == noised_data.loc[not_noised_idx]).all()
 
 
 def test_swap_months_and_days(dummy_dataset):
@@ -875,7 +902,7 @@ def test_make_typos(dummy_dataset, column):
     [
         (NOISE_TYPES.leave_blank, "numbers", "decennial_census", "zipcode"),
         (NOISE_TYPES.choose_wrong_option, "state", "decennial_census", "state"),
-        ("NOISE_TYPES.copy_from_within_household", "todo", "todo", "todo"),
+        (NOISE_TYPES.copy_from_household_member, "age", "decennial_census", "age"),
         (NOISE_TYPES.swap_month_and_day, "event_date", "social_security", "event_date"),
         (NOISE_TYPES.write_wrong_zipcode_digits, "zipcode", "decennial_census", "zipcode"),
         (NOISE_TYPES.misreport_age, "age", "decennial_census", "age"),
@@ -902,12 +929,15 @@ def test_seeds_behave_as_expected(noise_type, data_col, dataset, dataset_col, du
         pytest.skip(reason=f"TODO: implement for {noise_type}")
     noise = noise_type.name
     config = get_configuration()[dataset][Keys.COLUMN_NOISE][dataset_col][noise]
-    data = dummy_dataset[[data_col]]
+    if noise == NOISE_TYPES.copy_from_household_member.name:
+        data = dummy_dataset[[data_col, COPY_HOUSEHOLD_MEMBER_COLS[data_col]]]
+    else:
+        data = dummy_dataset[[data_col]]
 
     noised_data = noise_type(data, config, RANDOMNESS0, data_col)
     noised_data_same_seed = noise_type(data, config, RANDOMNESS0, data_col)
     noised_data_different_seed = noise_type(data, config, RANDOMNESS1, data_col)
-    data = data.squeeze()
+    data = data[data_col]
 
     assert (noised_data != data).any()
     assert (noised_data.isna() == noised_data_same_seed.isna()).all()

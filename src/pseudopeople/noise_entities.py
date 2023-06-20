@@ -1,6 +1,6 @@
 from typing import NamedTuple
 
-from pseudopeople import noise_functions, noise_scaling
+from pseudopeople import column_getters, noise_functions, noise_scaling
 from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 
@@ -30,10 +30,12 @@ class __NoiseTypes(NamedTuple):
         noise_functions.choose_wrong_options,
         noise_level_scaling_function=noise_scaling.scale_choose_wrong_option,
     )
-    # copy_from_household_member: ColumnNoiseType = ColumnNoiseType(
-    #     "copy_from_household_member",
-    #     noise_functions.copy_from_household_members,
-    # )
+    copy_from_household_member: ColumnNoiseType = ColumnNoiseType(
+        "copy_from_household_member",
+        noise_functions.copy_from_household_member,
+        noise_level_scaling_function=noise_scaling.scale_copy_from_household_member,
+        additional_column_getter=column_getters.copy_from_household_member_column_getter,
+    )
     swap_month_and_day: ColumnNoiseType = ColumnNoiseType(
         "swap_month_and_day",
         noise_functions.swap_months_and_days,
