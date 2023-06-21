@@ -76,14 +76,20 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
     :return: a ConfigTree object of the noising configuration
     """
 
-    noising_configuration = _generate_default_configuration()
+    if type(user_configuration) == str:
+        if user_configuration.lower() == Keys.NO_NOISE:
+            config_type = Keys.NO_NOISE
+            user_configuration = None
+    else:
+        config_type = Keys.DEFAULT
+    noising_configuration = _generate_configuration(config_type)
     if user_configuration:
         add_user_configuration(noising_configuration, user_configuration)
 
     return noising_configuration
 
 
-def _generate_default_configuration() -> ConfigTree:
+def _generate_configuration(config_type: str) -> ConfigTree:
     default_config_layers = [
         "baseline",
         "default",
@@ -102,7 +108,11 @@ def _generate_default_configuration() -> ConfigTree:
         for row_noise in dataset.row_noise_types:
             row_noise_type_dict = {}
             if row_noise.row_probability is not None:
-                row_noise_type_dict[Keys.ROW_PROBABILITY] = row_noise.row_probability
+                if config_type == Keys.NO_NOISE:
+                    noise_level = 0.0
+                else:
+                    noise_level = row_noise.row_probability
+                row_noise_type_dict[Keys.ROW_PROBABILITY] = noise_level
             if row_noise_type_dict:
                 row_noise_dict[row_noise.name] = row_noise_type_dict
 
@@ -112,9 +122,11 @@ def _generate_default_configuration() -> ConfigTree:
             for noise_type in column.noise_types:
                 column_noise_type_dict = {}
                 if noise_type.cell_probability is not None:
-                    column_noise_type_dict[
-                        Keys.CELL_PROBABILITY
-                    ] = noise_type.cell_probability
+                    if config_type == Keys.NO_NOISE:
+                        noise_level = 0.0
+                    else:
+                        noise_level = noise_type.cell_probability
+                    column_noise_type_dict[Keys.CELL_PROBABILITY] = noise_level
                 if noise_type.additional_parameters is not None:
                     for key, value in noise_type.additional_parameters.items():
                         column_noise_type_dict[key] = value
@@ -136,7 +148,8 @@ def _generate_default_configuration() -> ConfigTree:
     noising_configuration.update(baseline_dict, layer="baseline")
 
     # Update configuration with non-baseline default values
-    noising_configuration.update(DEFAULT_NOISE_VALUES, layer="default")
+    if config_type == Keys.DEFAULT:
+        noising_configuration.update(DEFAULT_NOISE_VALUES, layer="default")
     return noising_configuration
 
 

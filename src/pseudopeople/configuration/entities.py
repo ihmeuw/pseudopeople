@@ -8,3 +8,5 @@ class Keys:
     TOKEN_PROBABILITY = "token_probability"
     POSSIBLE_AGE_DIFFERENCES = "possible_age_differences"
     ZIPCODE_DIGIT_PROBABILITIES = "digit_probabilities"
+    NO_NOISE = "no_noise"
+    DEFAULT = "default"
