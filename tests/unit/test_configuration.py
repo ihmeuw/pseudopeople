@@ -419,7 +419,7 @@ def test_no_noise():
     # Tests that passing the sentinal no noise value results in a configuration
     # where all noise levels are 0.0
     no_noise_config = get_configuration("no_noise")
-    # breakpoint()
+
     for dataset in no_noise_config.keys():
         dataset_dict = no_noise_config[dataset]
         dataset_row_noise_dict = dataset_dict[Keys.ROW_NOISE]
