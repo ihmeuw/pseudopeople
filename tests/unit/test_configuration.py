@@ -1,3 +1,5 @@
+import itertools
+
 import pytest
 import yaml
 
@@ -6,8 +8,21 @@ from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
 from pseudopeople.configuration.interface import get_config
 from pseudopeople.configuration.validator import ConfigurationError
 from pseudopeople.constants.metadata import Attributes
+from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
+
+PROBABILITY_VALUE_LOGS = [
+    ("a", "must be floats or ints"),
+    (-0.01, "must be between 0 and 1"),
+    (1.01, "must be between 0 and 1"),
+]
+COLUMN_NOISE_TYPES = [
+    noise_type for noise_type in NOISE_TYPES if isinstance(noise_type, ColumnNoiseType)
+]
+ROW_NOISE_TYPES = [
+    noise_type for noise_type in NOISE_TYPES if isinstance(noise_type, RowNoiseType)
+]
 
 
 def test_get_default_configuration(mocker):
@@ -233,28 +248,59 @@ def test_overriding_nonexistent_keys_fails(config, match):
         get_configuration(config)
 
 
+def get_noise_type_configs(noise_names: list):
+    configs = list(itertools.product(noise_names, PROBABILITY_VALUE_LOGS))
+    return [(x[0], x[1][0], x[1][1]) for x in configs]
+
+
 @pytest.mark.parametrize(
-    "value, match",
-    [
-        ("a", "must be floats or ints"),
-        (-0.01, "must be between 0 and 1"),
-        (1.01, "must be between 0 and 1"),
-    ],
+    "row_noise_type, value, match",
+    get_noise_type_configs(ROW_NOISE_TYPES),
 )
-def test_validate_standard_parameters_failures(value, match):
+def test_validate_standard_parameters_failures_row_noise(row_noise_type, value, match):
+    """
+    Tests valid configuration values for probability for row noise types.
+    """
+    dataset_name = [
+        dataset for dataset in DATASETS if row_noise_type in dataset.row_noise_types
+    ][0].name
+    with pytest.raises(ConfigurationError, match=match):
+        get_configuration(
+            {
+                dataset_name: {
+                    Keys.ROW_NOISE: {
+                        row_noise_type.name: {
+                            Keys.ROW_PROBABILITY: value,
+                        },
+                    },
+                },
+            },
+        )
+
+
+@pytest.mark.parametrize(
+    "column_noise_type, value, match",
+    get_noise_type_configs(COLUMN_NOISE_TYPES),
+)
+def test_validate_standard_parameters_failures_column_noise(column_noise_type, value, match):
     """Test that a runtime error is thrown if a user provides bad standard
     probability values
 
     NOTE: This also includes cell_probability values and technically any
     other values not provided a unique validation function.
     """
+    column_name = [
+        column
+        for column in COLUMNS
+        if column_noise_type in column.noise_types and column in DATASETS.census.columns
+    ][0].name
     with pytest.raises(ConfigurationError, match=match):
         get_configuration(
             {
                 DATASETS.census.name: {
                     Keys.COLUMN_NOISE: {
-                        COLUMNS.age.name: {
-                            NOISE_TYPES.misreport_age.name: {
+                        column_name: {
+                            column_noise_type.name: {
                                 Keys.CELL_PROBABILITY: value,
                             },
                         },
