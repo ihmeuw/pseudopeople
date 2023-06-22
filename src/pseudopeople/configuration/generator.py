@@ -148,7 +148,7 @@ def _generate_configuration(config_type: str) -> ConfigTree:
 
     # Update configuration with non-baseline default values
     if config_type == Keys.DEFAULT:
-        noising_configuration.update(DEFAULT_NOISE_VALUES, layer="default")
+        noising_configuration.update(DEFAULT_NOISE_VALUES, layer=config_type)
     return noising_configuration
 
 
