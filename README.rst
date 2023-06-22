@@ -22,3 +22,7 @@ or build it from source with
 Documentation
 ======================
 You can view documentation at https://pseudopeople.readthedocs.io/en/latest/
+
+To receive updates about this software package `join the mailing list
+here
+<https://mailman11.u.washington.edu/mailman/listinfo/pseudopeople-users>`_.
