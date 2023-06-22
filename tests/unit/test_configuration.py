@@ -413,3 +413,20 @@ def test_validate_nickname_configuration(caplog):
             assert not caplog.records
         else:
             assert "Noise level has been adjusted" in caplog.text
+
+
+def test_no_noise():
+    # Tests that passing the sentinal no noise value results in a configuration
+    # where all noise levels are 0.0
+    no_noise_config = get_configuration("no_noise")
+
+    for dataset in no_noise_config.keys():
+        dataset_dict = no_noise_config[dataset]
+        dataset_row_noise_dict = dataset_dict[Keys.ROW_NOISE]
+        dataset_column_dict = dataset_dict[Keys.COLUMN_NOISE]
+        for row_noise_type in dataset_row_noise_dict.keys():
+            assert dataset_row_noise_dict[row_noise_type][Keys.ROW_PROBABILITY] == 0.0
+        for column in dataset_column_dict.keys():
+            column_noise_dict = dataset_column_dict[column]
+            for column_noise_type in column_noise_dict.keys():
+                assert column_noise_dict[column_noise_type][Keys.CELL_PROBABILITY] == 0.0
