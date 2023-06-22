@@ -76,12 +76,9 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
     :return: a ConfigTree object of the noising configuration
     """
 
-    if type(user_configuration) == str:
-        if user_configuration.lower() == Keys.NO_NOISE:
-            config_type = Keys.NO_NOISE
-            user_configuration = None
-        else:
-            config_type = Keys.DEFAULT
+    if type(user_configuration) == str and user_configuration.lower() == Keys.NO_NOISE:
+        config_type = Keys.NO_NOISE
+        user_configuration = None
     else:
         config_type = Keys.DEFAULT
     noising_configuration = _generate_configuration(config_type)
