@@ -149,7 +149,7 @@ Noise types for each column
     - Noise for all types of addresses works in the same way
   * - State for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
-    - Leave a field blank 
+    - Leave a field blank, choose the wrong option 
     - Noise for all types of addresses works in the same way
   * - ZIP code for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
@@ -157,15 +157,15 @@ Noise types for each column
     -
   * - Relationship to head of household
     - Decennial Census
-    - Leave a field blank
+    - Leave a field blank, choose the wrong option
     -
   * - Sex
     - Decennial Census, ACS, CPS, WIC
-    - Leave a field blank
+    - Leave a field blank, choose the wrong option
     -
   * - Race/ethnicity
     - Decennial Census, ACS, CPS, WIC
-    - Leave a field blank
+    - Leave a field blank, choose the wrong option
     -
   * - SSN
     - W-2 and 1099, SSA
@@ -185,11 +185,11 @@ Noise types for each column
     -
   * - Type of tax form
     - W-2 and 1099
-    - Leave a field blank
+    - Leave a field blank, choose the wrong option
     -
   * - Type of SSA event
     - SSA
-    - Leave a field blank
+    - Leave a field blank, choose the wrong option
     -
   * - Date of SSA event
     - SSA
