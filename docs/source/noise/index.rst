@@ -155,7 +155,7 @@ Noise types for each column
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
     - Leave a field blank, write the wrong zipcode digits, make typos, make OCR errors
     -
-  * - Relationship to head of household
+  * - Relationship to reference person
     - Decennial Census
     - Leave a field blank, choose the wrong option
     -
