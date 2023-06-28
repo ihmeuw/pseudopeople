@@ -157,7 +157,7 @@ def test_noise_order(mocker, dummy_data, dataset):
     # being made to each noise type with how we are mocking noise type attirbutes
     # above causing duplicates in the call list. Call order is each instance a noise
     # function is called. Here we grab the string of the noise type for one mock method
-    # call and no the second mthod.
+    # call and not the second method.
     call_order = [x[0] for x in mock.mock_calls if type(x[1][0]) == str]
     row_order = [row_noise_type.name for row_noise_type in dataset.row_noise_types]
     column_order = [
