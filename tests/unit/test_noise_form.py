@@ -38,8 +38,7 @@ def dummy_data():
     )
 
 
-@pytest.fixture(scope="module")
-def dummy_config_noise_numbers():
+def get_dummy_config_noise_numbers(dataset):
     """Create a dummy configuration that applies all noise functions to a single
     column in the dummy_data fixture. All noise function specs are defined in
     reverse order here compared to how they are to be applied.
@@ -49,7 +48,7 @@ def dummy_config_noise_numbers():
     """
     return ConfigTree(
         {
-            DATASETS.census.name: {
+            dataset.name: {
                 Keys.COLUMN_NOISE: {
                     "event_type": {
                         NOISE_TYPES.leave_blank.name: {Keys.CELL_PROBABILITY: 0.01},
@@ -99,7 +98,11 @@ def dummy_config_noise_numbers():
     )
 
 
-def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
+@pytest.mark.parametrize(
+    "dataset",
+    list(DATASETS),
+)
+def test_noise_order(mocker, dummy_data, dataset):
     """From docs: "Noising should be applied in the following order: omit_row,
     do_not_respond, duplicate_row, leave_blank, choose_wrong_option,
     copy_from_household_member, swap_month_and_day, write_wrong_zipcode_digits,
@@ -147,8 +150,10 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
                 field,
             )
 
+    # Get config for dataset
+    dummy_config = get_dummy_config_noise_numbers(dataset)
     # FIXME: would be better to mock the dataset instead of using census
-    noise_dataset(DATASETS.census, dummy_data, dummy_config_noise_numbers, 0)
+    noise_dataset(dataset, dummy_data, dummy_config, 0)
 
     # This is getting the string of each noise type. There are two mock calls
     # being made to each noise type with how we are mocking noise type attirbutes
