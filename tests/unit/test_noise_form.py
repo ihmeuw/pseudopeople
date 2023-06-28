@@ -38,8 +38,7 @@ def dummy_data():
     )
 
 
-@pytest.fixture(scope="module")
-def dummy_config_noise_numbers():
+def get_dummy_config_noise_numbers(dataset):
     """Create a dummy configuration that applies all noise functions to a single
     column in the dummy_data fixture. All noise function specs are defined in
     reverse order here compared to how they are to be applied.
@@ -49,7 +48,7 @@ def dummy_config_noise_numbers():
     """
     return ConfigTree(
         {
-            DATASETS.census.name: {
+            dataset.name: {
                 Keys.COLUMN_NOISE: {
                     "event_type": {
                         NOISE_TYPES.leave_blank.name: {Keys.CELL_PROBABILITY: 0.01},
@@ -87,19 +86,21 @@ def dummy_config_noise_numbers():
                     },
                 },
                 Keys.ROW_NOISE: {
-                    "duplicate_row": {
+                    noise_type.name: {
                         Keys.ROW_PROBABILITY: 0.01,
-                    },
-                    NOISE_TYPES.do_not_respond.name: {
-                        Keys.ROW_PROBABILITY: 0.01,
-                    },
+                    }
+                    for noise_type in dataset.row_noise_types
                 },
             },
         }
     )
 
 
-def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
+@pytest.mark.parametrize(
+    "dataset",
+    list(DATASETS),
+)
+def test_noise_order(mocker, dummy_data, dataset):
     """From docs: "Noising should be applied in the following order: omit_row,
     do_not_respond, duplicate_row, leave_blank, choose_wrong_option,
     copy_from_household_member, swap_month_and_day, write_wrong_zipcode_digits,
@@ -147,19 +148,19 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
                 field,
             )
 
+    # Get config for dataset
+    dummy_config = get_dummy_config_noise_numbers(dataset)
     # FIXME: would be better to mock the dataset instead of using census
-    noise_dataset(DATASETS.census, dummy_data, dummy_config_noise_numbers, 0)
+    noise_dataset(dataset, dummy_data, dummy_config, 0)
 
     # This is getting the string of each noise type. There are two mock calls
     # being made to each noise type with how we are mocking noise type attirbutes
     # above causing duplicates in the call list. Call order is each instance a noise
     # function is called. Here we grab the string of the noise type for one mock method
-    # call and no the second mthod.
+    # call and not the second method.
     call_order = [x[0] for x in mock.mock_calls if type(x[1][0]) == str]
-    expected_call_order = [
-        # NOISE_TYPES.omit_row.name,   # Census doesn't use omit_row
-        NOISE_TYPES.do_not_respond.name,
-        # NOISE_TYPES.duplicate_row.name,
+    row_order = [row_noise_type.name for row_noise_type in dataset.row_noise_types]
+    column_order = [
         NOISE_TYPES.leave_blank.name,
         NOISE_TYPES.choose_wrong_option.name,
         NOISE_TYPES.copy_from_household_member.name,
@@ -173,6 +174,7 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
         NOISE_TYPES.make_ocr_errors.name,
         NOISE_TYPES.make_typos.name,
     ]
+    expected_call_order = row_order + column_order
 
     assert expected_call_order == call_order
 
