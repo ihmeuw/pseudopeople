@@ -159,9 +159,7 @@ def test_noise_order(mocker, dummy_data, dataset):
     # function is called. Here we grab the string of the noise type for one mock method
     # call and no the second mthod.
     call_order = [x[0] for x in mock.mock_calls if type(x[1][0]) == str]
-    row_order = [
-        row_noise_type.name for row_noise_type in dataset.row_noise_types
-    ]
+    row_order = [row_noise_type.name for row_noise_type in dataset.row_noise_types]
     column_order = [
         NOISE_TYPES.leave_blank.name,
         NOISE_TYPES.choose_wrong_option.name,
