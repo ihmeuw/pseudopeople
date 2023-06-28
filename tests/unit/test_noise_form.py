@@ -86,12 +86,10 @@ def get_dummy_config_noise_numbers(dataset):
                     },
                 },
                 Keys.ROW_NOISE: {
-                    "duplicate_row": {
+                    noise_type.name: {
                         Keys.ROW_PROBABILITY: 0.01,
-                    },
-                    NOISE_TYPES.do_not_respond.name: {
-                        Keys.ROW_PROBABILITY: 0.01,
-                    },
+                    }
+                    for noise_type in dataset.row_noise_types
                 },
             },
         }
@@ -161,10 +159,10 @@ def test_noise_order(mocker, dummy_data, dataset):
     # function is called. Here we grab the string of the noise type for one mock method
     # call and no the second mthod.
     call_order = [x[0] for x in mock.mock_calls if type(x[1][0]) == str]
-    expected_call_order = [
-        # NOISE_TYPES.omit_row.name,   # Census doesn't use omit_row
-        NOISE_TYPES.do_not_respond.name,
-        # NOISE_TYPES.duplicate_row.name,
+    row_order = [
+        row_noise_type.name for row_noise_type in dataset.row_noise_types
+    ]
+    column_order = [
         NOISE_TYPES.leave_blank.name,
         NOISE_TYPES.choose_wrong_option.name,
         NOISE_TYPES.copy_from_household_member.name,
@@ -178,6 +176,7 @@ def test_noise_order(mocker, dummy_data, dataset):
         NOISE_TYPES.make_ocr_errors.name,
         NOISE_TYPES.make_typos.name,
     ]
+    expected_call_order = row_order + column_order
 
     assert expected_call_order == call_order
 
