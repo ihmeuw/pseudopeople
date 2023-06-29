@@ -4,7 +4,7 @@ from typing import Dict, Union
 import yaml
 from vivarium.config_tree import ConfigTree
 
-from pseudopeople.configuration import Keys
+from pseudopeople.configuration import DEFAULT, NO_NOISE, Keys
 from pseudopeople.configuration.validator import validate_user_configuration
 from pseudopeople.constants.data_values import DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY
 from pseudopeople.noise_entities import NOISE_TYPES
@@ -75,12 +75,15 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
     :param user_configuration: A path to the YAML file or a dictionary defining user overrides for the defaults
     :return: a ConfigTree object of the noising configuration
     """
-
-    if type(user_configuration) == str and user_configuration.lower() == Keys.NO_NOISE:
-        config_type = Keys.NO_NOISE
+    if isinstance(user_configuration, str) and user_configuration.lower() == NO_NOISE:
+        config_type = NO_NOISE
         user_configuration = None
+    elif isinstance(user_configuration, (Path, str)):
+        with open(user_configuration, "r") as f:
+            user_configuration = yaml.full_load(f)
+        config_type = DEFAULT
     else:
-        config_type = Keys.DEFAULT
+        config_type = DEFAULT
     noising_configuration = _generate_configuration(config_type)
     if user_configuration:
         add_user_configuration(noising_configuration, user_configuration)
@@ -107,7 +110,7 @@ def _generate_configuration(config_type: str) -> ConfigTree:
         for row_noise in dataset.row_noise_types:
             row_noise_type_dict = {}
             if row_noise.row_probability is not None:
-                if config_type == Keys.NO_NOISE:
+                if config_type == NO_NOISE:
                     noise_level = 0.0
                 else:
                     noise_level = row_noise.row_probability
@@ -121,7 +124,7 @@ def _generate_configuration(config_type: str) -> ConfigTree:
             for noise_type in column.noise_types:
                 column_noise_type_dict = {}
                 if noise_type.cell_probability is not None:
-                    if config_type == Keys.NO_NOISE:
+                    if config_type == NO_NOISE:
                         noise_level = 0.0
                     else:
                         noise_level = noise_type.cell_probability
@@ -147,20 +150,16 @@ def _generate_configuration(config_type: str) -> ConfigTree:
     noising_configuration.update(baseline_dict, layer="baseline")
 
     # Update configuration with non-baseline default values
-    if config_type == Keys.DEFAULT:
+    if config_type == DEFAULT:
         noising_configuration.update(DEFAULT_NOISE_VALUES, layer=config_type)
     return noising_configuration
 
 
 def add_user_configuration(
-    noising_configuration: ConfigTree, user_configuration: Union[Path, str, Dict]
+    noising_configuration: ConfigTree, user_configuration: Dict
 ) -> None:
-    if isinstance(user_configuration, (Path, str)):
-        with open(user_configuration, "r") as f:
-            user_configuration = yaml.full_load(f)
 
     validate_user_configuration(user_configuration, noising_configuration)
-
     user_configuration = _format_user_configuration(noising_configuration, user_configuration)
     noising_configuration.update(user_configuration, layer="user")
 
