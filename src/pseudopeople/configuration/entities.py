@@ -11,4 +11,3 @@ class Keys:
 
 
 NO_NOISE = "no_noise"
-DEFAULT = "default"

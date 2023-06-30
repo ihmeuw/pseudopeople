@@ -4,7 +4,7 @@ from typing import Dict, Union
 import yaml
 from vivarium.config_tree import ConfigTree
 
-from pseudopeople.configuration import DEFAULT, NO_NOISE, Keys
+from pseudopeople.configuration import NO_NOISE, Keys
 from pseudopeople.configuration.validator import validate_user_configuration
 from pseudopeople.constants.data_values import DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY
 from pseudopeople.noise_entities import NOISE_TYPES
@@ -75,15 +75,16 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
     :param user_configuration: A path to the YAML file or a dictionary defining user overrides for the defaults
     :return: a ConfigTree object of the noising configuration
     """
+
     if isinstance(user_configuration, str) and user_configuration.lower() == NO_NOISE:
         config_type = NO_NOISE
         user_configuration = None
     elif isinstance(user_configuration, (Path, str)):
         with open(user_configuration, "r") as f:
             user_configuration = yaml.full_load(f)
-        config_type = DEFAULT
+        config_type = None
     else:
-        config_type = DEFAULT
+        config_type = None
     noising_configuration = _generate_configuration(config_type)
     if user_configuration:
         add_user_configuration(noising_configuration, user_configuration)
@@ -91,7 +92,7 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
     return noising_configuration
 
 
-def _generate_configuration(config_type: str) -> ConfigTree:
+def _generate_configuration(config_type: str = None) -> ConfigTree:
     default_config_layers = [
         "baseline",
         "default",
@@ -150,8 +151,8 @@ def _generate_configuration(config_type: str) -> ConfigTree:
     noising_configuration.update(baseline_dict, layer="baseline")
 
     # Update configuration with non-baseline default values
-    if config_type == DEFAULT:
-        noising_configuration.update(DEFAULT_NOISE_VALUES, layer=config_type)
+    if not config_type:
+        noising_configuration.update(DEFAULT_NOISE_VALUES, layer="default")
     return noising_configuration
 
 
