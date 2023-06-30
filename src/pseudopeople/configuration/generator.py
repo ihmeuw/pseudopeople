@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 import yaml
 from vivarium.config_tree import ConfigTree
@@ -92,7 +92,7 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
     return noising_configuration
 
 
-def _generate_configuration(config_type: str = None) -> ConfigTree:
+def _generate_configuration(config_type: Optional[str]) -> ConfigTree:
     default_config_layers = [
         "baseline",
         "default",
