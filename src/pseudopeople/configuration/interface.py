@@ -50,7 +50,7 @@ def get_config(dataset_name: str = None, user_config: Union[Path, str, Dict] = N
             - "women_infants_and_children"
     :param user_config: An optional override to the default configuration. Can be
         a path to a configuration YAML file or a dictionary. Passing a sentinel value
-        of psp.NO_NOISE ("no_noise") will override default values and return a configuration
+        of psp.NO_NOISE will override default values and return a configuration
         where all noise levels are set to 0.
     :return: Dictionary of the config.
     :raises ConfigurationError: An invalid configuration is passed with user_config.

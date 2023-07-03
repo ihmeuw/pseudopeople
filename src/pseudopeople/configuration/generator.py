@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Dict, Union
 
 import yaml
 from vivarium.config_tree import ConfigTree
@@ -76,23 +76,23 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
     :return: a ConfigTree object of the noising configuration
     """
 
-    if isinstance(user_configuration, str) and user_configuration.lower() == NO_NOISE:
-        config_type = NO_NOISE
+    if user_configuration == NO_NOISE:
+        is_no_noise = True
         user_configuration = None
     elif isinstance(user_configuration, (Path, str)):
         with open(user_configuration, "r") as f:
             user_configuration = yaml.full_load(f)
-        config_type = None
+        is_no_noise = False
     else:
-        config_type = None
-    noising_configuration = _generate_configuration(config_type)
+        is_no_noise = False
+    noising_configuration = _generate_configuration(is_no_noise)
     if user_configuration:
         add_user_configuration(noising_configuration, user_configuration)
 
     return noising_configuration
 
 
-def _generate_configuration(config_type: Optional[str]) -> ConfigTree:
+def _generate_configuration(is_no_noise: bool) -> ConfigTree:
     default_config_layers = [
         "baseline",
         "default",
@@ -111,7 +111,7 @@ def _generate_configuration(config_type: Optional[str]) -> ConfigTree:
         for row_noise in dataset.row_noise_types:
             row_noise_type_dict = {}
             if row_noise.row_probability is not None:
-                if config_type == NO_NOISE:
+                if is_no_noise:
                     noise_level = 0.0
                 else:
                     noise_level = row_noise.row_probability
@@ -125,7 +125,7 @@ def _generate_configuration(config_type: Optional[str]) -> ConfigTree:
             for noise_type in column.noise_types:
                 column_noise_type_dict = {}
                 if noise_type.cell_probability is not None:
-                    if config_type == NO_NOISE:
+                    if is_no_noise:
                         noise_level = 0.0
                     else:
                         noise_level = noise_type.cell_probability
@@ -151,7 +151,7 @@ def _generate_configuration(config_type: Optional[str]) -> ConfigTree:
     noising_configuration.update(baseline_dict, layer="baseline")
 
     # Update configuration with non-baseline default values
-    if not config_type:
+    if not is_no_noise:
         noising_configuration.update(DEFAULT_NOISE_VALUES, layer="default")
     return noising_configuration
 
