@@ -12,7 +12,7 @@ body:
   - type: textarea
     attributes:
       label: "What is the purpose of your project?"
-      description: "Your answer is very important, and will be read not only by the software develoeprs involved in pseudopeople, but also by data subject representatives and stakeholders who may not come from a software background. Correspondingly, it should be written for a public audience, without expectations that the reader is deeply involved in developing record linkage systems. Try to answer likely questions like: what are the likely eventual uses of your system? In what ways could it be used to cause harm, and how are these addressed or minimised?"
+      description: "Your answer is very important, and will be read not only by the software developers involved in pseudopeople, but also by data subject representatives and stakeholders who may not come from a software background. Correspondingly, it should be written for a public audience, without expectations that the reader is deeply involved in developing record linkage systems. Try to answer likely questions like: what are the likely eventual uses of your system? In what ways could it be used to cause harm, and how are these addressed or minimized?  Also note that this response will be visible to anyone browsing issues here on GitHub."
     validations:
       required: true
   - type: textarea
