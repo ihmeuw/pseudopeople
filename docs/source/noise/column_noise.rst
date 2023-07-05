@@ -346,3 +346,30 @@ This noise type is called :code:`make_ocr_errors` in the configuration. It takes
       **given that the cell is being considered for this noise type**.
       One way to think about this is the probability of an OCR error on any given corruption-eligible token when a string is being read inaccurately.
     - 0.1 (10%)
+
+
+Make phonetic errors
+--------------------
+A phonetic error occurs when a character is misheard. For instance, this could happen with similar sounding letters when spoken (like ‘t’ and ‘d’) or letters that make the same sounds within a word (like ‘o’ and ‘ou’). 
+
+pseudopeople defines the possible phonetic substitutions using `this file <https://github.com/ihmeuw/pseudopeople/blob/develop/src/pseudopeople/data/phonetic_variations.csv>`_, which was produced by the `GeCO project <https://dl.acm.org/doi/10.1145/2505515.2508207>`_.
+
+This noise type is called :code:`make_phonetic_errors` in the configuration. It takes two parameters:
+
+.. list-table:: Parameters to the make_phonetic_errors noise type
+  :widths: 1 5 1
+  :header-rows: 1
+
+  * - Parameter
+    - Description
+    - Default
+  * - :code:`cell_probability`
+    - The probability of a cell being *considered* to have this noise type.
+      One way to think about this is the probability that a string is misheard by a human reader.
+      Whether or not there are actually any errors depends on the next parameter.
+    - 0.01 (1%)
+  * - :code:`token_probability`
+    - The probability of each corruption-eligible token being misheard
+      **given that the cell is being considered for this noise type**.
+      One way to think about this is the probability of a phonetic error on any given corruption-eligible token when a string is being read inaccurately.
+    - 0.1 (10%)
