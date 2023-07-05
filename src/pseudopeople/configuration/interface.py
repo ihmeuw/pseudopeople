@@ -1,8 +1,10 @@
 from pathlib import Path
 from typing import Dict, Union
 
+import yaml
 from loguru import logger
 
+from pseudopeople.configuration.entities import NO_NOISE
 from pseudopeople.configuration.generator import get_configuration
 from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.schema_entities import DATASETS
@@ -47,12 +49,20 @@ def get_config(dataset_name: str = None, user_config: Union[Path, str, Dict] = N
             - "taxes_w2_and_1099"
             - "women_infants_and_children"
     :param user_config: An optional override to the default configuration. Can be
-        a path to a configuration YAML file or a dictionary.
+        a path to a configuration YAML file or a dictionary. Passing a sentinel value
+        of psp.NO_NOISE will override default values and return a configuration
+        where all noise levels are set to 0.
     :return: Dictionary of the config.
     :raises ConfigurationError: An invalid configuration is passed with user_config.
 
     """
-
+    if isinstance(user_config, (Path, str)) and user_config != NO_NOISE:
+        with open(user_config, "r") as f:
+            user_config = yaml.full_load(f)
+    if isinstance(user_config, dict) and dataset_name not in user_config.keys():
+        logger.warning(
+            f"'{dataset_name}' provided but is not in the user provided configuration."
+        )
     config = get_configuration(user_config)
     if dataset_name:
         if dataset_name in [dataset.name for dataset in DATASETS]:
@@ -61,9 +71,5 @@ def get_config(dataset_name: str = None, user_config: Union[Path, str, Dict] = N
             raise ConfigurationError(
                 f"'{dataset_name}' provided but is not a valid option for dataset type."
             )
-    if user_config and dataset_name not in user_config.keys():
-        logger.warning(
-            f"'{dataset_name}' provided but is not in the user provided configuration."
-        )
 
     return config.to_dict()
