@@ -3,7 +3,7 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-min_version, max_version = ((3, 8), "3.8"), ((3, 10), "3.10")
+min_version, max_version = ((3, 8), "3.8"), ((3, 11), "3.11")
 
 if not (min_version[0] <= sys.version_info[:2] <= max_version[0]):
     # Python 3.5 does not support f-strings
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     install_requirements = [
         "pandas",
         "pyyaml>=5.1",
-        "vivarium>=1.1.0",
+        "vivarium>=1.2.0",
         "pyarrow",
         "tqdm",
     ]

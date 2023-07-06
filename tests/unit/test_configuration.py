@@ -1,13 +1,28 @@
+import itertools
+
 import pytest
 import yaml
 
-from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.configuration import NO_NOISE, Keys, get_configuration
 from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
 from pseudopeople.configuration.interface import get_config
 from pseudopeople.configuration.validator import ConfigurationError
 from pseudopeople.constants.metadata import Attributes
+from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
+
+PROBABILITY_VALUE_LOGS = [
+    ("a", "must be floats or ints"),
+    (-0.01, "must be between 0 and 1"),
+    (1.01, "must be between 0 and 1"),
+]
+COLUMN_NOISE_TYPES = [
+    noise_type for noise_type in NOISE_TYPES if isinstance(noise_type, ColumnNoiseType)
+]
+ROW_NOISE_TYPES = [
+    noise_type for noise_type in NOISE_TYPES if isinstance(noise_type, RowNoiseType)
+]
 
 
 def test_get_default_configuration(mocker):
@@ -233,28 +248,59 @@ def test_overriding_nonexistent_keys_fails(config, match):
         get_configuration(config)
 
 
+def get_noise_type_configs(noise_names: list):
+    configs = list(itertools.product(noise_names, PROBABILITY_VALUE_LOGS))
+    return [(x[0], x[1][0], x[1][1]) for x in configs]
+
+
 @pytest.mark.parametrize(
-    "value, match",
-    [
-        ("a", "must be floats or ints"),
-        (-0.01, "must be between 0 and 1"),
-        (1.01, "must be between 0 and 1"),
-    ],
+    "row_noise_type, value, match",
+    get_noise_type_configs(ROW_NOISE_TYPES),
 )
-def test_validate_standard_parameters_failures(value, match):
+def test_validate_standard_parameters_failures_row_noise(row_noise_type, value, match):
+    """
+    Tests valid configuration values for probability for row noise types.
+    """
+    dataset_name = [
+        dataset for dataset in DATASETS if row_noise_type in dataset.row_noise_types
+    ][0].name
+    with pytest.raises(ConfigurationError, match=match):
+        get_configuration(
+            {
+                dataset_name: {
+                    Keys.ROW_NOISE: {
+                        row_noise_type.name: {
+                            Keys.ROW_PROBABILITY: value,
+                        },
+                    },
+                },
+            },
+        )
+
+
+@pytest.mark.parametrize(
+    "column_noise_type, value, match",
+    get_noise_type_configs(COLUMN_NOISE_TYPES),
+)
+def test_validate_standard_parameters_failures_column_noise(column_noise_type, value, match):
     """Test that a runtime error is thrown if a user provides bad standard
     probability values
 
     NOTE: This also includes cell_probability values and technically any
     other values not provided a unique validation function.
     """
+    column_name = [
+        column
+        for column in COLUMNS
+        if column_noise_type in column.noise_types and column in DATASETS.census.columns
+    ][0].name
     with pytest.raises(ConfigurationError, match=match):
         get_configuration(
             {
                 DATASETS.census.name: {
                     Keys.COLUMN_NOISE: {
-                        COLUMNS.age.name: {
-                            NOISE_TYPES.misreport_age.name: {
+                        column_name: {
+                            column_noise_type.name: {
                                 Keys.CELL_PROBABILITY: value,
                             },
                         },
@@ -358,6 +404,17 @@ def test_get_config(caplog):
     with pytest.raises(ConfigurationError, match="bad_form_name"):
         get_config("bad_form_name")
 
+    config_3 = get_config(user_config=NO_NOISE)
+    for dataset in config_3.keys():
+        row_noise_dict = config_3[dataset][Keys.ROW_NOISE]
+        column_dict = config_3[dataset][Keys.COLUMN_NOISE]
+        for row_noise in row_noise_dict:
+            assert row_noise_dict[row_noise][Keys.ROW_PROBABILITY] == 0.0
+        for column in column_dict:
+            column_noise_dict = column_dict[column]
+            for column_noise in column_noise_dict:
+                assert column_noise_dict[column_noise][Keys.CELL_PROBABILITY] == 0.0
+
 
 def test_date_format_config():
     # Test that columns with date format attribute are only columns with swap months and days noise type
@@ -413,3 +470,20 @@ def test_validate_nickname_configuration(caplog):
             assert not caplog.records
         else:
             assert "Noise level has been adjusted" in caplog.text
+
+
+def test_no_noise():
+    # Tests that passing the sentinal no noise value results in a configuration
+    # where all noise levels are 0.0
+    no_noise_config = get_configuration("no_noise")
+
+    for dataset in no_noise_config.keys():
+        dataset_dict = no_noise_config[dataset]
+        dataset_row_noise_dict = dataset_dict[Keys.ROW_NOISE]
+        dataset_column_dict = dataset_dict[Keys.COLUMN_NOISE]
+        for row_noise_type in dataset_row_noise_dict.keys():
+            assert dataset_row_noise_dict[row_noise_type][Keys.ROW_PROBABILITY] == 0.0
+        for column in dataset_column_dict.keys():
+            column_noise_dict = dataset_column_dict[column]
+            for column_noise_type in column_noise_dict.keys():
+                assert column_noise_dict[column_noise_type][Keys.CELL_PROBABILITY] == 0.0

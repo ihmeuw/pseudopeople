@@ -18,7 +18,7 @@ from vivarium import ConfigTree
 from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import Dataset
+from pseudopeople.schema_entities import COLUMNS, Dataset
 from pseudopeople.utilities import get_randomness_stream
 
 
@@ -73,8 +73,9 @@ def noise_dataset(
                 ]
                 # Apply column noise to each column as appropriate
                 for column in columns_to_noise:
+                    required_cols = [column] + noise_type.additional_column_getter(column)
                     dataset_data[column] = noise_type(
-                        dataset_data[column],
+                        dataset_data[required_cols],
                         noise_configuration.column_noise[column][noise_type.name],
                         randomness,
                         column,
