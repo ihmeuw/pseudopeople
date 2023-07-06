@@ -365,7 +365,7 @@ This noise type is called :code:`make_phonetic_errors` in the configuration. It 
     - Default
   * - :code:`cell_probability`
     - The probability of a cell being *considered* to have this noise type.
-      One way to think about this is the probability that a string is misheard by a human reader.
+      One way to think about this is the probability that a string is transcribed by an error-prone program or human transcriber.
       Whether or not there are actually any errors depends on the next parameter.
     - 0.01 (1%)
   * - :code:`token_probability`
