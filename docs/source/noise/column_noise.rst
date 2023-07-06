@@ -371,5 +371,5 @@ This noise type is called :code:`make_phonetic_errors` in the configuration. It 
   * - :code:`token_probability`
     - The probability of each corruption-eligible token being misheard
       **given that the cell is being considered for this noise type**.
-      One way to think about this is the probability of a phonetic error on any given corruption-eligible token when a string is being read inaccurately.
+      One way to think about this is the probability of a phonetic error on any given corruption-eligible token when the transcriber is error-prone.
     - 0.1 (10%)
