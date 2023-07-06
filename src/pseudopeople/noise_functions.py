@@ -228,7 +228,7 @@ def swap_months_and_days(
         raise ConfigurationError(
             f"Error while running noise function `swap_months_and_days' on column '{column_name}'. "
             f"'{column_name}' does not have attribute date format. "
-        )
+        ) from None
 
     column = data[column_name]
     if date_format == DATEFORMATS.YYYYMMDD:  # YYYYMMDD
