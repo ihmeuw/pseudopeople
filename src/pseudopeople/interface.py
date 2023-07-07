@@ -8,6 +8,7 @@ from tqdm import tqdm
 
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
+from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.noise import noise_dataset
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
@@ -45,8 +46,7 @@ def _generate_dataset(
 
     if source is None:
         source = paths.SAMPLE_DATA_ROOT
-    source = Path(source) / dataset.name
-    data_paths = [x for x in source.glob(f"{dataset.name}*")]
+    data_paths = fetch_filepaths(dataset, source)
     if not data_paths:
         raise DataSourceError(
             f"No datasets found at directory {str(source)}. "
@@ -397,3 +397,22 @@ def generate_social_security(
         )
         seed = seed * 10_000 + year
     return _generate_dataset(DATASETS.ssa, source, seed, config, user_filters, verbose)
+
+
+def fetch_filepaths(dataset, source):
+    if dataset.name == DatasetNames.TAXES_1040:
+        tax_dataset_names = [
+            DatasetNames.TAXES_1040,
+            DatasetNames.TAXES_W2_1099,
+            DatasetNames.TAXES_DEPENDENTS,
+        ]
+        data_paths = []
+        for tax_dataset in tax_dataset_names:
+            directory = source / tax_dataset
+            dataset_paths = [x for x in directory.glob(f"{tax_dataset}*")]
+            data_paths += dataset_paths
+    else:
+        source = Path(source) / dataset.name
+        data_paths = [x for x in source.glob(f"{dataset.name}*")]
+
+    return data_paths
