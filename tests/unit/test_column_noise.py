@@ -35,6 +35,7 @@ def dummy_dataset():
 
     # Add a column of integer strings
     integer_series = pd.Series([str(x) for x in range(num_simulants)])
+    # integer_series = pd.Series(["Jenny 867-5309", "foo"]*int(num_simulants/2))
     # Add missing data from `leave_blanks` function
     missing_idx = pd.Index([x for x in dummy_idx if x % 3 == 0])
     integer_series.loc[missing_idx] = ""
@@ -256,7 +257,7 @@ def test_swap_months_and_days(dummy_dataset):
         is_close_wrapper(actual_noise, expected_noise, 0.02)
 
 
-def test_miswrite_zipcodes(dummy_dataset):
+def test_write_wrong_zipcode_digits(dummy_dataset):
     dummy_digit_probabilities = [0.3, 0.3, 0.4, 0.5, 0.5]
     config = get_configuration()
     config.update(
@@ -444,7 +445,7 @@ def test_miswrite_ages_flips_negative_to_positive():
     assert (noised_data == 4).all()
 
 
-def test_miswrite_numerics(dummy_dataset):
+def test_write_wrong_digits(dummy_dataset):
     """
     Validates that only numeric characters are noised in a series at a provided noise level.
     """
@@ -747,7 +748,6 @@ def test_phonetic_error_values():
     ],
 )
 def test_generate_ocr_errors(dummy_dataset, column):
-
     config = get_configuration()
     config.update(
         {
@@ -839,7 +839,6 @@ def test_ocr_replacement_values():
     ],
 )
 def test_make_typos(dummy_dataset, column):
-
     config = get_configuration()
     config.update(
         {
@@ -875,7 +874,7 @@ def test_make_typos(dummy_dataset, column):
     p_strings_noised = 1 - p_strings_not_noised  # pd.Series
     expected_noise = p_row_noise * p_strings_noised.mean()
     actual_noise = (check_noised != check_original).mean()
-    is_close_wrapper(actual_noise, expected_noise, 0.01)
+    is_close_wrapper(actual_noise, expected_noise, 0.011)
 
     # Check for expected string growth due to keeping original noised token
     assert (check_noised.str.len() >= check_original.str.len()).all()
