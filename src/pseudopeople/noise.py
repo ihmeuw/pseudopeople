@@ -78,6 +78,7 @@ def noise_dataset(
                         dataset_data[required_cols],
                         noise_configuration.column_noise[column][noise_type.name],
                         randomness,
+                        dataset.name,
                         column,
                     )
         else:

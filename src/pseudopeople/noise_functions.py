@@ -8,11 +8,7 @@ from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import data_values, paths
-from pseudopeople.constants.metadata import (
-    COPY_HOUSEHOLD_MEMBER_COLS,
-    Attributes,
-    DatasetNames,
-)
+from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, DatasetNames
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.noise_scaling import load_nicknames_data
@@ -151,6 +147,7 @@ def choose_wrong_options(
     data: pd.DataFrame,
     _: ConfigTree,
     randomness_stream: RandomnessStream,
+    dataset_name: str,
     column_name: str,
 ) -> pd.Series:
     """
@@ -188,6 +185,7 @@ def copy_from_household_member(
     data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
+    dataset_name: str,
     column_name: str,
 ) -> pd.Series:
     """
@@ -208,6 +206,7 @@ def swap_months_and_days(
     data: pd.DataFrame,
     _: ConfigTree,
     randomness_stream: RandomnessStream,
+    dataset_name: str,
     column_name: str,
 ) -> pd.Series:
     """
@@ -219,11 +218,10 @@ def swap_months_and_days(
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: Noised pd.Series where some dates have month and day swapped.
     """
-    from pseudopeople.schema_entities import COLUMNS, DATEFORMATS
+    from pseudopeople.schema_entities import DATASETS, DATEFORMATS
 
-    column_type = COLUMNS.get_column(column_name)
     try:
-        date_format = column_type.additional_attributes[Attributes.DATE_FORMAT]
+        date_format = DATASETS.get_dataset(dataset_name).date_format
     except KeyError:
         raise ConfigurationError(
             f"Error while running noise function `swap_months_and_days' on column '{column_name}'. "
@@ -241,6 +239,11 @@ def swap_months_and_days(
         month = column.str[:3]
         day = column.str[3:6]
         noised = day + month + year
+    elif date_format == DATEFORMATS.MMDDYYYY:  # MMDDYYYY
+        year = column.str[4:]
+        month = column.str[:2]
+        day = column.str[2:4]
+        noised = day + month + year
     else:
         raise ValueError(
             f"Invalid datetime format in {column.name}.  Please check input data."
@@ -253,6 +256,7 @@ def write_wrong_zipcode_digits(
     data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
+    dataset_name: str,
     column_name: str,
 ) -> pd.Series:
     """
@@ -299,6 +303,7 @@ def misreport_ages(
     data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
+    dataset_name: str,
     column_name: str,
 ) -> pd.Series:
     """Function to mis-write ages based on perturbation parameters included in
@@ -333,6 +338,7 @@ def write_wrong_digits(
     data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
+    dataset_name: str,
     column_name: str,
 ) -> pd.Series:
     """
@@ -378,6 +384,7 @@ def use_nicknames(
     data: pd.DataFrame,
     _: ConfigTree,
     randomness_stream: RandomnessStream,
+    dataset_name: str,
     column_name: str,
 ) -> pd.Series:
     """
@@ -403,6 +410,7 @@ def use_fake_names(
     data: pd.DataFrame,
     _: ConfigTree,
     randomness_stream: RandomnessStream,
+    dataset_name: str,
     column_name: str,
 ) -> pd.Series:
     """
@@ -432,6 +440,7 @@ def make_phonetic_errors(
     data: pd.Series,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
+    dataset_name: str,
     column_name: Any,
 ) -> pd.Series:
     """
@@ -480,6 +489,7 @@ def leave_blanks(
     data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
+    dataset_name: str,
     column_name: str,
 ) -> pd.Series:
     """
@@ -497,6 +507,7 @@ def make_typos(
     data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
+    dataset_name: str,
     column_name: str,
 ) -> pd.Series:
     """Function that applies noise to the string values
@@ -557,6 +568,7 @@ def make_ocr_errors(
     data: pd.DataFrame,
     configuration: ConfigTree,
     randomness_stream: RandomnessStream,
+    dataset_name: str,
     column_name: str,
 ) -> pd.Series:
     """

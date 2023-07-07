@@ -16,13 +16,10 @@ class __DateFormats:
 
     YYYYMMDD = "%Y%m%d"
     MM_DD_YYYY = "%m/%d/%Y"
+    MMDDYYYY = "%m%d%Y"
 
 
 DATEFORMATS = __DateFormats()
-
-
-class Attributes:
-    DATE_FORMAT = "date_format"
 
 
 # Value calculated for noise scaling for nicknames

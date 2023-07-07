@@ -7,7 +7,6 @@ from pseudopeople.configuration import NO_NOISE, Keys, get_configuration
 from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
 from pseudopeople.configuration.interface import get_config
 from pseudopeople.configuration.validator import ConfigurationError
-from pseudopeople.constants.metadata import Attributes
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
@@ -414,23 +413,6 @@ def test_get_config(caplog):
             column_noise_dict = column_dict[column]
             for column_noise in column_noise_dict:
                 assert column_noise_dict[column_noise][Keys.CELL_PROBABILITY] == 0.0
-
-
-def test_date_format_config():
-    # Test that columns with date format attribute are only columns with swap months and days noise type
-
-    # Columns that have additional attribute date_format
-    date_attribute_cols = set()
-    # Columns that have swap_months_days noise type
-    noise_cols = set()
-
-    for column in COLUMNS:
-        if NOISE_TYPES.swap_month_and_day in column.noise_types:
-            noise_cols.add(column.name)
-        if Attributes.DATE_FORMAT in column.additional_attributes.keys():
-            date_attribute_cols.add(column.name)
-
-    assert noise_cols.issubset(date_attribute_cols)
 
 
 def test_omit_rows_do_not_respond_mutex_default_configuration():

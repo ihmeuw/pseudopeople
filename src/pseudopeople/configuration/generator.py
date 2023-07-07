@@ -159,7 +159,6 @@ def _generate_configuration(is_no_noise: bool) -> ConfigTree:
 def add_user_configuration(
     noising_configuration: ConfigTree, user_configuration: Dict
 ) -> None:
-
     validate_user_configuration(user_configuration, noising_configuration)
     user_configuration = _format_user_configuration(noising_configuration, user_configuration)
     noising_configuration.update(user_configuration, layer="user")

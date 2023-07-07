@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
+from pandas.api.types import is_datetime64_any_dtype as is_datetime
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.interface import (
@@ -348,17 +349,13 @@ def test_dataset_filter_by_year_with_full_dates(mocker, dataset_name: str):
     noising_function = DATASET_GENERATION_FUNCS[dataset_name]
     noised_data = noising_function(year=year)
     dataset = DATASETS.get_dataset(dataset_name)
-    # NB: conditional on date_format is potentially brittle if we have some noised
-    #  date column with a different format.
-    date_format = COLUMNS.get_column(dataset.date_column_name).additional_attributes.get(
-        "date_format"
-    )
-    if date_format:
-        # The date is a string type, and we cannot expect to use datetime objects
-        # due to the month/day swaps
-        years = noised_data[dataset.date_column_name].str[0:4].astype(int)
+
+    noised_column = noised_data[dataset.date_column_name]
+    if is_datetime(noised_column):
+        years = noised_column.dt.year
     else:
-        years = noised_data[dataset.date_column_name].dt.year
+        years = pd.to_datetime(noised_column, format=dataset.date_format).dt.year
+
     if dataset == DATASETS.ssa:
         assert (years <= year).all()
     else:
@@ -485,17 +482,13 @@ def test_dataset_filter_by_state_and_year_with_full_dates(
     noising_function = DATASET_GENERATION_FUNCS[dataset_name]
     noised_data = noising_function(source=tmpdir, year=year, state=STATE)
     dataset = DATASETS.get_dataset(dataset_name)
-    # NB: conditional on date_format is potentially brittle if we have some noised
-    #  date column with a different format.
-    date_format = COLUMNS.get_column(dataset.date_column_name).additional_attributes.get(
-        "date_format"
-    )
-    if date_format:
-        # The date is a string type, and we cannot expect to use datetime objects
-        # due to the month/day swaps
-        years = noised_data[dataset.date_column_name].str[0:4].astype(int)
+
+    noised_column = noised_data[dataset.date_column_name]
+    if is_datetime(noised_column):
+        years = noised_column.dt.year
     else:
-        years = noised_data[dataset.date_column_name].dt.year
+        years = pd.to_datetime(noised_column, format=dataset.date_format).dt.year
+
     assert (years == year).all()
     assert (noised_data[dataset.state_column_name] == STATE).all()
 

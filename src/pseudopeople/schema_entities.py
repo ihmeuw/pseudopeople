@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, NamedTuple, Optional, Tuple
 
-from pseudopeople.constants.metadata import DATEFORMATS, Attributes, DatasetNames
+from pseudopeople.constants.metadata import DATEFORMATS, DatasetNames
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 
@@ -19,7 +19,6 @@ class Column:
     name: str
     noise_types: Tuple[ColumnNoiseType, ...] = tuple()
     dtype_name: str = DtypeNames.OBJECT  # string dtype is 'object'
-    additional_attributes: Dict = field(default_factory=dict)
 
 
 class __Columns(NamedTuple):
@@ -54,7 +53,6 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
-        additional_attributes={Attributes.DATE_FORMAT: DATEFORMATS.MM_DD_YYYY},
     )
     employer_city: Column = Column(
         "employer_city",
@@ -270,7 +268,6 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
-        additional_attributes={Attributes.DATE_FORMAT: DATEFORMATS.YYYYMMDD},
     )
     ssa_event_type: Column = Column(
         "event_type",
@@ -371,6 +368,7 @@ class Dataset:
     name: str
     columns: Tuple[Column, ...]  # This defines the output column order
     date_column_name: str
+    date_format: str
     state_column_name: Optional[str]
     row_noise_types: Tuple[RowNoiseType, ...]
 
@@ -405,6 +403,7 @@ class __Datasets(NamedTuple):
             NOISE_TYPES.do_not_respond,
             # NOISE_TYPES.duplication,
         ),
+        date_format=DATEFORMATS.MM_DD_YYYY,
     )
     acs: Dataset = Dataset(
         DatasetNames.ACS,
@@ -432,6 +431,7 @@ class __Datasets(NamedTuple):
             NOISE_TYPES.do_not_respond,
             # NOISE_TYPES.duplication,
         ),
+        date_format=DATEFORMATS.MM_DD_YYYY,
     )
     cps: Dataset = Dataset(
         DatasetNames.CPS,
@@ -459,6 +459,7 @@ class __Datasets(NamedTuple):
             NOISE_TYPES.do_not_respond,
             # NOISE_TYPES.duplication,
         ),
+        date_format=DATEFORMATS.MM_DD_YYYY,
     )
     wic: Dataset = Dataset(
         DatasetNames.WIC,
@@ -485,6 +486,7 @@ class __Datasets(NamedTuple):
             NOISE_TYPES.omit_row,
             # NOISE_TYPES.duplication,
         ),
+        date_format=DATEFORMATS.MMDDYYYY,
     )
     ssa: Dataset = Dataset(
         DatasetNames.SSA,
@@ -504,6 +506,7 @@ class __Datasets(NamedTuple):
             NOISE_TYPES.omit_row,
             # NOISE_TYPES.duplication,
         ),
+        date_format=DATEFORMATS.YYYYMMDD,
     )
     tax_w2_1099: Dataset = Dataset(
         DatasetNames.TAXES_W2_1099,
@@ -541,6 +544,7 @@ class __Datasets(NamedTuple):
             NOISE_TYPES.omit_row,
             # NOISE_TYPES.duplication,
         ),
+        date_format=DATEFORMATS.MM_DD_YYYY,
     )
     # tax_1040: Dataset = Dataset(
     #     Datasets.TAXES_1040,

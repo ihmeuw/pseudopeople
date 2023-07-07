@@ -67,6 +67,7 @@ class ColumnNoiseType:
         data: pd.DataFrame,
         configuration: ConfigTree,
         randomness_stream: RandomnessStream,
+        dataset_name: str,
         column_name: str,
     ) -> pd.Series:
         if data[column_name].empty:
@@ -92,7 +93,11 @@ class ColumnNoiseType:
             )
             return data[column_name]
         noised_data = self.noise_function(
-            data.loc[to_noise_idx], configuration, randomness_stream, column_name
+            data.loc[to_noise_idx],
+            configuration,
+            randomness_stream,
+            dataset_name,
+            column_name,
         )
 
         # Coerce noised column dtype back to original column's if it has changed
