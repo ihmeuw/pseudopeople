@@ -163,7 +163,7 @@ def get_state_abbreviation(state: str) -> str:
     try:
         return metadata.US_STATE_ABBRV_MAP[state]
     except KeyError:
-        raise ValueError(f"Unexpected state input: '{state}'")
+        raise ValueError(f"Unexpected state input: '{state}'") from None
 
 
 ##########################

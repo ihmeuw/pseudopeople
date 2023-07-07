@@ -3,7 +3,7 @@ import itertools
 import pytest
 import yaml
 
-from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.configuration import NO_NOISE, Keys, get_configuration
 from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
 from pseudopeople.configuration.interface import get_config
 from pseudopeople.configuration.validator import ConfigurationError
@@ -403,6 +403,17 @@ def test_get_config(caplog):
 
     with pytest.raises(ConfigurationError, match="bad_form_name"):
         get_config("bad_form_name")
+
+    config_3 = get_config(user_config=NO_NOISE)
+    for dataset in config_3.keys():
+        row_noise_dict = config_3[dataset][Keys.ROW_NOISE]
+        column_dict = config_3[dataset][Keys.COLUMN_NOISE]
+        for row_noise in row_noise_dict:
+            assert row_noise_dict[row_noise][Keys.ROW_PROBABILITY] == 0.0
+        for column in column_dict:
+            column_noise_dict = column_dict[column]
+            for column_noise in column_noise_dict:
+                assert column_noise_dict[column_noise][Keys.CELL_PROBABILITY] == 0.0
 
 
 def test_date_format_config():

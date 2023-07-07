@@ -110,7 +110,7 @@ def _get_default_config_node(
 
         error_message = f"Invalid {key_type} '{key}' provided{context}. "
         valid_options_message = f"Valid {key_type}s are {[k for k in default_config]}."
-        raise ConfigurationError(error_message + valid_options_message)
+        raise ConfigurationError(error_message + valid_options_message) from None
 
 
 def _validate_possible_age_differences(
