@@ -508,11 +508,9 @@ def make_typos(
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :returns: pd.Series of column with noised data
     """
-
     with open(paths.QWERTY_ERRORS) as f:
         qwerty_errors = yaml.full_load(f)
     qwerty_errors = pd.DataFrame.from_dict(qwerty_errors, orient="index")
-
     column = data[column_name]
     if column.empty:
         return column
@@ -522,8 +520,10 @@ def make_typos(
     include_token_probability_level = 0.1
     rng = np.random.default_rng(seed=randomness_stream.seed)
 
+    # Make all strings the same length by padding with spaces
     max_str_length = column.str.len().max()
     same_len_col = column.str.pad(max_str_length, side="right")
+
     is_typo_option = pd.concat(
         [same_len_col.str[i].isin(qwerty_errors.index) for i in range(max_str_length)], axis=1
     )
@@ -531,12 +531,13 @@ def make_typos(
     keep_original = replace & (
         rng.random(is_typo_option.shape) < include_token_probability_level
     )
+
+    # Loop through each column of string elements and apply noising
     noised_column = pd.Series("", index=column.index, name=column.name)
     for i in range(max_str_length):
         orig = same_len_col.str[i]
         replace_mask = replace.iloc[:, i]
         keep_original_mask = keep_original.iloc[:, i]
-        # Replace original characters with typos and keep originals appropriately
         typos = two_d_array_choice(
             data=orig[replace_mask],
             options=qwerty_errors,
