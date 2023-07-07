@@ -94,6 +94,9 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
   * - Make Optical Character Recognition (OCR) errors
     - ``make_ocr_errors``
     - Misreading an 'S' instead of a '5'
+  * - Make phonetic errors
+    - ``make_phonetic_errors``
+    - Mishearing a 't' for a 'd'
 
 
 Noise types for each column
@@ -109,15 +112,15 @@ Noise types for each column
     - Notes
   * - First name
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, SSA
-    - Leave a field blank, use a fake name, nickname, make typos, make OCR errors
+    - Leave a field blank, use a fake name, nickname, make typos, make OCR errors, make phonetic errors
     -
   * - Middle initial
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, SSA
-    - Leave a field blank, make typos, make OCR errors
+    - Leave a field blank, make typos, make OCR errors, make phonetic errors
     -
   * - Last name
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, SSA
-    - Leave a field blank, use a fake name, make typos, make OCR errors
+    - Leave a field blank, use a fake name, make typos, make OCR errors, make phonetic errors
     -
   * - Age
     - Decennial Census, ACS, CPS, W-2 and 1099
@@ -133,7 +136,7 @@ Noise types for each column
     - Noise for all types of addresses works in the same way
   * - Street name for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
-    - Leave a field blank, make typos, make OCR errors
+    - Leave a field blank, make typos, make OCR errors, make phonetic errors
     - Noise for all types of addresses works in the same way
   * - Unit number for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
@@ -145,7 +148,7 @@ Noise types for each column
     -
   * - City name for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
-    - Leave a field blank, make typos, make OCR errors
+    - Leave a field blank, make typos, make OCR errors, make phonetic errors
     - Noise for all types of addresses works in the same way
   * - State for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
