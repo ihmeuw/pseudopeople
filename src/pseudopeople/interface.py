@@ -52,7 +52,10 @@ def _generate_dataset(
             f"No datasets found at directory {str(source)}. "
             "Please provide the path to the unmodified root data directory."
         )
-    suffix = set(x.suffix for x in data_paths)
+    if isinstance(data_paths, dict):
+        suffix = set(x.suffix for item in list(data_paths.values()) for x in item)
+    else:
+        suffix = set(x.suffix for x in data_paths)
     if len(suffix) > 1:
         raise DataSourceError(
             f"Only one type of file extension expected but more than one found: {suffix}. "
@@ -64,13 +67,17 @@ def _generate_dataset(
         if len(data_paths) > 1
         else data_paths
     )
+
     for data_path in iterator:
         logger.debug(f"Loading data from {data_path}.")
-        data = _load_data_from_path(data_path, user_filters)
-        if data.empty:
-            continue
-        data = _reformat_dates_for_noising(data, dataset)
-        data = _coerce_dtypes(data, dataset)
+        if dataset.name == DatasetNames.TAXES_1040:
+            data = load_and_prep_1040_data(data_path)
+        else:
+            data = _load_data_from_path(data_path, user_filters)
+            if data.empty:
+                continue
+            data = _reformat_dates_for_noising(data, dataset)
+            data = _coerce_dtypes(data, dataset)
         noised_data = noise_dataset(dataset, data, configuration_tree, seed)
         noised_data = _extract_columns(dataset.columns, noised_data)
         noised_dataset.append(noised_data)
@@ -406,13 +413,18 @@ def fetch_filepaths(dataset, source):
             DatasetNames.TAXES_W2_1099,
             DatasetNames.TAXES_DEPENDENTS,
         ]
-        data_paths = []
+        data_paths = {}
         for tax_dataset in tax_dataset_names:
             directory = source / tax_dataset
             dataset_paths = [x for x in directory.glob(f"{tax_dataset}*")]
-            data_paths += dataset_paths
+            data_paths[tax_dataset] = dataset_paths
     else:
         source = Path(source) / dataset.name
         data_paths = [x for x in source.glob(f"{dataset.name}*")]
 
     return data_paths
+
+
+def load_and_prep_1040_data(data_paths: dict) -> pd.DataFrame:
+    breakpoint()
+    return pd.DataFrame()
