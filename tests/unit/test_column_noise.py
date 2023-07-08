@@ -174,7 +174,9 @@ def test_choose_wrong_option(dummy_dataset):
         NOISE_TYPES.choose_wrong_option.name
     ]
     data = dummy_dataset[["state"]]
-    noised_data = NOISE_TYPES.choose_wrong_option(data, config, RANDOMNESS0, "dataset", "state")
+    noised_data = NOISE_TYPES.choose_wrong_option(
+        data, config, RANDOMNESS0, "dataset", "state"
+    )
     data = data.squeeze()
     # Check for expected noise level
     expected_noise = config[Keys.CELL_PROBABILITY]
@@ -194,7 +196,9 @@ def test_generate_copy_from_household_member(dummy_dataset):
         NOISE_TYPES.copy_from_household_member.name
     ]
     data = dummy_dataset[["age", "copy_age"]]
-    noised_data = NOISE_TYPES.copy_from_household_member(data, config, RANDOMNESS0, "dataset", "age")
+    noised_data = NOISE_TYPES.copy_from_household_member(
+        data, config, RANDOMNESS0, "dataset", "age"
+    )
 
     # Check for expected noise level
     expected_noise = config[Keys.CELL_PROBABILITY]
@@ -242,7 +246,9 @@ def test_swap_months_and_days(dummy_dataset):
                 NOISE_TYPES.swap_month_and_day.name
             ]
         expected_noise = config[Keys.CELL_PROBABILITY]
-        noised_data = NOISE_TYPES.swap_month_and_day(data, config, RANDOMNESS0, DATASETS.census.name, col)
+        noised_data = NOISE_TYPES.swap_month_and_day(
+            data, config, RANDOMNESS0, DATASETS.census.name, col
+        )
 
         # Confirm missing data remains missing
         data = data.squeeze()
@@ -278,7 +284,9 @@ def test_write_wrong_zipcode_digits(dummy_dataset):
     # Get configuration values for each piece of 5 digit zipcode
     probability = config[Keys.CELL_PROBABILITY]
     data = dummy_dataset[["zipcode"]]
-    noised_data = NOISE_TYPES.write_wrong_zipcode_digits(data, config, RANDOMNESS0, "dataset", "zipcode")
+    noised_data = NOISE_TYPES.write_wrong_zipcode_digits(
+        data, config, RANDOMNESS0, "dataset", "zipcode"
+    )
 
     # Confirm missing data remains missing
     data = data.squeeze()
@@ -469,7 +477,9 @@ def test_write_wrong_digits(dummy_dataset):
     data = dummy_dataset[["street_number"]]
     # Note: I changed this column from string_series to street number. It has several string formats
     # containing both numeric and alphabetically string characters.
-    noised_data = NOISE_TYPES.write_wrong_digits(data, config, RANDOMNESS0, "dataset", "street_number")
+    noised_data = NOISE_TYPES.write_wrong_digits(
+        data, config, RANDOMNESS0, "dataset", "street_number"
+    )
 
     # Get masks for helper groups, each string in categorical string purpose is to mimic possible string types
     data = data["street_number"]
@@ -687,7 +697,9 @@ def test_generate_phonetic_errors(dummy_dataset, column):
     config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][
         NOISE_TYPES.make_phonetic_errors.name
     ]
-    noised_data = NOISE_TYPES.make_phonetic_errors(dummy_dataset, config, RANDOMNESS0, "dataset", column)
+    noised_data = NOISE_TYPES.make_phonetic_errors(
+        dummy_dataset, config, RANDOMNESS0, "dataset", column
+    )
     data = data.squeeze()
 
     # Validate we do not change any missing data
@@ -726,7 +738,9 @@ def test_phonetic_error_values():
         NOISE_TYPES.make_phonetic_errors.name
     ]
     df = pd.DataFrame({"street_name": data})
-    noised_data = NOISE_TYPES.make_phonetic_errors(df, config, RANDOMNESS0, "dataset", "street_name")
+    noised_data = NOISE_TYPES.make_phonetic_errors(
+        df, config, RANDOMNESS0, "dataset", "street_name"
+    )
 
     for key in phonetic_errors_dict.keys():
         key_idx = data.index[data == key]
@@ -817,7 +831,9 @@ def test_ocr_replacement_values():
     config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["employer_name"][
         NOISE_TYPES.make_ocr_errors.name
     ]
-    noised_data = NOISE_TYPES.make_ocr_errors(df, config, RANDOMNESS0, "dataset", "employer_name")
+    noised_data = NOISE_TYPES.make_ocr_errors(
+        df, config, RANDOMNESS0, "dataset", "employer_name"
+    )
 
     for key in ocr_errors_dict.keys():
         key_idx = data.index[data == key]
