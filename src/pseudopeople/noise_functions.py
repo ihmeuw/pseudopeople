@@ -220,13 +220,7 @@ def swap_months_and_days(
     """
     from pseudopeople.schema_entities import DATASETS, DATEFORMATS
 
-    try:
-        date_format = DATASETS.get_dataset(dataset_name).date_format
-    except KeyError:
-        raise ConfigurationError(
-            f"Error while running noise function `swap_months_and_days' on column '{column_name}'. "
-            f"'{column_name}' does not have attribute date format. "
-        ) from None
+    date_format = DATASETS.get_dataset(dataset_name).date_format
 
     column = data[column_name]
     if date_format == DATEFORMATS.YYYYMMDD:  # YYYYMMDD
@@ -246,7 +240,7 @@ def swap_months_and_days(
         noised = day + month + year
     else:
         raise ValueError(
-            f"Invalid datetime format in {column.name}.  Please check input data."
+            f"Invalid date format in {dataset_name}."
         )
 
     return noised
