@@ -239,9 +239,7 @@ def swap_months_and_days(
         day = column.str[2:4]
         noised = day + month + year
     else:
-        raise ValueError(
-            f"Invalid date format in {dataset_name}."
-        )
+        raise ValueError(f"Invalid date format in {dataset_name}.")
 
     return noised
 
