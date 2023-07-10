@@ -126,11 +126,11 @@ def two_d_array_choice(
     data_idx = pd.Index(data.values)
     options = options.loc[data_idx]
     # Get number of options per name
-    number_of_nicknames = options.count(axis=1)
+    number_of_options = options.count(axis=1)
 
     # Find null values and calculate weights
     not_na = options.notna()
-    row_weights = np.ones(len(number_of_nicknames)) / number_of_nicknames
+    row_weights = np.ones(len(number_of_options)) / number_of_options
     weights = not_na.mul(row_weights, axis=0)
     pmf = weights.div(weights.sum(axis=1), axis=0)
     cdf = np.cumsum(pmf, axis=1)
@@ -163,7 +163,7 @@ def get_state_abbreviation(state: str) -> str:
     try:
         return metadata.US_STATE_ABBRV_MAP[state]
     except KeyError:
-        raise ValueError(f"Unexpected state input: '{state}'")
+        raise ValueError(f"Unexpected state input: '{state}'") from None
 
 
 ##########################

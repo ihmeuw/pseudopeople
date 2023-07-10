@@ -228,7 +228,7 @@ def swap_months_and_days(
         raise ConfigurationError(
             f"Error while running noise function `swap_months_and_days' on column '{column_name}'. "
             f"'{column_name}' does not have attribute date format. "
-        )
+        ) from None
 
     column = data[column_name]
     if date_format == DATEFORMATS.YYYYMMDD:  # YYYYMMDD
@@ -352,10 +352,10 @@ def write_wrong_digits(
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY] / 0.9
     rng = np.random.default_rng(randomness_stream.seed)
     column = column.astype(str)
-    longest_str = column.str.len().max()
-    same_len_col = column.str.pad(longest_str, side="right")
+    max_str_length = column.str.len().max()
+    same_len_col = column.str.pad(max_str_length, side="right")
     is_number = pd.concat(
-        [same_len_col.str[i].str.isdigit() for i in range(longest_str)], axis=1
+        [same_len_col.str[i].str.isdigit() for i in range(max_str_length)], axis=1
     )
 
     replace = (rng.random(is_number.shape) < token_noise_level) & is_number
@@ -508,53 +508,49 @@ def make_typos(
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :returns: pd.Series of column with noised data
     """
-
     with open(paths.QWERTY_ERRORS) as f:
         qwerty_errors = yaml.full_load(f)
-
-    def keyboard_corrupt(truth, corrupted_pr, addl_pr, rng):
-        """For each string, loop through each character and determine if
-        it is to be corrupted. If so, uniformly choose from the appropriate
-        values to mistype. Also determine which mistyped characters should
-        include the original value and, if it does, include the original value
-        after the mistyped value
-        """
-        err = ""
-        i = 0
-        while i < len(truth):
-            error_introduced = False
-            token = truth[i : (i + 1)]
-            if token in qwerty_errors and not error_introduced:
-                random_number = rng.uniform()
-                if random_number < corrupted_pr:
-                    err += rng.choice(qwerty_errors[token])
-                    random_number = rng.uniform()
-                    if random_number < addl_pr:
-                        err += token
-                    i += 1
-                    error_introduced = True
-            if not error_introduced:
-                err += truth[i : (i + 1)]
-                i += 1
-        return err
-
+    qwerty_errors = pd.DataFrame.from_dict(qwerty_errors, orient="index")
+    column = data[column_name]
+    if column.empty:
+        return column
+    column = column.astype(str)
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
     # TODO: remove this hard-coding
     include_token_probability_level = 0.1
-
     rng = np.random.default_rng(seed=randomness_stream.seed)
-    column = data[column_name]
-    column = column.astype(str)
-    for idx in column.index:
-        noised_value = keyboard_corrupt(
-            column[idx],
-            token_noise_level,
-            include_token_probability_level,
-            rng,
-        )
-        column[idx] = noised_value
 
-    return column
+    # Make all strings the same length by padding with spaces
+    max_str_length = column.str.len().max()
+    same_len_col = column.str.pad(max_str_length, side="right")
+
+    is_typo_option = pd.concat(
+        [same_len_col.str[i].isin(qwerty_errors.index) for i in range(max_str_length)], axis=1
+    )
+    replace = is_typo_option & (rng.random(is_typo_option.shape) < token_noise_level)
+    keep_original = replace & (
+        rng.random(is_typo_option.shape) < include_token_probability_level
+    )
+
+    # Loop through each column of string elements and apply noising
+    noised_column = pd.Series("", index=column.index, name=column.name)
+    for i in range(max_str_length):
+        orig = same_len_col.str[i]
+        replace_mask = replace.iloc[:, i]
+        keep_original_mask = keep_original.iloc[:, i]
+        typos = two_d_array_choice(
+            data=orig[replace_mask],
+            options=qwerty_errors,
+            randomness_stream=randomness_stream,
+            additional_key=f"{column_name}_{i}",
+        )
+        characters = orig.copy()
+        characters[replace_mask] = typos
+        characters[keep_original_mask] = characters + orig
+        noised_column = noised_column + characters
+    noised_column = noised_column.str.strip()
+
+    return noised_column
 
 
 def make_ocr_errors(
