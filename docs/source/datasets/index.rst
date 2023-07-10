@@ -465,6 +465,9 @@ also reported to the IRS on an annual basis. To find out more about the 1040 tax
 
 Generate 1040 data with pseudopeople.generate_taxes_1040.
 
+.. todo::
+  Add link to docstring once ready.
+
 The following columns are included in these datasets:
 
 .. list-table:: **Dataset columns**
@@ -518,10 +521,7 @@ The following columns are included in these datasets:
      - 
    * - Social security number 
      - :code:`ssn`
-     - 
-   * - Individual tax identification number
-     - :code:`itin`
-     - 
+     - Individual Taxpayer Identification Number (ITIN) if no SSN
    * - Income 
      - :code:`income`
      - 
@@ -551,58 +551,64 @@ The following columns are included in these datasets:
      - 
    * - Joint filer first name
      - :code:`spouse_first_name`
-     - Only included if the simulant has a joint filer (i.e., spouse).
+     - 
    * - Joint filer middle initial
      - :code:`spouse_middle_initial`
-     - Only included if the simulant has a joint filer (i.e., spouse).
+     - 
    * - Joint filer last name
      - :code:`spouse_last_name`
-     - Only included if the simulant has a joint filer (i.e., spouse).
-   * - Joint filer mailing address street number
-     - :code:`spouse_mailing_address_street_number`
-     - Only included if the simulant has a joint filer (i.e., spouse).
-   * - Joint filer mailing address street name
-     - :code:`spouse_mailing_address_street_name`
-     - Only included if the simulant has a joint filer (i.e., spouse).
-   * - Joint filer mailing address unit number
-     - :code:`spouse_mailing_address_unit_number`
-     - Only included if the simulant has a joint filer (i.e., spouse).
-   * - Joint filer mailing address PO box
-     - :code:`spouse_mailing_address_po_box`
-     - Only included if the simulant has a joint filer (i.e., spouse).
+     - 
    * - Joint filer social security number
      - :code:`spouse_ssn`
-     - Only included if the simulant has a joint filer (i.e., spouse).
-   * - Joint filer individual tax identification number
-     - :code:`spouse_itin`
-     - Only included if the simulant has a joint filer (i.e., spouse).
+     - Individual Taxpayer Identification Number (ITIN) if no SSN
    * - Joint filer income
      - :code:`spouse_income`
-     - Only included if the simulant has a joint filer (i.e., spouse).
+     - 
    * - Joint filer employer ID
      - :code:`spouse_employer_id`
-     - Only included if the simulant has a joint filer (i.e., spouse).
+     - 
    * - Joint filer employer name
      - :code:`spouse_employer_name`
-     - Only included if the simulant has a joint filer (i.e., spouse).
+     - 
    * - Joint filer employer address
      - :code:`spouse_employer_address`
-     - Only included if the simulant has a joint filer (i.e., spouse).
+     - 
    * - Joint filer employer ZIP code
      - :code:`spouse_employer_zipcode`
-     - Only included if the simulant has a joint filer (i.e., spouse).
+     - 
    * - Dependent 1 first name
      - :code:`dependent_1_first_name`
-     - Only included if the simulant has a tracked dependent; to be included for each dependent on the tax filing, up to 4 dependents.
-   * - Dependent 1 middle initial
-     - :code:`dependent_1_middle_initial`
-     - Only included if the simulant has a tracked dependent.
+     - 
    * - Dependent 1 last name
      - :code:`dependent_1_last_name`
-     - Only included if the simulant has a tracked dependent.
+     - 
    * - Dependent 1 social security number
      - :code:`dependent_1_ssn`
-     - Only included if the simulant has a tracked dependent.
-   * - Dependent 1 individual tax identification number
-     - :code:`dependent_1_itin`
-     - Only included if the simulant has a tracked dependent.
+     - Individual Taxpayer Identification Number (ITIN) if no SSN 
+   * - Dependent 2 first name
+     - :code:`dependent_2_first_name`
+     - 
+   * - Dependent 2 last name
+     - :code:`dependent_2_last_name`
+     - 
+   * - Dependent 2 social security number
+     - :code:`dependent_2_ssn`
+     - Individual Taxpayer Identification Number (ITIN) if no SSN 
+   * - Dependent 3 first name
+     - :code:`dependent_3_first_name`
+     - 
+   * - Dependent 3 last name
+     - :code:`dependent_3_last_name`
+     - 
+   * - Dependent 3 social security number
+     - :code:`dependent_3_ssn`
+     - Individual Taxpayer Identification Number (ITIN) if no SSN 
+   * - Dependent 4 first name
+     - :code:`dependent_4_first_name`
+     - 
+   * - Dependent 4 last name
+     - :code:`dependent_4_last_name`
+     - 
+   * - Dependent 4 social security number
+     - :code:`dependent_4_ssn`
+     - Individual Taxpayer Identification Number (ITIN) if no SSN 
