@@ -253,7 +253,7 @@ Swap month and day
 
 Swap month and day is a noise type that only applies to dates. It occurs when someone swaps the month and day to be in the incorrect position (e.g., December 8, 2022 would be listed in MM/DD/YYYY format as 08/12/2022).
 
-This noise type is called :code:`swap_month_and_day` in the configuration. It takes two parameters:
+This noise type is called :code:`swap_month_and_day` in the configuration. It takes one parameter:
 
 .. list-table:: Parameters to the swap_month_and_day noise type
   :widths: 1 5 1
@@ -263,15 +263,8 @@ This noise type is called :code:`swap_month_and_day` in the configuration. It ta
     - Description
     - Default
   * - :code:`cell_probability`
-    - The probability of a cell being *considered* to have this noise type.
-      One way to think about this is the probability that a date is typed out.
-      Whether or not there are actually any errors depends on the next parameter.
+    - The probability of a cell date having its month and day swapped.
     - 0.01 (1%)
-  * - :code:`token_probability`
-    - The probability of month and day swap.
-      **given that the cell is being considered for this noise type**.
-      One way to think about this is the probability of a month and day swap when the value is being typed out.
-    - 0.1 (10%)
 
 
 Make typos
