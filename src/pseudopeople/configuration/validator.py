@@ -16,6 +16,8 @@ def validate_user_configuration(user_config: Dict, default_config: ConfigTree) -
     keys exist in the default configuration. Confirms that all user-provided
     values are valid for their respective noise functions.
     """
+    if not isinstance(user_config, Dict):
+        raise ConfigurationError("Invalid configuration type provided.") from None
     for dataset, dataset_config in user_config.items():
         default_dataset_config = _get_default_config_node(default_config, dataset, "dataset")
         for key in dataset_config:
