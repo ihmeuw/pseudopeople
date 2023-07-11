@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -62,7 +64,9 @@ def test_generate_dataset_from_sample_and_source(
     data[split_idx:].to_parquet(outdir / f"{dataset_name}_2.parquet")
     # Generate a new (non-fixture) noised dataset from the split data in tmpdir
     noising_function = DATASET_GENERATION_FUNCS.get(dataset_name)
-    noised_dataset = noising_function(seed=SEED, year=None, source=tmpdir, config=user_config)
+    noised_dataset = noising_function(
+        seed=SEED, year=None, source=Path(tmpdir), config=user_config
+    )
 
     # Check that shapes and columns are identical
     assert noised_dataset.shape == noised_sample.shape

@@ -401,6 +401,7 @@ def fetch_filepaths(dataset: Dataset, source: Path) -> Union[List, List[dict]]:
             tax_dataset: get_dataset_filepaths(source, tax_dataset)
             for tax_dataset in tax_dataset_names
         }
+
         data_paths = []
         for i in range(len(tax_dataset_filepaths[DatasetNames.TAXES_1040])):
             shard_filepaths = {
@@ -409,7 +410,6 @@ def fetch_filepaths(dataset: Dataset, source: Path) -> Union[List, List[dict]]:
             }
             data_paths.append(shard_filepaths)
     else:
-        source = Path(source) / dataset.name
         data_paths = get_dataset_filepaths(source, dataset.name)
 
     return data_paths
