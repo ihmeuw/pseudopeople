@@ -385,8 +385,7 @@ def generate_social_security(
     return _generate_dataset(DATASETS.ssa, source, seed, config, user_filters, verbose)
 
 
-def fetch_filepaths(dataset, source):
-    # todo: add typing
+def fetch_filepaths(dataset: Dataset, source: Path) -> Union[List, List[dict]]:
     if dataset.name == DatasetNames.TAXES_1040:
         tax_dataset_names = [
             DatasetNames.TAXES_1040,
