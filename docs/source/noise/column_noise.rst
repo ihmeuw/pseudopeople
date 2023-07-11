@@ -268,7 +268,7 @@ This noise type is called :code:`swap_month_and_day` in the configuration. It ta
       Whether or not there are actually any errors depends on the next parameter.
     - 0.01 (1%)
   * - :code:`token_probability`
-    - The probability of month and day swap
+    - The probability of month and day swap.
       **given that the cell is being considered for this noise type**.
       One way to think about this is the probability of a month and day swap when the value is being typed out.
     - 0.1 (10%)
