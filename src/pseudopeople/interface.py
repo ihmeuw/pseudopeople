@@ -91,12 +91,14 @@ def _coerce_dtypes(data: pd.DataFrame, dataset: Dataset):
     return data
 
 
-def _load_data_from_path(data_path: Union[Path, dict], user_filters: List[Tuple]):
+def _load_data_from_path(
+    data_path: Union[Path, dict], user_filters: List[Tuple]
+) -> pd.DataFrame:
     """Load data from a data file given a data_path and a year_filter."""
     if isinstance(data_path, dict):
         data = load_and_prep_1040_data(data_path, user_filters)
     else:
-        data = load_file(data_path, user_filters)
+        data = load_standard_dataset_file(data_path, user_filters)
     return data
 
 
@@ -386,23 +388,29 @@ def generate_social_security(
 
 
 def fetch_filepaths(dataset: Dataset, source: Path) -> Union[List, List[dict]]:
+    # returns a list of filepaths for all Datasets except 1040.
+    # 1040 returns a list of dicts where each dict is a shard containing a key for each tax dataset
+    # with the corresponding filepath for that shard.
     if dataset.name == DatasetNames.TAXES_1040:
         tax_dataset_names = [
             DatasetNames.TAXES_1040,
             DatasetNames.TAXES_W2_1099,
             DatasetNames.TAXES_DEPENDENTS,
         ]
-        for tax_dataset in tax_dataset_names:
-            directory = source / tax_dataset
-            dataset_paths = [x for x in directory.glob(f"{tax_dataset}*")]
-            sorted_dataset_paths = sorted(dataset_paths)
-            if tax_dataset == DatasetNames.TAXES_1040:
-                data_paths = [{} for i in range(len(sorted_dataset_paths))]
-            for i in range(len(sorted_dataset_paths)):
-                data_paths[i][tax_dataset] = sorted_dataset_paths[i]
+        tax_dataset_filepaths = {
+            tax_dataset: get_dataset_filepaths(source, tax_dataset)
+            for tax_dataset in tax_dataset_names
+        }
+        data_paths = []
+        for i in range(len(tax_dataset_filepaths[DatasetNames.TAXES_1040])):
+            shard_filepaths = {
+                tax_dataset: filepaths[i]
+                for tax_dataset, filepaths in tax_dataset_filepaths.items()
+            }
+            data_paths.append(shard_filepaths)
     else:
         source = Path(source) / dataset.name
-        data_paths = [x for x in source.glob(f"{dataset.name}*")]
+        data_paths = get_dataset_filepaths(source, dataset.name)
 
     return data_paths
 
@@ -426,7 +434,7 @@ def validate_data_path_suffix(data_paths):
     return None
 
 
-def load_file(data_path: Path, user_filters: List[Tuple]) -> pd.DataFrame:
+def load_standard_dataset_file(data_path: Path, user_filters: List[Tuple]) -> pd.DataFrame:
     if data_path.suffix == ".parquet":
         if len(user_filters) == 0:
             # pyarrow.parquet.read_table doesn't accept an empty list
@@ -443,3 +451,10 @@ def load_file(data_path: Path, user_filters: List[Tuple]) -> pd.DataFrame:
         )
 
     return data
+
+
+def get_dataset_filepaths(source: Path, dataset_name: str) -> List[Path]:
+    directory = source / dataset_name
+    dataset_paths = [x for x in directory.glob(f"{dataset_name}*")]
+    sorted_dataset_paths = sorted(dataset_paths)
+    return sorted_dataset_paths
