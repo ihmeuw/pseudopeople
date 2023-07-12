@@ -507,7 +507,7 @@ The following columns are included in this dataset:
    * - Mailing address ZIP code
      - :code:`mailing_address_zipcode`
      - 
-   * - Social security number 
+   * - Social Security Number (SSN)
      - :code:`ssn`
      - Individual Taxpayer Identification Number (ITIN) if no SSN
    * - Income 
