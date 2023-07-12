@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -62,7 +64,9 @@ def test_generate_dataset_from_sample_and_source(
     data[split_idx:].to_parquet(outdir / f"{dataset_name}_2.parquet")
     # Generate a new (non-fixture) noised dataset from the split data in tmpdir
     noising_function = DATASET_GENERATION_FUNCS.get(dataset_name)
-    noised_dataset = noising_function(seed=SEED, year=None, source=tmpdir, config=user_config)
+    noised_dataset = noising_function(
+        seed=SEED, year=None, source=Path(tmpdir), config=user_config
+    )
 
     # Check that shapes and columns are identical
     assert noised_dataset.shape == noised_sample.shape
@@ -384,9 +388,9 @@ def test_generate_dataset_with_state_noised(dataset_name: str, request, tmpdir):
     _generate_non_sample_data_root(dataset_name, tmpdir, data)
 
     noising_function = DATASET_GENERATION_FUNCS[dataset_name]
-    noised_data = noising_function(source=tmpdir, seed=0, state=STATE)
-    noised_data_same_seed = noising_function(source=tmpdir, seed=0, state=STATE)
-    noised_data_different_seed = noising_function(source=tmpdir, seed=1, state=STATE)
+    noised_data = noising_function(source=Path(tmpdir), seed=0, state=STATE)
+    noised_data_same_seed = noising_function(source=Path(tmpdir), seed=0, state=STATE)
+    noised_data_different_seed = noising_function(source=Path(tmpdir), seed=1, state=STATE)
 
     assert not data.equals(noised_data)
     assert noised_data.equals(noised_data_same_seed)
@@ -416,7 +420,7 @@ def test_generate_dataset_with_state_filtered(dataset_name: str, request, mocker
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
 
     noising_function = DATASET_GENERATION_FUNCS[dataset_name]
-    noised_data = noising_function(source=tmpdir, state=STATE)
+    noised_data = noising_function(source=Path(tmpdir), state=STATE)
 
     assert (noised_data[dataset.state_column_name] == STATE).all()
 
@@ -444,7 +448,7 @@ def test_generate_dataset_with_state_unfiltered(dataset_name: str, request, mock
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
 
     noising_function = DATASET_GENERATION_FUNCS[dataset_name]
-    noised_data = noising_function(source=tmpdir)
+    noised_data = noising_function(source=Path(tmpdir))
 
     assert len(noised_data[dataset.state_column_name].unique()) > 1
 
@@ -463,7 +467,7 @@ def test_dataset_filter_by_state_and_year(mocker, tmpdir, request, dataset_name:
     mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
     noising_function = DATASET_GENERATION_FUNCS[dataset_name]
-    noised_data = noising_function(source=tmpdir, year=year, state=STATE)
+    noised_data = noising_function(source=Path(tmpdir), year=year, state=STATE)
     dataset = DATASETS.get_dataset(dataset_name)
     assert (noised_data[dataset.date_column_name] == year).all()
     assert (noised_data[dataset.state_column_name] == STATE).all()
@@ -483,7 +487,7 @@ def test_dataset_filter_by_state_and_year_with_full_dates(
     mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
     noising_function = DATASET_GENERATION_FUNCS[dataset_name]
-    noised_data = noising_function(source=tmpdir, year=year, state=STATE)
+    noised_data = noising_function(source=Path(tmpdir), year=year, state=STATE)
     dataset = DATASETS.get_dataset(dataset_name)
     # NB: conditional on date_format is potentially brittle if we have some noised
     #  date column with a different format.
@@ -521,7 +525,7 @@ def test_generate_dataset_with_bad_state(dataset_name: str, request, tmpdir):
 
     noising_function = DATASET_GENERATION_FUNCS[dataset_name]
     with pytest.raises(ValueError, match=bad_state.upper()):
-        _ = noising_function(source=tmpdir, state=bad_state)
+        _ = noising_function(source=Path(tmpdir), state=bad_state)
 
 
 ####################
