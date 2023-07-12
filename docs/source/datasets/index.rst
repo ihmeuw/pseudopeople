@@ -570,7 +570,7 @@ The following columns are included in these datasets:
    * - Dependent 1 last name
      - :code:`dependent_1_last_name`
      - 
-   * - Dependent 1 social security number
+   * - Dependent 1 Social Security Number (SSN)
      - :code:`dependent_1_ssn`
      - Individual Taxpayer Identification Number (ITIN) if no SSN 
    * - Dependent 2 first name
