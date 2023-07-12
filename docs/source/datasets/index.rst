@@ -454,7 +454,7 @@ The following columns are included in these datasets:
 
 Tax form: 1040
 --------------
-As with data collected from W-2 and 1099 forms, Pseudopeople will also enable the simulation of administrative records from 1040 forms, which are
+As with data collected from W-2 and 1099 forms, pseudopeople enables the simulation of administrative records from 1040 forms, which are
 also reported to the IRS on an annual basis. To find out more about the 1040 tax form, visit the `IRS information page <https://www.irs.gov/instructions/i1040gi>`_.
 
 Generate 1040 data with pseudopeople.generate_taxes_1040.
@@ -462,7 +462,7 @@ Generate 1040 data with pseudopeople.generate_taxes_1040.
 .. todo::
   Add link to docstring once ready.
 
-The following columns are included in these datasets:
+The following columns are included in this dataset:
 
 .. list-table:: **Dataset columns**
    :header-rows: 1
@@ -507,7 +507,7 @@ The following columns are included in these datasets:
    * - Mailing address ZIP code
      - :code:`mailing_address_zipcode`
      - 
-   * - Social security number 
+   * - Social Security Number (SSN)
      - :code:`ssn`
      - Individual Taxpayer Identification Number (ITIN) if no SSN
    * - Income 
@@ -516,7 +516,7 @@ The following columns are included in these datasets:
    * - Employer ID 
      - :code:`employer_id`
      -  
-   * - Employer Name 
+   * - Employer name
      - :code:`employer_name`
      - 
    * - Employer street number
@@ -570,7 +570,7 @@ The following columns are included in these datasets:
    * - Dependent 1 last name
      - :code:`dependent_1_last_name`
      - 
-   * - Dependent 1 social security number
+   * - Dependent 1 Social Security Number (SSN)
      - :code:`dependent_1_ssn`
      - Individual Taxpayer Identification Number (ITIN) if no SSN 
    * - Dependent 2 first name
