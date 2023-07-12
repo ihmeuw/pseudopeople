@@ -462,7 +462,7 @@ Generate 1040 data with pseudopeople.generate_taxes_1040.
 .. todo::
   Add link to docstring once ready.
 
-The following columns are included in these datasets:
+The following columns are included in this dataset:
 
 .. list-table:: **Dataset columns**
    :header-rows: 1
