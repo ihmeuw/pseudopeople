@@ -516,7 +516,7 @@ The following columns are included in this dataset:
    * - Employer ID 
      - :code:`employer_id`
      -  
-   * - Employer Name 
+   * - Employer name
      - :code:`employer_name`
      - 
    * - Employer street number
