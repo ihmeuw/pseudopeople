@@ -87,6 +87,9 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
   * - Write the wrong ZIP code digits 
     - ``write_wrong_zipcode_digits``
     - Writing ZIP code 98118 when you actually live in 98112
+  * - Swap month and day
+    - ``swap_month_and_day``
+    - Reporting 17/05/1976 when a survey asks for the date in MM/DD/YYYY format
   * - Make typos
     - ``make_typos``
     - Accidentally typing an "l" instead of a "k" because they are 
@@ -128,7 +131,7 @@ Noise types for each column
     -
   * - Date of birth
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, SSA
-    - Leave a field blank, write the wrong digits, make typos, make OCR errors
+    - Leave a field blank, write the wrong digits, swap month and day, make typos, make OCR errors
     -
   * - Street number for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
@@ -196,7 +199,7 @@ Noise types for each column
     -
   * - Date of SSA event
     - SSA
-    - Leave a field blank, write the wrong digits, make typos, make OCR errors
+    - Leave a field blank, write the wrong digits, swap month and day, make typos, make OCR errors
     -
 
 

@@ -248,6 +248,25 @@ It takes two parameters:
       The second value in the list is the corresponding probability for the second digit, and so on.
     - [0.04, 0.04, 0.20, 0.36, 0.36]
 
+Swap month and day
+------------------
+
+Swap month and day is a noise type that only applies to dates. It occurs when someone swaps the month and day to be in the incorrect position (e.g., December 8, 2022 would be listed in MM/DD/YYYY format as 08/12/2022).
+
+This noise type is called :code:`swap_month_and_day` in the configuration. It takes one parameter:
+
+.. list-table:: Parameters to the swap_month_and_day noise type
+  :widths: 1 5 1
+  :header-rows: 1
+
+  * - Parameter
+    - Description
+    - Default
+  * - :code:`cell_probability`
+    - The probability of a cell date having its month and day swapped.
+    - 0.01 (1%)
+
+
 Make typos
 ----------
 
