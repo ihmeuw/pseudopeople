@@ -420,7 +420,7 @@ def load_and_prep_1040_data(data_path: dict, user_filters: List[Tuple]) -> pd.Da
     return pd.DataFrame()
 
 
-def validate_data_path_suffix(data_paths):
+def validate_data_path_suffix(data_paths) -> None:
     if isinstance(data_paths[0], dict):
         suffix = set(x.suffix for item in data_paths for x in list(item.values()))
     else:
