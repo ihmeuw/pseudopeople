@@ -454,7 +454,7 @@ The following columns are included in these datasets:
 
 Tax form: 1040
 --------------
-As with data collected from W-2 and 1099 forms, Pseudopeople will also enable the simulation of administrative records from 1040 forms, which are
+As with data collected from W-2 and 1099 forms, pseudopeople enables the simulation of administrative records from 1040 forms, which are
 also reported to the IRS on an annual basis. To find out more about the 1040 tax form, visit the `IRS information page <https://www.irs.gov/instructions/i1040gi>`_.
 
 Generate 1040 data with pseudopeople.generate_taxes_1040.
