@@ -400,12 +400,6 @@ The following columns are included in these datasets:
    * - Last name
      - :code:`last_name`
      - 
-   * - Age
-     - :code:`age`  
-     - Rounded down to an integer.
-   * - Date of birth
-     - :code:`date_of_birth`
-     - Formatted as YYYY-MM-DD.
    * - Mailing address street number
      - :code:`mailing_address_street_number`
      - 
@@ -492,12 +486,6 @@ The following columns are included in these datasets:
    * - Last name
      - :code:`last_name`
      - 
-   * - Age
-     - :code:`age`  
-     - Rounded down to an integer.
-   * - Date of birth
-     - :code:`date_of_birth`
-     - Formatted as YYYY-MM-DD.
    * - Mailing address street number
      - :code:`mailing_address_street_number`
      - 
