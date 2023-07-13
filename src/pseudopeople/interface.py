@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
-from pseudopeople.constants.metadata import DatasetNames
+from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, DatasetNames
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.noise import noise_dataset
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
@@ -103,16 +103,16 @@ def _load_data_from_path(
 
 
 def _reformat_dates_for_noising(data: pd.DataFrame, dataset: Dataset):
-    """Formats SSA event_date and dates of birth, so they can be noised."""
+    """Formats date columns so they can be noised as strings."""
     data = data.copy()
-    if COLUMNS.ssa_event_date.name in data.columns and dataset == DATASETS.ssa:
-        # event_date -> YYYYMMDD
-        data[COLUMNS.ssa_event_date.name] = data[COLUMNS.ssa_event_date.name].dt.strftime(
-            "%Y%m%d"
-        )
-    if COLUMNS.dob.name in data.columns:
-        # date_of_birth -> MM/DD/YYYY
-        data[COLUMNS.dob.name] = data[COLUMNS.dob.name].dt.strftime("%m/%d/%Y")
+
+    for date_column in [COLUMNS.dob.name, COLUMNS.ssa_event_date.name]:
+        # Format both the actual column, and the shadow version that will be used
+        # to copy from a household member
+        for column in [date_column, COPY_HOUSEHOLD_MEMBER_COLS.get(date_column)]:
+            if column in data.columns:
+                data[column] = data[column].dt.strftime(dataset.date_format)
+
     return data
 
 

@@ -281,7 +281,7 @@ The following columns are included in this dataset:
      - Rounded down to an integer.
    * - Date of birth
      - :code:`date_of_birth`
-     - Formatted as MM/DD/YYYY.
+     - Formatted as MMDDYYYY.
    * - Physical address street number
      - :code:`street_number`
      - 
@@ -351,14 +351,14 @@ The following columns are included in this dataset:
      - Rounded down to an integer.
    * - Date of birth
      - :code:`date_of_birth`
-     - Formatted as YYYY-MM-DD.
+     - Formatted as YYYYMMDD.
    * - Social security number
      - :code:`ssn`
      - By default, the SSN column in the SSA dataset has no :ref:`column-based noise <column_noise>`.
        However, it can be :ref:`configured <configuration_main>` to have noise if desired.
    * - Date of event
      - :code:`event_date`
-     - Formatted as YYYY-MM-DD.  
+     - Formatted as YYYYMMDD.  
    * - Type of event
      - :code:`event_type`
      - Possible values are "Creation" and "Death". 
