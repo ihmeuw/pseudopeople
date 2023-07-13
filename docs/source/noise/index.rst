@@ -87,6 +87,9 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
   * - Write the wrong ZIP code digits 
     - ``write_wrong_zipcode_digits``
     - Writing ZIP code 98118 when you actually live in 98112
+  * - Swap month and day
+    - ``swap_month_and_day``
+    - Reporting 17/05/1976 when a survey asks for the date in MM/DD/YYYY format
   * - Make typos
     - ``make_typos``
     - Accidentally typing an "l" instead of a "k" because they are 
@@ -128,7 +131,7 @@ Noise types for each column
     -
   * - Date of birth
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, SSA
-    - Leave a field blank, write the wrong digits, make typos, make OCR errors
+    - Leave a field blank, write the wrong digits, swap month and day, make typos, make OCR errors
     -
   * - Street number for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
@@ -152,23 +155,23 @@ Noise types for each column
     - Noise for all types of addresses works in the same way
   * - State for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
-    - Leave a field blank 
+    - Leave a field blank, choose the wrong option 
     - Noise for all types of addresses works in the same way
   * - ZIP code for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
     - Leave a field blank, write the wrong zipcode digits, make typos, make OCR errors
     -
-  * - Relationship to head of household
+  * - Relationship to reference person
     - Decennial Census
-    - Leave a field blank
+    - Leave a field blank, choose the wrong option
     -
   * - Sex
     - Decennial Census, ACS, CPS, WIC
-    - Leave a field blank
+    - Leave a field blank, choose the wrong option
     -
   * - Race/ethnicity
     - Decennial Census, ACS, CPS, WIC
-    - Leave a field blank
+    - Leave a field blank, choose the wrong option
     -
   * - SSN
     - W-2 and 1099, SSA
@@ -188,15 +191,15 @@ Noise types for each column
     -
   * - Type of tax form
     - W-2 and 1099
-    - Leave a field blank
+    - Leave a field blank, choose the wrong option
     -
   * - Type of SSA event
     - SSA
-    - Leave a field blank
+    - Leave a field blank, choose the wrong option
     -
   * - Date of SSA event
     - SSA
-    - Leave a field blank, write the wrong digits, make typos, make OCR errors
+    - Leave a field blank, write the wrong digits, swap month and day, make typos, make OCR errors
     -
 
 

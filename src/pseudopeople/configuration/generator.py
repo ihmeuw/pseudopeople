@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 import yaml
 from vivarium.config_tree import ConfigTree
@@ -7,6 +7,7 @@ from vivarium.config_tree import ConfigTree
 from pseudopeople.configuration import NO_NOISE, Keys
 from pseudopeople.configuration.validator import validate_user_configuration
 from pseudopeople.constants.data_values import DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY
+from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
 
@@ -68,7 +69,9 @@ DEFAULT_NOISE_VALUES = {
 }
 
 
-def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> ConfigTree:
+def get_configuration(
+    user_configuration: Optional[Union[Path, str, Dict]] = None
+) -> ConfigTree:
     """
     Gets a noising configuration ConfigTree, optionally overridden by a user-provided YAML.
 
@@ -86,7 +89,7 @@ def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> Conf
     else:
         is_no_noise = False
     noising_configuration = _generate_configuration(is_no_noise)
-    if user_configuration:
+    if user_configuration is not None:
         add_user_configuration(noising_configuration, user_configuration)
 
     return noising_configuration

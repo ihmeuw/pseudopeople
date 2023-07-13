@@ -547,7 +547,14 @@ class __Datasets(NamedTuple):
         date_format=DATEFORMATS.MM_DD_YYYY,
     )
     # tax_1040: Dataset = Dataset(
-    #     Datasets.TAXES_1040,
+    #     DatasetNames.TAXES_1040,
+    #     columns=list(),
+    #     date_column_name=COLUMNS.tax_year.name,
+    #     state_column_name=COLUMNS.mailing_state.name,
+    #     row_noise_types=(
+    #         NOISE_TYPES.omit_row,
+    #         # NOISE_TYPES.duplication,
+    #     ),
     # )
 
     ##################

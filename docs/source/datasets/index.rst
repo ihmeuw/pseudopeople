@@ -88,7 +88,7 @@ The following columns are included in this dataset:
      - :code:`relationship_to_reference_person` 
      - Possible values for this indicator include:
        Reference person; Biological child; Adopted child; Stepchild; Sibling; Parent; Grandchild; Parent-in-law; Child-in-law; Other relative;
-       Roommate; Foster child; and Other nonrelative.
+       Roommate; Foster child; Other nonrelative; Noninstitutionalized GQ pop; and Institutionalized GQ pop.
    * - Sex 
      - :code:`sex`  
      - Binary; "male" or "female".
@@ -400,12 +400,6 @@ The following columns are included in these datasets:
    * - Last name
      - :code:`last_name`
      - 
-   * - Age
-     - :code:`age`  
-     - Rounded down to an integer.
-   * - Date of birth
-     - :code:`date_of_birth`
-     - Formatted as YYYY-MM-DD.
    * - Mailing address street number
      - :code:`mailing_address_street_number`
      - 
@@ -460,5 +454,149 @@ The following columns are included in these datasets:
 
 Tax form: 1040
 --------------
-As with data collected from W-2 and 1099 forms, Pseudopeople will also enable the simulation of administrative records from 1040 forms, which are
-also reported to the IRS on an annual basis. This feature has not yet been implemented, so please stay tuned for more information! 
+As with data collected from W-2 and 1099 forms, pseudopeople enables the simulation of administrative records from 1040 forms, which are
+also reported to the IRS on an annual basis. To find out more about the 1040 tax form, visit the `IRS information page <https://www.irs.gov/instructions/i1040gi>`_.
+
+Generate 1040 data with pseudopeople.generate_taxes_1040.
+
+.. todo::
+  Add link to docstring once ready.
+
+The following columns are included in this dataset:
+
+.. list-table:: **Dataset columns**
+   :header-rows: 1
+
+   * - Attribute Name
+     - Column Name
+     - Notes
+   * - Unique simulant ID
+     - :code:`simulant_id`
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation.
+   * - Unique household ID
+     - :code:`household_id`
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
+       datasets. 
+   * - First name
+     - :code:`first_name`
+     - 
+   * - Middle initial
+     - :code:`middle_initial`
+     - 
+   * - Last name
+     - :code:`last_name`
+     - 
+   * - Mailing address street number
+     - :code:`mailing_address_street_number`
+     - 
+   * - Mailing address street name
+     - :code:`mailing_address_street_name`
+     - 
+   * - Mailing address unit number
+     - :code:`mailing_address_unit_number`
+     - 
+   * - Mailing address PO box
+     - :code:`mailing_address_po_box`
+     - 
+   * - Mailing address city
+     - :code:`mailing_address_city`    
+     - 
+   * - Mailing address state
+     - :code:`mailing_address_state`  
+     - 
+   * - Mailing address ZIP code
+     - :code:`mailing_address_zipcode`
+     - 
+   * - Social Security Number (SSN)
+     - :code:`ssn`
+     - Individual Taxpayer Identification Number (ITIN) if no SSN
+   * - Income 
+     - :code:`income`
+     - 
+   * - Employer ID 
+     - :code:`employer_id`
+     -  
+   * - Employer name
+     - :code:`employer_name`
+     - 
+   * - Employer street number
+     - :code:`employer_street_number`
+     - 
+   * - Employer street name
+     - :code:`employer_street_name`
+     - 
+   * - Employer unit number
+     - :code:`employer_unit_number`
+     - 
+   * - Employer city
+     - :code:`employer_city`    
+     - 
+   * - Employer state
+     - :code:`employer_state`  
+     - 
+   * - Employer ZIP code
+     - :code:`employer_zipcode`
+     - 
+   * - Joint filer first name
+     - :code:`spouse_first_name`
+     - 
+   * - Joint filer middle initial
+     - :code:`spouse_middle_initial`
+     - 
+   * - Joint filer last name
+     - :code:`spouse_last_name`
+     - 
+   * - Joint filer social security number
+     - :code:`spouse_ssn`
+     - Individual Taxpayer Identification Number (ITIN) if no SSN
+   * - Joint filer income
+     - :code:`spouse_income`
+     - 
+   * - Joint filer employer ID
+     - :code:`spouse_employer_id`
+     - 
+   * - Joint filer employer name
+     - :code:`spouse_employer_name`
+     - 
+   * - Joint filer employer address
+     - :code:`spouse_employer_address`
+     - 
+   * - Joint filer employer ZIP code
+     - :code:`spouse_employer_zipcode`
+     - 
+   * - Dependent 1 first name
+     - :code:`dependent_1_first_name`
+     - 
+   * - Dependent 1 last name
+     - :code:`dependent_1_last_name`
+     - 
+   * - Dependent 1 Social Security Number (SSN)
+     - :code:`dependent_1_ssn`
+     - Individual Taxpayer Identification Number (ITIN) if no SSN 
+   * - Dependent 2 first name
+     - :code:`dependent_2_first_name`
+     - 
+   * - Dependent 2 last name
+     - :code:`dependent_2_last_name`
+     - 
+   * - Dependent 2 social security number
+     - :code:`dependent_2_ssn`
+     - Individual Taxpayer Identification Number (ITIN) if no SSN 
+   * - Dependent 3 first name
+     - :code:`dependent_3_first_name`
+     - 
+   * - Dependent 3 last name
+     - :code:`dependent_3_last_name`
+     - 
+   * - Dependent 3 social security number
+     - :code:`dependent_3_ssn`
+     - Individual Taxpayer Identification Number (ITIN) if no SSN 
+   * - Dependent 4 first name
+     - :code:`dependent_4_first_name`
+     - 
+   * - Dependent 4 last name
+     - :code:`dependent_4_last_name`
+     - 
+   * - Dependent 4 social security number
+     - :code:`dependent_4_ssn`
+     - Individual Taxpayer Identification Number (ITIN) if no SSN 

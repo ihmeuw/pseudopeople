@@ -52,18 +52,14 @@ def _generate_dataset(
             f"No datasets found at directory {str(source)}. "
             "Please provide the path to the unmodified root data directory."
         )
-    suffix = set(x.suffix for x in data_paths)
-    if len(suffix) > 1:
-        raise DataSourceError(
-            f"Only one type of file extension expected but more than one found: {suffix}. "
-            "Please provide the path to the unmodified root data directory."
-        )
+    validate_data_path_suffix(data_paths)
     noised_dataset = []
     iterator = (
         tqdm(data_paths, desc="Noising data", leave=False)
         if len(data_paths) > 1
         else data_paths
     )
+
     for data_path in iterator:
         logger.debug(f"Loading data from {data_path}.")
         data = _load_data_from_path(data_path, user_filters)
@@ -95,22 +91,14 @@ def _coerce_dtypes(data: pd.DataFrame, dataset: Dataset):
     return data
 
 
-def _load_data_from_path(data_path: Path, user_filters: List[Tuple]):
+def _load_data_from_path(
+    data_path: Union[Path, dict], user_filters: List[Tuple]
+) -> pd.DataFrame:
     """Load data from a data file given a data_path and a year_filter."""
-    if data_path.suffix == ".parquet":
-        if len(user_filters) == 0:
-            # pyarrow.parquet.read_table doesn't accept an empty list
-            user_filters = None
-        data = pq.read_table(data_path, filters=user_filters).to_pandas()
+    if isinstance(data_path, dict):
+        data = load_and_prep_1040_data(data_path, user_filters)
     else:
-        raise DataSourceError(
-            f"Source path must be a .parquet file. Provided {data_path.suffix}"
-        )
-    if not isinstance(data, pd.DataFrame):
-        raise DataSourceError(
-            f"File located at {data_path} must contain a pandas DataFrame. "
-            "Please provide the path to the unmodified root data directory."
-        )
+        data = load_standard_dataset_file(data_path, user_filters)
     return data
 
 
@@ -399,20 +387,74 @@ def generate_social_security(
     return _generate_dataset(DATASETS.ssa, source, seed, config, user_filters, verbose)
 
 
-def fetch_filepaths(dataset, source):
+def fetch_filepaths(dataset: Dataset, source: Path) -> Union[List, List[dict]]:
+    # returns a list of filepaths for all Datasets except 1040.
+    # 1040 returns a list of dicts where each dict is a shard containing a key for each tax dataset
+    # with the corresponding filepath for that shard.
     if dataset.name == DatasetNames.TAXES_1040:
         tax_dataset_names = [
             DatasetNames.TAXES_1040,
             DatasetNames.TAXES_W2_1099,
             DatasetNames.TAXES_DEPENDENTS,
         ]
+        tax_dataset_filepaths = {
+            tax_dataset: get_dataset_filepaths(source, tax_dataset)
+            for tax_dataset in tax_dataset_names
+        }
+
         data_paths = []
-        for tax_dataset in tax_dataset_names:
-            directory = source / tax_dataset
-            dataset_paths = [x for x in directory.glob(f"{tax_dataset}*")]
-            data_paths += dataset_paths
+        for i in range(len(tax_dataset_filepaths[DatasetNames.TAXES_1040])):
+            shard_filepaths = {
+                tax_dataset: filepaths[i]
+                for tax_dataset, filepaths in tax_dataset_filepaths.items()
+            }
+            data_paths.append(shard_filepaths)
     else:
-        source = Path(source) / dataset.name
-        data_paths = [x for x in source.glob(f"{dataset.name}*")]
+        data_paths = get_dataset_filepaths(source, dataset.name)
 
     return data_paths
+
+
+def load_and_prep_1040_data(data_path: dict, user_filters: List[Tuple]) -> pd.DataFrame:
+    # Function that loads all tax datasets and formats them to the DATASET.1040 schema
+    return pd.DataFrame()
+
+
+def validate_data_path_suffix(data_paths) -> None:
+    if isinstance(data_paths[0], dict):
+        suffix = set(x.suffix for item in data_paths for x in list(item.values()))
+    else:
+        suffix = set(x.suffix for x in data_paths)
+    if len(suffix) > 1:
+        raise DataSourceError(
+            f"Only one type of file extension expected but more than one found: {suffix}. "
+            "Please provide the path to the unmodified root data directory."
+        )
+
+    return None
+
+
+def load_standard_dataset_file(data_path: Path, user_filters: List[Tuple]) -> pd.DataFrame:
+    if data_path.suffix == ".parquet":
+        if len(user_filters) == 0:
+            # pyarrow.parquet.read_table doesn't accept an empty list
+            user_filters = None
+        data = pq.read_table(data_path, filters=user_filters).to_pandas()
+    else:
+        raise DataSourceError(
+            f"Source path must be a .parquet file. Provided {data_path.suffix}"
+        )
+    if not isinstance(data, pd.DataFrame):
+        raise DataSourceError(
+            f"File located at {data_path} must contain a pandas DataFrame. "
+            "Please provide the path to the unmodified root data directory."
+        )
+
+    return data
+
+
+def get_dataset_filepaths(source: Path, dataset_name: str) -> List[Path]:
+    directory = source / dataset_name
+    dataset_paths = [x for x in directory.glob(f"{dataset_name}*")]
+    sorted_dataset_paths = sorted(dataset_paths)
+    return sorted_dataset_paths
