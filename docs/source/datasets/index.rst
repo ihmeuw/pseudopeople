@@ -510,33 +510,6 @@ The following columns are included in this dataset:
    * - Social Security Number (SSN)
      - :code:`ssn`
      - Individual Taxpayer Identification Number (ITIN) if no SSN
-   * - Income 
-     - :code:`income`
-     - 
-   * - Employer ID 
-     - :code:`employer_id`
-     -  
-   * - Employer name
-     - :code:`employer_name`
-     - 
-   * - Employer street number
-     - :code:`employer_street_number`
-     - 
-   * - Employer street name
-     - :code:`employer_street_name`
-     - 
-   * - Employer unit number
-     - :code:`employer_unit_number`
-     - 
-   * - Employer city
-     - :code:`employer_city`    
-     - 
-   * - Employer state
-     - :code:`employer_state`  
-     - 
-   * - Employer ZIP code
-     - :code:`employer_zipcode`
-     - 
    * - Joint filer first name
      - :code:`spouse_first_name`
      - 
@@ -549,21 +522,6 @@ The following columns are included in this dataset:
    * - Joint filer social security number
      - :code:`spouse_ssn`
      - Individual Taxpayer Identification Number (ITIN) if no SSN
-   * - Joint filer income
-     - :code:`spouse_income`
-     - 
-   * - Joint filer employer ID
-     - :code:`spouse_employer_id`
-     - 
-   * - Joint filer employer name
-     - :code:`spouse_employer_name`
-     - 
-   * - Joint filer employer address
-     - :code:`spouse_employer_address`
-     - 
-   * - Joint filer employer ZIP code
-     - :code:`spouse_employer_zipcode`
-     - 
    * - Dependent 1 first name
      - :code:`dependent_1_first_name`
      - 
