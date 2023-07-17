@@ -167,7 +167,7 @@ Noise types for each column
     - Note that "borrowed" SSN only applies to the W-2 and 1099 dataset
   * - Income 
     - W-2 and 1099
-    - Leave a field blank, make typos
+    - Leave a field blank, write the wrong digits, make typos
     - 
   * - Employer ID
     - W-2 and 1099
