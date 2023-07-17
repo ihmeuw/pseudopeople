@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 import pandas as pd
-import pyarrow.parquet as pq
 from loguru import logger
 from tqdm import tqdm
 
@@ -10,6 +9,7 @@ from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, DatasetNames
 from pseudopeople.exceptions import DataSourceError
+from pseudopeople.loader import load_and_prep_1040_data, load_standard_dataset_file
 from pseudopeople.noise import noise_dataset
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
 from pseudopeople.utilities import configure_logging_to_terminal, get_state_abbreviation
@@ -394,7 +394,7 @@ def fetch_filepaths(dataset: Dataset, source: Path) -> Union[List, List[dict]]:
     if dataset.name == DatasetNames.TAXES_1040:
         tax_dataset_names = [
             DatasetNames.TAXES_1040,
-            DatasetNames.TAXES_W2_1099,
+            # DatasetNames.TAXES_W2_1099,
             DatasetNames.TAXES_DEPENDENTS,
         ]
         tax_dataset_filepaths = {
@@ -415,11 +415,6 @@ def fetch_filepaths(dataset: Dataset, source: Path) -> Union[List, List[dict]]:
     return data_paths
 
 
-def load_and_prep_1040_data(data_path: dict, user_filters: List[Tuple]) -> pd.DataFrame:
-    # Function that loads all tax datasets and formats them to the DATASET.1040 schema
-    return pd.DataFrame()
-
-
 def validate_data_path_suffix(data_paths) -> None:
     if isinstance(data_paths[0], dict):
         suffix = set(x.suffix for item in data_paths for x in list(item.values()))
@@ -432,25 +427,6 @@ def validate_data_path_suffix(data_paths) -> None:
         )
 
     return None
-
-
-def load_standard_dataset_file(data_path: Path, user_filters: List[Tuple]) -> pd.DataFrame:
-    if data_path.suffix == ".parquet":
-        if len(user_filters) == 0:
-            # pyarrow.parquet.read_table doesn't accept an empty list
-            user_filters = None
-        data = pq.read_table(data_path, filters=user_filters).to_pandas()
-    else:
-        raise DataSourceError(
-            f"Source path must be a .parquet file. Provided {data_path.suffix}"
-        )
-    if not isinstance(data, pd.DataFrame):
-        raise DataSourceError(
-            f"File located at {data_path} must contain a pandas DataFrame. "
-            "Please provide the path to the unmodified root data directory."
-        )
-
-    return data
 
 
 def get_dataset_filepaths(source: Path, dataset_name: str) -> List[Path]:
