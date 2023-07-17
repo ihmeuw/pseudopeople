@@ -73,10 +73,14 @@ def flatten_data(
     index_col: str,
     rank_col: str,
 <<<<<<< HEAD
+<<<<<<< HEAD
     value_cols: List[str],
 =======
     value_cols: list[str],
 >>>>>>> e70d81a (Format 1040 data, adds formatting functions to new loader module)
+=======
+    value_cols: List[str],
+>>>>>>> d4ed2f4 (Typing)
     ascending: bool = False,
 ) -> pd.DataFrame:
     # Function that takes a dataset and widens (pivots) it to capture multiple metadata columns
