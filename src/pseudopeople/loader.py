@@ -71,7 +71,7 @@ def flatten_data(
     data: pd.DataFrame,
     index_col: str,
     rank_col: str,
-    value_cols: list[str],
+    value_cols: List[str],
     ascending: bool = False,
 ) -> pd.DataFrame:
     # Function that takes a dataset and widens (pivots) it to capture multiple metadata columns
