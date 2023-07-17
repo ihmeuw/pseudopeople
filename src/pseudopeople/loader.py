@@ -71,7 +71,11 @@ def flatten_data(
     data: pd.DataFrame,
     index_col: str,
     rank_col: str,
+<<<<<<< HEAD
     value_cols: List[str],
+=======
+    value_cols: list[str],
+>>>>>>> e70d81a (Format 1040 data, adds formatting functions to new loader module)
     ascending: bool = False,
 ) -> pd.DataFrame:
     # Function that takes a dataset and widens (pivots) it to capture multiple metadata columns
@@ -97,6 +101,7 @@ def combine_joint_filers(data: pd.DataFrame) -> pd.DataFrame:
     reference_persons = data.loc[
         data[COLUMNS.relation_to_reference_person.name] == "Reference person"
     ]
+<<<<<<< HEAD
     independent_filers_index = data.index.difference(
         joint_filers.index.union(reference_persons.index)
     )
@@ -106,10 +111,24 @@ def combine_joint_filers(data: pd.DataFrame) -> pd.DataFrame:
     joint_filers = joint_filers.add_prefix("spouse_")
     # Merge spouses
     reference_persons_wide = reference_persons.merge(
+=======
+    no_spouses_index = data.index.difference(
+        joint_filers.index.union(reference_persons.index)
+    )
+    no_spouses = data.loc[no_spouses_index]
+
+    joint_filers = joint_filers.add_prefix("spouse_")
+    # Merge spouses
+    spouses = reference_persons.merge(
+>>>>>>> e70d81a (Format 1040 data, adds formatting functions to new loader module)
         joint_filers,
         left_on=COLUMNS.household_id.name,
         right_on=COLUMNS.spouse_household_id.name,
     )
+<<<<<<< HEAD
     joint_1040 = pd.concat([reference_persons_wide, independent_filers]).reset_index()
+=======
+    joint_1040 = pd.concat([spouses, no_spouses]).reset_index()
+>>>>>>> e70d81a (Format 1040 data, adds formatting functions to new loader module)
 
     return joint_1040
