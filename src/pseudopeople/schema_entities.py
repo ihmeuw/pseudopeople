@@ -387,7 +387,7 @@ class __Columns(NamedTuple):
         "simulant_id",
     )
     spouse_first_name: Column = Column(
-        "spouse_first_name",
+        "spouse_first_name", 
         (
             NOISE_TYPES.leave_blank,
             NOISE_TYPES.use_nickname,
