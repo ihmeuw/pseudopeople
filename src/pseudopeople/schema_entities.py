@@ -395,6 +395,7 @@ class __Columns(NamedTuple):
     simulant_id: Column = Column(
         "simulant_id",
     )
+<<<<<<< HEAD
     spouse_first_name: Column = Column(
         "spouse_first_name",
         (
@@ -439,6 +440,11 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_typos,
         ),
     )
+=======
+    spouse_household_id: Column = Column(
+        "spouse_household_id",
+    )
+>>>>>>> e70d81a (Format 1040 data, adds formatting functions to new loader module)
     ssa_event_date: Column = Column(
         "event_date",
         (
@@ -727,6 +733,7 @@ class __Datasets(NamedTuple):
         ),
         date_format=DATEFORMATS.MM_DD_YYYY,
     )
+<<<<<<< HEAD
     tax_1040: Dataset = Dataset(
         DatasetNames.TAXES_1040,
         columns=(  # This defines the output column order
@@ -766,6 +773,19 @@ class __Datasets(NamedTuple):
         row_noise_types=(NOISE_TYPES.omit_row,),
         date_format=DATEFORMATS.MM_DD_YYYY,
     )
+=======
+    # tax_1040: Dataset = Dataset(
+    #     DatasetNames.TAXES_1040,
+    #     columns=list(),
+    #     date_column_name=COLUMNS.tax_year.name,
+    #     state_column_name=COLUMNS.mailing_state.name,
+    #     row_noise_types=(
+    #         NOISE_TYPES.omit_row,
+    #         # NOISE_TYPES.duplication,
+    #     ),
+    #     date_format=DATEFORMATS.MM_DD_YYYY,
+    # )
+>>>>>>> e70d81a (Format 1040 data, adds formatting functions to new loader module)
 
     ##################
     # Helper methods #
