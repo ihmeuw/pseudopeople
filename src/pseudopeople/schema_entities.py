@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import NamedTuple, Optional, Tuple
 
 from pseudopeople.constants.metadata import DATEFORMATS, DatasetNames
@@ -773,6 +773,7 @@ class __Datasets(NamedTuple):
         row_noise_types=(NOISE_TYPES.omit_row,),
         date_format=DATEFORMATS.MM_DD_YYYY,
     )
+
 
     ##################
     # Helper methods #
