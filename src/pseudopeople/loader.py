@@ -97,18 +97,19 @@ def combine_joint_filers(data: pd.DataFrame) -> pd.DataFrame:
     reference_persons = data.loc[
         data[COLUMNS.relation_to_reference_person.name] == "Reference person"
     ]
-    no_spouses_index = data.index.difference(
+    independent_filers_index = data.index.difference(
         joint_filers.index.union(reference_persons.index)
     )
-    no_spouses = data.loc[no_spouses_index]
+    # This is a dataframe with all independent filing individuals that are not a reference person
+    independent_filers = data.loc[independent_filers_index]
 
     joint_filers = joint_filers.add_prefix("spouse_")
     # Merge spouses
-    spouses = reference_persons.merge(
+    reference_persons_wide = reference_persons.merge(
         joint_filers,
         left_on=COLUMNS.household_id.name,
         right_on=COLUMNS.spouse_household_id.name,
     )
-    joint_1040 = pd.concat([spouses, no_spouses]).reset_index()
+    joint_1040 = pd.concat([reference_persons_wide, independent_filers]).reset_index()
 
     return joint_1040
