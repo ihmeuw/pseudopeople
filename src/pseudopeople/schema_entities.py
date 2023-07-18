@@ -43,6 +43,18 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_typos,
         ),
     )
+    copy_age: Column = Column(
+        "copy_age",
+    )
+    copy_date_of_birth: Column = Column(
+        "copy_date_of_birth",
+    )
+    copy_ssn: Column = Column(
+        "copy_ssn",
+    )
+    date_of_birth: Column = Column(
+        "date_of_birth",
+    )
     dependent_1_first_name: Column = Column(
         "dependent_1_first_name",
         (
@@ -385,6 +397,9 @@ class __Columns(NamedTuple):
     )
     simulant_id: Column = Column(
         "simulant_id",
+    )
+    spouse_copy_ssn: Column = Column(
+        "spouse_copy_ssn",
     )
     spouse_first_name: Column = Column(
         "spouse_first_name",

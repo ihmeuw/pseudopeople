@@ -387,6 +387,48 @@ def generate_social_security(
     return _generate_dataset(DATASETS.ssa, source, seed, config, user_filters, verbose)
 
 
+def generate_taxes_1040(
+    source: Union[Path, str] = None,
+    seed: int = 0,
+    config: Union[Path, str, Dict[str, Dict]] = None,
+    year: Optional[int] = 2020,
+    state: Optional[str] = None,
+    verbose: bool = False,
+) -> pd.DataFrame:
+    """
+    Generates a pseudopeople 1040 tax dataset which represents simulated
+    tax form data.
+
+    :param source: The root directory containing pseudopeople input data. Defaults
+        to the pseudopeople sample datasets directory.
+    :param seed: An integer seed for randomness. Defaults to 0.
+    :param config: An optional override to the default configuration. Can be a path
+        to a configuration YAML file or a dictionary.
+    :param year: The tax year (format YYYY) to include in the dataset. Will return
+        an empty pd.DataFrame if there are no data with this year. If None is provided,
+        data from all years are included in the dataset.
+    :param state: The state string to include in the dataset. Either full name or
+        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
+        data pertaining to this state. If None is provided, data from all locations are
+        included in the dataset.
+    :param verbose: Log with verbosity if True.
+    :return: A pd.DataFrame of simulated 1040 tax data.
+    :raises ConfigurationError: An incorrect config is provided.
+    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
+    """
+    user_filters = []
+    if year:
+        user_filters.append((DATASETS.tax_1040.date_column_name, "==", year))
+        seed = seed * 10_000 + year
+    if state:
+        user_filters.append(
+            (DATASETS.tax_1040.state_column_name, "==", get_state_abbreviation(state))
+        )
+    return _generate_dataset(
+        DATASETS.tax_1040, source, seed, config, user_filters, verbose
+    )
+
+
 def fetch_filepaths(dataset: Dataset, source: Path) -> Union[List, List[dict]]:
     # returns a list of filepaths for all Datasets except 1040.
     # 1040 returns a list of dicts where each dict is a shard containing a key for each tax dataset

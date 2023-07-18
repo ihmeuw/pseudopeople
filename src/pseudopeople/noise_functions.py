@@ -10,7 +10,6 @@ from pseudopeople.configuration import Keys
 from pseudopeople.constants import data_values, paths
 from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, DatasetNames
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
-from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.noise_scaling import load_nicknames_data
 from pseudopeople.utilities import (
     get_index_to_noise,
@@ -416,7 +415,20 @@ def use_fake_names(
     column = data[column_name]
     fake_first = fake_first_names
     fake_last = fake_last_names
-    fake_names = {"first_name": fake_first, "last_name": fake_last}
+    fake_names = {
+        "first_name": fake_first, 
+        "last_name": fake_last,
+        "spouse_first_name": fake_first,
+        "spouse_last_name": fake_last,
+        "dependent_1_first_name": fake_first,
+        "dependent_1_last_name": fake_last,
+        "dependent_2_first_name": fake_first,
+        "dependent_2_last_name": fake_last,
+        "dependent_3_first_name": fake_first,
+        "dependent_3_last_name": fake_last,
+        "dependent_4_first_name": fake_first,
+        "dependent_4_last_name": fake_last,
+        }
     options = fake_names[column_name]
 
     new_values = vectorized_choice(
