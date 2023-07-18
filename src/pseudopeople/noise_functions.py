@@ -416,7 +416,7 @@ def use_fake_names(
     fake_first = fake_first_names
     fake_last = fake_last_names
     fake_names = {
-        "first_name": fake_first,
+        "first_name": fake_first, 
         "last_name": fake_last,
         "spouse_first_name": fake_first,
         "spouse_last_name": fake_last,
@@ -428,7 +428,7 @@ def use_fake_names(
         "dependent_3_last_name": fake_last,
         "dependent_4_first_name": fake_first,
         "dependent_4_last_name": fake_last,
-    }
+        }
     options = fake_names[column_name]
 
     new_values = vectorized_choice(
