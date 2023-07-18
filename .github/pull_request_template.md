@@ -23,4 +23,4 @@ integration test for a framework change. Consider: plots, images,
 CI WILL NOT RUN ANY TESTS MARKED AS SLOW (CURRENTLY INCLUDES INTEGRATION TESTS).
 MANUALLY RUN SLOW TESTS LIKE `pytest --runslow` WITH EACH PR.
 -->
-- *Slow tests pass? (Y/N)*: <!-- `pytest --runslow`>
+- *Slow tests pass? (Y/N)*: <!-- `pytest --runslow -->
