@@ -20,7 +20,7 @@ integration test for a framework change. Consider: plots, images,
 (small) csv file.
 
 *** REMINDER ***
-CI WILL NOT RUN INTEGRATION TESTS SINCE THEY ARE CURRENTLY MARKED AS SLOW.
-MANUALLY RUN `pytest --runslow` WITH EACH PR.
+CI WILL NOT RUN ANY TESTS MARKED AS SLOW (CURRENTLY INCLUDES INTEGRATION TESTS).
+MANUALLY RUN SLOW TESTS LIKE `pytest --runslow` WITH EACH PR.
 -->
-- *Integration tests pass? (Y/N)*: <!-- `pytest --runslow`>
+- *Slow tests pass? (Y/N)*: <!-- `pytest --runslow`>
