@@ -129,6 +129,9 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_typos,
         ),
     )
+    guardian_id: Column = Column(
+        "guardian_id",
+    )
     household_id: Column = Column(
         "household_id",
     )
@@ -258,6 +261,9 @@ class __Columns(NamedTuple):
     )
     simulant_id: Column = Column(
         "simulant_id",
+    )
+    spouse_household_id: Column = Column(
+        "spouse_household_id",
     )
     ssa_event_date: Column = Column(
         "event_date",
@@ -555,6 +561,7 @@ class __Datasets(NamedTuple):
     #         NOISE_TYPES.omit_row,
     #         # NOISE_TYPES.duplication,
     #     ),
+    #     date_format=DATEFORMATS.MM_DD_YYYY,
     # )
 
     ##################
