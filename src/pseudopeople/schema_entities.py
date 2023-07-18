@@ -52,7 +52,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
-        )
+        ),
     )
     dependent_2_first_name: Column = Column(
         "dependent_2_first_name",
@@ -63,7 +63,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
-        )
+        ),
     )
     dependent_3_first_name: Column = Column(
         "dependent_3_first_name",
@@ -74,7 +74,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
-        )
+        ),
     )
     dependent_4_first_name: Column = Column(
         "dependent_4_first_name",
@@ -85,7 +85,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
-        )
+        ),
     )
     dependent_1_last_name: Column = Column(
         "dependent_1_last_name",
@@ -95,7 +95,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
-        )
+        ),
     )
     dependent_2_last_name: Column = Column(
         "dependent_2_last_name",
@@ -105,7 +105,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
-        )
+        ),
     )
     dependent_3_last_name: Column = Column(
         "dependent_3_last_name",
@@ -115,7 +115,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
-        )
+        ),
     )
     dependent_4_last_name: Column = Column(
         "dependent_4_last_name",
@@ -125,7 +125,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
-        )
+        ),
     )
     dependent_1_ssn: Column = Column(
         "dependent_1_ssn",
@@ -135,7 +135,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
-        )
+        ),
     )
     dependent_2_ssn: Column = Column(
         "dependent_2_ssn",
@@ -145,7 +145,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
-        )
+        ),
     )
     dependent_3_ssn: Column = Column(
         "dependent_3_ssn",
@@ -155,7 +155,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
-        )
+        ),
     )
     dependent_4_ssn: Column = Column(
         "dependent_4_ssn",
@@ -165,7 +165,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
-        )
+        ),
     )
     dob: Column = Column(
         "date_of_birth",
@@ -387,15 +387,15 @@ class __Columns(NamedTuple):
         "simulant_id",
     )
     spouse_first_name: Column = Column(
-        "spouse_first_name", 
+        "spouse_first_name",
         (
             NOISE_TYPES.leave_blank,
             NOISE_TYPES.use_nickname,
             NOISE_TYPES.use_fake_name,
             NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
-            NOISE_TYPES.make_typos, 
-        )
+            NOISE_TYPES.make_typos,
+        ),
     )
     spouse_household_id: Column = Column(
         "spouse_household_id",
@@ -408,8 +408,8 @@ class __Columns(NamedTuple):
             NOISE_TYPES.use_fake_name,
             NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
-            NOISE_TYPES.make_typos,  
-        )
+            NOISE_TYPES.make_typos,
+        ),
     )
     spouse_middle_initial: Column = Column(
         "spouse_middle_initial",
@@ -418,7 +418,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
-        )
+        ),
     )
     spouse_ssn: Column = Column(
         "spouse_ssn",
@@ -428,8 +428,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
-
-        )
+        ),
     )
     ssa_event_date: Column = Column(
         "event_date",
@@ -750,7 +749,6 @@ class __Datasets(NamedTuple):
             COLUMNS.dependent_4_first_name,
             COLUMNS.dependent_4_last_name,
             COLUMNS.dependent_4_ssn,
-
         ),
         date_column_name=COLUMNS.tax_year.name,
         state_column_name=COLUMNS.mailing_state.name,
