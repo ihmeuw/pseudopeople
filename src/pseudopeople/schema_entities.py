@@ -140,8 +140,8 @@ class __Columns(NamedTuple):
         "dependent_1_ssn",
         (
             NOISE_TYPES.leave_blank,
-            NOISE_TYPES.use_fake_name,
-            NOISE_TYPES.make_phonetic_errors,
+            NOISE_TYPES.copy_from_household_member,
+            NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -150,8 +150,8 @@ class __Columns(NamedTuple):
         "dependent_2_ssn",
         (
             NOISE_TYPES.leave_blank,
-            NOISE_TYPES.use_fake_name,
-            NOISE_TYPES.make_phonetic_errors,
+            NOISE_TYPES.copy_from_household_member,
+            NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -160,8 +160,8 @@ class __Columns(NamedTuple):
         "dependent_3_ssn",
         (
             NOISE_TYPES.leave_blank,
-            NOISE_TYPES.use_fake_name,
-            NOISE_TYPES.make_phonetic_errors,
+            NOISE_TYPES.copy_from_household_member,
+            NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
@@ -170,8 +170,8 @@ class __Columns(NamedTuple):
         "dependent_4_ssn",
         (
             NOISE_TYPES.leave_blank,
-            NOISE_TYPES.use_fake_name,
-            NOISE_TYPES.make_phonetic_errors,
+            NOISE_TYPES.copy_from_household_member,
+            NOISE_TYPES.write_wrong_digits,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
