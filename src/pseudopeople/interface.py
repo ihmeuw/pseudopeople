@@ -424,9 +424,7 @@ def generate_taxes_1040(
         user_filters.append(
             (DATASETS.tax_1040.state_column_name, "==", get_state_abbreviation(state))
         )
-    return _generate_dataset(
-        DATASETS.tax_1040, source, seed, config, user_filters, verbose
-    )
+    return _generate_dataset(DATASETS.tax_1040, source, seed, config, user_filters, verbose)
 
 
 def fetch_filepaths(dataset: Dataset, source: Path) -> Union[List, List[dict]]:

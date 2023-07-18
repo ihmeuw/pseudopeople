@@ -52,9 +52,6 @@ class __Columns(NamedTuple):
     copy_ssn: Column = Column(
         "copy_ssn",
     )
-    date_of_birth: Column = Column(
-        "date_of_birth",
-    )
     dependent_1_first_name: Column = Column(
         "dependent_1_first_name",
         (
