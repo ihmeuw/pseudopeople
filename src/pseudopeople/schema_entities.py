@@ -43,6 +43,130 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_typos,
         ),
     )
+    dependent_1_first_name: Column = Column(
+        "dependent_1_first_name",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.use_nickname,
+            NOISE_TYPES.use_fake_name,
+            NOISE_TYPES.make_phonetic_errors,
+            NOISE_TYPES.make_ocr_errors,
+            NOISE_TYPES.make_typos,
+        ),
+    )
+    dependent_2_first_name: Column = Column(
+        "dependent_2_first_name",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.use_nickname,
+            NOISE_TYPES.use_fake_name,
+            NOISE_TYPES.make_phonetic_errors,
+            NOISE_TYPES.make_ocr_errors,
+            NOISE_TYPES.make_typos,
+        ),
+    )
+    dependent_3_first_name: Column = Column(
+        "dependent_3_first_name",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.use_nickname,
+            NOISE_TYPES.use_fake_name,
+            NOISE_TYPES.make_phonetic_errors,
+            NOISE_TYPES.make_ocr_errors,
+            NOISE_TYPES.make_typos,
+        ),
+    )
+    dependent_4_first_name: Column = Column(
+        "dependent_4_first_name",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.use_nickname,
+            NOISE_TYPES.use_fake_name,
+            NOISE_TYPES.make_phonetic_errors,
+            NOISE_TYPES.make_ocr_errors,
+            NOISE_TYPES.make_typos,
+        ),
+    )
+    dependent_1_last_name: Column = Column(
+        "dependent_1_last_name",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.use_fake_name,
+            NOISE_TYPES.make_phonetic_errors,
+            NOISE_TYPES.make_ocr_errors,
+            NOISE_TYPES.make_typos,
+        ),
+    )
+    dependent_2_last_name: Column = Column(
+        "dependent_2_last_name",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.use_fake_name,
+            NOISE_TYPES.make_phonetic_errors,
+            NOISE_TYPES.make_ocr_errors,
+            NOISE_TYPES.make_typos,
+        ),
+    )
+    dependent_3_last_name: Column = Column(
+        "dependent_3_last_name",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.use_fake_name,
+            NOISE_TYPES.make_phonetic_errors,
+            NOISE_TYPES.make_ocr_errors,
+            NOISE_TYPES.make_typos,
+        ),
+    )
+    dependent_4_last_name: Column = Column(
+        "dependent_4_last_name",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.use_fake_name,
+            NOISE_TYPES.make_phonetic_errors,
+            NOISE_TYPES.make_ocr_errors,
+            NOISE_TYPES.make_typos,
+        ),
+    )
+    dependent_1_ssn: Column = Column(
+        "dependent_1_ssn",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.copy_from_household_member,
+            NOISE_TYPES.write_wrong_digits,
+            NOISE_TYPES.make_ocr_errors,
+            NOISE_TYPES.make_typos,
+        ),
+    )
+    dependent_2_ssn: Column = Column(
+        "dependent_2_ssn",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.copy_from_household_member,
+            NOISE_TYPES.write_wrong_digits,
+            NOISE_TYPES.make_ocr_errors,
+            NOISE_TYPES.make_typos,
+        ),
+    )
+    dependent_3_ssn: Column = Column(
+        "dependent_3_ssn",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.copy_from_household_member,
+            NOISE_TYPES.write_wrong_digits,
+            NOISE_TYPES.make_ocr_errors,
+            NOISE_TYPES.make_typos,
+        ),
+    )
+    dependent_4_ssn: Column = Column(
+        "dependent_4_ssn",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.copy_from_household_member,
+            NOISE_TYPES.write_wrong_digits,
+            NOISE_TYPES.make_ocr_errors,
+            NOISE_TYPES.make_typos,
+        ),
+    )
     dob: Column = Column(
         "date_of_birth",
         (
@@ -262,8 +386,49 @@ class __Columns(NamedTuple):
     simulant_id: Column = Column(
         "simulant_id",
     )
+    spouse_first_name: Column = Column(
+        "spouse_first_name",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.use_nickname,
+            NOISE_TYPES.use_fake_name,
+            NOISE_TYPES.make_phonetic_errors,
+            NOISE_TYPES.make_ocr_errors,
+            NOISE_TYPES.make_typos,
+        ),
+    )
     spouse_household_id: Column = Column(
         "spouse_household_id",
+    )
+    spouse_last_name: Column = Column(
+        "spouse_last_name",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.use_nickname,
+            NOISE_TYPES.use_fake_name,
+            NOISE_TYPES.make_phonetic_errors,
+            NOISE_TYPES.make_ocr_errors,
+            NOISE_TYPES.make_typos,
+        ),
+    )
+    spouse_middle_initial: Column = Column(
+        "spouse_middle_initial",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.make_phonetic_errors,
+            NOISE_TYPES.make_ocr_errors,
+            NOISE_TYPES.make_typos,
+        ),
+    )
+    spouse_ssn: Column = Column(
+        "spouse_ssn",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.copy_from_household_member,
+            NOISE_TYPES.write_wrong_digits,
+            NOISE_TYPES.make_ocr_errors,
+            NOISE_TYPES.make_typos,
+        ),
     )
     ssa_event_date: Column = Column(
         "event_date",
@@ -552,17 +717,44 @@ class __Datasets(NamedTuple):
         ),
         date_format=DATEFORMATS.MM_DD_YYYY,
     )
-    # tax_1040: Dataset = Dataset(
-    #     DatasetNames.TAXES_1040,
-    #     columns=list(),
-    #     date_column_name=COLUMNS.tax_year.name,
-    #     state_column_name=COLUMNS.mailing_state.name,
-    #     row_noise_types=(
-    #         NOISE_TYPES.omit_row,
-    #         # NOISE_TYPES.duplication,
-    #     ),
-    #     date_format=DATEFORMATS.MM_DD_YYYY,
-    # )
+    tax_1040: Dataset = Dataset(
+        DatasetNames.TAXES_1040,
+        columns=(  # This defines the output column order
+            COLUMNS.simulant_id,
+            COLUMNS.household_id,
+            COLUMNS.first_name,
+            COLUMNS.middle_initial,
+            COLUMNS.last_name,
+            COLUMNS.mailing_street_number,
+            COLUMNS.mailing_street_name,
+            COLUMNS.mailing_unit_number,
+            COLUMNS.mailing_po_box,
+            COLUMNS.mailing_city,
+            COLUMNS.mailing_state,
+            COLUMNS.mailing_zipcode,
+            COLUMNS.ssn,
+            COLUMNS.spouse_first_name,
+            COLUMNS.spouse_middle_initial,
+            COLUMNS.spouse_last_name,
+            COLUMNS.spouse_ssn,
+            COLUMNS.dependent_1_first_name,
+            COLUMNS.dependent_1_last_name,
+            COLUMNS.dependent_1_ssn,
+            COLUMNS.dependent_2_first_name,
+            COLUMNS.dependent_2_last_name,
+            COLUMNS.dependent_2_ssn,
+            COLUMNS.dependent_3_first_name,
+            COLUMNS.dependent_3_last_name,
+            COLUMNS.dependent_3_ssn,
+            COLUMNS.dependent_4_first_name,
+            COLUMNS.dependent_4_last_name,
+            COLUMNS.dependent_4_ssn,
+        ),
+        date_column_name=COLUMNS.tax_year.name,
+        state_column_name=COLUMNS.mailing_state.name,
+        row_noise_types=(NOISE_TYPES.omit_row,),
+        date_format=DATEFORMATS.MM_DD_YYYY,
+    )
 
     ##################
     # Helper methods #
