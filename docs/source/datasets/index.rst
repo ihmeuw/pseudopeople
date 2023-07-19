@@ -89,8 +89,8 @@ The following columns are included in this dataset:
      - Possible values for housing type are "Household" for an individual
        household, or one of six different types of group quarters. The types of
        instiutional group quarters are "Carceral", "Nursing home", and "Other
-       institutional". The types of non-institutional group quarters are
-       "College", "Military", and "Other non-institutional".
+       institutional". The types of noninstitutional group quarters are
+       "College", "Military", and "Other noninstitutional".
    * - Relationship to reference person
      - :code:`relationship_to_reference_person`
      - Possible values for this indicator include:
@@ -171,8 +171,8 @@ The following columns are included in this dataset:
      - Possible values for housing type are "Household" for an individual
        household, or one of six different types of group quarters. The types of
        instiutional group quarters are "Carceral", "Nursing home", and "Other
-       institutional". The types of non-institutional group quarters are
-       "College", "Military", and "Other non-institutional".
+       institutional". The types of noninstitutional group quarters are
+       "College", "Military", and "Other noninstitutional".
    * - Relationship to reference person
      - :code:`relationship_to_reference_person`
      - Possible values for this indicator include:
