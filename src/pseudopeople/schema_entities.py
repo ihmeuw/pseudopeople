@@ -3,6 +3,7 @@ from typing import Dict, NamedTuple, Optional, Tuple
 
 from pseudopeople.constants.metadata import DATEFORMATS, DatasetNames
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
+from pseudopeople.noise_entities import NOISE_TYPES
 
 
 class DtypeNames:
@@ -22,9 +23,6 @@ class Column:
 
 class __Columns(NamedTuple):
     """Container that contains information about columns that have potential to be noised"""
-
-    # Hack to avoid circular dependencies
-    from pseudopeople.noise_entities import NOISE_TYPES
 
     age: Column = Column(
         "age",
@@ -563,9 +561,6 @@ class Dataset:
 
 class __Datasets(NamedTuple):
     """NamedTuple that contains information about datasets and their related columns"""
-
-    # Hack to avoid circular dependencies
-    from pseudopeople.noise_entities import NOISE_TYPES
 
     census: Dataset = Dataset(
         DatasetNames.CENSUS,
