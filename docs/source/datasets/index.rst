@@ -84,6 +84,13 @@ The following columns are included in this dataset:
    * - Physical address ZIP code
      - :code:`zipcode`
      -
+   * - Housing type
+     - :code:`housing_type`
+     - Possible values for housing type are "Household" for an individual
+       household, or one of six different types of group quarters. The types of
+       instiutional group quarters are "Carceral", "Nursing home", and "Other
+       institutional". The types of non-institutional group quarters are
+       "College", "Military", and "Other non-institutional".
    * - Relationship to reference person
      - :code:`relationship_to_reference_person`
      - Possible values for this indicator include:
