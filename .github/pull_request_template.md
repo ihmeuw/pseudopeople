@@ -18,5 +18,9 @@ Details on how code was verified, any unit tests local for the
 repo, regression testing, etc. At a minimum, this should include an
 integration test for a framework change. Consider: plots, images,
 (small) csv file.
--->
 
+*** REMINDER ***
+CI WILL NOT RUN ANY TESTS MARKED AS SLOW (CURRENTLY INCLUDES INTEGRATION TESTS).
+MANUALLY RUN SLOW TESTS LIKE `pytest --runslow` WITH EACH PR.
+-->
+- *Slow tests pass? (Y/N)*: <!-- `pytest --runslow` -->
