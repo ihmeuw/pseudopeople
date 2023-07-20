@@ -146,6 +146,9 @@ here are some next steps:
   take a look at the :ref:`Input Data page <input_data_main>`.
 * To dive deeper into noise, read the docs about :ref:`noise <noise_main>` and
   :ref:`noise configuration <configuration_main>`.
+* To stay informed and recieve updates about this software package
+  `join the mailing list here
+  <https://mailman11.u.washington.edu/mailman/listinfo/pseudopeople-users>`_.
 
 .. toctree::
    :hidden:
