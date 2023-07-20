@@ -177,10 +177,10 @@ Noise types for each column
     - W-2 and 1099, SSA
     - "Borrowed" SSN, leave a field blank, write the wrong digits, make typos, make OCR errors
     - Note that "borrowed" SSN only applies to the W-2 and 1099 dataset
-  * - Income / wages
+  * - Income 
     - W-2 and 1099
-    - Leave a field blank, make typos, make OCR errors
-    - Note that wages and income are on separate tax forms and noise is applied to each separately
+    - Leave a field blank, write the wrong digits, make typos, make OCR errors
+    - 
   * - Employer ID
     - W-2 and 1099
     - Leave a field blank, write the wrong digits, make typos, make OCR errors
