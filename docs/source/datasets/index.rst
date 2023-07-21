@@ -94,8 +94,12 @@ The following columns are included in this dataset:
    * - Relationship to reference person
      - :code:`relationship_to_reference_person`
      - Possible values for this indicator include:
-       Reference person; Biological child; Adopted child; Stepchild; Sibling; Parent; Grandchild; Parent-in-law; Child-in-law; Other relative;
-       Roommate; Foster child; Other nonrelative; Noninstitutionalized GQ pop; and Institutionalized GQ pop.
+       "Reference person"; "Opposite-sex spouse"; "Opposite-sex unmarried
+       partner"; "Same-sex spouse"; "Same-sex unmarried partner"; "Biological
+       child"; "Adopted child"; "Stepchild"; "Sibling"; "Parent"; "Grandchild";
+       "Parent-in-law"; "Child-in-law"; "Other relative"; "Roommate"; "Foster
+       child"; "Other nonrelative"; "Institutionalized group quarters
+       population"; and "Noninstitutionalized group quarters population".
    * - Sex
      - :code:`sex`
      - Binary; "male" or "female".
