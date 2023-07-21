@@ -3,11 +3,7 @@ import pytest
 
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import DatasetNames
-from pseudopeople.loader import (
-    combine_joint_filers,
-    flatten_data,
-    load_and_prep_1040_data,
-)
+from pseudopeople.loader import combine_joint_filers, flatten_data, load_and_prep_1040_data
 from pseudopeople.schema_entities import COLUMNS, DATASETS
 
 
