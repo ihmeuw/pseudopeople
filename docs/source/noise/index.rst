@@ -9,7 +9,7 @@ to add noise to the simulated data. "Noise" refers to various types of errors
 introduced into the data and may also be called "corruption" or "distortion." By
 default, pseudopeople applies noise to the simulated datasets using some
 reasonable settings. If desired, the user can change the noise settings through
-the configuration system---see the :ref:`Configuration section <configuration_main>` 
+the configuration system---see the :ref:`Configuration section <configuration_main>`
 for details.
 
 .. contents::
@@ -46,18 +46,18 @@ Noise types are applied in the order they are listed here.
 The "Config key" column shows the name of the noise type in the :ref:`configuration system <configuration_main>`.
 
 .. list-table:: Types of row-based noise (``row_noise``)
-  :widths: 1 2 5 
+  :widths: 1 2 5
   :header-rows: 1
 
   * - Noise type
-    - Config key 
+    - Config key
     - Example cause
   * - Omit a row
     - ``omit_row``
     - Neglecting to file a tax form on time
 
 .. list-table:: Types of column-based noise (``column_noise``)
-  :widths: 1 2 5 
+  :widths: 1 2 5
   :header-rows: 1
 
   * - Noise type
@@ -84,7 +84,7 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
   * - Write the wrong digits
     - ``write_wrong_digits``
     - Writing "732 Main St" as your street address instead of "932 Main St"
-  * - Write the wrong ZIP code digits 
+  * - Write the wrong ZIP code digits
     - ``write_wrong_zipcode_digits``
     - Writing ZIP code 98118 when you actually live in 98112
   * - Swap month and day
@@ -92,7 +92,7 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
     - Reporting 17/05/1976 when a survey asks for the date in MM/DD/YYYY format
   * - Make typos
     - ``make_typos``
-    - Accidentally typing an "l" instead of a "k" because they are 
+    - Accidentally typing an "l" instead of a "k" because they are
       right next to each other on a QWERTY keyboard
   * - Make Optical Character Recognition (OCR) errors
     - ``make_ocr_errors``
@@ -155,14 +155,18 @@ Noise types for each column
     - Noise for all types of addresses works in the same way
   * - State for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
-    - Leave a field blank, choose the wrong option 
+    - Leave a field blank, choose the wrong option
     - Noise for all types of addresses works in the same way
   * - ZIP code for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099
     - Leave a field blank, write the wrong zipcode digits, make typos, make OCR errors
     -
+  * - Housing type
+    - Decennial Census, ACS
+    - Leave a field blank, choose the wrong option
+    -
   * - Relationship to reference person
-    - Decennial Census
+    - Decennial Census, ACS
     - Leave a field blank, choose the wrong option
     -
   * - Sex
@@ -184,7 +188,7 @@ Noise types for each column
   * - Employer ID
     - W-2 and 1099
     - Leave a field blank, write the wrong digits, make typos, make OCR errors
-    - 
+    -
   * - Employer name
     - W-2 and 1099
     - Leave a field blank, make typos, make OCR errors
