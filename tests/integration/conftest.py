@@ -3,12 +3,14 @@ import pytest
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants import paths
+from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.interface import (
     _reformat_dates_for_noising,
     generate_american_community_survey,
     generate_current_population_survey,
     generate_decennial_census,
     generate_social_security,
+    generate_taxes_1040,
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
@@ -31,8 +33,36 @@ IDX_COLS = {
         COLUMNS.tax_year.name,
         COLUMNS.employer_id.name,
     ],
-    # DATASETS.tax_1040.name: "todo",
+    DATASETS.tax_1040.name: [
+        COLUMNS.simulant_id.name,
+        COLUMNS.tax_year.name,
+    ],
 }
+
+
+@pytest.fixture(scope="session")
+def split_sample_data_dir(tmpdir_factory):
+    datasets = [
+        # DatasetNames.CENSUS,
+        # DatasetNames.ACS,
+        # DatasetNames.CPS,
+        # DatasetNames.SSA,
+        # DatasetNames.TAXES_W2_1099,
+        # DatasetNames.WIC,
+        DatasetNames.TAXES_1040,
+        DatasetNames.TAXES_DEPENDENTS,
+    ]
+    split_sample_data_dir = tmpdir_factory.mktemp("split_sample_data")
+    for dataset in datasets:
+        data = _load_sample_data(dataset)
+        # Split the sample dataset into two and save in tmpdir
+        outdir = split_sample_data_dir.mkdir(dataset)
+        split_idx = int(len(data) / 2)
+        breakpoint()
+        data[:split_idx].to_parquet(outdir / f"{dataset}_1.parquet")
+        data[split_idx:].to_parquet(outdir / f"{dataset}_2.parquet")
+
+    return split_sample_data_dir
 
 
 @pytest.fixture(scope="module")
@@ -69,40 +99,46 @@ def user_config():
     return config
 
 
-# Raw sample datasets
-@pytest.fixture(scope="module")
-def sample_data_decennial_census():
-    return _load_sample_data("decennial_census")
+# # Raw sample datasets
+# @pytest.fixture(scope="module")
+# def sample_data_decennial_census():
+#     return _load_sample_data("decennial_census")
 
 
-@pytest.fixture(scope="module")
-def sample_data_american_community_survey():
-    return _load_sample_data("american_community_survey")
+# @pytest.fixture(scope="module")
+# def sample_data_american_community_survey():
+#     return _load_sample_data("american_community_survey")
 
 
-@pytest.fixture(scope="module")
-def sample_data_current_population_survey():
-    return _load_sample_data("current_population_survey")
+# @pytest.fixture(scope="module")
+# def sample_data_current_population_survey():
+#     return _load_sample_data("current_population_survey")
 
 
-@pytest.fixture(scope="module")
-def sample_data_women_infants_and_children():
-    return _load_sample_data("women_infants_and_children")
+# @pytest.fixture(scope="module")
+# def sample_data_women_infants_and_children():
+#     return _load_sample_data("women_infants_and_children")
 
 
-@pytest.fixture(scope="module")
-def sample_data_social_security():
-    return _load_sample_data("social_security")
+# @pytest.fixture(scope="module")
+# def sample_data_social_security():
+#     return _load_sample_data("social_security")
 
 
-@pytest.fixture(scope="module")
-def sample_data_taxes_w2_and_1099():
-    return _load_sample_data("taxes_w2_and_1099")
+# @pytest.fixture(scope="module")
+# def sample_data_taxes_w2_and_1099():
+#     return _load_sample_data("taxes_w2_and_1099")
 
 
-@pytest.fixture(scope="module")
-def sample_data_taxes_1040():
-    return _load_sample_data("taxes_1040")
+# @pytest.fixture(scope="module")
+# def sample_data_taxes_1040():
+#     # datasets = [DatasetNames.TAXES_1040,  DatasetNames.TAXES_DEPENDENTS]
+#     # data_paths = {
+#     #         tax_dataset: get_dataset_filepaths(source, tax_dataset)
+#     #         for tax_dataset in tax_dataset_names
+#     #     }
+#     # return load_and_prep_1040_data
+#     return _load_sample_data("taxes_1040")
 
 
 # Noised sample datasets
@@ -136,9 +172,9 @@ def noised_sample_data_taxes_w2_and_1099(user_config):
     return generate_taxes_w2_and_1099(seed=SEED, year=None, config=user_config)
 
 
-# @pytest.fixture(scope="module")
-# def noised_sample_data_taxes_1040(config):
-#     return generate_taxes_1040(seed=SEED, year=None, config=user_config)
+@pytest.fixture(scope="module")
+def noised_sample_data_taxes_1040(user_config):
+    return generate_taxes_1040(seed=SEED, year=None, config=user_config)
 
 
 # Raw sample datasets with half from a specific state, for state filtering

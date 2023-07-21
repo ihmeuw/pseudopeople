@@ -14,7 +14,7 @@ from tests.integration.conftest import _get_common_datasets
         DATASETS.ssa.name,
         DATASETS.tax_w2_1099.name,
         DATASETS.wic.name,
-        "TODO: tax_1040",
+        DATASETS.tax_1040.name,
     ],
 )
 def test_unnoised_id_cols(dataset_name: str, request):

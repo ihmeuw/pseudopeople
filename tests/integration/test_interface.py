@@ -6,11 +6,13 @@ import pytest
 from pandas.api.types import is_datetime64_any_dtype as is_datetime
 
 from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.constants import paths
 from pseudopeople.interface import (
     generate_american_community_survey,
     generate_current_population_survey,
     generate_decennial_census,
     generate_social_security,
+    generate_taxes_1040,
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
@@ -31,42 +33,36 @@ DATASET_GENERATION_FUNCS = {
     DATASETS.ssa.name: generate_social_security,
     DATASETS.tax_w2_1099.name: generate_taxes_w2_and_1099,
     DATASETS.wic.name: generate_women_infants_and_children,
-    # DATASETS.tax_1040.name: "todo",
+    DATASETS.tax_1040.name: generate_taxes_1040,
 }
 
 
 @pytest.mark.parametrize(
     "dataset_name",
     [
-        DATASETS.census.name,
-        DATASETS.acs.name,
-        DATASETS.cps.name,
-        DATASETS.ssa.name,
-        DATASETS.tax_w2_1099.name,
-        DATASETS.wic.name,
-        "TODO: tax_1040",
+        # DATASETS.census.name,
+        # DATASETS.acs.name,
+        # DATASETS.cps.name,
+        # DATASETS.ssa.name,
+        # DATASETS.tax_w2_1099.name,
+        # DATASETS.wic.name,
+        DATASETS.tax_1040.name,
     ],
 )
 def test_generate_dataset_from_sample_and_source(
-    dataset_name: str, user_config, tmpdir, request
+    dataset_name: str, user_config, split_sample_data_dir, request
 ):
     """Tests that the amount of noising is approximately the same whether we
     noise a single sample dataset or we concatenate and noise multiple datasets
     """
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
-    data = request.getfixturevalue(f"sample_data_{dataset_name}")
+    data = _load_sample_data(dataset_name)
     noised_sample = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
 
-    # Split the sample dataset into two and save in tmpdir
-    outdir = tmpdir.mkdir(dataset_name)
-    split_idx = int(len(data) / 2)
-    data[:split_idx].to_parquet(outdir / f"{dataset_name}_1.parquet")
-    data[split_idx:].to_parquet(outdir / f"{dataset_name}_2.parquet")
-    # Generate a new (non-fixture) noised dataset from the split data in tmpdir
     noising_function = DATASET_GENERATION_FUNCS.get(dataset_name)
     noised_dataset = noising_function(
-        seed=SEED, year=None, source=Path(tmpdir), config=user_config
+        seed=SEED, year=None, source=Path(split_sample_data_dir), config=user_config
     )
 
     # Check that shapes and columns are identical
@@ -121,7 +117,7 @@ def test_generate_dataset_from_sample_and_source(
         DATASETS.ssa.name,
         DATASETS.tax_w2_1099.name,
         DATASETS.wic.name,
-        "TODO: tax_1040",
+        DATASETS.tax_1040.name,
     ],
 )
 def test_seed_behavior(dataset_name: str, user_config, request):
@@ -151,7 +147,7 @@ def test_seed_behavior(dataset_name: str, user_config, request):
         DATASETS.ssa.name,
         DATASETS.tax_w2_1099.name,
         DATASETS.wic.name,
-        "TODO: tax_1040",
+        DATASETS.tax_1040.name,
     ],
 )
 def test_column_dtypes(dataset_name: str, request):
@@ -179,7 +175,7 @@ def test_column_dtypes(dataset_name: str, request):
         DATASETS.ssa.name,
         DATASETS.tax_w2_1099.name,
         DATASETS.wic.name,
-        "TODO: tax_1040",
+        DATASETS.tax_1040.name,
     ],
 )
 def test_column_noising(dataset_name: str, user_config, request):
@@ -239,7 +235,7 @@ def test_column_noising(dataset_name: str, user_config, request):
         DATASETS.ssa.name,
         DATASETS.tax_w2_1099.name,
         DATASETS.wic.name,
-        "TODO: tax_1040",
+        DATASETS.tax_1040.name,
     ],
 )
 def test_row_noising_omit_row_or_do_not_respond(dataset_name: str, user_config, request):
@@ -274,7 +270,7 @@ def test_row_noising_omit_row_or_do_not_respond(dataset_name: str, user_config, 
         DATASETS.ssa.name,
         DATASETS.tax_w2_1099.name,
         DATASETS.wic.name,
-        "TODO: tax_1040",
+        DATASETS.tax_1040.name,
     ],
 )
 def test_row_noising_duplication(dataset_name: str, user_config, request):
@@ -291,7 +287,7 @@ def test_row_noising_duplication(dataset_name: str, user_config, request):
         DATASETS.ssa.name,
         DATASETS.tax_w2_1099.name,
         DATASETS.wic.name,
-        "TODO: tax_1040",
+        DATASETS.tax_1040.name,
     ],
 )
 def test_generate_dataset_with_year(dataset_name: str, request):
@@ -311,7 +307,7 @@ def test_generate_dataset_with_year(dataset_name: str, request):
         DATASETS.census.name,
         DATASETS.tax_w2_1099.name,
         DATASETS.wic.name,
-        "TODO: tax_1040",
+        DATASETS.tax_1040.name,
     ],
 )
 def test_dataset_filter_by_year(mocker, dataset_name: str):
@@ -374,7 +370,7 @@ def test_dataset_filter_by_year_with_full_dates(mocker, dataset_name: str):
         DATASETS.cps.name,
         DATASETS.tax_w2_1099.name,
         DATASETS.wic.name,
-        "TODO: tax_1040",
+        DATASETS.tax_1040.name,
     ],
 )
 def test_generate_dataset_with_state_noised(dataset_name: str, request, tmpdir):
@@ -402,7 +398,7 @@ def test_generate_dataset_with_state_noised(dataset_name: str, request, tmpdir):
         DATASETS.cps.name,
         DATASETS.tax_w2_1099.name,
         DATASETS.wic.name,
-        "TODO: tax_1040",
+        DATASETS.tax_1040.name,
     ],
 )
 def test_generate_dataset_with_state_filtered(dataset_name: str, request, mocker, tmpdir):
@@ -430,7 +426,7 @@ def test_generate_dataset_with_state_filtered(dataset_name: str, request, mocker
         DATASETS.cps.name,
         DATASETS.tax_w2_1099.name,
         DATASETS.wic.name,
-        "TODO: tax_1040",
+        DATASETS.tax_1040.name,
     ],
 )
 def test_generate_dataset_with_state_unfiltered(dataset_name: str, request, mocker, tmpdir):
@@ -505,7 +501,7 @@ def test_dataset_filter_by_state_and_year_with_full_dates(
         DATASETS.cps.name,
         DATASETS.tax_w2_1099.name,
         DATASETS.wic.name,
-        "TODO: tax_1040",
+        DATASETS.tax_1040.name,
     ],
 )
 def test_generate_dataset_with_bad_state(dataset_name: str, request, tmpdir):
@@ -549,3 +545,8 @@ def _generate_non_sample_data_root(data_dir_name, tmpdir, data):
     data[:split_idx].to_parquet(outdir / f"{data_dir_name}_1.parquet")
     data[split_idx:].to_parquet(outdir / f"{data_dir_name}_2.parquet")
     return tmpdir
+
+
+def _load_sample_data(dataset):
+    data_path = paths.SAMPLE_DATA_ROOT / dataset / f"{dataset}.parquet"
+    return pd.read_parquet(data_path)

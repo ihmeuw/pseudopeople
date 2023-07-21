@@ -287,6 +287,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_typos,
         ),
     )
+    joint_filer: Column = Column("joint_filer")
     last_name: Column = Column(
         "last_name",
         (
@@ -412,6 +413,7 @@ class __Columns(NamedTuple):
     spouse_household_id: Column = Column(
         "spouse_household_id",
     )
+    spouse_joint_filer: Column = Column("spouse_joint_filer")
     spouse_last_name: Column = Column(
         "spouse_last_name",
         (
@@ -445,6 +447,11 @@ class __Columns(NamedTuple):
     spouse_household_id: Column = Column(
         "spouse_household_id",
     )
+    spouse_relation_to_reference_person: Column = Column(
+        "spouse_relation_to_reference_person"
+    )
+    spouse_simulant_id: Column = Column("spouse_simulant_id")
+    spouse_tax_year: Column = Column("spouse_tax_year")
     ssa_event_date: Column = Column(
         "event_date",
         (
