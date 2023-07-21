@@ -93,7 +93,7 @@ The following columns are included in this dataset:
        "College", "Military", and "Other noninstitutional".
    * - Relationship to reference person
      - :code:`relationship_to_reference_person`
-     - Possible values for this indicator include:
+     - Possible values for this field include:
        "Reference person"; "Opposite-sex spouse"; "Opposite-sex unmarried
        partner"; "Same-sex spouse"; "Same-sex unmarried partner"; "Biological
        child"; "Adopted child"; "Stepchild"; "Sibling"; "Parent"; "Grandchild";
@@ -179,7 +179,7 @@ The following columns are included in this dataset:
        "College", "Military", and "Other noninstitutional".
    * - Relationship to reference person
      - :code:`relationship_to_reference_person`
-     - Possible values for this indicator include:
+     - Possible values for this field include:
        "Reference person"; "Opposite-sex spouse"; "Opposite-sex unmarried
        partner"; "Same-sex spouse"; "Same-sex unmarried partner"; "Biological
        child"; "Adopted child"; "Stepchild"; "Sibling"; "Parent"; "Grandchild";
