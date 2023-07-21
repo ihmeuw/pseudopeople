@@ -47,6 +47,7 @@ def load_and_prep_1040_data(data_path: dict, user_filters: List[Tuple]) -> pd.Da
             COLUMNS.first_name.name,
             COLUMNS.last_name.name,
             COLUMNS.ssn.name,
+            COLUMNS.copy_ssn.name,
         ],
     )
     # Rename tax_dependents columns

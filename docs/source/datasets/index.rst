@@ -65,7 +65,7 @@ The following columns are included in this dataset:
      - Rounded down to an integer.
    * - Date of birth
      - :code:`date_of_birth`
-     - Formatted as YYYY-MM-DD.
+     - Formatted as MM/DD/YYYY.
    * - Physical address street number
      - :code:`street_number`
      -
@@ -151,7 +151,7 @@ The following columns are included in this dataset:
      - Rounded down to an integer.
    * - Date of birth
      - :code:`date_of_birth`
-     - Formatted as YYYY-MM-DD.
+     - Formatted as MM/DD/YYYY.
    * - Physical address street number
      - :code:`street_number`
      -
@@ -237,7 +237,7 @@ The following columns are included in this dataset:
      - Rounded down to an integer.
    * - Date of birth
      - :code:`date_of_birth`
-     - Formatted as YYYY-MM-DD.
+     - Formatted as MM/DD/YYYY.
    * - Physical address street number
      - :code:`street_number`
      -

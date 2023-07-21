@@ -66,6 +66,17 @@ DEFAULT_NOISE_VALUES = {
             },
         },
     },
+    # No noise for date in tax w2 1099 dataset
+    DATASETS.tax_w2_1099.name: {
+        Keys.COLUMN_NOISE: {
+            COLUMNS.dob.name: {
+                noise_type.name: {
+                    Keys.CELL_PROBABILITY: 0.0,
+                }
+                for noise_type in COLUMNS.dob.noise_types
+            },
+        },
+    },
 }
 
 
