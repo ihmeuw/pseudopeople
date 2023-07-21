@@ -97,9 +97,10 @@ The following columns are included in this dataset:
        "Reference person"; "Opposite-sex spouse"; "Opposite-sex unmarried
        partner"; "Same-sex spouse"; "Same-sex unmarried partner"; "Biological
        child"; "Adopted child"; "Stepchild"; "Sibling"; "Parent"; "Grandchild";
-       "Parent-in-law"; "Child-in-law"; "Other relative"; "Roommate"; "Foster
-       child"; "Other nonrelative"; "Institutionalized group quarters
-       population"; and "Noninstitutionalized group quarters population".
+       "Parent-in-law"; "Child-in-law"; "Other relative"; "Roommate or
+       housemate"; "Foster child"; "Other nonrelative"; "Institutionalized group
+       quarters population"; and "Noninstitutionalized group quarters
+       population".
    * - Sex
      - :code:`sex`
      - Binary; "male" or "female".
@@ -183,9 +184,10 @@ The following columns are included in this dataset:
        "Reference person"; "Opposite-sex spouse"; "Opposite-sex unmarried
        partner"; "Same-sex spouse"; "Same-sex unmarried partner"; "Biological
        child"; "Adopted child"; "Stepchild"; "Sibling"; "Parent"; "Grandchild";
-       "Parent-in-law"; "Child-in-law"; "Other relative"; "Roommate"; "Foster
-       child"; "Other nonrelative"; "Institutionalized group quarters
-       population"; and "Noninstitutionalized group quarters population".
+       "Parent-in-law"; "Child-in-law"; "Other relative"; "Roommate or
+       housemate"; "Foster child"; "Other nonrelative"; "Institutionalized group
+       quarters population"; and "Noninstitutionalized group quarters
+       population".
    * - Sex
      - :code:`sex`
      - Binary; "male" or "female"
