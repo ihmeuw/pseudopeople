@@ -268,8 +268,8 @@ class __Columns(NamedTuple):
     household_id: Column = Column(
         "household_id",
     )
-    income: Column = Column(
-        "income",
+    wages: Column = Column(
+        "wages",
         (
             NOISE_TYPES.leave_blank,
             NOISE_TYPES.write_wrong_digits,
@@ -712,7 +712,7 @@ class __Datasets(NamedTuple):
             COLUMNS.mailing_state,
             COLUMNS.mailing_zipcode,
             COLUMNS.ssn,
-            COLUMNS.income,
+            COLUMNS.wages,
             COLUMNS.employer_id,
             COLUMNS.employer_name,
             COLUMNS.employer_street_number,

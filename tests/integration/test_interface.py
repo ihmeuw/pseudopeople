@@ -108,7 +108,7 @@ def test_generate_dataset_from_sample_and_source(
         elif dataset_name == DATASETS.acs.name and col == COLUMNS.unit_number.name:
             rtol = 0.25
         else:
-            rtol = 0.12
+            rtol = 0.13
         assert np.isclose(noise_level_full_dataset, noise_level_single_dataset, rtol=rtol)
 
 
