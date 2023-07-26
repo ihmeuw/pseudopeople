@@ -1,4 +1,4 @@
-state,relation_to_reference_person,sex,race_ethnicity,tax_form,event_type
+state,relationship_to_reference_person,sex,race_ethnicity,tax_form,event_type
 AL,Reference person,Female,White,W2,creation
 AK,Opp-sex spouse,Male,Black,1099,death
 AZ,Opp-sex partner,,Asian,,

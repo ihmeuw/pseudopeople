@@ -376,8 +376,8 @@ class __Columns(NamedTuple):
         ),
         DtypeNames.CATEGORICAL,
     )
-    relation_to_reference_person: Column = Column(
-        "relation_to_reference_person",
+    relationship_to_reference_person: Column = Column(
+        "relationship_to_reference_person",
         (
             NOISE_TYPES.leave_blank,
             NOISE_TYPES.choose_wrong_option,
@@ -578,7 +578,7 @@ class __Datasets(NamedTuple):
             COLUMNS.city,
             COLUMNS.state,
             COLUMNS.zipcode,
-            COLUMNS.relation_to_reference_person,
+            COLUMNS.relationship_to_reference_person,
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
             COLUMNS.year,
@@ -608,6 +608,7 @@ class __Datasets(NamedTuple):
             COLUMNS.city,
             COLUMNS.state,
             COLUMNS.zipcode,
+            COLUMNS.relationship_to_reference_person,
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
         ),

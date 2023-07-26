@@ -96,7 +96,7 @@ def combine_joint_filers(data: pd.DataFrame) -> pd.DataFrame:
     # Get groups
     joint_filers = data.loc[data["joint_filer"] == True]
     reference_persons = data.loc[
-        data[COLUMNS.relation_to_reference_person.name] == "Reference person"
+        data[COLUMNS.relationship_to_reference_person.name] == "Reference person"
     ]
     independent_filers_index = data.index.difference(
         joint_filers.index.union(reference_persons.index)

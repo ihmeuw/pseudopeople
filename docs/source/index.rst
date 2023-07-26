@@ -72,18 +72,18 @@ Then, generate a small-scale simulated decennial census:
    >>> import pseudopeople as psp
    >>> census = psp.generate_decennial_census()
    >>> census
-        simulant_id first_name middle_initial  last_name age date_of_birth street_number           street_name unit_number     city state zipcode relation_to_reference_person     sex race_ethnicity
-   0            0_2    Melanie              L     Herrod  26    08/05/1993         10233  north burgher avenue              Anytown    US   00000             Reference person  Female          White
-   1            0_3     Jordan              C     Herrod  26    12/29/1993         10233  north burgher avenue              Anytown    US   00000               Other relative  Female          White
-   2          0_923       John              E      Davis  77    06/29/1942       147-153          browning ave              Anytown    US   00000             Reference person    Male          Black
-   3         0_2641     Sharon              T    Plummer  59    10/10/1960           107           stallion st              Anytown    US   00000             Reference person  Female          White
-   4         0_2801     Ronnie              A     Yoakum  73    12/05/1946           214           s vine lane              Anytown    US   00000             Reference person    Male          White
-   ...          ...        ...            ...        ...  ..           ...           ...                   ...         ...      ...   ...     ...                          ...     ...            ...
-   9639     0_19008      James              G    Johnson  56    06/12/1963           691        sunny crest ln              Anytown    US   00000             Reference person    Male          Black
-   9640     0_20161   Nannette              D    Mckenna  61    11/09/1958          6132                n pine              Anytown    US   00000             Reference person  Female          White
-   9641     0_20162    Cynthia              L    Mckenna  65    01/20/1955          6132                n pine              Anytown    US   00000              Same-sex spouse  Female          White
-   9642     0_19669     Marcus              A  Underwood  59    10/06/1960          1724              lodi way              Anytown    US   00000             Reference person    Male            NaN
-   9643     0_20160      Kelly              A     Parris  26    10/24/1993          2203           blume st ne              Anytown    US   00000             Reference person  Female          White
+        simulant_id first_name middle_initial  last_name age date_of_birth street_number           street_name unit_number     city state zipcode relationship_to_reference_person     sex race_ethnicity
+   0            0_2    Melanie              L     Herrod  26    08/05/1993         10233  north burgher avenue              Anytown    US   00000                 Reference person  Female          White
+   1            0_3     Jordan              C     Herrod  26    12/29/1993         10233  north burgher avenue              Anytown    US   00000                   Other relative  Female          White
+   2          0_923       John              E      Davis  77    06/29/1942       147-153          browning ave              Anytown    US   00000                 Reference person    Male          Black
+   3         0_2641     Sharon              T    Plummer  59    10/10/1960           107           stallion st              Anytown    US   00000                 Reference person  Female          White
+   4         0_2801     Ronnie              A     Yoakum  73    12/05/1946           214           s vine lane              Anytown    US   00000                 Reference person    Male          White
+   ...          ...        ...            ...        ...  ..           ...           ...                   ...         ...      ...   ...     ...                              ...     ...            ...
+   9639     0_19008      James              G    Johnson  56    06/12/1963           691        sunny crest ln              Anytown    US   00000                 Reference person    Male          Black
+   9640     0_20161   Nannette              D    Mckenna  61    11/09/1958          6132                n pine              Anytown    US   00000                 Reference person  Female          White
+   9641     0_20162    Cynthia              L    Mckenna  65    01/20/1955          6132                n pine              Anytown    US   00000                  Same-sex spouse  Female          White
+   9642     0_19669     Marcus              A  Underwood  59    10/06/1960          1724              lodi way              Anytown    US   00000                 Reference person    Male            NaN
+   9643     0_20160      Kelly              A     Parris  26    10/24/1993          2203           blume st ne              Anytown    US   00000                 Reference person  Female          White
 
    [9644 rows x 15 columns]
 
