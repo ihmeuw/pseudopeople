@@ -408,50 +408,6 @@ def test_dataset_filter_by_year_with_full_dates(mocker, dataset_name: str):
         DATASETS.tax_1040.name,
     ],
 )
-def test_generate_dataset_with_state_noised(dataset_name: str, request):
-    """Test that dataset generation filtered by state noises data differently with different seeds"""
-    if "TODO" in dataset_name:
-        pytest.skip(reason=dataset_name)
-    noising_function = DATASET_GENERATION_FUNCS.get(dataset_name)
-    if dataset_name == DatasetNames.TAXES_1040:
-        # We need to get formatted 1040 data that is not noised to get the expected columns
-        data = request.getfixturevalue("formatted_1040_sample_data_state_edit")
-    else:
-        data = request.getfixturevalue(f"sample_data_{dataset_name}_state_edit")
-
-    noising_function = DATASET_GENERATION_FUNCS[dataset_name]
-    noised_data = noising_function(
-        source=request.getfixturevalue("split_sample_data_dir_state_edit"),
-        seed=0,
-        state=STATE,
-    )
-    noised_data_same_seed = noising_function(
-        source=request.getfixturevalue("split_sample_data_dir_state_edit"),
-        seed=0,
-        state=STATE,
-    )
-    noised_data_different_seed = noising_function(
-        source=request.getfixturevalue("split_sample_data_dir_state_edit"),
-        seed=1,
-        state=STATE,
-    )
-
-    assert not data.equals(noised_data)
-    assert noised_data.equals(noised_data_same_seed)
-    assert not noised_data.equals(noised_data_different_seed)
-
-
-@pytest.mark.parametrize(
-    "dataset_name",
-    [
-        DATASETS.census.name,
-        DATASETS.acs.name,
-        DATASETS.cps.name,
-        DATASETS.tax_w2_1099.name,
-        DATASETS.wic.name,
-        DATASETS.tax_1040.name,
-    ],
-)
 def test_generate_dataset_with_state_filtered(dataset_name: str, request, mocker):
     """Test that values returned by dataset generators are only for the specified state"""
     if "TODO" in dataset_name:

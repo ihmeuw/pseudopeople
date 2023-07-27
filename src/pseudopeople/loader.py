@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import List, Tuple
 
+import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
@@ -52,6 +53,11 @@ def load_and_prep_1040_data(data_path: dict, user_filters: List[Tuple]) -> pd.Da
     )
     # Rename tax_dependents columns
     dependents_wide = dependents_wide.add_prefix("dependent_").reset_index()
+    # Make sure we have all dependent columns if data does not have a guardian with 4 dependents
+    if COLUMNS.dependent_4_first_name.name not in dependents_wide.columns:
+        for column in [col.name for col in COLUMNS if "dependent_4" in col.name]:
+            dependents_wide[column] = np.nan
+
     # Widen 1040 data (make one row for spouses that are joint filing)
     df_joint_1040 = combine_joint_filers(df_1040)
 
@@ -81,6 +87,7 @@ def flatten_data(
     # Function that takes a dataset and widens (pivots) it to capture multiple metadata columns
     # Example: simulant_id, dependdent_1, dependent_2, dependent_1_name, dependent_2_name, etc...
     data = data.copy()
+    # fixme: find a better solution than the following call since applying lambda functions is slow
     data["rank"] = (
         data.groupby(index_cols, group_keys=False)[rank_col]
         .apply(lambda x: x.rank(method="first", ascending=ascending))
@@ -92,6 +99,7 @@ def flatten_data(
     data["rank"] = data["rank"].astype(str)
     flat = data.pivot(columns="rank", index=index_cols, values=value_cols)
     flat.columns = ["_".join([pair[1], pair[0]]) for pair in flat.columns]
+
     return flat
 
 
