@@ -117,7 +117,6 @@ def split_sample_data_dir_state_edit(tmpdir_factory):
             state_column = [column for column in data.columns if "state" in column]
             data1.loc[data1.reset_index().index % 2 == 0, state_column] = STATE
             data2.loc[data2.reset_index().index % 2 == 0, state_column] = STATE
-            breakpoint()
             data1.to_parquet(outdir / f"{dataset_name}_1.parquet")
             data2.to_parquet(outdir / f"{dataset_name}_2.parquet")
 
