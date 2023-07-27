@@ -1,8 +1,14 @@
 import pandas as pd
 import pytest
 
-from pseudopeople.loader import combine_joint_filers, flatten_data
-from pseudopeople.schema_entities import COLUMNS
+from pseudopeople.constants import paths
+from pseudopeople.constants.metadata import DatasetNames
+from pseudopeople.loader import (
+    combine_joint_filers,
+    flatten_data,
+    load_and_prep_1040_data,
+)
+from pseudopeople.schema_entities import COLUMNS, DATASETS
 
 
 @pytest.fixture(scope="module")
@@ -44,7 +50,7 @@ def dummy_tax_dependents():
     return pd.DataFrame(
         {
             COLUMNS.simulant_id.name: list(range(100, 105)) * 2,
-            COLUMNS.guardian_id.name: [0, 0, 0, 1, 2] * 2,
+            COLUMNS.guardian_id.name: [0, 0, 0, 0, 2] * 2,
             "favorite_food": [
                 "Pizza",
                 "Cookie",
@@ -101,8 +107,35 @@ def test_flatten_data(dummy_tax_dependents):
         & set(dummy_tax_dependents[COLUMNS.simulant_id.name])
     )
     # The length of rows should be total guardian/tax year combinations which is 6
-    assert len(dependents_wide) == 6
-    # Guardian/simulant id 0 has 3 dependents which is the highest number of dependents
-    # Make sure we do not have extra columns
+    assert len(dependents_wide) == 4
+    # Guardian/simulant id 0 has 4 dependents which is the highest number of dependents
+    # Make sure we do not have extra columns - more than 4 dependents
     # fix me: find way to improve this
-    assert "dependent_4_favorite_food" not in dependents_wide.columns
+    assert "dependent_5_favorite_food" not in dependents_wide.columns
+
+
+def test_load_and_prep_1040_data(dummy_1040, dummy_tax_dependents):
+    tax_dataset_names = [
+        DatasetNames.TAXES_1040,
+        # DatasetNames.TAXES_W2_1099,
+        DatasetNames.TAXES_DEPENDENTS,
+    ]
+    tax_dataset_filepaths = {
+        tax_dataset: paths.SAMPLE_DATA_ROOT / tax_dataset / f"{tax_dataset}.parquet"
+        for tax_dataset in tax_dataset_names
+    }
+    tax_1040 = load_and_prep_1040_data(tax_dataset_filepaths, user_filters=[])
+
+    # No joint filer should be in the formatted simulant_id column
+    # We must check each year because of migration/joint filing
+    for year in tax_1040[COLUMNS.tax_year.name].unique():
+        year_df = tax_1040.loc[tax_1040[COLUMNS.tax_year.name] == year]
+        assert not bool(
+            set(year_df[COLUMNS.simulant_id.name])
+            & set(year_df[COLUMNS.spouse_simulant_id.name])
+        )
+    # CHeck formatted tax 1040 has necessary output columns
+    # Note this is before we clense our data of extra columns
+    tax_1040_dataset_cols = [column.name for column in DATASETS.tax_1040.columns]
+    for column in tax_1040_dataset_cols:
+        assert column in tax_1040.columns

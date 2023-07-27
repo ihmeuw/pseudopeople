@@ -1,8 +1,9 @@
 import pandas as pd
 import pytest
 
+from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.schema_entities import COLUMNS, DATASETS
-from tests.integration.conftest import _get_common_datasets
+from tests.integration.conftest import _get_common_datasets, _load_sample_data
 
 
 @pytest.mark.parametrize(
@@ -26,7 +27,11 @@ def test_unnoised_id_cols(dataset_name: str, request):
     unnoised_id_cols = [COLUMNS.simulant_id.name]
     if dataset_name != DATASETS.ssa.name:
         unnoised_id_cols.append(COLUMNS.household_id.name)
-    data = request.getfixturevalue(f"sample_data_{dataset_name}")
+    if dataset_name == DatasetNames.TAXES_1040:
+        # We need to get formatted 1040 data that is not noised to get the expected columns
+        data = request.getfixturevalue("formatted_1040_sample_data")
+    else:
+        data = _load_sample_data(dataset_name)
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
     check_noised, check_original, _ = _get_common_datasets(dataset_name, data, noised_data)
     assert (

@@ -756,6 +756,10 @@ class __Datasets(NamedTuple):
             COLUMNS.mailing_state,
             COLUMNS.mailing_zipcode,
             COLUMNS.ssn,
+<<<<<<< HEAD
+=======
+            # TODO: Replace tax_year with record_id when implemented (MIC-4039)
+>>>>>>> 16d578f (Update tests for new data fixture)
             COLUMNS.tax_year,
             COLUMNS.spouse_first_name,
             COLUMNS.spouse_middle_initial,
