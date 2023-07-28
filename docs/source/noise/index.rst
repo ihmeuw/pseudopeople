@@ -181,10 +181,6 @@ Noise types for each column
     - W-2 and 1099
     - Leave a field blank, make typos, make OCR errors
     - Note that wages and income are on separate tax forms and noise is applied to each separately
-  * - Employer ID
-    - W-2 and 1099
-    - Leave a field blank, write the wrong digits, make typos, make OCR errors
-    - 
   * - Employer name
     - W-2 and 1099
     - Leave a field blank, make typos, make OCR errors
