@@ -426,7 +426,8 @@ The following columns are included in these datasets:
      - 
    * - Employer ID 
      - :code:`employer_id`
-     -  
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
+       datasets. 
    * - Employer Name 
      - :code:`employer_name`
      - 
