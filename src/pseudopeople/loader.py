@@ -35,11 +35,12 @@ def load_and_prep_1040_data(data_path: dict, user_filters: List[Tuple]) -> pd.Da
     # Load data
     df_1040 = load_standard_dataset_file(data_path[DatasetNames.TAXES_1040], user_filters)
     # We do not want to filter by state for dependents
-    for i in range(len(user_filters)):
-        if user_filters[i][0] == COLUMNS.mailing_state.name:
-            user_filters.pop(i)
+    no_state_user_filters = user_filters.copy()
+    for i in range(len(no_state_user_filters)):
+        if no_state_user_filters[i][0] == COLUMNS.mailing_state.name:
+            no_state_user_filters.pop(i)
     df_dependents = load_standard_dataset_file(
-        data_path[DatasetNames.TAXES_DEPENDENTS], user_filters
+        data_path[DatasetNames.TAXES_DEPENDENTS], no_state_user_filters
     )
 
     # Get wide format of dependents - metadata for each guardian's dependents
@@ -65,7 +66,6 @@ def load_and_prep_1040_data(data_path: dict, user_filters: List[Tuple]) -> pd.Da
 
     # Widen 1040 data (make one row for spouses that are joint filing)
     df_joint_1040 = combine_joint_filers(df_1040)
-
     # Merge tax dependents onto their guardians - we must do it twice, merge onto each spouse if joint filing
     tax_1040_w_dependents = df_joint_1040.merge(
         dependents_wide,
@@ -78,7 +78,6 @@ def load_and_prep_1040_data(data_path: dict, user_filters: List[Tuple]) -> pd.Da
     #   dependents_wide, how="left",
     #   left_on=["COLUMNS.spouse_simulant_id.name", "COLUMNS.tax_year.name"],
     #   right_on=["COLUMNS.guardian_id.name", "COLUMNS.tax_year.name"])
-
     return tax_1040_w_dependents
 
 
