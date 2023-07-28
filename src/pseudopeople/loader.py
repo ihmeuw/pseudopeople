@@ -34,12 +34,10 @@ def load_and_prep_1040_data(data_path: dict, user_filters: List[Tuple]) -> pd.Da
 
     # Load data
     df_1040 = load_standard_dataset_file(data_path[DatasetNames.TAXES_1040], user_filters)
-    breakpoint()
     # We do not want to filter by state for dependents
     for i in range(len(user_filters)):
         if user_filters[i][0] == COLUMNS.mailing_state.name:
             user_filters.pop(i)
-    breakpoint()
     df_dependents = load_standard_dataset_file(
         data_path[DatasetNames.TAXES_DEPENDENTS], user_filters
     )
