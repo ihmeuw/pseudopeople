@@ -54,9 +54,10 @@ def load_and_prep_1040_data(data_path: dict, user_filters: List[Tuple]) -> pd.Da
     # Rename tax_dependents columns
     dependents_wide = dependents_wide.add_prefix("dependent_").reset_index()
     # Make sure we have all dependent columns if data does not have a guardian with 4 dependents
-    if COLUMNS.dependent_4_first_name.name not in dependents_wide.columns:
-        for column in [col.name for col in COLUMNS if "dependent_4" in col.name]:
-            dependents_wide[column] = np.nan
+    for dependent in ["dependent_2", "dependent_3", "dependent_4"]:
+        if f"{dependent}_first_name" not in dependents_wide.columns:
+            for column in [col.name for col in COLUMNS if dependent in col.name]:
+                dependents_wide[column] = np.nan
 
     # Widen 1040 data (make one row for spouses that are joint filing)
     df_joint_1040 = combine_joint_filers(df_1040)

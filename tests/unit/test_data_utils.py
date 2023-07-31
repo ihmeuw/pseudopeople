@@ -109,12 +109,15 @@ def test_flatten_data(dummy_tax_dependents):
     # The length of rows should be total guardian/tax year combinations which is 6
     assert len(dependents_wide) == 4
     # Guardian/simulant id 0 has 4 dependents which is the highest number of dependents
-    # Make sure we do not have extra columns - more than 4 dependents
-    # fix me: find way to improve this
-    assert "dependent_5_favorite_food" not in dependents_wide.columns
+    # Make sure we do not have extra columns - more than 4 dependent. When only have one
+    # "value" column from our pivot so we can assert there should be 4 columns for 4 dependents.
+    assert len(dependents_wide.columns) == 4
+    # Assert expected nans - 2 nans for depdents 2, 3, 4
+    for dependent in ["2", "3", "4"]:
+        assert dependents_wide[f"{dependent}_favorite_food"].isna().sum() == 2
 
 
-def test_load_and_prep_1040_data(dummy_1040, dummy_tax_dependents):
+def test_load_and_prep_1040_data():
     tax_dataset_names = [
         DatasetNames.TAXES_1040,
         # DatasetNames.TAXES_W2_1099,

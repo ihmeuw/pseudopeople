@@ -57,7 +57,8 @@ def split_sample_data_dir(tmpdir_factory):
     ]
     split_sample_data_dir = tmpdir_factory.mktemp("split_sample_data")
     for dataset_name in datasets:
-        data = _load_sample_data(dataset_name)
+        data_path = paths.SAMPLE_DATA_ROOT / dataset_name / f"{dataset_name}.parquet"
+        data = pd.read_parquet(data_path)
         # Split the sample dataset into two and save in tmpdir_factory
         # We are spliting on household_id as a solution for how to keep households together
         # for the tax 1040 dataset.
@@ -82,6 +83,9 @@ def split_sample_data_dir(tmpdir_factory):
 
 @pytest.fixture(scope="session")
 def split_sample_data_dir_state_edit(tmpdir_factory):
+    # This replace our old tmpdir fixture we were using because this more accurately
+    # represents our sample data directory structure with a subdirectory for each
+    # dataset and storing all files in the fixture.
     datasets = [
         DatasetNames.CENSUS,
         DatasetNames.ACS,
@@ -94,7 +98,8 @@ def split_sample_data_dir_state_edit(tmpdir_factory):
     ]
     split_sample_data_dir_state_edit = tmpdir_factory.mktemp("split_sample_data_state_edit")
     for dataset_name in datasets:
-        data = _load_sample_data(dataset_name)
+        data_path = paths.SAMPLE_DATA_ROOT / dataset_name / f"{dataset_name}.parquet"
+        data = pd.read_parquet(data_path)
         # Split the sample dataset into two and save in tmpdir_factory
         # We are spliting on household_id as a solution for how to keep households together
         # for the tax 1040 dataset.
@@ -262,9 +267,15 @@ def sample_data_taxes_w2_and_1099_state_edit():
 ####################
 
 
-def _load_sample_data(dataset):
-    data_path = paths.SAMPLE_DATA_ROOT / dataset / f"{dataset}.parquet"
-    return pd.read_parquet(data_path)
+def _load_sample_data(dataset, request):
+    if dataset == DatasetNames.TAXES_1040:
+        # We need to get formatted 1040 data that is not noised to get the expected columns
+        data = request.getfixturevalue("formatted_1040_sample_data")
+    else:
+        data_path = paths.SAMPLE_DATA_ROOT / dataset / f"{dataset}.parquet"
+        data = pd.read_parquet(data_path)
+
+    return data
 
 
 def _get_common_datasets(dataset_name, data, noised_data):

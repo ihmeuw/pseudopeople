@@ -6,7 +6,6 @@ import pytest
 from pandas.api.types import is_datetime64_any_dtype as is_datetime
 
 from pseudopeople.configuration import Keys, get_configuration
-from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.interface import (
     generate_american_community_survey,
     generate_current_population_survey,
@@ -57,11 +56,7 @@ def test_generate_dataset_from_sample_and_source(dataset_name: str, user_config,
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     noising_function = DATASET_GENERATION_FUNCS.get(dataset_name)
-    if dataset_name == DatasetNames.TAXES_1040:
-        # We need to get formatted 1040 data that is not noised to get the expected columns
-        data = request.getfixturevalue("formatted_1040_sample_data")
-    else:
-        data = _load_sample_data(dataset_name)
+    data = _load_sample_data(dataset_name, request)
     noised_sample = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
 
     noised_dataset = noising_function(
@@ -139,11 +134,7 @@ def test_seed_behavior(dataset_name: str, user_config, request):
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     noising_function = DATASET_GENERATION_FUNCS.get(dataset_name)
-    if dataset_name == DatasetNames.TAXES_1040:
-        # We need to get formatted 1040 data that is not noised to get the expected columns
-        data = request.getfixturevalue("formatted_1040_sample_data")
-    else:
-        data = _load_sample_data(dataset_name)
+    data = _load_sample_data(dataset_name, request)
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
     # Generate new (non-fixture) noised datasets with the same seed and a different
     # seed as the fixture
@@ -172,11 +163,7 @@ def test_column_dtypes(dataset_name: str, request):
     """Tests that column dtypes are as expected"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
-    if dataset_name == DatasetNames.TAXES_1040:
-        # We need to get formatted 1040 data that is not noised to get the expected columns
-        data = request.getfixturevalue("formatted_1040_sample_data")
-    else:
-        data = _load_sample_data(dataset_name)
+    data = _load_sample_data(dataset_name, request)
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
     check_noised, _, _ = _get_common_datasets(dataset_name, data, noised_data)
     for col_name in check_noised.columns:
@@ -204,11 +191,7 @@ def test_column_noising(dataset_name: str, user_config, request):
     """Tests that columns are noised as expected"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
-    if dataset_name == DatasetNames.TAXES_1040:
-        # We need to get formatted 1040 data that is not noised to get the expected columns
-        data = request.getfixturevalue("formatted_1040_sample_data")
-    else:
-        data = _load_sample_data(dataset_name)
+    data = _load_sample_data(dataset_name, request)
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
     check_noised, check_original, shared_idx = _get_common_datasets(
         dataset_name, data, noised_data
@@ -269,11 +252,7 @@ def test_row_noising_omit_row_or_do_not_respond(dataset_name: str, user_config, 
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     idx_cols = IDX_COLS.get(dataset_name)
-    if dataset_name == DatasetNames.TAXES_1040:
-        # We need to get formatted 1040 data that is not noised to get the expected columns
-        data = request.getfixturevalue("formatted_1040_sample_data")
-    else:
-        data = _load_sample_data(dataset_name)
+    data = _load_sample_data(dataset_name, request)
     data = data.set_index(idx_cols)
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}").set_index(
         idx_cols
@@ -326,11 +305,7 @@ def test_generate_dataset_with_year(dataset_name: str, request):
         pytest.skip(reason=dataset_name)
     year = 2030  # not default 2020
     noising_function = DATASET_GENERATION_FUNCS.get(dataset_name)
-    if dataset_name == DatasetNames.TAXES_1040:
-        # We need to get formatted 1040 data that is not noised to get the expected columns
-        data = request.getfixturevalue("formatted_1040_sample_data")
-    else:
-        data = _load_sample_data(dataset_name)
+    data = _load_sample_data(dataset_name, request)
     # Generate a new (non-fixture) noised dataset for a single year
     noised_data = noising_function(year=year)
     assert not data.equals(noised_data)
