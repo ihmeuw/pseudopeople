@@ -34,7 +34,8 @@ def load_and_prep_1040_data(data_path: dict, user_filters: List[Tuple]) -> pd.Da
 
     # Load data
     df_1040 = load_standard_dataset_file(data_path[DatasetNames.TAXES_1040], user_filters)
-    # We do not want to filter by state for dependents
+    # We do not want to filter by state for dependents because we might exclude dependents
+    # that live in a separate state than their guardian
     no_state_user_filters = [f for f in user_filters if f[0] != COLUMNS.mailing_state.name]
     df_dependents = load_standard_dataset_file(
         data_path[DatasetNames.TAXES_DEPENDENTS], no_state_user_filters
