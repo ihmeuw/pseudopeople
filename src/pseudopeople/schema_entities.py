@@ -447,8 +447,8 @@ class __Columns(NamedTuple):
     spouse_household_id: Column = Column(
         "spouse_household_id",
     )
-    spouse_relation_to_reference_person: Column = Column(
-        "spouse_relation_to_reference_person"
+    spouse_relationship_to_reference_person: Column = Column(
+        "spouse_relationship_to_reference_person"
     )
     spouse_simulant_id: Column = Column("spouse_simulant_id")
     spouse_tax_year: Column = Column("spouse_tax_year")

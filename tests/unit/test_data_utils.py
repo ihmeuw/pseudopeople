@@ -24,7 +24,7 @@ def dummy_1040():
                 False,
             ]
             * 2,
-            COLUMNS.relation_to_reference_person.name: [
+            COLUMNS.relationship_to_reference_person.name: [
                 "Reference person",
                 "Opp-sex spouse",
                 "Reference person",
@@ -74,12 +74,12 @@ def test_combine_joint_filers(dummy_1040):
     assert set(joint_1040.columns) == set(
         [
             COLUMNS.simulant_id.name,
-            COLUMNS.relation_to_reference_person.name,
+            COLUMNS.relationship_to_reference_person.name,
             COLUMNS.joint_filer.name,
             COLUMNS.household_id.name,
             COLUMNS.tax_year.name,
             COLUMNS.spouse_simulant_id.name,
-            COLUMNS.spouse_relation_to_reference_person.name,
+            COLUMNS.spouse_relationship_to_reference_person.name,
             COLUMNS.spouse_joint_filer.name,
             COLUMNS.spouse_tax_year.name,
             COLUMNS.spouse_household_id.name,

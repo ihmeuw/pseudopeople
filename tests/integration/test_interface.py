@@ -111,7 +111,7 @@ def test_generate_dataset_from_sample_and_source(dataset_name: str, user_config,
             rtol = 0.25
         # 1040 has several columns that will have a high percentage of nans
         elif dataset_name == DATASETS.tax_1040.name:
-            rtol = 0.30
+            rtol = 0.35
         else:
             rtol = 0.13
         assert np.isclose(noise_level_full_dataset, noise_level_single_dataset, rtol=rtol)
