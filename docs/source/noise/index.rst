@@ -180,7 +180,8 @@ Noise types for each column
   * - SSN or ITIN
     - W-2 and 1099, 1040, SSA
     - "Borrowed" SSN, leave a field blank, write the wrong digits, make typos, make OCR errors
-    - Note that "borrowed" SSN only applies to the W-2 and 1099 dataset; ITIN only included if no SSN present.
+    - Note that "borrowed" SSN only applies to the W-2 and 1099 dataset.
+      ITIN is only reported in the 1040, and only when the simulant does not have an SSN.
       In the 1040 form, this noise type functions the same for joint filer and dependent *n*
   * - Income 
     - W-2 and 1099
