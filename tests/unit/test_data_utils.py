@@ -15,32 +15,41 @@ from pseudopeople.schema_entities import COLUMNS, DATASETS
 def dummy_1040():
     return pd.DataFrame(
         {
-            COLUMNS.simulant_id.name: list(range(5)) * 2,
+            COLUMNS.simulant_id.name: list(range(8)) * 2,
             COLUMNS.joint_filer.name: [
                 False,
                 True,
                 False,
+                False,
                 True,
+                False,
+                False,
                 False,
             ]
             * 2,
             COLUMNS.relationship_to_reference_person.name: [
                 "Reference person",
                 "Opp-sex spouse",
+                "Biological child",
                 "Reference person",
                 "Opp-sex spouse",
                 "Reference person",
+                "Roommate",
+                "Opp-sex spouse",
             ]
             * 2,
             COLUMNS.household_id.name: [
                 10,
                 10,
+                10,
                 11,
                 11,
                 12,
+                13,
+                14,
             ]
             * 2,
-            COLUMNS.tax_year.name: [2020] * 5 + [2021] * 5,
+            COLUMNS.tax_year.name: [2020] * 8 + [2021] * 8,
         }
     )
 
@@ -49,8 +58,8 @@ def dummy_1040():
 def dummy_tax_dependents():
     return pd.DataFrame(
         {
-            COLUMNS.simulant_id.name: list(range(100, 105)) * 2,
-            COLUMNS.guardian_id.name: [0, 0, 0, 0, 2] * 2,
+            COLUMNS.simulant_id.name: [2, 103, 104, 105, 106, 107, 108, 109] * 2,
+            COLUMNS.guardian_id.name: [0, 0, 0, 0, 0, 3, 3, 5] * 2,
             "favorite_food": [
                 "Pizza",
                 "Cookie",
@@ -62,8 +71,14 @@ def dummy_tax_dependents():
                 "Pasta",
                 "Ramen",
                 "Waffles",
+                "Cookies",
+                "Watermelon",
+                "Nachos",
+                "BBQ",
+                "Bagel",
+                "Grapes",
             ],
-            COLUMNS.tax_year.name: [2020] * 5 + [2021] * 5,
+            COLUMNS.tax_year.name: [2020] * 8 + [2021] * 8,
         }
     )
 
@@ -107,14 +122,17 @@ def test_flatten_data(dummy_tax_dependents):
         & set(dummy_tax_dependents[COLUMNS.simulant_id.name])
     )
     # The length of rows should be total guardian/tax year combinations which is 6
-    assert len(dependents_wide) == 4
+    assert len(dependents_wide) == 6
     # Guardian/simulant id 0 has 4 dependents which is the highest number of dependents
     # Make sure we do not have extra columns - more than 4 dependent. When only have one
     # "value" column from our pivot so we can assert there should be 4 columns for 4 dependents.
     assert len(dependents_wide.columns) == 4
-    # Assert expected nans - 2 nans for depdents 2, 3, 4
-    for dependent in ["2", "3", "4"]:
-        assert dependents_wide[f"{dependent}_favorite_food"].isna().sum() == 2
+    # Assert expected nans for depdents 2, 3, 4 columns - we have 3 guardians (0, 3, 5) with
+    # 5, 2, and 1 dependents respectively. We expected dependent 2 column to have 2 nans, dependent
+    # 3 and depdent 4 columns to have 4 nans.
+    assert dependents_wide["2_favorite_food"].isna().sum() == 2
+    for dependent in ["3", "4"]:
+        assert dependents_wide[f"{dependent}_favorite_food"].isna().sum() == 4
 
 
 def test_load_and_prep_1040_data():
@@ -137,8 +155,7 @@ def test_load_and_prep_1040_data():
             set(year_df[COLUMNS.simulant_id.name])
             & set(year_df[COLUMNS.spouse_simulant_id.name])
         )
-    # CHeck formatted tax 1040 has necessary output columns
+    # Check formatted tax 1040 has necessary output columns
     # Note this is before we clense our data of extra columns
     tax_1040_dataset_cols = [column.name for column in DATASETS.tax_1040.columns]
-    for column in tax_1040_dataset_cols:
-        assert column in tax_1040.columns
+    assert set(tax_1040_dataset_cols).issubset(set(tax_1040.columns))

@@ -82,7 +82,7 @@ def split_sample_data_dir(tmpdir_factory):
 
 
 @pytest.fixture(scope="session")
-def split_sample_data_dir_state_edit(tmpdir_factory):
+def split_sample_data_dir_state_edit(tmpdir_factory, split_sample_data_dir):
     # This replace our old tmpdir fixture we were using because this more accurately
     # represents our sample data directory structure with a subdirectory for each
     # dataset and storing all files in the fixture.
@@ -98,7 +98,7 @@ def split_sample_data_dir_state_edit(tmpdir_factory):
     ]
     split_sample_data_dir_state_edit = tmpdir_factory.mktemp("split_sample_data_state_edit")
     for dataset_name in datasets:
-        data_path = paths.SAMPLE_DATA_ROOT / dataset_name / f"{dataset_name}.parquet"
+        data_path = split_sample_data_dir / dataset_name / f"{dataset_name}.parquet"
         data = pd.read_parquet(data_path)
         # Split the sample dataset into two and save in tmpdir_factory
         # We are spliting on household_id as a solution for how to keep households together
@@ -172,11 +172,11 @@ def formatted_1040_sample_data():
 
 
 @pytest.fixture(scope="session")
-def formatted_1040_sample_data_state_edit(request):
+def formatted_1040_sample_data_state_edit(split_sample_data_dir_state_edit):
     formatted_1040 = generate_taxes_1040(
         seed=SEED,
         year=None,
-        source=request.getfixturevalue("split_sample_data_dir_state_edit"),
+        source=split_sample_data_dir_state_edit,
         config=NO_NOISE,
         state=STATE,
     )

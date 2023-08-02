@@ -49,20 +49,22 @@ DATASET_GENERATION_FUNCS = {
         DATASETS.tax_1040.name,
     ],
 )
-def test_generate_dataset_from_sample_and_source(dataset_name: str, user_config, request):
+def test_generate_dataset_from_sample_and_source(
+    dataset_name: str, user_config, request, split_sample_data_dir
+):
     """Tests that the amount of noising is approximately the same whether we
     noise a single sample dataset or we concatenate and noise multiple datasets
     """
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
-    noising_function = DATASET_GENERATION_FUNCS.get(dataset_name)
+    generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
     data = _load_sample_data(dataset_name, request)
     noised_sample = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
 
-    noised_dataset = noising_function(
+    noised_dataset = generation_function(
         seed=SEED,
         year=None,
-        source=request.getfixturevalue("split_sample_data_dir"),
+        source=split_sample_data_dir,
         config=user_config,
     )
 
@@ -133,13 +135,13 @@ def test_seed_behavior(dataset_name: str, user_config, request):
     """Tests seed behavior"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
-    noising_function = DATASET_GENERATION_FUNCS.get(dataset_name)
+    generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
     data = _load_sample_data(dataset_name, request)
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
     # Generate new (non-fixture) noised datasets with the same seed and a different
     # seed as the fixture
-    noised_data_same_seed = noising_function(seed=SEED, year=None, config=user_config)
-    noised_data_different_seed = noising_function(
+    noised_data_same_seed = generation_function(seed=SEED, year=None, config=user_config)
+    noised_data_different_seed = generation_function(
         seed=SEED + 1, year=None, config=user_config
     )
     assert not data.equals(noised_data)
@@ -304,10 +306,10 @@ def test_generate_dataset_with_year(dataset_name: str, request):
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     year = 2030  # not default 2020
-    noising_function = DATASET_GENERATION_FUNCS.get(dataset_name)
+    generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
     data = _load_sample_data(dataset_name, request)
     # Generate a new (non-fixture) noised dataset for a single year
-    noised_data = noising_function(year=year)
+    noised_data = generation_function(year=year)
     assert not data.equals(noised_data)
 
 
@@ -332,8 +334,8 @@ def test_dataset_filter_by_year(mocker, dataset_name: str):
     # we couldn't tell if the filter was working properly)
     mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
-    noising_function = DATASET_GENERATION_FUNCS[dataset_name]
-    noised_data = noising_function(year=year)
+    generation_function = DATASET_GENERATION_FUNCS[dataset_name]
+    noised_data = generation_function(year=year)
     dataset = DATASETS.get_dataset(dataset_name)
     assert (noised_data[dataset.date_column_name] == year).all()
 
@@ -356,8 +358,8 @@ def test_dataset_filter_by_year_with_full_dates(mocker, dataset_name: str):
     # we couldn't tell if the filter was working properly)
     mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
-    noising_function = DATASET_GENERATION_FUNCS[dataset_name]
-    noised_data = noising_function(year=year)
+    generation_function = DATASET_GENERATION_FUNCS[dataset_name]
+    noised_data = generation_function(year=year)
     dataset = DATASETS.get_dataset(dataset_name)
 
     noised_column = noised_data[dataset.date_column_name]
@@ -383,20 +385,20 @@ def test_dataset_filter_by_year_with_full_dates(mocker, dataset_name: str):
         DATASETS.tax_1040.name,
     ],
 )
-def test_generate_dataset_with_state_filtered(dataset_name: str, request, mocker):
+def test_generate_dataset_with_state_filtered(
+    dataset_name: str, split_sample_data_dir_state_edit, mocker
+):
     """Test that values returned by dataset generators are only for the specified state"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     dataset = DATASETS.get_dataset(dataset_name)
-    noising_function = DATASET_GENERATION_FUNCS.get(dataset_name)
+    generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
 
     # Skip noising (noising can incorrect select another state)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
 
-    noising_function = DATASET_GENERATION_FUNCS[dataset_name]
-    noised_data = noising_function(
-        source=request.getfixturevalue("split_sample_data_dir_state_edit"), state=STATE
-    )
+    generation_function = DATASET_GENERATION_FUNCS[dataset_name]
+    noised_data = generation_function(source=split_sample_data_dir_state_edit, state=STATE)
 
     assert (noised_data[dataset.state_column_name] == STATE).all()
 
@@ -412,7 +414,9 @@ def test_generate_dataset_with_state_filtered(dataset_name: str, request, mocker
         DATASETS.tax_1040.name,
     ],
 )
-def test_generate_dataset_with_state_unfiltered(dataset_name: str, request, mocker):
+def test_generate_dataset_with_state_unfiltered(
+    dataset_name: str, split_sample_data_dir_state_edit, mocker
+):
     """Test that values returned by dataset generators are for all locations if state unspecified"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -420,10 +424,8 @@ def test_generate_dataset_with_state_unfiltered(dataset_name: str, request, mock
 
     # Skip noising (noising can incorrect select another state)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
-    noising_function = DATASET_GENERATION_FUNCS[dataset_name]
-    noised_data = noising_function(
-        source=request.getfixturevalue("split_sample_data_dir_state_edit")
-    )
+    generation_function = DATASET_GENERATION_FUNCS[dataset_name]
+    noised_data = generation_function(source=split_sample_data_dir_state_edit)
 
     assert len(noised_data[dataset.state_column_name].unique()) > 1
 
@@ -437,16 +439,18 @@ def test_generate_dataset_with_state_unfiltered(dataset_name: str, request, mock
         DATASETS.tax_1040.name,
     ],
 )
-def test_dataset_filter_by_state_and_year(mocker, request, dataset_name: str):
+def test_dataset_filter_by_state_and_year(
+    mocker, split_sample_data_dir_state_edit, dataset_name: str
+):
     """Test that dataset generation works with state and year filters in conjunction"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     year = 2030  # not default 2020
     mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
-    noising_function = DATASET_GENERATION_FUNCS[dataset_name]
-    noised_data = noising_function(
-        source=request.getfixturevalue("split_sample_data_dir_state_edit"),
+    generation_function = DATASET_GENERATION_FUNCS[dataset_name]
+    noised_data = generation_function(
+        source=split_sample_data_dir_state_edit,
         year=year,
         state=STATE,
     )
@@ -459,14 +463,16 @@ def test_dataset_filter_by_state_and_year(mocker, request, dataset_name: str):
     "dataset_name",
     [DATASETS.acs.name, DATASETS.cps.name],
 )
-def test_dataset_filter_by_state_and_year_with_full_dates(mocker, request, dataset_name: str):
+def test_dataset_filter_by_state_and_year_with_full_dates(
+    mocker, split_sample_data_dir_state_edit, dataset_name: str
+):
     """Test that dataset generation works with state and year filters in conjunction"""
     year = 2030  # not default 2020
     mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
-    noising_function = DATASET_GENERATION_FUNCS[dataset_name]
-    noised_data = noising_function(
-        source=request.getfixturevalue("split_sample_data_dir_state_edit"),
+    generation_function = DATASET_GENERATION_FUNCS[dataset_name]
+    noised_data = generation_function(
+        source=split_sample_data_dir_state_edit,
         year=year,
         state=STATE,
     )
@@ -493,16 +499,16 @@ def test_dataset_filter_by_state_and_year_with_full_dates(mocker, request, datas
         DATASETS.tax_1040.name,
     ],
 )
-def test_generate_dataset_with_bad_state(dataset_name: str, request):
+def test_generate_dataset_with_bad_state(dataset_name: str, split_sample_data_dir_state_edit):
     """Test that bad state values result in informative ValueErrors"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     bad_state = "Silly State That Doesn't Exist"
 
-    noising_function = DATASET_GENERATION_FUNCS[dataset_name]
+    generation_function = DATASET_GENERATION_FUNCS[dataset_name]
     with pytest.raises(ValueError, match=bad_state.upper()):
-        _ = noising_function(
-            source=request.getfixturevalue("split_sample_data_dir_state_edit"),
+        _ = generation_function(
+            source=split_sample_data_dir_state_edit,
             state=bad_state,
         )
 
