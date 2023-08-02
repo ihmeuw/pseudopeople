@@ -368,6 +368,17 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_typos,
         ),
     )
+    middle_name: Column = Column(
+        "middle_name",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.use_nickname,
+            NOISE_TYPES.use_fake_name,
+            NOISE_TYPES.make_phonetic_errors,
+            NOISE_TYPES.make_ocr_errors,
+            NOISE_TYPES.make_typos,
+        ),
+    )
     race_ethnicity: Column = Column(
         "race_ethnicity",
         (
@@ -680,7 +691,7 @@ class __Datasets(NamedTuple):
         columns=(  # This defines the output column order
             COLUMNS.simulant_id,
             COLUMNS.first_name,
-            COLUMNS.middle_initial,
+            COLUMNS.middle_name,
             COLUMNS.last_name,
             COLUMNS.dob,
             COLUMNS.sex,
