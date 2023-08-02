@@ -683,6 +683,7 @@ class __Datasets(NamedTuple):
             COLUMNS.middle_initial,
             COLUMNS.last_name,
             COLUMNS.dob,
+            COLUMNS.sex,
             COLUMNS.ssn,
             COLUMNS.ssa_event_type,
             COLUMNS.ssa_event_date,
