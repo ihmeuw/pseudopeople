@@ -60,6 +60,9 @@ The following columns are included in this dataset:
    * - Last name
      - :code:`last_name`
      -
+   * - Year
+     - :code:`year`
+     - Metadata; not affected by noise functions.
    * - Age
      - :code:`age`
      - Rounded down to an integer.
@@ -305,6 +308,9 @@ The following columns are included in this dataset:
    * - Last name
      - :code:`last_name`
      -
+   * - Year
+     - :code:`year`
+     - Metadata; not affected by noise functions.
    * - Age
      - :code:`age`
      - Rounded down to an integer.
@@ -429,6 +435,9 @@ The following columns are included in these datasets:
    * - Last name
      - :code:`last_name`
      -
+   * - Tax year
+     - :code:`tax_year`
+     - Metadata; not affected by noise functions.
    * - Mailing address street number
      - :code:`mailing_address_street_number`
      -
@@ -515,6 +524,9 @@ The following columns are included in this dataset:
    * - Last name
      - :code:`last_name`
      -
+   * - Tax year
+     - :code:`tax_year`
+     - Metadata; not affected by noise functions.
    * - Mailing address street number
      - :code:`mailing_address_street_number`
      -
