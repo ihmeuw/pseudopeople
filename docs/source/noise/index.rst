@@ -63,7 +63,7 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
   * - Noise type
     - Config key
     - Example cause
-  * - "Borrowed" SSN
+  * - Borrow a social security number
     - Not configurable
     - Using your housemate's SSN on a W-2 because you do not have one
   * - Leave a field blank
@@ -75,7 +75,7 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
   * - Use a fake name
     - ``use_fake_name``
     - Using "Mr" rather than actual first name
-  * - Nicknames
+  * - Use a nickname
     - ``use_nickname``
     - Writing 'Alex' instead of legal name 'Alexander'
   * - Misreport age
@@ -179,8 +179,8 @@ Noise types for each column
     -
   * - SSN
     - W-2 and 1099, SSA
-    - "Borrowed" SSN, leave a field blank, write the wrong digits, make typos, make OCR errors
-    - Note that "borrowed" SSN only applies to the W-2 and 1099 dataset
+    - Borrow a social security number, leave a field blank, write the wrong digits, make typos, make OCR errors
+    - Note that 'borrow a social security number'only applies to the W-2 and 1099 dataset
   * - Income 
     - W-2 and 1099
     - Leave a field blank, write the wrong digits, make typos, make OCR errors
