@@ -25,8 +25,8 @@ Types of column-based noise:
    :depth: 2
    :local:
 
-"Borrowed" SSN
---------------
+Borrow a social security number
+-------------------------------
 
 The W-2 and 1099 tax forms require a Social Security Number (SSN).
 Many people who are employed in the US do not have an SSN,
