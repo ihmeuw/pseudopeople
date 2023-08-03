@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from typing import Dict, NamedTuple, Optional, Tuple
+from dataclasses import dataclass
+from typing import NamedTuple, Optional, Tuple
 
 from pseudopeople.constants.metadata import DATEFORMATS, DatasetNames
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
@@ -444,9 +444,6 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_typos,
         ),
     )
-    spouse_household_id: Column = Column(
-        "spouse_household_id",
-    )
     spouse_relationship_to_reference_person: Column = Column(
         "spouse_relationship_to_reference_person"
     )
@@ -756,7 +753,6 @@ class __Datasets(NamedTuple):
             COLUMNS.mailing_state,
             COLUMNS.mailing_zipcode,
             COLUMNS.ssn,
-            # TODO: Replace tax_year with record_id when implemented (MIC-4039)
             COLUMNS.tax_year,
             COLUMNS.spouse_first_name,
             COLUMNS.spouse_middle_initial,

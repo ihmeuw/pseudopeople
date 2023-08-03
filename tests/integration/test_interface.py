@@ -6,6 +6,7 @@ import pytest
 from pandas.api.types import is_datetime64_any_dtype as is_datetime
 
 from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.interface import (
     generate_american_community_survey,
     generate_current_population_survey,
@@ -67,10 +68,6 @@ def test_generate_dataset_from_sample_and_source(
         source=split_sample_data_dir,
         config=user_config,
     )
-
-    # Fix me: This should not pass but is currently passing due to bug in how random seed is passed
-    # Remove with mic-4276
-    # assert noised_data.shape == noised_sample.shape
 
     # Check same order of magnitude of rows was removed
     # Check that columns are identical
