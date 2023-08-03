@@ -417,6 +417,7 @@ def use_fake_names(
     fake_last = fake_last_names
     fake_names = {
         "first_name": fake_first,
+        "middle_name": fake_first,
         "last_name": fake_last,
         "spouse_first_name": fake_first,
         "spouse_last_name": fake_last,
