@@ -98,32 +98,19 @@ def split_sample_data_dir_state_edit(tmpdir_factory, split_sample_data_dir):
     ]
     split_sample_data_dir_state_edit = tmpdir_factory.mktemp("split_sample_data_state_edit")
     for dataset_name in datasets:
-        data_path = split_sample_data_dir / dataset_name / f"{dataset_name}.parquet"
-        data = pd.read_parquet(data_path)
-        # Split the sample dataset into two and save in tmpdir_factory
-        # We are spliting on household_id as a solution for how to keep households together
-        # for the tax 1040 dataset.
-        # We are special casing the SSA dataset because that is the only one without the
-        # household_id columns
         outdir = split_sample_data_dir_state_edit.mkdir(dataset_name)
-        if dataset_name == DatasetNames.SSA:
-            split_idx = int(len(data) / 2)
-            data[:split_idx].to_parquet(outdir / f"{dataset_name}_1.parquet")
-            data[split_idx:].to_parquet(outdir / f"{dataset_name}_2.parquet")
-        else:
-            split_household_mask = data[COLUMNS.household_id.name].isin(
-                list(data[COLUMNS.household_id.name].unique())[
-                    : (int(len(data[COLUMNS.household_id.name].unique()) / 2))
-                ]
-            )
-            data1 = data[split_household_mask]
-            data2 = data[~split_household_mask]
-            # Add a state so we can filter for integration tests
-            state_column = [column for column in data.columns if "state" in column]
-            data1.loc[data1.reset_index().index % 2 == 0, state_column] = STATE
-            data2.loc[data2.reset_index().index % 2 == 0, state_column] = STATE
-            data1.to_parquet(outdir / f"{dataset_name}_1.parquet")
-            data2.to_parquet(outdir / f"{dataset_name}_2.parquet")
+        data_paths = [
+            split_sample_data_dir / dataset_name / f"{dataset_name}_1.parquet",
+            split_sample_data_dir / dataset_name / f"{dataset_name}_2.parquet",
+        ]
+        for data_path in data_paths:
+            data = pd.read_parquet(data_path)
+            # We do not filter by state for SSA
+            if dataset_name != DatasetNames.SSA:
+                # Add a state so we can filter for integration tests
+                state_column = [column for column in data.columns if "state" in column]
+                data.loc[data.reset_index().index % 2 == 0, state_column] = STATE
+                data.to_parquet(outdir / data_path.name)
 
     return Path(split_sample_data_dir_state_edit)
 
