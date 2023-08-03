@@ -14,6 +14,7 @@ from pseudopeople.interface import (
     generate_current_population_survey,
     generate_decennial_census,
     generate_social_security,
+    generate_taxes_1040,
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
@@ -211,7 +212,7 @@ def test_columns_noised(dummy_data):
         (generate_women_infants_and_children, DATASETS.wic),
         (generate_social_security, DATASETS.ssa),
         (generate_taxes_w2_and_1099, DATASETS.tax_w2_1099),
-        ("todo", "DATASETS.tax_1040"),
+        (generate_taxes_1040, DATASETS.tax_1040),
     ],
 )
 def test_correct_datasets_are_used(func, dataset, mocker):

@@ -287,6 +287,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_typos,
         ),
     )
+    joint_filer: Column = Column("joint_filer")
     last_name: Column = Column(
         "last_name",
         (
@@ -412,6 +413,7 @@ class __Columns(NamedTuple):
     spouse_household_id: Column = Column(
         "spouse_household_id",
     )
+    spouse_joint_filer: Column = Column("spouse_joint_filer")
     spouse_last_name: Column = Column(
         "spouse_last_name",
         (
@@ -445,6 +447,11 @@ class __Columns(NamedTuple):
     spouse_household_id: Column = Column(
         "spouse_household_id",
     )
+    spouse_relationship_to_reference_person: Column = Column(
+        "spouse_relationship_to_reference_person"
+    )
+    spouse_simulant_id: Column = Column("spouse_simulant_id")
+    spouse_tax_year: Column = Column("spouse_tax_year")
     ssa_event_date: Column = Column(
         "event_date",
         (
@@ -749,6 +756,8 @@ class __Datasets(NamedTuple):
             COLUMNS.mailing_state,
             COLUMNS.mailing_zipcode,
             COLUMNS.ssn,
+            # TODO: Replace tax_year with record_id when implemented (MIC-4039)
+            COLUMNS.tax_year,
             COLUMNS.spouse_first_name,
             COLUMNS.spouse_middle_initial,
             COLUMNS.spouse_last_name,
