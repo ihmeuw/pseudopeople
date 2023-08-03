@@ -129,7 +129,7 @@ def test_flatten_data(dummy_tax_dependents):
     assert len(dependents_wide.columns) == 4
     # Assert expected nans for depdents 2, 3, 4 columns - we have 3 guardians (0, 3, 5) with
     # 5, 2, and 1 dependents respectively. We expected dependent 2 column to have 2 nans, dependent
-    # 3 and depdent 4 columns to have 4 nans.
+    # 3 and dependent 4 columns to have 4 nans.
     assert dependents_wide["2_favorite_food"].isna().sum() == 2
     for dependent in ["3", "4"]:
         assert dependents_wide[f"{dependent}_favorite_food"].isna().sum() == 4
