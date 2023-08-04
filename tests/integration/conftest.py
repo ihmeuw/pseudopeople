@@ -1,14 +1,19 @@
+from pathlib import Path
+
 import pandas as pd
 import pytest
 
 from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.configuration.entities import NO_NOISE
 from pseudopeople.constants import paths
+from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.interface import (
     _reformat_dates_for_noising,
     generate_american_community_survey,
     generate_current_population_survey,
     generate_decennial_census,
     generate_social_security,
+    generate_taxes_1040,
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
@@ -31,8 +36,83 @@ IDX_COLS = {
         COLUMNS.tax_year.name,
         COLUMNS.employer_id.name,
     ],
-    # DATASETS.tax_1040.name: "todo",
+    DATASETS.tax_1040.name: [
+        COLUMNS.simulant_id.name,
+        COLUMNS.tax_year.name,
+    ],
 }
+
+
+@pytest.fixture(scope="session")
+def split_sample_data_dir(tmpdir_factory):
+    datasets = [
+        DatasetNames.CENSUS,
+        DatasetNames.ACS,
+        DatasetNames.CPS,
+        DatasetNames.SSA,
+        DatasetNames.TAXES_W2_1099,
+        DatasetNames.WIC,
+        DatasetNames.TAXES_1040,
+        DatasetNames.TAXES_DEPENDENTS,
+    ]
+    split_sample_data_dir = tmpdir_factory.mktemp("split_sample_data")
+    for dataset_name in datasets:
+        data_path = paths.SAMPLE_DATA_ROOT / dataset_name / f"{dataset_name}.parquet"
+        data = pd.read_parquet(data_path)
+        # Split the sample dataset into two and save in tmpdir_factory
+        # We are spliting on household_id as a solution for how to keep households together
+        # for the tax 1040 dataset.
+        # We are special casing the SSA dataset because that is the only one without the
+        # household_id columns
+        outdir = split_sample_data_dir.mkdir(dataset_name)
+        if dataset_name == DatasetNames.SSA:
+            split_idx = int(len(data) / 2)
+            data[:split_idx].to_parquet(outdir / f"{dataset_name}_1.parquet")
+            data[split_idx:].to_parquet(outdir / f"{dataset_name}_2.parquet")
+        else:
+            split_year_mask = data[COLUMNS.household_id.name].isin(
+                list(data[COLUMNS.household_id.name].unique())[
+                    : (int(len(data[COLUMNS.household_id.name].unique()) / 2))
+                ]
+            )
+            data[split_year_mask].to_parquet(outdir / f"{dataset_name}_1.parquet")
+            data[~split_year_mask].to_parquet(outdir / f"{dataset_name}_2.parquet")
+
+    return Path(split_sample_data_dir)
+
+
+@pytest.fixture(scope="session")
+def split_sample_data_dir_state_edit(tmpdir_factory, split_sample_data_dir):
+    # This replace our old tmpdir fixture we were using because this more accurately
+    # represents our sample data directory structure with a subdirectory for each
+    # dataset and storing all files in the fixture.
+    datasets = [
+        DatasetNames.CENSUS,
+        DatasetNames.ACS,
+        DatasetNames.CPS,
+        DatasetNames.SSA,
+        DatasetNames.TAXES_W2_1099,
+        DatasetNames.WIC,
+        DatasetNames.TAXES_1040,
+        DatasetNames.TAXES_DEPENDENTS,
+    ]
+    split_sample_data_dir_state_edit = tmpdir_factory.mktemp("split_sample_data_state_edit")
+    for dataset_name in datasets:
+        outdir = split_sample_data_dir_state_edit.mkdir(dataset_name)
+        data_paths = [
+            split_sample_data_dir / dataset_name / f"{dataset_name}_1.parquet",
+            split_sample_data_dir / dataset_name / f"{dataset_name}_2.parquet",
+        ]
+        for data_path in data_paths:
+            data = pd.read_parquet(data_path)
+            # We do not filter by state for SSA
+            if dataset_name != DatasetNames.SSA:
+                # Add a state so we can filter for integration tests
+                state_column = [column for column in data.columns if "state" in column]
+                data.loc[data.reset_index().index % 2 == 0, state_column] = STATE
+                data.to_parquet(outdir / data_path.name)
+
+    return Path(split_sample_data_dir_state_edit)
 
 
 @pytest.fixture(scope="module")
@@ -69,40 +149,25 @@ def user_config():
     return config
 
 
-# Raw sample datasets
-@pytest.fixture(scope="module")
-def sample_data_decennial_census():
-    return _load_sample_data("decennial_census")
+# Un-noised 1040
+@pytest.fixture(scope="session")
+def formatted_1040_sample_data():
+    formatted_1040 = generate_taxes_1040(
+        seed=SEED, year=None, source=paths.SAMPLE_DATA_ROOT, config=NO_NOISE
+    )
+    return formatted_1040
 
 
-@pytest.fixture(scope="module")
-def sample_data_american_community_survey():
-    return _load_sample_data("american_community_survey")
-
-
-@pytest.fixture(scope="module")
-def sample_data_current_population_survey():
-    return _load_sample_data("current_population_survey")
-
-
-@pytest.fixture(scope="module")
-def sample_data_women_infants_and_children():
-    return _load_sample_data("women_infants_and_children")
-
-
-@pytest.fixture(scope="module")
-def sample_data_social_security():
-    return _load_sample_data("social_security")
-
-
-@pytest.fixture(scope="module")
-def sample_data_taxes_w2_and_1099():
-    return _load_sample_data("taxes_w2_and_1099")
-
-
-@pytest.fixture(scope="module")
-def sample_data_taxes_1040():
-    return _load_sample_data("taxes_1040")
+@pytest.fixture(scope="session")
+def formatted_1040_sample_data_state_edit(split_sample_data_dir_state_edit):
+    formatted_1040 = generate_taxes_1040(
+        seed=SEED,
+        year=None,
+        source=split_sample_data_dir_state_edit,
+        config=NO_NOISE,
+        state=STATE,
+    )
+    return formatted_1040
 
 
 # Noised sample datasets
@@ -136,9 +201,9 @@ def noised_sample_data_taxes_w2_and_1099(user_config):
     return generate_taxes_w2_and_1099(seed=SEED, year=None, config=user_config)
 
 
-# @pytest.fixture(scope="module")
-# def noised_sample_data_taxes_1040(config):
-#     return generate_taxes_1040(seed=SEED, year=None, config=user_config)
+@pytest.fixture(scope="module")
+def noised_sample_data_taxes_1040(user_config):
+    return generate_taxes_1040(seed=SEED, year=None, config=user_config)
 
 
 # Raw sample datasets with half from a specific state, for state filtering
@@ -189,9 +254,15 @@ def sample_data_taxes_w2_and_1099_state_edit():
 ####################
 
 
-def _load_sample_data(dataset):
-    data_path = paths.SAMPLE_DATA_ROOT / dataset / f"{dataset}.parquet"
-    return pd.read_parquet(data_path)
+def _load_sample_data(dataset, request):
+    if dataset == DatasetNames.TAXES_1040:
+        # We need to get formatted 1040 data that is not noised to get the expected columns
+        data = request.getfixturevalue("formatted_1040_sample_data")
+    else:
+        data_path = paths.SAMPLE_DATA_ROOT / dataset / f"{dataset}.parquet"
+        data = pd.read_parquet(data_path)
+
+    return data
 
 
 def _get_common_datasets(dataset_name, data, noised_data):
