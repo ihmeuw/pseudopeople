@@ -124,7 +124,7 @@ Noise types for each column
   * - Last name
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, 1040, SSA
     - Leave a field blank, use a fake name, make typos, make OCR errors, make phonetic errors
-    - In the 1040 form, this noise type functions the same for joint filer and dependent *n*
+    - In the 1040 form, the same noise types apply to the SSN columns for the joint filer and dependents
   * - Age
     - Decennial Census, ACS, CPS
     - Leave a field blank, misreport age, make typos, make OCR errors
@@ -177,7 +177,7 @@ Noise types for each column
     - Decennial Census, ACS, CPS, WIC
     - Leave a field blank, choose the wrong option
     -
-  * - SSN or ITIN
+  * - SSN
     - W-2 and 1099, 1040, SSA
     - "Borrowed" SSN, leave a field blank, write the wrong digits, make typos, make OCR errors
     - Note that "borrowed" SSN only applies to the W-2 and 1099 dataset.
