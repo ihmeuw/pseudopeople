@@ -43,7 +43,7 @@ simulating decennial censuses, surveys, taxes, and other administrative data).
 By creating realistic, but simulated, data which includes these attributes, we
 can make ER research and development easier for ourselves and others.
 
-Want to know more? Please visit `the pseudopeople website <https://www.pseudopeople.org/>`_, where you can find out more about the principles and processes underlying this work.
+Want to know more? Please visit the `pseudopeople project website <https://www.pseudopeople.org/>`_, where you can find out more about the principles and processes underlying this work.
 
 .. _quickstart:
 
