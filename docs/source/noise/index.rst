@@ -120,7 +120,7 @@ Noise types for each column
   * - Middle initial
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, 1040, SSA
     - Leave a field blank, make typos, make OCR errors, make phonetic errors
-    - In the 1040 form, this noise type functions the same for joint filer and dependent *n*
+    - In the 1040 form, the same noise types apply to the middle initial columns for the joint filer and dependents
   * - Last name
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, 1040, SSA
     - Leave a field blank, use a fake name, make typos, make OCR errors, make phonetic errors
