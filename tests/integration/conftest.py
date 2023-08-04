@@ -70,13 +70,13 @@ def split_sample_data_dir(tmpdir_factory):
             data[:split_idx].to_parquet(outdir / f"{dataset_name}_1.parquet")
             data[split_idx:].to_parquet(outdir / f"{dataset_name}_2.parquet")
         else:
-            split_year_mask = data[COLUMNS.household_id.name].isin(
+            split_household_mask = data[COLUMNS.household_id.name].isin(
                 list(data[COLUMNS.household_id.name].unique())[
                     : (int(len(data[COLUMNS.household_id.name].unique()) / 2))
                 ]
             )
-            data[split_year_mask].to_parquet(outdir / f"{dataset_name}_1.parquet")
-            data[~split_year_mask].to_parquet(outdir / f"{dataset_name}_2.parquet")
+            data[split_household_mask].to_parquet(outdir / f"{dataset_name}_1.parquet")
+            data[~split_household_mask].to_parquet(outdir / f"{dataset_name}_2.parquet")
 
     return Path(split_sample_data_dir)
 
