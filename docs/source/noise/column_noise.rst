@@ -125,13 +125,13 @@ Use a nickname
 Many people, when filling out forms or survey answers, choose to use nicknames instead of their legal names.
 A common example is an Alexander who chooses to go by Alex. 
 
-The "Use a nickname" noise type in pseudopeople simulates these kinds of responses for first names. In order
+The "Use a nickname" noise type in pseudopeople simulates these kinds of responses for first and middle names. In order
 to do this, we used a list of 1,080 names and their relevant nicknames, from a project by Old Dominion 
 University's Web Science and Digital Libraries Research Group. You can read more about the list of nicknames
 in the group's `GitHub repository <https://github.com/carltonnorthern/nicknames>`_.
 
 Instead of the person's legal name, pseudopeople selects the subset of simulated individuals who are eligible 
-for a nickname (i.e., those whose legal first name is included in the nicknames list detailed above), then replaces
+for a nickname (i.e., those whose legal first or middle name is included in the nicknames list detailed above), then replaces
 each selected simulant's first name with any of the nicknames included in the csv file. 
 
 This noise type is called :code:`use_nickname` in the configuration. It takes one parameter:
