@@ -375,8 +375,8 @@ The following columns are included in this dataset:
    * - First name
      - :code:`first_name`
      -
-   * - Middle initial
-     - :code:`middle_initial`
+   * - Middle name
+     - :code:`middle_name`
      -
    * - Last name
      - :code:`last_name`
@@ -384,6 +384,9 @@ The following columns are included in this dataset:
    * - Date of birth
      - :code:`date_of_birth`
      - Formatted as YYYYMMDD.
+   * - Sex
+     - :code:`sex`
+     - Binary; "male" or "female"
    * - Social security number
      - :code:`ssn`
      - By default, the SSN column in the SSA dataset has no :ref:`column-based noise <column_noise>`.
