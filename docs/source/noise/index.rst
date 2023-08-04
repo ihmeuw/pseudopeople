@@ -180,7 +180,7 @@ Noise types for each column
   * - SSN
     - W-2 and 1099, SSA
     - Borrow a social security number, leave a field blank, write the wrong digits, make typos, make OCR errors
-    - Note that 'borrow a social security number'only applies to the W-2 and 1099 dataset
+    - Note that 'borrow a social security number' only applies to the W-2 and 1099 dataset
   * - Income 
     - W-2 and 1099
     - Leave a field blank, write the wrong digits, make typos, make OCR errors
