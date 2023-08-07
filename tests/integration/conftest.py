@@ -61,9 +61,8 @@ def split_sample_data_dir(tmpdir_factory):
         data = pd.read_parquet(data_path)
         # Split the sample dataset into two and save in tmpdir_factory
         # We are spliting on household_id as a solution for how to keep households together
-        # for the tax 1040 dataset.
-        # We are special casing the SSA dataset because that is the only one without the
-        # household_id columns
+        # for the tax 1040 dataset. We also need to split households by a year filter so
+        # we do not break our data contracts for the 1040 needed to merge multiple datasets.
         outdir = split_sample_data_dir.mkdir(dataset_name)
         if dataset_name in [
             DatasetNames.TAXES_1040,
