@@ -61,22 +61,25 @@ def split_sample_data_dir(tmpdir_factory):
         data = pd.read_parquet(data_path)
         # Split the sample dataset into two and save in tmpdir_factory
         # We are spliting on household_id as a solution for how to keep households together
-        # for the tax 1040 dataset.
-        # We are special casing the SSA dataset because that is the only one without the
-        # household_id columns
+        # for the tax 1040 dataset. We also need to split households by a year filter so
+        # we do not break our data contracts for the 1040 needed to merge multiple datasets.
         outdir = split_sample_data_dir.mkdir(dataset_name)
-        if dataset_name == DatasetNames.SSA:
+        if dataset_name in [
+            DatasetNames.TAXES_1040,
+            DatasetNames.TAXES_DEPENDENTS,
+            DatasetNames.TAXES_W2_1099,
+        ]:
+            hh_ids = data.loc[
+                data[COLUMNS.tax_year.name] == 2020, COLUMNS.household_id.name
+            ].unique()
+            hh1_ids = hh_ids[: int(len(hh_ids) / 2)]
+            split_household_mask = data[COLUMNS.household_id.name].isin(hh1_ids)
+            data[split_household_mask].to_parquet(outdir / f"{dataset_name}_1.parquet")
+            data[~split_household_mask].to_parquet(outdir / f"{dataset_name}_2.parquet")
+        else:
             split_idx = int(len(data) / 2)
             data[:split_idx].to_parquet(outdir / f"{dataset_name}_1.parquet")
             data[split_idx:].to_parquet(outdir / f"{dataset_name}_2.parquet")
-        else:
-            split_year_mask = data[COLUMNS.household_id.name].isin(
-                list(data[COLUMNS.household_id.name].unique())[
-                    : (int(len(data[COLUMNS.household_id.name].unique()) / 2))
-                ]
-            )
-            data[split_year_mask].to_parquet(outdir / f"{dataset_name}_1.parquet")
-            data[~split_year_mask].to_parquet(outdir / f"{dataset_name}_2.parquet")
 
     return Path(split_sample_data_dir)
 
