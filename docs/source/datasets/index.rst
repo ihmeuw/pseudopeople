@@ -109,6 +109,9 @@ The following columns are included in this dataset:
      - The exhaustive and mutually exclusive categories for the single composite "race/ethnicity" indicator are as follows:
        White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
        Multiracial or Some Other Race.
+   * - Year
+     - :code:`year`
+     - Metadata that would not be collected directly; not affected by noise functions.
 
 American Community Survey (ACS)
 -------------------------------
@@ -337,6 +340,9 @@ The following columns are included in this dataset:
      - The exhaustive and mutually exclusive categories for the single composite "race/ethnicity" indicator are as follows:
        White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
        Multiracial or Some Other Race.
+   * - Year
+     - :code:`year`
+     - Metadata that would not be collected directly; not affected by noise functions.
 
 
 Social Security Administration
@@ -375,9 +381,6 @@ The following columns are included in this dataset:
    * - Last name
      - :code:`last_name`
      -
-   * - Age
-     - :code:`age`
-     - Rounded down to an integer.
    * - Date of birth
      - :code:`date_of_birth`
      - Formatted as YYYYMMDD.
@@ -483,6 +486,10 @@ The following columns are included in these datasets:
    * - Type of tax form
      - :code:`tax_form`
      - Possible values are "W2" or "1099".
+   * - Tax year
+     - :code:`tax_year`
+     - Metadata that would not be collected directly; not affected by noise functions.
+
 
 Tax form: 1040
 --------------
@@ -590,3 +597,6 @@ The following columns are included in this dataset:
    * - Dependent 4 social security number
      - :code:`dependent_4_ssn`
      - Individual Taxpayer Identification Number (ITIN) if no SSN
+   * - Tax year
+     - :code:`tax_year`
+     - Metadata that would not be collected directly; not affected by noise functions.
