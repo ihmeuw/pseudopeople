@@ -456,8 +456,8 @@ The following columns are included in these datasets:
    * - Social security number
      - :code:`ssn`
      -
-   * - Income
-     - :code:`income`
+   * - Wages
+     - :code:`wages`
      -
    * - Employer ID
      - :code:`employer_id`
