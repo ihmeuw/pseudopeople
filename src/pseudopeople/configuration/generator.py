@@ -80,9 +80,7 @@ DEFAULT_NOISE_VALUES = {
 }
 
 
-def get_configuration(
-    overrides: Optional[Union[Path, str, Dict]] = None
-) -> ConfigTree:
+def get_configuration(overrides: Optional[Union[Path, str, Dict]] = None) -> ConfigTree:
     """
     Gets a noising configuration ConfigTree, optionally overridden by a user-provided YAML.
 
@@ -170,9 +168,7 @@ def _generate_configuration(is_no_noise: bool) -> ConfigTree:
     return noising_configuration
 
 
-def add_overrides(
-    noising_configuration: ConfigTree, overrides: Dict
-) -> None:
+def add_overrides(noising_configuration: ConfigTree, overrides: Dict) -> None:
     validate_overrides(overrides, noising_configuration)
     overrides = _format_overrides(noising_configuration, overrides)
     noising_configuration.update(overrides, layer="user")
