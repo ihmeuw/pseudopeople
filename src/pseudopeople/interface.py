@@ -46,6 +46,8 @@ def _generate_dataset(
 
     if source is None:
         source = paths.SAMPLE_DATA_ROOT
+    else:
+        source = Path(source)
     data_paths = fetch_filepaths(dataset, source)
     if not data_paths:
         raise DataSourceError(
