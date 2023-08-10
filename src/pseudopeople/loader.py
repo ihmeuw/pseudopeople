@@ -40,6 +40,9 @@ def load_and_prep_1040_data(data_path: dict, user_filters: List[Tuple]) -> pd.Da
     df_dependents = load_standard_dataset_file(
         data_path[DatasetNames.TAXES_DEPENDENTS], no_state_user_filters
     )
+    # Combine ssn and itin columns
+    df_1040 = combine_ssn_and_itin_columns(df_1040)
+    df_dependents = combine_ssn_and_itin_columns(df_dependents)
 
     # Get wide format of dependents - metadata for each guardian's dependents
     dependents_wide = flatten_data(
@@ -128,3 +131,13 @@ def combine_joint_filers(data: pd.DataFrame) -> pd.DataFrame:
     joint_1040 = pd.concat([reference_persons_wide, independent_filers])
 
     return joint_1040
+
+
+def combine_ssn_and_itin_columns(data: pd.DataFrame) -> pd.DataFrame:
+    # This combines the ssn and itin columns into the ssn column.
+    # Simulants can either have an ssn or an itin so we will replace
+    # the nans in the ssn column with that rows corresponding itin value
+    data[COLUMNS.ssn.name] = np.where(
+        data[COLUMNS.ssn.name].notna(), data[COLUMNS.ssn.name], data[COLUMNS.itin.name]
+    )
+    return data
