@@ -132,7 +132,7 @@ def test_get_configuration_with_user_override(mocker):
 
 
 def test_loading_from_yaml(tmp_path):
-    user_config = {
+    overrides = {
         DATASETS.census.name: {
             Keys.COLUMN_NOISE: {
                 COLUMNS.age.name: {
@@ -145,7 +145,7 @@ def test_loading_from_yaml(tmp_path):
     }
     filepath = tmp_path / "user_dict.yaml"
     with open(filepath, "w") as file:
-        yaml.dump(user_config, file)
+        yaml.dump(overrides, file)
 
     default_config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE][
         COLUMNS.age.name
@@ -163,30 +163,30 @@ def test_loading_from_yaml(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "user_config, expected",
+    "age_differences, expected",
     [
         ([-2, -1, 2], {-2: 1 / 3, -1: 1 / 3, 1: 0, 2: 1 / 3}),
         ({-2: 0.3, 1: 0.5, 2: 0.2}, {-2: 0.3, -1: 0, 1: 0.5, 2: 0.2}),
     ],
     ids=["list", "dict"],
 )
-def test_format_miswrite_ages(user_config, expected):
+def test_format_miswrite_ages(age_differences, expected):
     """Test that user-supplied dictionary properly updates ConfigTree object.
     This includes zero-ing out default values that don't exist in the user config
     """
-    user_config = {
+    overrides = {
         DATASETS.census.name: {
             Keys.COLUMN_NOISE: {
                 COLUMNS.age.name: {
                     NOISE_TYPES.misreport_age.name: {
-                        Keys.POSSIBLE_AGE_DIFFERENCES: user_config,
+                        Keys.POSSIBLE_AGE_DIFFERENCES: age_differences,
                     },
                 },
             },
         },
     }
 
-    config = get_configuration(user_config)[DATASETS.census.name][Keys.COLUMN_NOISE][
+    config = get_configuration(overrides)[DATASETS.census.name][Keys.COLUMN_NOISE][
         COLUMNS.age.name
     ][NOISE_TYPES.misreport_age.name][Keys.POSSIBLE_AGE_DIFFERENCES].to_dict()
 
@@ -381,7 +381,7 @@ def test_validate_miswrite_zipcode_digit_probabilities_failures(probabilities, m
 
 
 def test_get_config(caplog):
-    user_config = {
+    overrides = {
         DATASETS.acs.name: {
             Keys.COLUMN_NOISE: {
                 "zipcode": {
@@ -396,14 +396,14 @@ def test_get_config(caplog):
     assert isinstance(config_1, dict)
     assert not caplog.records
 
-    config_2 = get_config("decennial_census", user_config)
+    config_2 = get_config("decennial_census", overrides)
     assert isinstance(config_2, dict)
     assert "not in the user provided configuration" in caplog.text
 
     with pytest.raises(ConfigurationError, match="bad_form_name"):
         get_config("bad_form_name")
 
-    config_3 = get_config(user_config=NO_NOISE)
+    config_3 = get_config(overrides=NO_NOISE)
     for dataset in config_3.keys():
         row_noise_dict = config_3[dataset][Keys.ROW_NOISE]
         column_dict = config_3[dataset][Keys.COLUMN_NOISE]
