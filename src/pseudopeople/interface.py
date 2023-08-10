@@ -469,7 +469,9 @@ def validate_data_path_suffix(data_paths) -> None:
     return None
 
 
-def get_dataset_filepaths(source: Path, dataset_name: str) -> List[Path]:
+def get_dataset_filepaths(source: Union[Path, str], dataset_name: str) -> List[Path]:
+    if type(source) == str:
+        source = Path(source)
     directory = source / dataset_name
     dataset_paths = [x for x in directory.glob(f"{dataset_name}*")]
     sorted_dataset_paths = sorted(dataset_paths)
