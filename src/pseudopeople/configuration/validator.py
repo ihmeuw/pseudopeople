@@ -10,15 +10,15 @@ from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.noise_entities import NOISE_TYPES
 
 
-def validate_user_configuration(user_config: Dict, default_config: ConfigTree) -> None:
+def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
     """
-    Validates the user-provided configuration. Confirms that all user-provided
+    Validates the user-provided overrides. Confirms that all user-provided
     keys exist in the default configuration. Confirms that all user-provided
     values are valid for their respective noise functions.
     """
-    if not isinstance(user_config, Dict):
+    if not isinstance(overrides, Dict):
         raise ConfigurationError("Invalid configuration type provided.") from None
-    for dataset, dataset_config in user_config.items():
+    for dataset, dataset_config in overrides.items():
         default_dataset_config = _get_default_config_node(default_config, dataset, "dataset")
         for key in dataset_config:
             _get_default_config_node(

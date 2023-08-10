@@ -5,7 +5,7 @@ import yaml
 from vivarium.config_tree import ConfigTree
 
 from pseudopeople.configuration import NO_NOISE, Keys
-from pseudopeople.configuration.validator import validate_user_configuration
+from pseudopeople.configuration.validator import validate_overrides
 from pseudopeople.constants.data_values import DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY
 from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.noise_entities import NOISE_TYPES
@@ -81,27 +81,27 @@ DEFAULT_NOISE_VALUES = {
 
 
 def get_configuration(
-    user_configuration: Optional[Union[Path, str, Dict]] = None
+    overrides: Optional[Union[Path, str, Dict]] = None
 ) -> ConfigTree:
     """
     Gets a noising configuration ConfigTree, optionally overridden by a user-provided YAML.
 
-    :param user_configuration: A path to the YAML file or a dictionary defining user overrides for the defaults
+    :param overrides: A path to the YAML file or a dictionary defining user overrides for the defaults
     :return: a ConfigTree object of the noising configuration
     """
 
-    if user_configuration == NO_NOISE:
+    if overrides == NO_NOISE:
         is_no_noise = True
-        user_configuration = None
-    elif isinstance(user_configuration, (Path, str)):
-        with open(user_configuration, "r") as f:
-            user_configuration = yaml.full_load(f)
+        overrides = None
+    elif isinstance(overrides, (Path, str)):
+        with open(overrides, "r") as f:
+            overrides = yaml.full_load(f)
         is_no_noise = False
     else:
         is_no_noise = False
     noising_configuration = _generate_configuration(is_no_noise)
-    if user_configuration is not None:
-        add_user_configuration(noising_configuration, user_configuration)
+    if overrides is not None:
+        add_overrides(noising_configuration, overrides)
 
     return noising_configuration
 
@@ -170,15 +170,15 @@ def _generate_configuration(is_no_noise: bool) -> ConfigTree:
     return noising_configuration
 
 
-def add_user_configuration(
-    noising_configuration: ConfigTree, user_configuration: Dict
+def add_overrides(
+    noising_configuration: ConfigTree, overrides: Dict
 ) -> None:
-    validate_user_configuration(user_configuration, noising_configuration)
-    user_configuration = _format_user_configuration(noising_configuration, user_configuration)
-    noising_configuration.update(user_configuration, layer="user")
+    validate_overrides(overrides, noising_configuration)
+    overrides = _format_overrides(noising_configuration, overrides)
+    noising_configuration.update(overrides, layer="user")
 
 
-def _format_user_configuration(default_config: ConfigTree, user_dict: Dict) -> Dict:
+def _format_overrides(default_config: ConfigTree, user_dict: Dict) -> Dict:
     """Formats the user's configuration file as necessary, so it can properly
     update noising configuration to be used
     """
