@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -5,6 +6,7 @@ from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.loader import (
     combine_joint_filers,
+    combine_ssn_and_itin_columns,
     flatten_data,
     load_and_prep_1040_data,
 )
@@ -159,3 +161,22 @@ def test_load_and_prep_1040_data():
     # Note this is before we clense our data of extra columns
     tax_1040_dataset_cols = [column.name for column in DATASETS.tax_1040.columns]
     assert set(tax_1040_dataset_cols).issubset(set(tax_1040.columns))
+
+
+def test_combine_ssn_itin_column_combine():
+    # The purpose of this function is to test the logic merging the two columns
+    # of ssn and itin is correct using np.where
+    df = pd.DataFrame(
+        {
+            COLUMNS.ssn.name: ["123-45-6789", np.nan, "987-65-4321", np.nan, "543-67-2189"],
+            COLUMNS.itin.name: [np.nan, "900-10-5555", np.nan, "111-222-3333", np.nan],
+        }
+    )
+    # Get mask for nulls in ssn
+    swap_mask = df[COLUMNS.ssn.name].isna()
+    df = combine_ssn_and_itin_columns(df)
+
+    # There should be no nans in ssn column
+    assert df[COLUMNS.ssn.name].isna().sum() == 0
+    # New ssn values should be old itin values
+    assert (df[COLUMNS.ssn.name][swap_mask] == df[COLUMNS.itin.name][swap_mask]).all()

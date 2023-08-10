@@ -279,13 +279,6 @@ class __Columns(NamedTuple):
     )
     itin: Column = Column(
         "itin",
-        (
-            NOISE_TYPES.leave_blank,
-            # NOISE_TYPES.copy_from_household_member,
-            NOISE_TYPES.write_wrong_digits,
-            NOISE_TYPES.make_ocr_errors,
-            NOISE_TYPES.make_typos,
-        ),
     )
     joint_filer: Column = Column("joint_filer")
     last_name: Column = Column(
