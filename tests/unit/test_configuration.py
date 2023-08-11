@@ -483,3 +483,9 @@ def test_get_config_dataset_name_key(dataset_name):
     else:
         # TODO: Convert pseudopeople.constants.metadata::DatasetNames to a NamedTuple
         assert outer_keys == {x.name for x in DATASETS}
+
+
+def test_get_config_bad_dataset_name_fails():
+    """Tests that an error is raised if a bad dataset name is provided"""
+    with pytest.raises(ConfigurationError, match="'foo' provided but is not a valid option for dataset type"):
+            get_config("foo")
