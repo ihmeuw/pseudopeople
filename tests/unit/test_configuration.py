@@ -487,5 +487,7 @@ def test_get_config_dataset_name_key(dataset_name):
 
 def test_get_config_bad_dataset_name_fails():
     """Tests that an error is raised if a bad dataset name is provided"""
-    with pytest.raises(ConfigurationError, match="'foo' provided but is not a valid option for dataset type"):
-            get_config("foo")
+    with pytest.raises(
+        ConfigurationError, match="'foo' provided but is not a valid option for dataset type"
+    ):
+        get_config("foo")
