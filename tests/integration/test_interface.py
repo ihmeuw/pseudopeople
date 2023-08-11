@@ -138,9 +138,7 @@ def test_seed_behavior(dataset_name: str, config, request):
     # Generate new (non-fixture) noised datasets with the same seed and a different
     # seed as the fixture
     noised_data_same_seed = generation_function(seed=SEED, year=None, config=config)
-    noised_data_different_seed = generation_function(
-        seed=SEED + 1, year=None, config=config
-    )
+    noised_data_different_seed = generation_function(seed=SEED + 1, year=None, config=config)
     assert not data.equals(noised_data)
     assert noised_data.equals(noised_data_same_seed)
     assert not noised_data.equals(noised_data_different_seed)
