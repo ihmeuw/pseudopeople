@@ -469,3 +469,34 @@ def test_no_noise():
             column_noise_dict = dataset_column_dict[column]
             for column_noise_type in column_noise_dict.keys():
                 assert column_noise_dict[column_noise_type][Keys.CELL_PROBABILITY] == 0.0
+
+
+@pytest.mark.parametrize(
+    "dataset_name",
+    [
+        DATASETS.census.name,
+        DATASETS.acs.name,
+        DATASETS.cps.name,
+        DATASETS.ssa.name,
+        DATASETS.tax_w2_1099.name,
+        DATASETS.wic.name,
+        DATASETS.tax_1040.name,
+        None,
+    ],
+)
+def test_get_config_dataset_name_key(dataset_name):
+    """ Tests that the dataset name is returned as the first key """
+    outer_keys = set(get_config(dataset_name).keys())
+    if dataset_name:
+        assert outer_keys == {dataset_name}
+    else:
+        # TODO: Convert pseudopeople.constants.metadata::DatasetNames to a NamedTuple
+        assert outer_keys == {
+            DATASETS.census.name,
+            DATASETS.acs.name,
+            DATASETS.cps.name,
+            DATASETS.ssa.name,
+            DATASETS.tax_w2_1099.name,
+            DATASETS.wic.name,
+            DATASETS.tax_1040.name,
+        }
