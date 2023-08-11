@@ -469,3 +469,25 @@ def test_no_noise():
             column_noise_dict = dataset_column_dict[column]
             for column_noise_type in column_noise_dict.keys():
                 assert column_noise_dict[column_noise_type][Keys.CELL_PROBABILITY] == 0.0
+
+
+@pytest.mark.parametrize(
+    "dataset_name",
+    [x.name for x in DATASETS] + [None],
+)
+def test_get_config_dataset_name_key(dataset_name):
+    """Tests that the dataset name is returned as the first key"""
+    outer_keys = set(get_config(dataset_name).keys())
+    if dataset_name:
+        assert outer_keys == {dataset_name}
+    else:
+        # TODO: Convert pseudopeople.constants.metadata::DatasetNames to a NamedTuple
+        assert outer_keys == {x.name for x in DATASETS}
+
+
+def test_get_config_bad_dataset_name_fails():
+    """Tests that an error is raised if a bad dataset name is provided"""
+    with pytest.raises(
+        ConfigurationError, match="'foo' provided but is not a valid option for dataset type"
+    ):
+        get_config("foo")

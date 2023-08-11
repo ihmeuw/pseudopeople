@@ -20,20 +20,20 @@ def get_config(dataset_name: str = None, overrides: Union[Path, str, Dict] = Non
     dataset, i.e. :code:`get_config(dataset_name)` is equivalent to
     :code:`get_config()[dataset_name]`.
 
-    To get the default probability of omission in the Decennial Census dataset:
+    To get the default probability of nonresponse in the Decennial Census dataset:
 
     .. code-block:: pycon
 
         >>> import pseudopeople as psp
-        >>> psp.get_config('decennial_census')['row_noise']['omit_row']
+        >>> psp.get_config('decennial_census')['row_noise']['do_not_respond']
         {'row_probability': 0.0145}
 
     To view that same part of the configuration after applying a user override:
 
     .. code-block:: pycon
 
-        >>> overrides = {'decennial_census': {'row_noise': {'omit_row': {'row_probability': 0.1}}}}
-        >>> psp.get_config('decennial_census', overrides)['row_noise']['omit_row']
+        >>> overrides = {'decennial_census': {'row_noise': {'do_not_respond': {'row_probability': 0.1}}}}
+        >>> psp.get_config('decennial_census', overrides)['row_noise']['do_not_respond']
         {'row_probability': 0.1}
 
     :param dataset_name: An optional name of dataset to return the configuration
@@ -63,13 +63,13 @@ def get_config(dataset_name: str = None, overrides: Union[Path, str, Dict] = Non
         logger.warning(
             f"'{dataset_name}' provided but is not in the user provided configuration."
         )
-    config = get_configuration(overrides)
+    config = get_configuration(overrides).to_dict()
     if dataset_name:
         if dataset_name in [dataset.name for dataset in DATASETS]:
-            config = config[dataset_name]
+            config = {dataset_name: config[dataset_name]}
         else:
             raise ConfigurationError(
                 f"'{dataset_name}' provided but is not a valid option for dataset type."
             )
 
-    return config.to_dict()
+    return config
