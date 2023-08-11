@@ -485,7 +485,7 @@ def test_no_noise():
     ],
 )
 def test_get_config_dataset_name_key(dataset_name):
-    """ Tests that the dataset name is returned as the first key """
+    """Tests that the dataset name is returned as the first key"""
     outer_keys = set(get_config(dataset_name).keys())
     if dataset_name:
         assert outer_keys == {dataset_name}
