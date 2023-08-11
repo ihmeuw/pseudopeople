@@ -137,5 +137,7 @@ def combine_ssn_and_itin_columns(data: pd.DataFrame) -> pd.DataFrame:
     # This combines the ssn and itin columns into the ssn column.
     # Simulants can either have an ssn or an itin so we will replace
     # the nans in the ssn column with that rows corresponding itin value
-    data.loc[data[COLUMNS.ssn.name].isna(), COLUMNS.ssn.name] = data[COLUMNS.itin.name]
+    data[COLUMNS.ssn.name] = np.where(
+        data[COLUMNS.ssn.name].notna(), data[COLUMNS.ssn.name], data[COLUMNS.itin.name]
+    )
     return data
