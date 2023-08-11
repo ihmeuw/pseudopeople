@@ -89,7 +89,7 @@ Then, generate a small-scale simulated decennial census:
 
    [9644 rows x 15 columns]
 
-And W-2 and 1099 tax forms from the same fake population:
+And W-2 and 1099 tax forms from the same simulated population:
 
 ::
 
