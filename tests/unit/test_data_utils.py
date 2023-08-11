@@ -168,8 +168,20 @@ def test_combine_ssn_itin_column_combine():
     # of ssn and itin is correct using np.where
     df = pd.DataFrame(
         {
-            COLUMNS.ssn.name: ["123-45-6789", np.nan, "987-65-4321", np.nan, "543-67-2189"],
-            COLUMNS.itin.name: [np.nan, "900-10-5555", np.nan, "111-222-3333", np.nan],
+            COLUMNS.ssn.name: [
+                "123-45-6789",
+                np.nan,
+                "987-65-4321",
+                np.nan,
+                "543-67-2189",
+            ],
+            COLUMNS.itin.name: [
+                np.nan,
+                "900-10-5555",
+                np.nan,
+                "111-222-3333",
+                np.nan,
+            ],
         }
     )
     # Get mask for nulls in ssn
