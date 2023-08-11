@@ -51,7 +51,7 @@ DATASET_GENERATION_FUNCS = {
     ],
 )
 def test_generate_dataset_from_sample_and_source(
-    dataset_name: str, overrides, request, split_sample_data_dir
+    dataset_name: str, config, request, split_sample_data_dir
 ):
     """Tests that the amount of noising is approximately the same whether we
     noise a single sample dataset or we concatenate and noise multiple datasets
@@ -66,7 +66,7 @@ def test_generate_dataset_from_sample_and_source(
         seed=SEED,
         year=None,
         source=split_sample_data_dir,
-        config=overrides,
+        config=config,
     )
 
     # Check same order of magnitude of rows was removed
@@ -128,7 +128,7 @@ def test_generate_dataset_from_sample_and_source(
         DATASETS.tax_1040.name,
     ],
 )
-def test_seed_behavior(dataset_name: str, overrides, request):
+def test_seed_behavior(dataset_name: str, config, request):
     """Tests seed behavior"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -137,10 +137,8 @@ def test_seed_behavior(dataset_name: str, overrides, request):
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
     # Generate new (non-fixture) noised datasets with the same seed and a different
     # seed as the fixture
-    noised_data_same_seed = generation_function(seed=SEED, year=None, config=overrides)
-    noised_data_different_seed = generation_function(
-        seed=SEED + 1, year=None, config=overrides
-    )
+    noised_data_same_seed = generation_function(seed=SEED, year=None, config=config)
+    noised_data_different_seed = generation_function(seed=SEED + 1, year=None, config=config)
     assert not data.equals(noised_data)
     assert noised_data.equals(noised_data_same_seed)
     assert not noised_data.equals(noised_data_different_seed)
@@ -186,7 +184,7 @@ def test_column_dtypes(dataset_name: str, request):
         DATASETS.tax_1040.name,
     ],
 )
-def test_column_noising(dataset_name: str, overrides, request):
+def test_column_noising(dataset_name: str, config, request):
     """Tests that columns are noised as expected"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -195,7 +193,7 @@ def test_column_noising(dataset_name: str, overrides, request):
     check_noised, check_original, shared_idx = _get_common_datasets(
         dataset_name, data, noised_data
     )
-    config = get_configuration(overrides)
+    config = get_configuration(config)
     for col_name in check_noised.columns:
         col = COLUMNS.get_column(col_name)
 
@@ -246,7 +244,7 @@ def test_column_noising(dataset_name: str, overrides, request):
         DATASETS.tax_1040.name,
     ],
 )
-def test_row_noising_omit_row_or_do_not_respond(dataset_name: str, overrides, request):
+def test_row_noising_omit_row_or_do_not_respond(dataset_name: str, config, request):
     """Tests that omit_row and do_not_respond row noising are being applied"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -256,7 +254,7 @@ def test_row_noising_omit_row_or_do_not_respond(dataset_name: str, overrides, re
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}").set_index(
         idx_cols
     )
-    config = get_configuration(overrides)[dataset_name][Keys.ROW_NOISE]
+    config = get_configuration(config)[dataset_name][Keys.ROW_NOISE]
     noise_type = [
         n for n in config if n in [NOISE_TYPES.omit_row.name, NOISE_TYPES.do_not_respond.name]
     ]
@@ -282,7 +280,7 @@ def test_row_noising_omit_row_or_do_not_respond(dataset_name: str, overrides, re
         DATASETS.tax_1040.name,
     ],
 )
-def test_row_noising_duplication(dataset_name: str, overrides, request):
+def test_row_noising_duplication(dataset_name: str, config, request):
     """Tests that duplication row noising is being applied"""
     ...
 
