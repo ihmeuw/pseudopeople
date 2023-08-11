@@ -473,16 +473,7 @@ def test_no_noise():
 
 @pytest.mark.parametrize(
     "dataset_name",
-    [
-        DATASETS.census.name,
-        DATASETS.acs.name,
-        DATASETS.cps.name,
-        DATASETS.ssa.name,
-        DATASETS.tax_w2_1099.name,
-        DATASETS.wic.name,
-        DATASETS.tax_1040.name,
-        None,
-    ],
+    [x.name for x in DATASETS] + [None],
 )
 def test_get_config_dataset_name_key(dataset_name):
     """Tests that the dataset name is returned as the first key"""
@@ -491,12 +482,4 @@ def test_get_config_dataset_name_key(dataset_name):
         assert outer_keys == {dataset_name}
     else:
         # TODO: Convert pseudopeople.constants.metadata::DatasetNames to a NamedTuple
-        assert outer_keys == {
-            DATASETS.census.name,
-            DATASETS.acs.name,
-            DATASETS.cps.name,
-            DATASETS.ssa.name,
-            DATASETS.tax_w2_1099.name,
-            DATASETS.wic.name,
-            DATASETS.tax_1040.name,
-        }
+        assert outer_keys == {x.name for x in DATASETS}
