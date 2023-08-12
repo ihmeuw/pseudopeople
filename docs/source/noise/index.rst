@@ -72,34 +72,34 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
   * - Choose the wrong option
     - ``choose_wrong_option``
     - Marking the "Male" box when you meant "Female"
-  * - Use a fake name
-    - ``use_fake_name``
-    - Using "Mr" rather than actual first name
-  * - Use a nickname
-    - ``use_nickname``
-    - Writing 'Alex' instead of legal name 'Alexander'
+  * - Swap month and day
+    - ``swap_month_and_day``
+    - Reporting 17/05/1976 when a survey asks for the date in MM/DD/YYYY format
+  * - Write the wrong ZIP code digits
+    - ``write_wrong_zipcode_digits``
+    - Writing ZIP code 98118 when you actually live in 98112
   * - Misreport age
     - ``misreport_age``
     - Reporting that you are 28 years old when you are actually 27
   * - Write the wrong digits
     - ``write_wrong_digits``
     - Writing "732 Main St" as your street address instead of "932 Main St"
-  * - Write the wrong ZIP code digits
-    - ``write_wrong_zipcode_digits``
-    - Writing ZIP code 98118 when you actually live in 98112
-  * - Swap month and day
-    - ``swap_month_and_day``
-    - Reporting 17/05/1976 when a survey asks for the date in MM/DD/YYYY format
+  * - Use a nickname
+    - ``use_nickname``
+    - Writing 'Alex' instead of legal name 'Alexander'
+  * - Use a fake name
+    - ``use_fake_name``
+    - Using "Mr" rather than actual first name
+  * - Make phonetic errors
+    - ``make_phonetic_errors``
+    - Mishearing a 't' for a 'd'
+  * - Make Optical Character Recognition (OCR) errors
+    - ``make_ocr_errors``
+    - Misreading an 'S' instead of a '5'
   * - Make typos
     - ``make_typos``
     - Accidentally typing an "l" instead of a "k" because they are
       right next to each other on a QWERTY keyboard
-  * - Make Optical Character Recognition (OCR) errors
-    - ``make_ocr_errors``
-    - Misreading an 'S' instead of a '5'
-  * - Make phonetic errors
-    - ``make_phonetic_errors``
-    - Mishearing a 't' for a 'd'
 
 
 Noise types for each column
@@ -120,7 +120,7 @@ Noise types for each column
   * - Middle name
     - SSA
     - Leave a field blank, use a fake name, use a nickname, make typos, make OCR errors, make phonetic errors
-    - 
+    -
   * - Middle initial
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, 1040
     - Leave a field blank, make typos, make OCR errors, make phonetic errors
@@ -186,10 +186,10 @@ Noise types for each column
     - Borrow a social security number, leave a field blank, write the wrong digits, make typos, make OCR errors
     - Note that 'borrow a social security number' only applies to the W-2 and 1099 dataset.
       In the 1040 form, the same noise types apply to the SSN columns for the joint filer and dependents
-  * - Wages 
+  * - Wages
     - W-2 and 1099
     - Leave a field blank, write the wrong digits, make typos, make OCR errors
-    - 
+    -
   * - Employer ID
     - W-2 and 1099
     - Leave a field blank, write the wrong digits, make typos, make OCR errors
