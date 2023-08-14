@@ -119,7 +119,7 @@ def split_sample_data_dir_state_edit(tmpdir_factory, split_sample_data_dir):
 
 
 @pytest.fixture(scope="module")
-def user_config():
+def config():
     """Returns a custom configuration dict to be used in noising"""
     config = get_configuration().to_dict()  # default config
 
@@ -175,38 +175,38 @@ def formatted_1040_sample_data_state_edit(split_sample_data_dir_state_edit):
 
 # Noised sample datasets
 @pytest.fixture(scope="module")
-def noised_sample_data_decennial_census(user_config):
-    return generate_decennial_census(seed=SEED, year=None, config=user_config)
+def noised_sample_data_decennial_census(config):
+    return generate_decennial_census(seed=SEED, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_american_community_survey(user_config):
-    return generate_american_community_survey(seed=SEED, year=None, config=user_config)
+def noised_sample_data_american_community_survey(config):
+    return generate_american_community_survey(seed=SEED, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_current_population_survey(user_config):
-    return generate_current_population_survey(seed=SEED, year=None, config=user_config)
+def noised_sample_data_current_population_survey(config):
+    return generate_current_population_survey(seed=SEED, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_women_infants_and_children(user_config):
-    return generate_women_infants_and_children(seed=SEED, year=None, config=user_config)
+def noised_sample_data_women_infants_and_children(config):
+    return generate_women_infants_and_children(seed=SEED, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_social_security(user_config):
-    return generate_social_security(seed=SEED, year=None, config=user_config)
+def noised_sample_data_social_security(config):
+    return generate_social_security(seed=SEED, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_taxes_w2_and_1099(user_config):
-    return generate_taxes_w2_and_1099(seed=SEED, year=None, config=user_config)
+def noised_sample_data_taxes_w2_and_1099(config):
+    return generate_taxes_w2_and_1099(seed=SEED, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_taxes_1040(user_config):
-    return generate_taxes_1040(seed=SEED, year=None, config=user_config)
+def noised_sample_data_taxes_1040(config):
+    return generate_taxes_1040(seed=SEED, year=None, config=config)
 
 
 # Raw sample datasets with half from a specific state, for state filtering
