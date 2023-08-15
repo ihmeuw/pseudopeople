@@ -120,7 +120,7 @@ Noise types for each column
   * - Middle name
     - SSA
     - Leave a field blank, use a nickname, use a fake name, make phonetic errors, make OCR errors, make typos
-    -
+    - Middle names use the same lists of nicknames and fake names used for first names
   * - Middle initial
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, 1040
     - Leave a field blank, make phonetic errors, make OCR errors, make typos
@@ -128,7 +128,7 @@ Noise types for each column
   * - Last name
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, 1040, SSA
     - Leave a field blank, use a fake name, make phonetic errors, make OCR errors, make typos
-    - In the 1040 form, the same noise types apply to the last name columns for the joint filer and dependents
+    - Last names use a different list of fake names than the list for first names. In the 1040 form, the same noise types apply to the last name columns for the joint filer and dependents
   * - Age
     - Decennial Census, ACS, CPS, W-2 and 1099
     - Leave a field blank, misreport age, make OCR errors, make typos
