@@ -110,7 +110,7 @@ Noise types for each column
   :header-rows: 1
 
   * - Column name
-    - Datasets present
+    - Applicable datasets
     - Types of noise
     - Notes
   * - First name
