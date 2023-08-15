@@ -72,24 +72,24 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
   * - Choose the wrong option
     - ``choose_wrong_option``
     - Marking the "Male" box when you meant "Female"
-  * - Swap month and day
-    - ``swap_month_and_day``
-    - Reporting 17/05/1976 when a survey asks for the date in MM/DD/YYYY format
-  * - Write the wrong ZIP code digits
-    - ``write_wrong_zipcode_digits``
-    - Writing ZIP code 98118 when you actually live in 98112
-  * - Misreport age
-    - ``misreport_age``
-    - Reporting that you are 28 years old when you are actually 27
-  * - Write the wrong digits
-    - ``write_wrong_digits``
-    - Writing "732 Main St" as your street address instead of "932 Main St"
   * - Use a nickname
     - ``use_nickname``
     - Writing 'Alex' instead of legal name 'Alexander'
   * - Use a fake name
     - ``use_fake_name``
     - Using "Mr" rather than actual first name
+  * - Swap month and day
+    - ``swap_month_and_day``
+    - Reporting 17/05/1976 when a survey asks for the date in MM/DD/YYYY format
+  * - Misreport age
+    - ``misreport_age``
+    - Reporting that you are 28 years old when you are actually 27
+  * - Write the wrong digits
+    - ``write_wrong_digits``
+    - Writing "732 Main St" as your street address instead of "932 Main St"
+  * - Write the wrong ZIP code digits
+    - ``write_wrong_zipcode_digits``
+    - Writing ZIP code 98118 when you actually live in 98112
   * - Make phonetic errors
     - ``make_phonetic_errors``
     - Mishearing a 't' for a 'd'
