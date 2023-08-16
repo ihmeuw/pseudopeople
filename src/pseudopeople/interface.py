@@ -9,7 +9,7 @@ from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, DatasetNames
 from pseudopeople.exceptions import DataSourceError
-from pseudopeople.loader import load_and_prep_1040_data, load_standard_dataset_file
+from pseudopeople.loader import load_standard_dataset_file
 from pseudopeople.noise import noise_dataset
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
 from pseudopeople.utilities import configure_logging_to_terminal, get_state_abbreviation
