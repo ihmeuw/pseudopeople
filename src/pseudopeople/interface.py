@@ -93,9 +93,7 @@ def _coerce_dtypes(data: pd.DataFrame, dataset: Dataset):
     return data
 
 
-def _load_data_from_path(
-    data_path: Path, user_filters: List[Tuple]
-) -> pd.DataFrame:
+def _load_data_from_path(data_path: Path, user_filters: List[Tuple]) -> pd.DataFrame:
     """Load data from a data file given a data_path and a year_filter."""
     data = load_standard_dataset_file(data_path, user_filters)
     return data
@@ -434,7 +432,7 @@ def fetch_filepaths(dataset: Dataset, source: Path) -> Union[List, List[dict]]:
 
 
 def validate_data_path_suffix(data_paths) -> None:
-        
+
     suffix = set(x.suffix for x in data_paths)
     if len(suffix) > 1:
         raise DataSourceError(
