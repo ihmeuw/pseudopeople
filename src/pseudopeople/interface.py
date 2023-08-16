@@ -432,7 +432,6 @@ def fetch_filepaths(dataset: Dataset, source: Path) -> Union[List, List[dict]]:
 
 
 def validate_data_path_suffix(data_paths) -> None:
-
     suffix = set(x.suffix for x in data_paths)
     if len(suffix) > 1:
         raise DataSourceError(
