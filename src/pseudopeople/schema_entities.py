@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from typing import Dict, NamedTuple, Optional, Tuple
+from dataclasses import dataclass
+from typing import NamedTuple, Optional, Tuple
 
 from pseudopeople.constants.metadata import DATEFORMATS, DatasetNames
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
@@ -268,8 +268,8 @@ class __Columns(NamedTuple):
     household_id: Column = Column(
         "household_id",
     )
-    income: Column = Column(
-        "income",
+    wages: Column = Column(
+        "wages",
         (
             NOISE_TYPES.leave_blank,
             NOISE_TYPES.write_wrong_digits,
@@ -287,6 +287,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_typos,
         ),
     )
+    joint_filer: Column = Column("joint_filer")
     last_name: Column = Column(
         "last_name",
         (
@@ -368,6 +369,17 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_typos,
         ),
     )
+    middle_name: Column = Column(
+        "middle_name",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.use_nickname,
+            NOISE_TYPES.use_fake_name,
+            NOISE_TYPES.make_phonetic_errors,
+            NOISE_TYPES.make_ocr_errors,
+            NOISE_TYPES.make_typos,
+        ),
+    )
     race_ethnicity: Column = Column(
         "race_ethnicity",
         (
@@ -376,8 +388,8 @@ class __Columns(NamedTuple):
         ),
         DtypeNames.CATEGORICAL,
     )
-    relation_to_reference_person: Column = Column(
-        "relation_to_reference_person",
+    relationship_to_reference_person: Column = Column(
+        "relationship_to_reference_person",
         (
             NOISE_TYPES.leave_blank,
             NOISE_TYPES.choose_wrong_option,
@@ -412,6 +424,7 @@ class __Columns(NamedTuple):
     spouse_household_id: Column = Column(
         "spouse_household_id",
     )
+    spouse_joint_filer: Column = Column("spouse_joint_filer")
     spouse_last_name: Column = Column(
         "spouse_last_name",
         (
@@ -442,9 +455,11 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_typos,
         ),
     )
-    spouse_household_id: Column = Column(
-        "spouse_household_id",
+    spouse_relationship_to_reference_person: Column = Column(
+        "spouse_relationship_to_reference_person"
     )
+    spouse_simulant_id: Column = Column("spouse_simulant_id")
+    spouse_tax_year: Column = Column("spouse_tax_year")
     ssa_event_date: Column = Column(
         "event_date",
         (
@@ -578,7 +593,7 @@ class __Datasets(NamedTuple):
             COLUMNS.city,
             COLUMNS.state,
             COLUMNS.zipcode,
-            COLUMNS.relation_to_reference_person,
+            COLUMNS.relationship_to_reference_person,
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
             COLUMNS.year,
@@ -608,6 +623,7 @@ class __Datasets(NamedTuple):
             COLUMNS.city,
             COLUMNS.state,
             COLUMNS.zipcode,
+            COLUMNS.relationship_to_reference_person,
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
         ),
@@ -679,9 +695,10 @@ class __Datasets(NamedTuple):
         columns=(  # This defines the output column order
             COLUMNS.simulant_id,
             COLUMNS.first_name,
-            COLUMNS.middle_initial,
+            COLUMNS.middle_name,
             COLUMNS.last_name,
             COLUMNS.dob,
+            COLUMNS.sex,
             COLUMNS.ssn,
             COLUMNS.ssa_event_type,
             COLUMNS.ssa_event_date,
@@ -712,7 +729,7 @@ class __Datasets(NamedTuple):
             COLUMNS.mailing_state,
             COLUMNS.mailing_zipcode,
             COLUMNS.ssn,
-            COLUMNS.income,
+            COLUMNS.wages,
             COLUMNS.employer_id,
             COLUMNS.employer_name,
             COLUMNS.employer_street_number,
@@ -764,6 +781,7 @@ class __Datasets(NamedTuple):
             COLUMNS.dependent_4_first_name,
             COLUMNS.dependent_4_last_name,
             COLUMNS.dependent_4_ssn,
+            COLUMNS.tax_year,
         ),
         date_column_name=COLUMNS.tax_year.name,
         state_column_name=COLUMNS.mailing_state.name,

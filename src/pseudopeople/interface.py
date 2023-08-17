@@ -52,6 +52,8 @@ def _generate_dataset(
 
     if source is None:
         source = paths.SAMPLE_DATA_ROOT
+    else:
+        source = Path(source)
 
     if engine == "pandas":
         # We process shards serially

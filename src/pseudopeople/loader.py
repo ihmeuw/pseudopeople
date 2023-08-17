@@ -60,16 +60,17 @@ def load_and_prep_1040_data(
     df_1040 = load_standard_dataset_file(
         data_path[DatasetNames.TAXES_1040], user_filters, engine=engine
     )
+    # We do not want to filter by state for dependents because we might exclude dependents
+    # that live in a separate state than their guardian
+    no_state_user_filters = [f for f in user_filters if f[0] != COLUMNS.mailing_state.name]
     df_dependents = load_standard_dataset_file(
-        data_path[DatasetNames.TAXES_DEPENDENTS],
-        user_filters,
-        engine=engine,
+        data_path[DatasetNames.TAXES_DEPENDENTS], no_state_user_filters, engine=engine
     )
 
     # Get wide format of dependents - metadata for each guardian's dependents
     dependents_wide = flatten_data(
         data=df_dependents,
-        index_col=COLUMNS.guardian_id.name,
+        index_cols=[COLUMNS.guardian_id.name, COLUMNS.tax_year.name],
         rank_col=COLUMNS.simulant_id.name,
         value_cols=[
             COLUMNS.simulant_id.name,
@@ -81,6 +82,12 @@ def load_and_prep_1040_data(
     )
     # Rename tax_dependents columns
     dependents_wide = dependents_wide.add_prefix("dependent_").reset_index()
+    # Make sure we have all dependent columns if data does not have a guardian with 4 dependents
+    for i in range(2, 5):
+        if f"dependent_{i}_first_name" not in dependents_wide.columns:
+            for column in [col.name for col in COLUMNS if f"dependent_{i}" in col.name]:
+                dependents_wide[column] = np.nan
+
     # Widen 1040 data (make one row for spouses that are joint filing)
     df_joint_1040 = combine_joint_filers(df_1040, engine=engine)
 
@@ -88,18 +95,20 @@ def load_and_prep_1040_data(
     tax_1040_w_dependents = df_joint_1040.merge(
         dependents_wide,
         how="left",
-        left_on=COLUMNS.simulant_id.name,
-        right_on=COLUMNS.guardian_id.name,
+        left_on=[COLUMNS.simulant_id.name, COLUMNS.tax_year.name],
+        right_on=[COLUMNS.guardian_id.name, COLUMNS.tax_year.name],
     )
     # todo: uncomment with mic-4244. Handle columns with dependents for both guardians
-    # tax_1040_w_dependents = tax_1040_w_dependents.merge(dependents_wide, how="left", left_on="COLUMNS.spouse_simulant_id.name", right_on="COLUMNS.guardian_id.name")
-
+    # tax_1040_w_dependents = tax_1040_w_dependents.merge(
+    #   dependents_wide, how="left",
+    #   left_on=["COLUMNS.spouse_simulant_id.name", "COLUMNS.tax_year.name"],
+    #   right_on=["COLUMNS.guardian_id.name", "COLUMNS.tax_year.name"])
     return tax_1040_w_dependents
 
 
 def flatten_data(
     data: DATAFRAME,
-    index_col: str,
+    index_cols: str,
     rank_col: str,
     value_cols: List[str],
     ascending: bool = False,
@@ -107,8 +116,9 @@ def flatten_data(
     # Function that takes a dataset and widens (pivots) it to capture multiple metadata columns
     # Example: simulant_id, dependdent_1, dependent_2, dependent_1_name, dependent_2_name, etc...
     data = data.copy()
+    # fixme: find a better solution than the following call since applying lambda functions is slow
     data["rank"] = (
-        data.groupby(index_col, group_keys=False)[rank_col]
+        data.groupby(index_cols, group_keys=False)[rank_col]
         .apply(lambda x: x.rank(method="first", ascending=ascending))
         .astype(int)
     )
@@ -116,16 +126,17 @@ def flatten_data(
     # Choose 4 dependents
     data = data.loc[data["rank"] < 5]
     data["rank"] = data["rank"].astype(str)
-    flat = data.pivot(columns="rank", index=index_col, values=value_cols)
+    flat = data.pivot(columns="rank", index=index_cols, values=value_cols)
     flat.columns = ["_".join([pair[1], pair[0]]) for pair in flat.columns]
+
     return flat
 
 
 def combine_joint_filers(data: DATAFRAME, engine: ENGINE = "pandas") -> DATAFRAME:
     # Get groups
-    joint_filers = data.loc[data["joint_filer"] == True]
+    joint_filers = data.loc[data[COLUMNS.joint_filer.name] == True]
     reference_persons = data.loc[
-        data[COLUMNS.relation_to_reference_person.name] == "Reference person"
+        data[COLUMNS.relationship_to_reference_person.name] == "Reference person"
     ]
     independent_filers_index = data.index.difference(
         joint_filers.index.union(reference_persons.index)
@@ -137,14 +148,13 @@ def combine_joint_filers(data: DATAFRAME, engine: ENGINE = "pandas") -> DATAFRAM
     # Merge spouses
     reference_persons_wide = reference_persons.merge(
         joint_filers,
-        left_on=COLUMNS.household_id.name,
-        right_on=COLUMNS.spouse_household_id.name,
+        how="left",
+        left_on=[COLUMNS.household_id.name, COLUMNS.tax_year.name],
+        right_on=[COLUMNS.spouse_household_id.name, COLUMNS.spouse_tax_year.name],
     )
 
     _, pandas_like = engine_implementations(engine)
 
-    joint_1040 = pandas_like.concat(
-        [reference_persons_wide, independent_filers]
-    ).reset_index()
+    joint_1040 = pandas_like.concat([reference_persons_wide, independent_filers])
 
     return joint_1040

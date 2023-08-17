@@ -109,6 +109,9 @@ The following columns are included in this dataset:
      - The exhaustive and mutually exclusive categories for the single composite "race/ethnicity" indicator are as follows:
        White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
        Multiracial or Some Other Race.
+   * - Year
+     - :code:`year`
+     - Metadata that would not be collected directly; not affected by noise functions.
 
 American Community Survey (ACS)
 -------------------------------
@@ -337,6 +340,9 @@ The following columns are included in this dataset:
      - The exhaustive and mutually exclusive categories for the single composite "race/ethnicity" indicator are as follows:
        White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
        Multiracial or Some Other Race.
+   * - Year
+     - :code:`year`
+     - Metadata that would not be collected directly; not affected by noise functions.
 
 
 Social Security Administration
@@ -369,18 +375,18 @@ The following columns are included in this dataset:
    * - First name
      - :code:`first_name`
      -
-   * - Middle initial
-     - :code:`middle_initial`
+   * - Middle name
+     - :code:`middle_name`
      -
    * - Last name
      - :code:`last_name`
      -
-   * - Age
-     - :code:`age`
-     - Rounded down to an integer.
    * - Date of birth
      - :code:`date_of_birth`
      - Formatted as YYYYMMDD.
+   * - Sex
+     - :code:`sex`
+     - Binary; "male" or "female"
    * - Social security number
      - :code:`ssn`
      - By default, the SSN column in the SSA dataset has no :ref:`column-based noise <column_noise>`.
@@ -450,8 +456,8 @@ The following columns are included in these datasets:
    * - Social security number
      - :code:`ssn`
      -
-   * - Income
-     - :code:`income`
+   * - Wages
+     - :code:`wages`
      -
    * - Employer ID
      - :code:`employer_id`
@@ -480,16 +486,18 @@ The following columns are included in these datasets:
    * - Type of tax form
      - :code:`tax_form`
      - Possible values are "W2" or "1099".
+   * - Tax year
+     - :code:`tax_year`
+     - Metadata that would not be collected directly; not affected by noise functions.
+
 
 Tax form: 1040
 --------------
 As with data collected from W-2 and 1099 forms, pseudopeople enables the simulation of administrative records from 1040 forms, which are
 also reported to the IRS on an annual basis. To find out more about the 1040 tax form, visit the `IRS information page <https://www.irs.gov/instructions/i1040gi>`_.
 
-Generate 1040 data with pseudopeople.generate_taxes_1040.
+Generate 1040 data with :func:`pseudopeople.generate_taxes_1040`.
 
-.. todo::
-  Add link to docstring once ready.
 
 The following columns are included in this dataset:
 
@@ -587,3 +595,6 @@ The following columns are included in this dataset:
    * - Dependent 4 social security number
      - :code:`dependent_4_ssn`
      - Individual Taxpayer Identification Number (ITIN) if no SSN
+   * - Tax year
+     - :code:`tax_year`
+     - Metadata that would not be collected directly; not affected by noise functions.
