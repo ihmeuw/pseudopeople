@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Union
+from typing import TYPE_CHECKING, Any, Literal, Union
 
 import numpy as np
 import pandas as pd
@@ -164,6 +164,19 @@ def get_state_abbreviation(state: str) -> str:
         return metadata.US_STATE_ABBRV_MAP[state]
     except KeyError:
         raise ValueError(f"Unexpected state input: '{state}'") from None
+
+
+# Type aliases for working across multiple engines
+# For now, we don't expose these type aliases to the user --
+# see interface.py for more on this decision.
+ENGINE = Literal["pandas", "modin"]
+
+if TYPE_CHECKING:
+    import modin.pandas as mpd
+
+    DATAFRAME = Union[mpd.DataFrame, pd.DataFrame]
+    SERIES = Union[mpd.Series, pd.Series]
+    INDEX = Union[mpd.Index, pd.Index]
 
 
 ##########################
