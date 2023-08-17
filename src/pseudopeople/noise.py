@@ -11,7 +11,10 @@ provided by the user.  First, the Dataset will be noised for missing data and ha
 rows in each columns changed to null values.  Then, the dataset data will be noised
 by column and row for each type of additional noise type.
 """
-import pandas as pd
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from tqdm import tqdm
 from vivarium import ConfigTree
 
@@ -21,13 +24,16 @@ from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, Dataset
 from pseudopeople.utilities import get_randomness_stream
 
+if TYPE_CHECKING:
+    from pseudopeople.utilities import DATAFRAME
+
 
 def noise_dataset(
     dataset: Dataset,
-    dataset_data: pd.DataFrame,
+    dataset_data: DATAFRAME,
     configuration: ConfigTree,
     seed: int,
-) -> pd.DataFrame:
+) -> DATAFRAME:
     """
     Adds noise to the input dataset data. Noise functions are executed in the order
     defined by :py:const: `.NOISE_TYPES`. Row noise functions are applied to the

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from loguru import logger
@@ -14,6 +16,9 @@ from pseudopeople.noise import noise_dataset
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
 from pseudopeople.utilities import configure_logging_to_terminal, get_state_abbreviation
 
+if TYPE_CHECKING:
+    from pseudopeople.utilities import DATAFRAME, ENGINE
+
 
 def _generate_dataset(
     dataset: Dataset,
@@ -22,7 +27,8 @@ def _generate_dataset(
     config: Union[Path, str, Dict],
     user_filters: List[tuple],
     verbose: bool = False,
-) -> pd.DataFrame:
+    engine: ENGINE = "pandas",
+) -> DATAFRAME:
     """
     Helper for generating noised datasets.
 
@@ -39,19 +45,26 @@ def _generate_dataset(
     :param verbose:
         Log with verbosity if True. Default is False.
     :return:
-        Noised dataset data in a pd.DataFrame
+        Noised dataset data in a dataframe
     """
     configure_logging_to_terminal(verbose)
     configuration_tree = get_configuration(config)
 
     if source is None:
         source = paths.SAMPLE_DATA_ROOT
-    data_paths = fetch_filepaths(dataset, source)
-    if not data_paths:
-        raise DataSourceError(
-            f"No datasets found at directory {str(source)}. "
-            "Please provide the path to the unmodified root data directory."
-        )
+
+    if engine == "pandas":
+        # We process shards serially
+        data_paths = fetch_filepaths(dataset, source)
+        if not data_paths:
+            raise DataSourceError(
+                f"No datasets found at directory {str(source)}. "
+                "Please provide the path to the unmodified root data directory."
+            )
+    else:
+        # Single data path -- push dealing with shards down to underlying distributed engine
+        data_paths = [source / dataset.name]
+
     validate_data_path_suffix(data_paths)
     noised_dataset = []
     iterator = (
@@ -62,8 +75,8 @@ def _generate_dataset(
 
     for data_path in iterator:
         logger.debug(f"Loading data from {data_path}.")
-        data = _load_data_from_path(data_path, user_filters)
-        if data.empty:
+        data = _load_data_from_path(data_path, user_filters, engine=engine)
+        if len(data.index) == 0:
             continue
         data = _reformat_dates_for_noising(data, dataset)
         data = _coerce_dtypes(data, dataset)
@@ -71,18 +84,23 @@ def _generate_dataset(
         noised_data = _extract_columns(dataset.columns, noised_data)
         noised_dataset.append(noised_data)
 
-    noised_dataset = pd.concat(noised_dataset, ignore_index=True)
+    if engine == "pandas":
+        noised_dataset = pd.concat(noised_dataset, ignore_index=True)
 
-    # Known pandas bug: pd.concat does not preserve category dtypes so we coerce
-    # again after concat (https://github.com/pandas-dev/pandas/issues/51362)
-    noised_dataset = _coerce_dtypes(noised_dataset, dataset)
+        # Known pandas bug: pd.concat does not preserve category dtypes so we coerce
+        # again after concat (https://github.com/pandas-dev/pandas/issues/51362)
+        # TODO: How does this behave with Modin?
+        noised_dataset = _coerce_dtypes(noised_dataset, dataset)
+    else:
+        assert len(noised_dataset) == 1, "There should only be one noised dataset."
+        noised_dataset = noised_dataset[0]
 
     logger.debug("*** Finished ***")
 
     return noised_dataset
 
 
-def _coerce_dtypes(data: pd.DataFrame, dataset: Dataset):
+def _coerce_dtypes(data: DATAFRAME, dataset: Dataset):
     # Coerce dtypes prior to noising to catch issues early as well as
     # get most columns away from dtype 'category' and into 'object' (strings)
     for col in dataset.columns:
@@ -92,17 +110,19 @@ def _coerce_dtypes(data: pd.DataFrame, dataset: Dataset):
 
 
 def _load_data_from_path(
-    data_path: Union[Path, dict], user_filters: List[Tuple]
-) -> pd.DataFrame:
+    data_path: Union[Path, dict],
+    user_filters: List[Tuple],
+    engine: ENGINE = "pandas",
+) -> DATAFRAME:
     """Load data from a data file given a data_path and a year_filter."""
     if isinstance(data_path, dict):
-        data = load_and_prep_1040_data(data_path, user_filters)
+        data = load_and_prep_1040_data(data_path, user_filters, engine=engine)
     else:
-        data = load_standard_dataset_file(data_path, user_filters)
+        data = load_standard_dataset_file(data_path, user_filters, engine=engine)
     return data
 
 
-def _reformat_dates_for_noising(data: pd.DataFrame, dataset: Dataset):
+def _reformat_dates_for_noising(data: DATAFRAME, dataset: Dataset):
     """Formats date columns so they can be noised as strings."""
     data = data.copy()
 
@@ -130,7 +150,8 @@ def generate_decennial_census(
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
-) -> pd.DataFrame:
+    engine: ENGINE = "pandas",
+) -> DATAFRAME:
     """
     Generates a pseudopeople decennial census dataset which represents simulated
     responses to the US Census Bureau's Census of Population and Housing.
@@ -141,15 +162,15 @@ def generate_decennial_census(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The year (format YYYY) to include in the dataset. Must be a decennial
-        year (e.g. 2020, 2030, 2040). Will return an empty pd.DataFrame if there are no
+        year (e.g. 2020, 2030, 2040). Will return an empty DataFrame if there are no
         data with this year. If None is provided, data from all years are
         included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
+        abbreviation (e.g., "Ohio" or "OH"). Will return an empty DataFrame if there are no
         data pertaining to this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
-    :return: A pd.DataFrame of simulated decennial census data.
+    :return: A DataFrame of simulated decennial census data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
@@ -160,7 +181,9 @@ def generate_decennial_census(
         user_filters.append(
             (DATASETS.census.state_column_name, "==", get_state_abbreviation(state))
         )
-    return _generate_dataset(DATASETS.census, source, seed, config, user_filters, verbose)
+    return _generate_dataset(
+        DATASETS.census, source, seed, config, user_filters, verbose, engine=engine
+    )
 
 
 def generate_american_community_survey(
@@ -170,7 +193,8 @@ def generate_american_community_survey(
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
-) -> pd.DataFrame:
+    engine: ENGINE = "pandas",
+) -> DATAFRAME:
     """
     Generates a pseudopeople ACS dataset which represents simulated responses to
     the ACS survey.
@@ -187,14 +211,14 @@ def generate_american_community_survey(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The survey date year (format YYYY) to include in the dataset. Will
-        return an empty pd.DataFrame if there are no data with this year. If None is
+        return an empty DataFrame if there are no data with this year. If None is
         provided, data from all years are included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
         abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
         data pertaining to this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
-    :return: A pd.DataFrame of simulated ACS data.
+    :return: A DataFrame of simulated ACS data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
@@ -211,7 +235,9 @@ def generate_american_community_survey(
         user_filters.append(
             (DATASETS.acs.state_column_name, "==", get_state_abbreviation(state))
         )
-    return _generate_dataset(DATASETS.acs, source, seed, config, user_filters, verbose)
+    return _generate_dataset(
+        DATASETS.acs, source, seed, config, user_filters, verbose, engine=engine
+    )
 
 
 def generate_current_population_survey(
@@ -221,7 +247,8 @@ def generate_current_population_survey(
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
-) -> pd.DataFrame:
+    engine: ENGINE = "pandas",
+) -> DATAFRAME:
     """
     Generates a pseudopeople CPS dataset which represents simulated responses to
     the CPS survey.
@@ -239,14 +266,14 @@ def generate_current_population_survey(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The survey date year (format YYYY) to include in the dataset. Will
-        return an empty pd.DataFrame if there are no data with this year. If None is
+        return an empty DataFrame if there are no data with this year. If None is
         provided, data from all years are included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
         abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
         data pertaining to this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
-    :return: A pd.DataFrame of simulated CPS data.
+    :return: A DataFrame of simulated CPS data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
@@ -263,7 +290,9 @@ def generate_current_population_survey(
         user_filters.append(
             (DATASETS.cps.state_column_name, "==", get_state_abbreviation(state))
         )
-    return _generate_dataset(DATASETS.cps, source, seed, config, user_filters, verbose)
+    return _generate_dataset(
+        DATASETS.cps, source, seed, config, user_filters, verbose, engine=engine
+    )
 
 
 def generate_taxes_w2_and_1099(
@@ -273,7 +302,8 @@ def generate_taxes_w2_and_1099(
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
-) -> pd.DataFrame:
+    engine: ENGINE = "pandas",
+) -> DATAFRAME:
     """
     Generates a pseudopeople W2 and 1099 tax dataset which represents simulated
     tax form data.
@@ -284,14 +314,14 @@ def generate_taxes_w2_and_1099(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The tax year (format YYYY) to include in the dataset. Will return
-        an empty pd.DataFrame if there are no data with this year. If None is provided,
+        an empty DataFrame if there are no data with this year. If None is provided,
         data from all years are included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
+        abbreviation (e.g., "Ohio" or "OH"). Will return an empty DataFrame if there are no
         data pertaining to this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
-    :return: A pd.DataFrame of simulated W2 and 1099 tax data.
+    :return: A DataFrame of simulated W2 and 1099 tax data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
@@ -304,7 +334,7 @@ def generate_taxes_w2_and_1099(
             (DATASETS.tax_w2_1099.state_column_name, "==", get_state_abbreviation(state))
         )
     return _generate_dataset(
-        DATASETS.tax_w2_1099, source, seed, config, user_filters, verbose
+        DATASETS.tax_w2_1099, source, seed, config, user_filters, verbose, engine=engine
     )
 
 
@@ -315,7 +345,8 @@ def generate_women_infants_and_children(
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
-) -> pd.DataFrame:
+    engine: ENGINE = "pandas",
+) -> DATAFRAME:
     """
     Generates a pseudopeople WIC dataset which represents a simulated version of
     the administrative data that would be recorded by WIC. This is a yearly file
@@ -331,14 +362,14 @@ def generate_women_infants_and_children(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The year (format YYYY) to include in the dataset. Will return an
-        empty pd.DataFrame if there are no data with this year. If None is provided,
+        empty DataFrame if there are no data with this year. If None is provided,
         data from all years are included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
+        abbreviation (e.g., "Ohio" or "OH"). Will return an empty DataFrame if there are no
         data pertaining to this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
-    :return: A pd.DataFrame of simulated WIC data.
+    :return: A DataFrame of simulated WIC data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
@@ -350,7 +381,9 @@ def generate_women_infants_and_children(
         user_filters.append(
             (DATASETS.wic.state_column_name, "==", get_state_abbreviation(state))
         )
-    return _generate_dataset(DATASETS.wic, source, seed, config, user_filters, verbose)
+    return _generate_dataset(
+        DATASETS.wic, source, seed, config, user_filters, verbose, engine=engine
+    )
 
 
 def generate_social_security(
@@ -359,7 +392,8 @@ def generate_social_security(
     config: Union[Path, str, Dict[str, Dict]] = None,
     year: Optional[int] = 2020,
     verbose: bool = False,
-) -> pd.DataFrame:
+    engine: ENGINE = "pandas",
+) -> DATAFRAME:
     """
     Generates a pseudopeople SSA dataset which represents simulated Social Security
     Administration (SSA) data.
@@ -370,11 +404,11 @@ def generate_social_security(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The latest year (format YYYY) to include in the dataset; will also
-        include all previous years. Will return an empty pd.DataFrame if there are no
+        include all previous years. Will return an empty DataFrame if there are no
         data on or before this year. If None is provided, data from all years are
         included in the dataset.
     :param verbose: Log with verbosity if True.
-    :return: A pd.DataFrame of simulated SSA data.
+    :return: A DataFrame of simulated SSA data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
@@ -384,7 +418,9 @@ def generate_social_security(
             (DATASETS.ssa.date_column_name, "<=", pd.Timestamp(f"{year}-12-31"))
         )
         seed = seed * 10_000 + year
-    return _generate_dataset(DATASETS.ssa, source, seed, config, user_filters, verbose)
+    return _generate_dataset(
+        DATASETS.ssa, source, seed, config, user_filters, verbose, engine=engine
+    )
 
 
 def generate_taxes_1040(
@@ -394,7 +430,8 @@ def generate_taxes_1040(
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
-) -> pd.DataFrame:
+    engine: ENGINE = "pandas",
+) -> DATAFRAME:
     """
     Generates a pseudopeople 1040 tax dataset which represents simulated
     tax form data.
@@ -405,14 +442,14 @@ def generate_taxes_1040(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The tax year (format YYYY) to include in the dataset. Will return
-        an empty pd.DataFrame if there are no data with this year. If None is provided,
+        an empty DataFrame if there are no data with this year. If None is provided,
         data from all years are included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
+        abbreviation (e.g., "Ohio" or "OH"). Will return an empty DataFrame if there are no
         data pertaining to this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
-    :return: A pd.DataFrame of simulated 1040 tax data.
+    :return: A DataFrame of simulated 1040 tax data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
@@ -424,7 +461,9 @@ def generate_taxes_1040(
         user_filters.append(
             (DATASETS.tax_1040.state_column_name, "==", get_state_abbreviation(state))
         )
-    return _generate_dataset(DATASETS.tax_1040, source, seed, config, user_filters, verbose)
+    return _generate_dataset(
+        DATASETS.tax_1040, source, seed, config, user_filters, verbose, engine=engine
+    )
 
 
 def fetch_filepaths(dataset: Dataset, source: Path) -> Union[List, List[dict]]:

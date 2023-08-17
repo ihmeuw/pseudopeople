@@ -1,40 +1,69 @@
-from pathlib import Path
-from typing import List, Tuple
+from __future__ import annotations
 
+from pathlib import Path
+from typing import TYPE_CHECKING, List, Tuple
+
+import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
-from pseudopeople.constants.metadata import DatasetNames
+from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, DatasetNames
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.schema_entities import COLUMNS
+from pseudopeople.utilities import engine_implementations
+
+if TYPE_CHECKING:
+    from pseudopeople.utilities import DATAFRAME, ENGINE
 
 
-def load_standard_dataset_file(data_path: Path, user_filters: List[Tuple]) -> pd.DataFrame:
-    if data_path.suffix == ".parquet":
+def load_standard_dataset_file(
+    data_path: Path, user_filters: List[Tuple], engine: ENGINE = "pandas"
+) -> DATAFRAME:
+    if engine == "pandas":
+        if data_path.suffix != ".parquet":
+            raise DataSourceError(
+                f"Source path must be a .parquet file. Provided {data_path.suffix}"
+            )
+
         if len(user_filters) == 0:
             # pyarrow.parquet.read_table doesn't accept an empty list
             user_filters = None
         data = pq.read_table(data_path, filters=user_filters).to_pandas()
+
+        if not isinstance(data, pd.DataFrame):
+            raise DataSourceError(
+                f"File located at {data_path} must contain a pandas DataFrame. "
+                "Please provide the path to the unmodified root data directory."
+            )
+
+        return data
     else:
-        raise DataSourceError(
-            f"Source path must be a .parquet file. Provided {data_path.suffix}"
-        )
-    if not isinstance(data, pd.DataFrame):
-        raise DataSourceError(
-            f"File located at {data_path} must contain a pandas DataFrame. "
-            "Please provide the path to the unmodified root data directory."
-        )
+        # Modin
+        import modin.pandas as mpd
 
-    return data
+        # NOTE: Modin doesn't work with PosixPath types
+        # TODO: released versions of Modin can't actually distribute `filters`, see https://github.com/modin-project/modin/issues/5509
+        # So for now, modin doesn't actually get us distributed loading of the data, and it all needs to fit into
+        # memory on a single machine, which mostly beats the point.
+        # This has been fixed in the master branch of Modin's GitHub, but we can't use a bleeding edge version
+        # because it requires pandas>=2.0.0 which Vivarium doesn't support yet.
+        # For now, install modin from the modin_22_backport_parquet_filters branch at https://github.com/zmbc/modin
+        return mpd.read_parquet(str(data_path), filters=user_filters)
 
 
-def load_and_prep_1040_data(data_path: dict, user_filters: List[Tuple]) -> pd.DataFrame:
+def load_and_prep_1040_data(
+    data_path: dict, user_filters: List[Tuple], engine: ENGINE = "pandas"
+) -> DATAFRAME:
     # Function that loads all tax datasets and formats them to the DATASET.1040 schema
 
     # Load data
-    df_1040 = load_standard_dataset_file(data_path[DatasetNames.TAXES_1040], user_filters)
+    df_1040 = load_standard_dataset_file(
+        data_path[DatasetNames.TAXES_1040], user_filters, engine=engine
+    )
     df_dependents = load_standard_dataset_file(
-        data_path[DatasetNames.TAXES_DEPENDENTS], user_filters
+        data_path[DatasetNames.TAXES_DEPENDENTS],
+        user_filters,
+        engine=engine,
     )
 
     # Get wide format of dependents - metadata for each guardian's dependents
@@ -53,7 +82,7 @@ def load_and_prep_1040_data(data_path: dict, user_filters: List[Tuple]) -> pd.Da
     # Rename tax_dependents columns
     dependents_wide = dependents_wide.add_prefix("dependent_").reset_index()
     # Widen 1040 data (make one row for spouses that are joint filing)
-    df_joint_1040 = combine_joint_filers(df_1040)
+    df_joint_1040 = combine_joint_filers(df_1040, engine=engine)
 
     # Merge tax dependents onto their guardians - we must do it twice, merge onto each spouse if joint filing
     tax_1040_w_dependents = df_joint_1040.merge(
@@ -69,12 +98,12 @@ def load_and_prep_1040_data(data_path: dict, user_filters: List[Tuple]) -> pd.Da
 
 
 def flatten_data(
-    data: pd.DataFrame,
+    data: DATAFRAME,
     index_col: str,
     rank_col: str,
     value_cols: List[str],
     ascending: bool = False,
-) -> pd.DataFrame:
+) -> DATAFRAME:
     # Function that takes a dataset and widens (pivots) it to capture multiple metadata columns
     # Example: simulant_id, dependdent_1, dependent_2, dependent_1_name, dependent_2_name, etc...
     data = data.copy()
@@ -92,7 +121,7 @@ def flatten_data(
     return flat
 
 
-def combine_joint_filers(data: pd.DataFrame) -> pd.DataFrame:
+def combine_joint_filers(data: DATAFRAME, engine: ENGINE = "pandas") -> DATAFRAME:
     # Get groups
     joint_filers = data.loc[data["joint_filer"] == True]
     reference_persons = data.loc[
@@ -111,6 +140,11 @@ def combine_joint_filers(data: pd.DataFrame) -> pd.DataFrame:
         left_on=COLUMNS.household_id.name,
         right_on=COLUMNS.spouse_household_id.name,
     )
-    joint_1040 = pd.concat([reference_persons_wide, independent_filers]).reset_index()
+
+    _, pandas_like = engine_implementations(engine)
+
+    joint_1040 = pandas_like.concat(
+        [reference_persons_wide, independent_filers]
+    ).reset_index()
 
     return joint_1040

@@ -1,13 +1,17 @@
-from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional
+from __future__ import annotations
 
-import pandas as pd
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
+
 from loguru import logger
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
 from pseudopeople.utilities import get_index_to_noise
+
+if TYPE_CHECKING:
+    from pseudopeople.utilities import DATAFRAME, SERIES
 
 
 @dataclass
@@ -25,16 +29,16 @@ class RowNoiseType:
     """
 
     name: str
-    noise_function: Callable[[str, pd.DataFrame, ConfigTree, RandomnessStream], pd.DataFrame]
+    noise_function: Callable[[str, DATAFRAME, ConfigTree, RandomnessStream], DATAFRAME]
     row_probability: float = 0.0
 
     def __call__(
         self,
         dataset_name: str,
-        dataset_data: pd.DataFrame,
+        dataset_data: DATAFRAME,
         configuration: ConfigTree,
         randomness_stream: RandomnessStream,
-    ) -> pd.DataFrame:
+    ) -> DATAFRAME:
         return self.noise_function(
             dataset_name, dataset_data, configuration, randomness_stream
         )
@@ -56,21 +60,21 @@ class ColumnNoiseType:
     """
 
     name: str
-    noise_function: Callable[[pd.Series, ConfigTree, RandomnessStream, Any], pd.Series]
+    noise_function: Callable[[SERIES, ConfigTree, RandomnessStream, Any], SERIES]
     cell_probability: Optional[float] = 0.01
-    noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0
+    noise_level_scaling_function: Callable[[DATAFRAME, str], float] = lambda x, y: 1.0
     additional_parameters: Dict[str, Any] = None
     additional_column_getter: Callable[[str], List[str]] = lambda column_name: []
 
     def __call__(
         self,
-        data: pd.DataFrame,
+        data: DATAFRAME,
         configuration: ConfigTree,
         randomness_stream: RandomnessStream,
         dataset_name: str,
         column_name: str,
-    ) -> pd.Series:
-        if data[column_name].empty:
+    ) -> SERIES:
+        if len(data[column_name]) == 0:
             return data[column_name]
         data = data.copy()
         noise_level = configuration[
