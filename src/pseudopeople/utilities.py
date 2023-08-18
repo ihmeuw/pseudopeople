@@ -242,7 +242,12 @@ def engine_implementations(engine: ENGINE):
     if engine == "pandas":
         pandas_like = pd
     else:
-        import modin.pandas as mpd
+        try:
+            import modin.pandas as mpd
+        except ImportError:
+            raise ImportError(
+                "Optional dependency modin is not installed, and is required for this operation."
+            ) from None
 
         pandas_like = mpd
 
