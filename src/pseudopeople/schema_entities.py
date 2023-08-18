@@ -719,8 +719,6 @@ class __Datasets(NamedTuple):
             COLUMNS.first_name,
             COLUMNS.middle_initial,
             COLUMNS.last_name,
-            COLUMNS.age,
-            COLUMNS.dob,
             COLUMNS.mailing_street_number,
             COLUMNS.mailing_street_name,
             COLUMNS.mailing_unit_number,
