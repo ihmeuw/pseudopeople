@@ -130,7 +130,7 @@ Noise types for each column
     - Leave a field blank, use a fake name, make phonetic errors, make OCR errors, make typos
     - Last names use a different list of fake names than the list for first names. In the 1040 form, the same noise types apply to the last name columns for the joint filer and dependents
   * - Age
-    - Decennial Census, ACS, CPS, W-2 and 1099
+    - Decennial Census, ACS, CPS
     - Leave a field blank, misreport age, make OCR errors, make typos
     -
   * - Date of birth
