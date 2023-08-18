@@ -6,7 +6,7 @@ Input Data
 
 pseudopeople leverages the power of the `Vivarium
 <https://vivarium.readthedocs.io/en/latest/>`_ microsimulation platform to
-imitate real, publicly accessible data about the US population. The input
+incorporate real, publicly accessible data about the US population. The input
 data for pseudopeople is the output of a Vivarium simulation and must be in a
 specific format for the :ref:`dataset generation functions
 <dataset_generation_functions>` to work. There are currently three collections
