@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sys
-from typing import TYPE_CHECKING, Any, Union, Literal
+from typing import TYPE_CHECKING, Any, Literal, Union
 
 import numpy as np
 import pandas as pd
@@ -12,7 +12,7 @@ from vivarium.framework.randomness.index_map import IndexMap
 from pseudopeople.constants import metadata, paths
 
 if TYPE_CHECKING:
-    from pseudopeople.utilities import DATAFRAME, INDEX, ENGINE
+    from pseudopeople.utilities import DATAFRAME, ENGINE, INDEX
 
 
 def get_randomness_stream(dataset_name: str, seed: int, index: pd.Index) -> RandomnessStream:

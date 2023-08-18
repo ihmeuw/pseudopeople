@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pathlib
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union, Literal
+from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
 
 import pandas
 from loguru import logger
