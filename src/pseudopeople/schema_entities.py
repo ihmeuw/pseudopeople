@@ -268,6 +268,13 @@ class __Columns(NamedTuple):
     household_id: Column = Column(
         "household_id",
     )
+    housing_type: Column = Column(
+        "housing_type",
+        (
+            NOISE_TYPES.leave_blank,
+            NOISE_TYPES.choose_wrong_option,
+        ),
+    )
     wages: Column = Column(
         "wages",
         (
@@ -593,6 +600,7 @@ class __Datasets(NamedTuple):
             COLUMNS.city,
             COLUMNS.state,
             COLUMNS.zipcode,
+            COLUMNS.housing_type,
             COLUMNS.relationship_to_reference_person,
             COLUMNS.sex,
             COLUMNS.race_ethnicity,
@@ -623,6 +631,7 @@ class __Datasets(NamedTuple):
             COLUMNS.city,
             COLUMNS.state,
             COLUMNS.zipcode,
+            COLUMNS.housing_type,
             COLUMNS.relationship_to_reference_person,
             COLUMNS.sex,
             COLUMNS.race_ethnicity,

@@ -1,11 +1,11 @@
-state,relationship_to_reference_person,sex,race_ethnicity,tax_form,event_type
-AL,Reference person,Female,White,W2,creation
-AK,Opp-sex spouse,Male,Black,1099,death
-AZ,Opp-sex partner,,Asian,,
-AR,Same-sex spouse,,AIAN,,
-CA,Same-sex partner,,NHOPI,,
-CO,Biological child,,Multiracial or Other,,
-CT,Adopted child,,Latino,,
+state,relationship_to_reference_person,sex,race_ethnicity,tax_form,event_type,housing_type
+AL,Reference person,Female,White,W2,creation,Household
+AK,Opp-sex spouse,Male,Black,1099,death,Carceral
+AZ,Opp-sex partner,,Asian,,Nursing home
+AR,Same-sex spouse,,AIAN,,Other institutional
+CA,Same-sex partner,,NHOPI,,College
+CO,Biological child,,Multiracial or Other,,Military
+CT,Adopted child,,Latino,,Other noninstitutional
 DE,Stepchild,,,,
 FL,Sibling,,,,
 GA,Parent,,,,
