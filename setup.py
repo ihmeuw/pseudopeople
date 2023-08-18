@@ -57,7 +57,7 @@ if __name__ == "__main__":
         "matplotlib",
     ]
 
-    modin_requirements = ["modin[ray]"]
+    modin_requirements = ["modin"]
 
     setup(
         name=about["__title__"],
