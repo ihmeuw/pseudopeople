@@ -2,14 +2,14 @@ from dataclasses import dataclass
 
 
 @dataclass
-class ConfigurationError(BaseException):
+class ConfigurationError(Exception):
     """Base class for configuration errors"""
 
     message: str
 
 
 @dataclass
-class DataSourceError(BaseException):
+class DataSourceError(Exception):
     """Base class for data source errors"""
 
     message: str
