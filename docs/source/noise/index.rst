@@ -134,7 +134,7 @@ Noise types for each column
     - Leave a field blank, misreport age, make OCR errors, make typos
     -
   * - Date of birth
-    - Decennial Census, ACS, CPS, WIC, W-2 and 1099, SSA
+    - Decennial Census, ACS, CPS, WIC, SSA
     - Leave a field blank, swap month and day, write the wrong digits, make OCR errors, make typos
     -
   * - Street number for any address (physical, mailing, or employer)
