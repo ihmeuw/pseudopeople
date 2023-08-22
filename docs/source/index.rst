@@ -37,8 +37,8 @@ until now. Our innovative approach creates realistic, simulated data including n
 without compromising privacy.
 
 Our work builds on the success of previous data synthesis projects, such as FEBRL_, GeCo_, and SOG_, and 
-incorporates real, publicly accessible data about the US population into our simulated datasets with the 
-power of  our simulation platform Vivarium_.
+generates a simulated population using real, publicly accessible data about the US population, leveraging the
+power of our simulation platform Vivarium_.
 
 Want to know more about pseudopeople? Please visit the `pseudopeople project website <https://www.pseudopeople.org/>`_, where you can find 
 out more about the principles and processes underlying this work.
