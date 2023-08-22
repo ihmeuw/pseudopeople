@@ -1,7 +1,5 @@
-import pandas as pd
 import pytest
 
-from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.schema_entities import COLUMNS, DATASETS
 from tests.integration.conftest import _get_common_datasets, _load_sample_data
 
