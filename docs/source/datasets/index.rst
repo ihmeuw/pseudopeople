@@ -107,9 +107,9 @@ The following columns are included in this dataset:
      - Binary; "male" or "female".
    * - Race/ethnicity
      - :code:`race_ethnicity`
-     - The exhaustive and mutually exclusive categories for the single composite "race/ethnicity" indicator are as follows:
-       White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
-       Multiracial or Some Other Race.
+     - The categories for the single composite "race/ethnicity" field are as follows:
+       "White"; "Black"; "Latino"; "American Indian and Alaskan Native (AIAN)"; "Asian"; "Native Hawaiian and Other Pacific Islander (NHOPI)"; and
+       "Multiracial or Some Other Race".
    * - Year
      - :code:`year`
      - Metadata that would not be collected directly; not affected by noise functions.
@@ -198,9 +198,9 @@ The following columns are included in this dataset:
      - Binary; "male" or "female"
    * - Race/ethnicity
      - :code:`race_ethnicity`
-     - The exhaustive and mutually exclusive categories for the single composite "race/ethnicity" indicator are as follows:
-       White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
-       Multiracial or Some Other Race.
+     - The categories for the single composite "race/ethnicity" field are as follows:
+       "White"; "Black"; "Latino"; "American Indian and Alaskan Native (AIAN)"; "Asian"; "Native Hawaiian and Other Pacific Islander (NHOPI)"; and
+       "Multiracial or Some Other Race".
 
 Current Population Survey (CPS)
 -------------------------------
@@ -269,9 +269,9 @@ The following columns are included in this dataset:
      - Binary; "male" or "female"
    * - Race/ethnicity
      - :code:`race_ethnicity`
-     - The exhaustive and mutually exclusive categories for the single composite "race/ethnicity" indicator are as follows:
-       White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
-       Multiracial or Some Other Race.
+     - The categories for the single composite "race/ethnicity" field are as follows:
+       "White"; "Black"; "Latino"; "American Indian and Alaskan Native (AIAN)"; "Asian"; "Native Hawaiian and Other Pacific Islander (NHOPI)"; and
+       "Multiracial or Some Other Race".
 
 
 
@@ -341,9 +341,9 @@ The following columns are included in this dataset:
      - Binary; "male" or "female"
    * - Race/ethnicity
      - :code:`race_ethnicity`
-     - The exhaustive and mutually exclusive categories for the single composite "race/ethnicity" indicator are as follows:
-       White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
-       Multiracial or Some Other Race.
+     - The categories for the single composite "race/ethnicity" field are as follows:
+       "White"; "Black"; "Latino"; "American Indian and Alaskan Native (AIAN)"; "Asian"; "Native Hawaiian and Other Pacific Islander (NHOPI)"; and
+       "Multiracial or Some Other Race".
    * - Year
      - :code:`year`
      - Metadata that would not be collected directly; not affected by noise functions.
