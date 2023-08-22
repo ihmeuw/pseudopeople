@@ -46,7 +46,8 @@ The following columns are included in this dataset:
      - Notes
    * - Unique simulant ID
      - :code:`simulant_id`
-     - Not affected by noise functions; intended use is "ground truth" for testing and validation.
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
+       datasets.
    * - Unique household ID
      - :code:`household_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
@@ -136,7 +137,8 @@ The following columns are included in this dataset:
      - Notes
    * - Unique simulant ID
      - :code:`simulant_id`
-     - Not affected by noise functions; intended use is "ground truth" for testing and validation.
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
+       datasets.
    * - Unique household ID
      - :code:`household_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
@@ -223,7 +225,8 @@ The following columns are included in this dataset:
      - Notes
    * - Unique simulant ID
      - :code:`simulant_id`
-     - Not affected by noise functions; intended use is "ground truth" for testing and validation.
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
+       datasets.
    * - Unique household ID
      - :code:`household_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
@@ -294,7 +297,8 @@ The following columns are included in this dataset:
      - Notes
    * - Unique simulant ID
      - :code:`simulant_id`
-     - Not affected by noise functions; intended use is "ground truth" for testing and validation.
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
+       datasets.
    * - Unique household ID
      - :code:`household_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
@@ -371,7 +375,8 @@ The following columns are included in this dataset:
      - Notes
    * - Unique simulant ID
      - :code:`simulant_id`
-     - Not affected by noise functions; intended use is "ground truth" for PRL tracking.
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
+       datasets.
    * - First name
      - :code:`first_name`
      -
@@ -421,7 +426,8 @@ The following columns are included in these datasets:
      - Notes
    * - Unique simulant ID
      - :code:`simulant_id`
-     - Not affected by noise functions; intended use is "ground truth" for testing and validation.
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
+       datasets.
    * - Unique household ID
      - :code:`household_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
@@ -509,7 +515,8 @@ The following columns are included in this dataset:
      - Notes
    * - Unique simulant ID
      - :code:`simulant_id`
-     - Not affected by noise functions; intended use is "ground truth" for testing and validation.
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
+       datasets.
    * - Unique household ID
      - :code:`household_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
