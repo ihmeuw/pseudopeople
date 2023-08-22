@@ -36,8 +36,8 @@ With sensitive data often required for ER, accessing and testing new methods and
 Our innovative approach creates realistic, simulated data including name, address, and date of birth, without compromising privacy.
 
 Our work builds on the success of previous data synthesis projects, such as
-FEBRL_, GeCo_, and SOG_, while leveraging the power of our simulation platform
-Vivarium_ to incorporate real, publicly accessible data about the US population.
+FEBRL_, GeCo_, and SOG_, and incorporates real, publicly accessible data about the US population with the power of our simulation platform
+Vivarium_.
 
 Want to know more? Please visit the `pseudopeople project website <https://www.pseudopeople.org/>`_, where you can find out more about the principles and processes underlying this work.
 
