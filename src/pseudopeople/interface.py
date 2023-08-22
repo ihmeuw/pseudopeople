@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import pathlib
+from pathlib import Path
 from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple, Union
 
 import pandas
@@ -31,9 +31,9 @@ if TYPE_CHECKING:
 
 def _generate_dataset(
     dataset: Dataset,
-    source: Union[pathlib.Path, str],
+    source: Union[Path, str],
     seed: int,
-    config: Union[pathlib.Path, str, Dict],
+    config: Union[Path, str, Dict],
     user_filters: List[tuple],
     verbose: bool = False,
     engine: Literal["pandas", "modin"] = "pandas",
@@ -64,7 +64,7 @@ def _generate_dataset(
     if source is None:
         source = paths.SAMPLE_DATA_ROOT
     else:
-        source = pathlib.Path(source)
+        source = Path(source)
 
     if engine == "pandas":
         # We process shards serially
@@ -125,7 +125,7 @@ def _coerce_dtypes(
 
 
 def _load_data_from_path(
-    data_path: pathlib.Path,
+    data_path: Path,
     user_filters: List[Tuple],
     engine: Literal["pandas", "modin"] = "pandas",
 ) -> Union[pandas.DataFrame, modin.pandas.dataframe.DataFrame]:
@@ -158,9 +158,9 @@ def _extract_columns(columns_to_keep, noised_dataset):
 
 
 def generate_decennial_census(
-    source: Union[pathlib.Path, str] = None,
+    source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[pathlib.Path, str, Dict[str, Dict]] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
@@ -203,9 +203,9 @@ def generate_decennial_census(
 
 
 def generate_american_community_survey(
-    source: Union[pathlib.Path, str] = None,
+    source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[pathlib.Path, str, Dict[str, Dict]] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
@@ -259,9 +259,9 @@ def generate_american_community_survey(
 
 
 def generate_current_population_survey(
-    source: Union[pathlib.Path, str] = None,
+    source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[pathlib.Path, str, Dict[str, Dict]] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
@@ -316,9 +316,9 @@ def generate_current_population_survey(
 
 
 def generate_taxes_w2_and_1099(
-    source: Union[pathlib.Path, str] = None,
+    source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[pathlib.Path, str, Dict[str, Dict]] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
@@ -361,9 +361,9 @@ def generate_taxes_w2_and_1099(
 
 
 def generate_women_infants_and_children(
-    source: Union[pathlib.Path, str] = None,
+    source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[pathlib.Path, str, Dict[str, Dict]] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
@@ -411,9 +411,9 @@ def generate_women_infants_and_children(
 
 
 def generate_social_security(
-    source: Union[pathlib.Path, str] = None,
+    source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[pathlib.Path, str, Dict[str, Dict]] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: Optional[int] = 2020,
     verbose: bool = False,
     engine: Literal["pandas", "modin"] = "pandas",
@@ -450,9 +450,9 @@ def generate_social_security(
 
 
 def generate_taxes_1040(
-    source: Union[pathlib.Path, str] = None,
+    source: Union[Path, str] = None,
     seed: int = 0,
-    config: Union[pathlib.Path, str, Dict[str, Dict]] = None,
+    config: Union[Path, str, Dict[str, Dict]] = None,
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
@@ -494,7 +494,7 @@ def generate_taxes_1040(
     )
 
 
-def fetch_filepaths(dataset: Dataset, source: pathlib.Path) -> Union[List, List[dict]]:
+def fetch_filepaths(dataset: Dataset, source: Path) -> Union[List, List[dict]]:
     # returns a list of filepaths for all Datasets
     data_paths = get_dataset_filepaths(source, dataset.name)
 
@@ -512,7 +512,7 @@ def validate_data_path_suffix(data_paths) -> None:
     return None
 
 
-def get_dataset_filepaths(source: pathlib.Path, dataset_name: str) -> List[pathlib.Path]:
+def get_dataset_filepaths(source: Path, dataset_name: str) -> List[Path]:
     directory = source / dataset_name
     dataset_paths = [x for x in directory.glob(f"{dataset_name}*")]
     sorted_dataset_paths = sorted(dataset_paths)
