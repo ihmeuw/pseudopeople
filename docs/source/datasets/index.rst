@@ -112,7 +112,7 @@ The following columns are included in this dataset:
        "Multiracial or Some Other Race".
    * - Year
      - :code:`year`
-     - Metadata that would not be collected directly; not affected by noise functions.
+     - Year in which data were collected; metadata that would not be collected directly; not affected by noise functions.
 
 American Community Survey (ACS)
 -------------------------------
@@ -346,7 +346,7 @@ The following columns are included in this dataset:
        "Multiracial or Some Other Race".
    * - Year
      - :code:`year`
-     - Metadata that would not be collected directly; not affected by noise functions.
+     - Year in which benefits were received; metadata that would not be collected directly; not affected by noise functions.
 
 
 Social Security Administration
@@ -494,7 +494,7 @@ The following columns are included in these datasets:
      - Possible values are "W2" or "1099".
    * - Tax year
      - :code:`tax_year`
-     - Metadata that would not be collected directly; not affected by noise functions.
+     - Year for which tax data were collected; metadata that would not be collected directly; not affected by noise functions.
 
 
 Tax form: 1040
@@ -604,4 +604,4 @@ The following columns are included in this dataset:
      - Individual Taxpayer Identification Number (ITIN) if no SSN
    * - Tax year
      - :code:`tax_year`
-     - Metadata that would not be collected directly; not affected by noise functions.
+     - Year for which tax data were collected; metadata that would not be collected directly; not affected by noise functions.
