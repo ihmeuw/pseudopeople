@@ -40,7 +40,7 @@ Our work builds on the success of previous data synthesis projects, such as FEBR
 incorporates real, publicly accessible data about the US population into our simulated datasets with the 
 power of  our simulation platform Vivarium_.
 
-Want to know more? Please visit the `pseudopeople project website <https://www.pseudopeople.org/>`_, where you can find 
+Want to know more about pseudopeople? Please visit the `pseudopeople project website <https://www.pseudopeople.org/>`_, where you can find 
 out more about the principles and processes underlying this work.
 
 .. _quickstart:
