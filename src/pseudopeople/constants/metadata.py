@@ -7,7 +7,6 @@ class DatasetNames:
     SSA = "social_security"
     TAXES_1040 = "taxes_1040"
     TAXES_W2_1099 = "taxes_w2_and_1099"
-    TAXES_DEPENDENTS = "taxes_dependents"
     WIC = "women_infants_and_children"
 
 
