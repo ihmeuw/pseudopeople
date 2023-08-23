@@ -7,7 +7,7 @@ import pyarrow.parquet as pq
 
 from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.exceptions import DataSourceError
-from pseudopeople.utilities import DataFrame, PANDAS, Engine
+from pseudopeople.utilities import PANDAS, DataFrame, Engine
 
 
 def load_standard_dataset(

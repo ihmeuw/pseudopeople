@@ -14,8 +14,8 @@ from pseudopeople.loader import load_standard_dataset
 from pseudopeople.noise import noise_dataset
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
 from pseudopeople.utilities import (
-    DataFrame,
     PANDAS,
+    DataFrame,
     configure_logging_to_terminal,
     get_engine_from_string,
     get_state_abbreviation,
