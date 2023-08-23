@@ -46,7 +46,8 @@ The following columns are included in this dataset:
      - Notes
    * - Unique simulant ID
      - :code:`simulant_id`
-     - Not affected by noise functions; intended use is "ground truth" for testing and validation.
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
+       datasets.
    * - Unique household ID
      - :code:`household_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
@@ -106,12 +107,12 @@ The following columns are included in this dataset:
      - Binary; "male" or "female".
    * - Race/ethnicity
      - :code:`race_ethnicity`
-     - The exhaustive and mutually exclusive categories for the single composite "race/ethnicity" indicator are as follows:
-       White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
-       Multiracial or Some Other Race.
+     - The categories for the single composite "race/ethnicity" field are as follows:
+       "White"; "Black"; "Latino"; "American Indian and Alaskan Native (AIAN)"; "Asian"; "Native Hawaiian and Other Pacific Islander (NHOPI)"; and
+       "Multiracial or Some Other Race".
    * - Year
      - :code:`year`
-     - Metadata that would not be collected directly; not affected by noise functions.
+     - Year in which data were collected; metadata that would not be collected directly; not affected by noise functions.
 
 American Community Survey (ACS)
 -------------------------------
@@ -136,7 +137,8 @@ The following columns are included in this dataset:
      - Notes
    * - Unique simulant ID
      - :code:`simulant_id`
-     - Not affected by noise functions; intended use is "ground truth" for testing and validation.
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
+       datasets.
    * - Unique household ID
      - :code:`household_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
@@ -196,9 +198,9 @@ The following columns are included in this dataset:
      - Binary; "male" or "female"
    * - Race/ethnicity
      - :code:`race_ethnicity`
-     - The exhaustive and mutually exclusive categories for the single composite "race/ethnicity" indicator are as follows:
-       White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
-       Multiracial or Some Other Race.
+     - The categories for the single composite "race/ethnicity" field are as follows:
+       "White"; "Black"; "Latino"; "American Indian and Alaskan Native (AIAN)"; "Asian"; "Native Hawaiian and Other Pacific Islander (NHOPI)"; and
+       "Multiracial or Some Other Race".
 
 Current Population Survey (CPS)
 -------------------------------
@@ -223,7 +225,8 @@ The following columns are included in this dataset:
      - Notes
    * - Unique simulant ID
      - :code:`simulant_id`
-     - Not affected by noise functions; intended use is "ground truth" for testing and validation.
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
+       datasets.
    * - Unique household ID
      - :code:`household_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
@@ -266,9 +269,9 @@ The following columns are included in this dataset:
      - Binary; "male" or "female"
    * - Race/ethnicity
      - :code:`race_ethnicity`
-     - The exhaustive and mutually exclusive categories for the single composite "race/ethnicity" indicator are as follows:
-       White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
-       Multiracial or Some Other Race.
+     - The categories for the single composite "race/ethnicity" field are as follows:
+       "White"; "Black"; "Latino"; "American Indian and Alaskan Native (AIAN)"; "Asian"; "Native Hawaiian and Other Pacific Islander (NHOPI)"; and
+       "Multiracial or Some Other Race".
 
 
 
@@ -294,7 +297,8 @@ The following columns are included in this dataset:
      - Notes
    * - Unique simulant ID
      - :code:`simulant_id`
-     - Not affected by noise functions; intended use is "ground truth" for testing and validation.
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
+       datasets.
    * - Unique household ID
      - :code:`household_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
@@ -334,12 +338,12 @@ The following columns are included in this dataset:
      - Binary; "male" or "female"
    * - Race/ethnicity
      - :code:`race_ethnicity`
-     - The exhaustive and mutually exclusive categories for the single composite "race/ethnicity" indicator are as follows:
-       White; Black; Latino; American Indian and Alaskan Native (AIAN); Asian; Native Hawaiian and Other Pacific Islander (NHOPI); and
-       Multiracial or Some Other Race.
+     - The categories for the single composite "race/ethnicity" field are as follows:
+       "White"; "Black"; "Latino"; "American Indian and Alaskan Native (AIAN)"; "Asian"; "Native Hawaiian and Other Pacific Islander (NHOPI)"; and
+       "Multiracial or Some Other Race".
    * - Year
      - :code:`year`
-     - Metadata that would not be collected directly; not affected by noise functions.
+     - Year in which benefits were received; metadata that would not be collected directly; not affected by noise functions.
 
 
 Social Security Administration
@@ -368,7 +372,8 @@ The following columns are included in this dataset:
      - Notes
    * - Unique simulant ID
      - :code:`simulant_id`
-     - Not affected by noise functions; intended use is "ground truth" for PRL tracking.
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
+       datasets.
    * - First name
      - :code:`first_name`
      -
@@ -418,7 +423,8 @@ The following columns are included in these datasets:
      - Notes
    * - Unique simulant ID
      - :code:`simulant_id`
-     - Not affected by noise functions; intended use is "ground truth" for testing and validation.
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
+       datasets.
    * - Unique household ID
      - :code:`household_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
@@ -485,7 +491,7 @@ The following columns are included in these datasets:
      - Possible values are "W2" or "1099".
    * - Tax year
      - :code:`tax_year`
-     - Metadata that would not be collected directly; not affected by noise functions.
+     - Year for which tax data were collected; metadata that would not be collected directly; not affected by noise functions.
 
 
 Tax form: 1040
@@ -506,7 +512,8 @@ The following columns are included in this dataset:
      - Notes
    * - Unique simulant ID
      - :code:`simulant_id`
-     - Not affected by noise functions; intended use is "ground truth" for testing and validation.
+     - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
+       datasets.
    * - Unique household ID
      - :code:`household_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
@@ -594,4 +601,4 @@ The following columns are included in this dataset:
      - Individual Taxpayer Identification Number (ITIN) if no SSN
    * - Tax year
      - :code:`tax_year`
-     - Metadata that would not be collected directly; not affected by noise functions.
+     - Year for which tax data were collected; metadata that would not be collected directly; not affected by noise functions.
