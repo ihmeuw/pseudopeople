@@ -1,7 +1,5 @@
-from __future__ import annotations
-
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Tuple
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -9,15 +7,13 @@ import pyarrow.parquet as pq
 
 from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.exceptions import DataSourceError
-
-if TYPE_CHECKING:
-    from pseudopeople.utilities import DATAFRAME, ENGINE
+from pseudopeople.utilities import DATAFRAME, PANDAS, Engine
 
 
 def load_standard_dataset_file(
-    data_path: Path, user_filters: List[Tuple], engine: ENGINE = "pandas"
+    data_path: Path, user_filters: List[Tuple], engine: Engine = PANDAS
 ) -> DATAFRAME:
-    if engine == "pandas":
+    if engine == PANDAS:
         if data_path.suffix != ".parquet":
             raise DataSourceError(
                 f"Source path must be a .parquet file. Provided {data_path.suffix}"

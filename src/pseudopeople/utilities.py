@@ -1,5 +1,6 @@
 import sys
-from typing import TYPE_CHECKING, Any, Literal, Union
+from dataclasses import dataclass
+from typing import Any, Union
 
 import numpy as np
 import pandas as pd
@@ -166,17 +167,36 @@ def get_state_abbreviation(state: str) -> str:
         raise ValueError(f"Unexpected state input: '{state}'") from None
 
 
-# Type aliases for working across multiple engines
-# For now, we don't expose these type aliases to the user --
-# see interface.py for more on this decision.
-ENGINE = Literal["pandas", "modin"]
+####################
+# Engine utilities #
+####################
 
-if TYPE_CHECKING:
+
+@dataclass
+class Engine:
+    name: str
+
+
+PANDAS = Engine("pandas")
+MODIN = Engine("modin")
+
+
+def get_engine_from_string(engine: str):
+    if engine == "pandas":
+        return PANDAS
+    elif engine == "modin":
+        return MODIN
+    else:
+        raise ValueError(f"Unknown engine {engine}")
+
+
+try:
+    # Optional dependency
     import modin.pandas as mpd
 
     DATAFRAME = Union[mpd.DataFrame, pd.DataFrame]
-    SERIES = Union[mpd.Series, pd.Series]
-    INDEX = Union[mpd.Index, pd.Index]
+except ImportError:
+    DATAFRAME = pd.DataFrame
 
 
 ##########################
