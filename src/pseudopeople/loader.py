@@ -26,7 +26,6 @@ def load_standard_dataset(
             # pyarrow.parquet.read_table doesn't accept an empty list
             user_filters = None
         data = pq.read_table(data_path, filters=user_filters).to_pandas()
-        dataframe_class = pd.DataFrame
     else:
         # Modin
         import modin.pandas as mpd
@@ -39,9 +38,8 @@ def load_standard_dataset(
         # because it requires pandas>=2.0.0 which Vivarium doesn't support yet.
         # For now, install modin from the modin_22_backport_parquet_filters branch at https://github.com/zmbc/modin
         data = mpd.read_parquet(str(data_path), filters=user_filters)
-        dataframe_class = mpd.DataFrame
 
-    if not isinstance(data, dataframe_class):
+    if not isinstance(data, engine.dataframe_class):
         raise DataSourceError(
             f"File located at {data_path} must contain a DataFrame. "
             "Please provide the path to the unmodified root data directory."

@@ -1,6 +1,6 @@
 import sys
 from dataclasses import dataclass
-from typing import Any, Union
+from typing import Any, Callable, Union
 
 import numpy as np
 import pandas as pd
@@ -175,10 +175,23 @@ def get_state_abbreviation(state: str) -> str:
 @dataclass
 class Engine:
     name: str
+    dataframe_class_getter: Callable
+
+    @property
+    def dataframe_class(self):
+        return self.dataframe_class_getter()
 
 
-PANDAS = Engine("pandas")
-MODIN = Engine("modin")
+PANDAS = Engine("pandas", lambda: pd.DataFrame)
+
+
+def get_modin_dataframe():
+    import modin.pandas as mpd
+
+    return mpd.DataFrame
+
+
+MODIN = Engine("modin", get_modin_dataframe)
 
 
 def get_engine_from_string(engine: str):
