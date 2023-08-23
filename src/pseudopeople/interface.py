@@ -9,7 +9,7 @@ from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, DatasetNames
 from pseudopeople.exceptions import DataSourceError
-from pseudopeople.loader import load_standard_dataset_file
+from pseudopeople.loader import load_standard_dataset
 from pseudopeople.noise import noise_dataset
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
 from pseudopeople.utilities import (
@@ -81,7 +81,7 @@ def _generate_dataset(
 
         for data_path in iterator:
             logger.debug(f"Loading data from {data_path}.")
-            data = _load_data_from_path(data_path, user_filters, engine=engine)
+            data = load_standard_dataset(data_path, user_filters, engine=engine, is_file=True)
             if len(data.index) == 0:
                 continue
             noised_data = _prep_and_noise_dataset(data, dataset, configuration_tree, seed)
@@ -95,9 +95,10 @@ def _generate_dataset(
     else:
         import modin.pandas as mpd
 
-        # Let modin deal with how to partition the shards -- just one data path
+        # Let modin deal with how to partition the shards -- the data path is the
+        # entire directory containing the parquet files
         data_path = source / dataset.name
-        data = _load_data_from_path(data_path, user_filters, engine=engine)
+        data = load_standard_dataset(data_path, user_filters, engine=engine, is_file=False)
 
         # FIXME: This is using private Modin APIs
         #  How do we do this using the public API?
@@ -134,16 +135,6 @@ def _coerce_dtypes(data: pd.DataFrame, dataset: Dataset):
     for col in dataset.columns:
         if col.dtype_name != data[col.name].dtype.name:
             data[col.name] = data[col.name].astype(col.dtype_name)
-    return data
-
-
-def _load_data_from_path(
-    data_path: Path,
-    user_filters: List[Tuple],
-    engine: Literal["pandas", "modin"] = "pandas",
-) -> DATAFRAME:
-    """Load data from a data file given a data_path and a year_filter."""
-    data = load_standard_dataset_file(data_path, user_filters, engine=engine)
     return data
 
 

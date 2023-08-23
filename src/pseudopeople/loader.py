@@ -10,27 +10,23 @@ from pseudopeople.exceptions import DataSourceError
 from pseudopeople.utilities import DATAFRAME, PANDAS, Engine
 
 
-def load_standard_dataset_file(
-    data_path: Path, user_filters: List[Tuple], engine: Engine = PANDAS
+def load_standard_dataset(
+    data_path: Path,
+    user_filters: List[Tuple],
+    engine: Engine = PANDAS,
+    is_file: bool = True,
 ) -> DATAFRAME:
-    if engine == PANDAS:
-        if data_path.suffix != ".parquet":
-            raise DataSourceError(
-                f"Source path must be a .parquet file. Provided {data_path.suffix}"
-            )
+    if is_file and data_path.suffix != ".parquet":
+        raise DataSourceError(
+            f"Source path must be a .parquet file. Provided {data_path.suffix}"
+        )
 
+    if engine == PANDAS:
         if len(user_filters) == 0:
             # pyarrow.parquet.read_table doesn't accept an empty list
             user_filters = None
         data = pq.read_table(data_path, filters=user_filters).to_pandas()
-
-        if not isinstance(data, pd.DataFrame):
-            raise DataSourceError(
-                f"File located at {data_path} must contain a pandas DataFrame. "
-                "Please provide the path to the unmodified root data directory."
-            )
-
-        return data
+        dataframe_class = pd.DataFrame
     else:
         # Modin
         import modin.pandas as mpd
@@ -42,4 +38,13 @@ def load_standard_dataset_file(
         # This has been fixed in the master branch of Modin's GitHub, but we can't use a bleeding edge version
         # because it requires pandas>=2.0.0 which Vivarium doesn't support yet.
         # For now, install modin from the modin_22_backport_parquet_filters branch at https://github.com/zmbc/modin
-        return mpd.read_parquet(str(data_path), filters=user_filters)
+        data = mpd.read_parquet(str(data_path), filters=user_filters)
+        dataframe_class = mpd.DataFrame
+
+    if not isinstance(data, dataframe_class):
+        raise DataSourceError(
+            f"File located at {data_path} must contain a DataFrame. "
+            "Please provide the path to the unmodified root data directory."
+        )
+
+    return data
