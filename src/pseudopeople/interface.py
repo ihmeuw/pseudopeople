@@ -4,6 +4,7 @@ from typing import Dict, List, Literal, Optional, Tuple, Union
 import pandas as pd
 from loguru import logger
 from tqdm import tqdm
+from vivarium import ConfigTree
 
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
@@ -121,7 +122,9 @@ def _generate_dataset(
     return noised_dataset
 
 
-def _prep_and_noise_dataset(data, dataset, configuration_tree, seed):
+def _prep_and_noise_dataset(
+    data: pd.DataFrame, dataset: Dataset, configuration_tree: ConfigTree, seed: int
+) -> pd.DataFrame:
     data = _reformat_dates_for_noising(data, dataset)
     data = _coerce_dtypes(data, dataset)
     noised_data = noise_dataset(dataset, data, configuration_tree, seed)
