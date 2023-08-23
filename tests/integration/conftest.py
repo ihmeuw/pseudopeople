@@ -53,7 +53,6 @@ def split_sample_data_dir(tmpdir_factory):
         DatasetNames.TAXES_W2_1099,
         DatasetNames.WIC,
         DatasetNames.TAXES_1040,
-        DatasetNames.TAXES_DEPENDENTS,
     ]
     split_sample_data_dir = tmpdir_factory.mktemp("split_sample_data")
     for dataset_name in datasets:
@@ -61,12 +60,10 @@ def split_sample_data_dir(tmpdir_factory):
         data = pd.read_parquet(data_path)
         # Split the sample dataset into two and save in tmpdir_factory
         # We are spliting on household_id as a solution for how to keep households together
-        # for the tax 1040 dataset. We also need to split households by a year filter so
-        # we do not break our data contracts for the 1040 needed to merge multiple datasets.
+        # for the tax 1040 dataset.
         outdir = split_sample_data_dir.mkdir(dataset_name)
         if dataset_name in [
             DatasetNames.TAXES_1040,
-            DatasetNames.TAXES_DEPENDENTS,
             DatasetNames.TAXES_W2_1099,
         ]:
             hh_ids = data.loc[
@@ -97,7 +94,6 @@ def split_sample_data_dir_state_edit(tmpdir_factory, split_sample_data_dir):
         DatasetNames.TAXES_W2_1099,
         DatasetNames.WIC,
         DatasetNames.TAXES_1040,
-        DatasetNames.TAXES_DEPENDENTS,
     ]
     split_sample_data_dir_state_edit = tmpdir_factory.mktemp("split_sample_data_state_edit")
     for dataset_name in datasets:

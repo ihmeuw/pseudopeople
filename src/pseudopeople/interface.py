@@ -9,7 +9,7 @@ from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, DatasetNames
 from pseudopeople.exceptions import DataSourceError
-from pseudopeople.loader import load_and_prep_1040_data, load_standard_dataset_file
+from pseudopeople.loader import load_standard_dataset_file
 from pseudopeople.noise import noise_dataset
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
 from pseudopeople.utilities import configure_logging_to_terminal, get_state_abbreviation
@@ -93,14 +93,9 @@ def _coerce_dtypes(data: pd.DataFrame, dataset: Dataset):
     return data
 
 
-def _load_data_from_path(
-    data_path: Union[Path, dict], user_filters: List[Tuple]
-) -> pd.DataFrame:
+def _load_data_from_path(data_path: Path, user_filters: List[Tuple]) -> pd.DataFrame:
     """Load data from a data file given a data_path and a year_filter."""
-    if isinstance(data_path, dict):
-        data = load_and_prep_1040_data(data_path, user_filters)
-    else:
-        data = load_standard_dataset_file(data_path, user_filters)
+    data = load_standard_dataset_file(data_path, user_filters)
     return data
 
 
@@ -430,38 +425,14 @@ def generate_taxes_1040(
 
 
 def fetch_filepaths(dataset: Dataset, source: Path) -> Union[List, List[dict]]:
-    # returns a list of filepaths for all Datasets except 1040.
-    # 1040 returns a list of dicts where each dict is a shard containing a key for each tax dataset
-    # with the corresponding filepath for that shard.
-    if dataset.name == DatasetNames.TAXES_1040:
-        tax_dataset_names = [
-            DatasetNames.TAXES_1040,
-            # DatasetNames.TAXES_W2_1099,
-            DatasetNames.TAXES_DEPENDENTS,
-        ]
-        tax_dataset_filepaths = {
-            tax_dataset: get_dataset_filepaths(source, tax_dataset)
-            for tax_dataset in tax_dataset_names
-        }
-
-        data_paths = []
-        for i in range(len(tax_dataset_filepaths[DatasetNames.TAXES_1040])):
-            shard_filepaths = {
-                tax_dataset: filepaths[i]
-                for tax_dataset, filepaths in tax_dataset_filepaths.items()
-            }
-            data_paths.append(shard_filepaths)
-    else:
-        data_paths = get_dataset_filepaths(source, dataset.name)
+    # returns a list of filepaths for all Datasets
+    data_paths = get_dataset_filepaths(source, dataset.name)
 
     return data_paths
 
 
 def validate_data_path_suffix(data_paths) -> None:
-    if isinstance(data_paths[0], dict):
-        suffix = set(x.suffix for item in data_paths for x in list(item.values()))
-    else:
-        suffix = set(x.suffix for x in data_paths)
+    suffix = set(x.suffix for x in data_paths)
     if len(suffix) > 1:
         raise DataSourceError(
             f"Only one type of file extension expected but more than one found: {suffix}. "

@@ -311,10 +311,7 @@ The following columns are included in this dataset:
      -
    * - Last name
      - :code:`last_name`
-     -
-   * - Age
-     - :code:`age`
-     - Rounded down to an integer.
+     - 
    * - Date of birth
      - :code:`date_of_birth`
      - Formatted as MMDDYYYY.
