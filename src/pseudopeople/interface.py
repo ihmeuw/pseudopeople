@@ -99,9 +99,9 @@ def _generate_dataset(
         data_path = source / dataset.name
         data = _load_data_from_path(data_path, user_filters, engine=engine)
 
-        # HACK: This is using private Modin APIs
-        # How do we do this using the public API?
-        # See https://github.com/modin-project/modin/issues/6498
+        # FIXME: This is using private Modin APIs
+        #  How do we do this using the public API?
+        #  See https://github.com/modin-project/modin/issues/6498
         from modin.core.storage_formats import PandasQueryCompiler
 
         noised_dataset = mpd.DataFrame(
