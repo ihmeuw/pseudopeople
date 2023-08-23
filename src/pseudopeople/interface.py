@@ -14,7 +14,7 @@ from pseudopeople.loader import load_standard_dataset
 from pseudopeople.noise import noise_dataset
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
 from pseudopeople.utilities import (
-    DATAFRAME,
+    DataFrame,
     PANDAS,
     configure_logging_to_terminal,
     get_engine_from_string,
@@ -30,7 +30,7 @@ def _generate_dataset(
     user_filters: List[tuple],
     verbose: bool = False,
     engine: Literal["pandas", "modin"] = "pandas",
-) -> DATAFRAME:
+) -> DataFrame:
     """
     Helper for generating noised datasets.
 
@@ -170,7 +170,7 @@ def generate_decennial_census(
     state: Optional[str] = None,
     verbose: bool = False,
     engine: Literal["pandas", "modin"] = "pandas",
-) -> DATAFRAME:
+) -> DataFrame:
     """
     Generates a pseudopeople decennial census dataset which represents simulated
     responses to the US Census Bureau's Census of Population and Housing.
@@ -215,7 +215,7 @@ def generate_american_community_survey(
     state: Optional[str] = None,
     verbose: bool = False,
     engine: Literal["pandas", "modin"] = "pandas",
-) -> DATAFRAME:
+) -> DataFrame:
     """
     Generates a pseudopeople ACS dataset which represents simulated responses to
     the ACS survey.
@@ -271,7 +271,7 @@ def generate_current_population_survey(
     state: Optional[str] = None,
     verbose: bool = False,
     engine: Literal["pandas", "modin"] = "pandas",
-) -> DATAFRAME:
+) -> DataFrame:
     """
     Generates a pseudopeople CPS dataset which represents simulated responses to
     the CPS survey.
@@ -328,7 +328,7 @@ def generate_taxes_w2_and_1099(
     state: Optional[str] = None,
     verbose: bool = False,
     engine: Literal["pandas", "modin"] = "pandas",
-) -> DATAFRAME:
+) -> DataFrame:
     """
     Generates a pseudopeople W2 and 1099 tax dataset which represents simulated
     tax form data.
@@ -373,7 +373,7 @@ def generate_women_infants_and_children(
     state: Optional[str] = None,
     verbose: bool = False,
     engine: Literal["pandas", "modin"] = "pandas",
-) -> DATAFRAME:
+) -> DataFrame:
     """
     Generates a pseudopeople WIC dataset which represents a simulated version of
     the administrative data that would be recorded by WIC. This is a yearly file
@@ -422,7 +422,7 @@ def generate_social_security(
     year: Optional[int] = 2020,
     verbose: bool = False,
     engine: Literal["pandas", "modin"] = "pandas",
-) -> DATAFRAME:
+) -> DataFrame:
     """
     Generates a pseudopeople SSA dataset which represents simulated Social Security
     Administration (SSA) data.
@@ -462,7 +462,7 @@ def generate_taxes_1040(
     state: Optional[str] = None,
     verbose: bool = False,
     engine: Literal["pandas", "modin"] = "pandas",
-) -> DATAFRAME:
+) -> DataFrame:
     """
     Generates a pseudopeople 1040 tax dataset which represents simulated
     tax form data.

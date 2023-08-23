@@ -7,7 +7,7 @@ import pyarrow.parquet as pq
 
 from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.exceptions import DataSourceError
-from pseudopeople.utilities import DATAFRAME, PANDAS, Engine
+from pseudopeople.utilities import DataFrame, PANDAS, Engine
 
 
 def load_standard_dataset(
@@ -15,7 +15,7 @@ def load_standard_dataset(
     user_filters: List[Tuple],
     engine: Engine = PANDAS,
     is_file: bool = True,
-) -> DATAFRAME:
+) -> DataFrame:
     if is_file and data_path.suffix != ".parquet":
         raise DataSourceError(
             f"Source path must be a .parquet file. Provided {data_path.suffix}"

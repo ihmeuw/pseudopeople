@@ -194,9 +194,9 @@ try:
     # Optional dependency
     import modin.pandas as mpd
 
-    DATAFRAME = Union[mpd.DataFrame, pd.DataFrame]
+    DataFrame = Union[mpd.DataFrame, pd.DataFrame]
 except ImportError:
-    DATAFRAME = pd.DataFrame
+    DataFrame = pd.DataFrame
 
 
 ##########################
