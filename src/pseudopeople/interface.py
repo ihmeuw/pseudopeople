@@ -11,8 +11,12 @@ from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, DatasetN
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.loader import load_standard_dataset_file
 from pseudopeople.noise import noise_dataset
-from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
-from pseudopeople.utilities import configure_logging_to_terminal, get_state_abbreviation
+from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset, DtypeNames
+from pseudopeople.utilities import (
+    cleanse_object_columns,
+    configure_logging_to_terminal,
+    get_state_abbreviation,
+)
 
 
 def _generate_dataset(
@@ -90,6 +94,8 @@ def _coerce_dtypes(data: pd.DataFrame, dataset: Dataset):
     for col in dataset.columns:
         if col.dtype_name != data[col.name].dtype.name:
             data[col.name] = data[col.name].astype(col.dtype_name)
+            if col.dtype_name == DtypeNames.OBJECT:
+                data[col.name] = cleanse_object_columns(data[col.name])
     return data
 
 
