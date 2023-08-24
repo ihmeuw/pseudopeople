@@ -13,7 +13,11 @@ from pseudopeople.loader import load_standard_dataset_file
 from pseudopeople.noise import noise_dataset
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset, DtypeNames
 from pseudopeople.utilities import (
+<<<<<<< HEAD
     cleanse_integer_columns,
+=======
+    cleanse_object_columns,
+>>>>>>> ed51726 (Add util function to handle int column values to be strings)
     configure_logging_to_terminal,
     get_state_abbreviation,
 )
@@ -98,7 +102,12 @@ def _coerce_dtypes(
             data[col.name] = cleanse_integer_columns(data[col.name])
         if col.dtype_name != data[col.name].dtype.name:
             data[col.name] = data[col.name].astype(col.dtype_name)
+<<<<<<< HEAD
 
+=======
+            if col.dtype_name == DtypeNames.OBJECT:
+                data[col.name] = cleanse_object_columns(data[col.name])
+>>>>>>> ed51726 (Add util function to handle int column values to be strings)
     return data
 
 
