@@ -28,8 +28,8 @@ If you notice any issues, please let us know `on GitHub <https://github.com/ihme
 Introduction
 ------------
 
-The Simulation Science Team of the University of Washington's Institute for Health Metrics and Evaluation (IHME) 
-is excited to introduce pseudopeople, the Python package that simplifies Entity Resolution (ER) research and 
+The Simulation Science Team of the University of Washington's Institute for Health Metrics and Evaluation 
+is excited to introduce pseudopeople, the Python package that simplifies entity resolution research and 
 development. This package generates large-scale, simulated population data according to specifications by the user, 
 to replicate a range of complexities found in real applications of probabilistic record linkage software.
 With sensitive data often required for ER, accessing and testing new methods and software has been a challenge - 
