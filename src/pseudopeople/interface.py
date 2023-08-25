@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
-from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS
+from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, INT_COLUMNS
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.loader import load_standard_dataset_file
 from pseudopeople.noise import noise_dataset
@@ -88,14 +88,17 @@ def _generate_dataset(
     return noised_dataset
 
 
-def _coerce_dtypes(data: pd.DataFrame, dataset: Dataset, cleanse_int_cols: bool = False):
+def _coerce_dtypes(
+    data: pd.DataFrame, dataset: Dataset, cleanse_int_cols: bool = False
+) -> pd.DataFrame:
     # Coerce dtypes prior to noising to catch issues early as well as
     # get most columns away from dtype 'category' and into 'object' (strings)
     for col in dataset.columns:
+        if cleanse_int_cols and col.name in INT_COLUMNS:
+            data[col.name] = cleanse_integer_columns(data[col.name])
         if col.dtype_name != data[col.name].dtype.name:
             data[col.name] = data[col.name].astype(col.dtype_name)
-            if cleanse_int_cols and col.dtype_name == DtypeNames.OBJECT:
-                data[col.name] = cleanse_integer_columns(data[col.name])
+
     return data
 
 
