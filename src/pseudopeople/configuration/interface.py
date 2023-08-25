@@ -14,18 +14,17 @@ def get_config(dataset_name: str = None, overrides: Union[Path, str, Dict] = Non
     """
     Function that returns the pseudopeople configuration,
     including all default values.
-    If :code:`dataset_name` is None (the default), the returned dictionary has exactly
+    If :code:`dataset_name` is None (the default), the returned dictionary includes
+    the configuration for all datasets. If a dataset name is supplied, only that
+    dataset's configuration is returned. In both cases, the returned dictionary has exactly
     the structure described on the :ref:`Configuration page <configuration_main>`.
-    If a dataset name is supplied, only returns the part of the configuration for that
-    dataset, i.e. :code:`get_config(dataset_name)` is equivalent to
-    :code:`get_config()[dataset_name]`.
 
     To get the default probability of nonresponse in the Decennial Census dataset:
 
     .. code-block:: pycon
 
         >>> import pseudopeople as psp
-        >>> psp.get_config('decennial_census')['row_noise']['do_not_respond']
+        >>> psp.get_config('decennial_census')['decennial_census']['row_noise']['do_not_respond']
         {'row_probability': 0.0145}
 
     To view that same part of the configuration after applying a user override:
@@ -33,7 +32,7 @@ def get_config(dataset_name: str = None, overrides: Union[Path, str, Dict] = Non
     .. code-block:: pycon
 
         >>> overrides = {'decennial_census': {'row_noise': {'do_not_respond': {'row_probability': 0.1}}}}
-        >>> psp.get_config('decennial_census', overrides)['row_noise']['do_not_respond']
+        >>> psp.get_config('decennial_census', overrides)['decennial_census']['row_noise']['do_not_respond']
         {'row_probability': 0.1}
 
     :param dataset_name: An optional name of dataset to return the configuration
