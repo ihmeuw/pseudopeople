@@ -28,22 +28,20 @@ If you notice any issues, please let us know `on GitHub <https://github.com/ihme
 Introduction
 ------------
 
-The University of Washington IHME Simulation Science Team is excited to introduce pseudopeople, the Python package that simplifies Entity Resolution (ER) research and development.
-This package generates large-scale, simulated population data according to specifications by the user, to replicate a range of complexities of real applications of probabilistic record linkage software.
-With sensitive data often required for ER, accessing and testing new methods and software has been a challenge - until now.
-Our innovative approach creates realistic, simulated data including name, address, and date of birth, without compromising privacy.
+The Simulation Science Team of the University of Washington's Institute for Health Metrics and Evaluation 
+is excited to introduce pseudopeople, the Python package that simplifies entity resolution research and 
+development. This package generates large-scale, simulated population data according to specifications by the user, 
+to replicate a range of complexities found in real applications of probabilistic record linkage software.
+With sensitive data often required for entity resolution, accessing and testing new methods and software has been a challenge --- 
+until now. Our innovative approach creates realistic, simulated data including name, address, and date of birth, 
+without compromising privacy.
 
-Our work builds on the success of previous data synthesis projects, such as
-FEBRL_, GeCo_, and SOG_, while leveraging the power of our simulation platform
-Vivarium_ to incorporate real, publicly-accessible data about the US population.
-This allows us to model realistic household and family structures at scale, with
-relevant geographies. We have created a simulation of the US population,
-including names and addresses, with defined types of data collection (e.g.,
-simulating decennial censuses, surveys, taxes, and other administrative data).
-By creating realistic, but simulated, data which includes these attributes, we
-can make ER research and development easier for ourselves and others.
+Our work builds on the success of previous data synthesis projects, such as FEBRL_, GeCo_, and SOG_, and 
+generates a simulated population using real, publicly accessible data about the US population by leveraging the
+power of our simulation platform Vivarium_.
 
-Want to know more? Please visit the `pseudopeople project website <https://www.pseudopeople.org/>`_, where you can find out more about the principles and processes underlying this work.
+Want to know more about pseudopeople? Please visit the `pseudopeople project website <https://www.pseudopeople.org/>`_, where you can find 
+out more about the principles and processes underlying this work.
 
 .. _quickstart:
 
@@ -89,7 +87,7 @@ Then, generate a small-scale simulated decennial census:
 
    [9644 rows x 15 columns]
 
-And W-2 and 1099 tax forms from the same fake population:
+And W-2 and 1099 tax forms from the same simulated population:
 
 ::
 
