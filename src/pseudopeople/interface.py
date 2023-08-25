@@ -7,13 +7,17 @@ from tqdm import tqdm
 
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
-from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, DatasetNames
+from pseudopeople.constants.metadata import (
+    COPY_HOUSEHOLD_MEMBER_COLS,
+    INTEGER_COLUMNS,
+    DatasetNames,
+)
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.loader import load_standard_dataset_file
 from pseudopeople.noise import noise_dataset
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset, DtypeNames
 from pseudopeople.utilities import (
-    cleanse_object_columns,
+    cleanse_integer_columns,
     configure_logging_to_terminal,
     get_state_abbreviation,
 )
@@ -81,21 +85,21 @@ def _generate_dataset(
 
     # Known pandas bug: pd.concat does not preserve category dtypes so we coerce
     # again after concat (https://github.com/pandas-dev/pandas/issues/51362)
-    noised_dataset = _coerce_dtypes(noised_dataset, dataset)
+    noised_dataset = _coerce_dtypes(noised_dataset, dataset, cleanse_int_cols=True)
 
     logger.debug("*** Finished ***")
 
     return noised_dataset
 
 
-def _coerce_dtypes(data: pd.DataFrame, dataset: Dataset):
+def _coerce_dtypes(data: pd.DataFrame, dataset: Dataset, cleanse_int_cols: bool = False):
     # Coerce dtypes prior to noising to catch issues early as well as
     # get most columns away from dtype 'category' and into 'object' (strings)
     for col in dataset.columns:
         if col.dtype_name != data[col.name].dtype.name:
             data[col.name] = data[col.name].astype(col.dtype_name)
-            if col.dtype_name == DtypeNames.OBJECT:
-                data[col.name] = cleanse_object_columns(data[col.name])
+            if cleanse_int_cols and col.dtype_name == DtypeNames.OBJECT:
+                data[col.name] = cleanse_integer_columns(data[col.name])
     return data
 
 

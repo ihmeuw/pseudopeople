@@ -166,11 +166,11 @@ def get_state_abbreviation(state: str) -> str:
         raise ValueError(f"Unexpected state input: '{state}'") from None
 
 
-def cleanse_object_columns(column: pd.Series) -> pd.Series:
+def cleanse_integer_columns(column: pd.Series) -> pd.Series:
     missing_mask = column.isna()
     missing_data = column[missing_mask]
     object_data = column[~missing_mask].astype(str)
-    float_mask = object_data.str[-2:] == ".0"
+    float_mask = object_data.str[-2] == "."
     object_data[float_mask] = object_data.str[:-2]
     clensed_data = pd.concat([missing_data, object_data]).sort_index()
 
