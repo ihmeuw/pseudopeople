@@ -7,17 +7,29 @@ from tqdm import tqdm
 
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
+<<<<<<< HEAD
 from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, INT_COLUMNS
+=======
+from pseudopeople.constants.metadata import (
+    COPY_HOUSEHOLD_MEMBER_COLS,
+    INTEGER_COLUMNS,
+    DatasetNames,
+)
+>>>>>>> 2d8e479 (Update to only cleanse columns after noising)
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.loader import load_standard_dataset_file
 from pseudopeople.noise import noise_dataset
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset, DtypeNames
 from pseudopeople.utilities import (
 <<<<<<< HEAD
+<<<<<<< HEAD
     cleanse_integer_columns,
 =======
     cleanse_object_columns,
 >>>>>>> ed51726 (Add util function to handle int column values to be strings)
+=======
+    cleanse_integer_columns,
+>>>>>>> 2d8e479 (Update to only cleanse columns after noising)
     configure_logging_to_terminal,
     get_state_abbreviation,
 )
@@ -92,9 +104,13 @@ def _generate_dataset(
     return noised_dataset
 
 
+<<<<<<< HEAD
 def _coerce_dtypes(
     data: pd.DataFrame, dataset: Dataset, cleanse_int_cols: bool = False
 ) -> pd.DataFrame:
+=======
+def _coerce_dtypes(data: pd.DataFrame, dataset: Dataset, cleanse_int_cols: bool = False):
+>>>>>>> 2d8e479 (Update to only cleanse columns after noising)
     # Coerce dtypes prior to noising to catch issues early as well as
     # get most columns away from dtype 'category' and into 'object' (strings)
     for col in dataset.columns:
@@ -103,11 +119,16 @@ def _coerce_dtypes(
         if col.dtype_name != data[col.name].dtype.name:
             data[col.name] = data[col.name].astype(col.dtype_name)
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
             if col.dtype_name == DtypeNames.OBJECT:
                 data[col.name] = cleanse_object_columns(data[col.name])
 >>>>>>> ed51726 (Add util function to handle int column values to be strings)
+=======
+            if cleanse_int_cols and col.dtype_name == DtypeNames.OBJECT:
+                data[col.name] = cleanse_integer_columns(data[col.name])
+>>>>>>> 2d8e479 (Update to only cleanse columns after noising)
     return data
 
 

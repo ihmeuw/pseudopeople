@@ -167,6 +167,7 @@ def get_state_abbreviation(state: str) -> str:
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 def cleanse_integer_columns(column: pd.Series) -> pd.Series:
     column = column.copy()
     column[column.notna()] = column[column.notna()].astype(str)
@@ -175,10 +176,13 @@ def cleanse_integer_columns(column: pd.Series) -> pd.Series:
     return column
 =======
 def cleanse_object_columns(column: pd.Series) -> pd.Series:
+=======
+def cleanse_integer_columns(column: pd.Series) -> pd.Series:
+>>>>>>> 2d8e479 (Update to only cleanse columns after noising)
     missing_mask = column.isna()
     missing_data = column[missing_mask]
     object_data = column[~missing_mask].astype(str)
-    float_mask = object_data.str[-2:] == ".0"
+    float_mask = object_data.str[-2] == "."
     object_data[float_mask] = object_data.str[:-2]
     clensed_data = pd.concat([missing_data, object_data]).sort_index()
 
