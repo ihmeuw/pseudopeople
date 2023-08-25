@@ -7,11 +7,7 @@ from tqdm import tqdm
 
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
-from pseudopeople.constants.metadata import (
-    COPY_HOUSEHOLD_MEMBER_COLS,
-    INTEGER_COLUMNS,
-    DatasetNames,
-)
+from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.loader import load_standard_dataset_file
 from pseudopeople.noise import noise_dataset
