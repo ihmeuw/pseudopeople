@@ -166,28 +166,12 @@ def get_state_abbreviation(state: str) -> str:
         raise ValueError(f"Unexpected state input: '{state}'") from None
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 def cleanse_integer_columns(column: pd.Series) -> pd.Series:
     column = column.copy()
     column[column.notna()] = column[column.notna()].astype(str)
     float_mask = column.notna() & (column.astype(str).str.contains(".", regex=False))
     column.loc[float_mask] = column.loc[float_mask].astype(str).str.split(".").str[0]
     return column
-=======
-def cleanse_object_columns(column: pd.Series) -> pd.Series:
-=======
-def cleanse_integer_columns(column: pd.Series) -> pd.Series:
->>>>>>> 2d8e479 (Update to only cleanse columns after noising)
-    missing_mask = column.isna()
-    missing_data = column[missing_mask]
-    object_data = column[~missing_mask].astype(str)
-    float_mask = object_data.str[-2] == "."
-    object_data[float_mask] = object_data.str[:-2]
-    clensed_data = pd.concat([missing_data, object_data]).sort_index()
-
-    return clensed_data
->>>>>>> ed51726 (Add util function to handle int column values to be strings)
 
 
 ##########################
