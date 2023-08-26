@@ -5,11 +5,11 @@ from pseudopeople.schema_entities import DtypeNames
 from pseudopeople.utilities import cleanse_integer_columns
 
 
-def test_clenase_object_columns():
+def test_cleanse_integer_columns():
     # This tests that object columns return only strings.
     # This is to handle dtype issues we were having with int/float/strings in
     # age, wages, and po box columns.
-    s = pd.Series([np.nan, 1, "2.0", 3.0, 4.0, "5.0", np.nan])
+    s = pd.Series([np.nan, 1, "2.0", 3.01, 4.0, "5.055", np.nan])
     t = cleanse_integer_columns(s)
 
     assert s.dtype.name == t.dtype.name
