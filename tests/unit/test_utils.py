@@ -11,7 +11,6 @@ def test_cleanse_integer_columns():
     # age, wages, and po box columns.
     s = pd.Series([np.nan, 1, "2.0", 3.01, 4.0, "5.055", np.nan])
     t = cleanse_integer_columns(s)
-
     assert s.dtype.name == t.dtype.name
     assert t.dtype.name == DtypeNames.OBJECT
 
