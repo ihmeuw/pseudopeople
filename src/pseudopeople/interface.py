@@ -70,7 +70,10 @@ def _generate_dataset(
         logger.debug(f"Loading data from {data_path}.")
         data = _load_data_from_path(data_path, user_filters)
         if data.empty:
-            continue
+            raise ValueError(
+                "Invalid value provided for 'state' or 'year'. User input value(s) provided "
+                f"are {user_filters}. No data found with these filters at {data_path}."
+            )
         data = _reformat_dates_for_noising(data, dataset)
         data = _coerce_dtypes(data, dataset)
         noised_data = noise_dataset(dataset, data, configuration_tree, seed)
@@ -147,12 +150,12 @@ def generate_decennial_census(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The year (format YYYY) to include in the dataset. Must be a decennial
-        year (e.g. 2020, 2030, 2040). Will return an empty pd.DataFrame if there are no
-        data with this year. If None is provided, data from all years are
+        year (e.g. 2020, 2030, 2040). Will raise a ValueError if there is no data for
+        this year. If None is provided, data from all years are
         included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
-        data pertaining to this state. If None is provided, data from all locations are
+        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
+        no data for this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated decennial census data.
@@ -160,9 +163,9 @@ def generate_decennial_census(
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
     user_filters = []
-    if year:
+    if year is not None:
         user_filters.append((DATASETS.census.date_column_name, "==", year))
-    if state:
+    if state is not None:
         user_filters.append(
             (DATASETS.census.state_column_name, "==", get_state_abbreviation(state))
         )
@@ -193,11 +196,11 @@ def generate_american_community_survey(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The survey date year (format YYYY) to include in the dataset. Will
-        return an empty pd.DataFrame if there are no data with this year. If None is
+        raise a ValueError if there is no data for this year. If None is
         provided, data from all years are included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
-        data pertaining to this state. If None is provided, data from all locations are
+        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is no
+        data for this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated ACS data.
@@ -205,15 +208,23 @@ def generate_american_community_survey(
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
     user_filters = []
-    if year:
-        user_filters.extend(
+    if year is not None:
+        user_filters.append(
             [
-                (DATASETS.acs.date_column_name, ">=", pd.Timestamp(f"{year}-01-01")),
-                (DATASETS.acs.date_column_name, "<=", pd.Timestamp(f"{year}-12-31")),
+                (
+                    DATASETS.acs.date_column_name,
+                    ">=",
+                    pd.Timestamp(year=year, month=1, day=1),
+                ),
+                (
+                    DATASETS.acs.date_column_name,
+                    "<=",
+                    pd.Timestamp(year=year, month=12, day=31),
+                ),
             ]
         )
         seed = seed * 10_000 + year
-    if state:
+    if state is not None:
         user_filters.append(
             (DATASETS.acs.state_column_name, "==", get_state_abbreviation(state))
         )
@@ -245,11 +256,11 @@ def generate_current_population_survey(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The survey date year (format YYYY) to include in the dataset. Will
-        return an empty pd.DataFrame if there are no data with this year. If None is
+        raise a ValueError if there is no data for this year. If None is
         provided, data from all years are included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
-        data pertaining to this state. If None is provided, data from all locations are
+        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
+        no data for this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated CPS data.
@@ -257,15 +268,23 @@ def generate_current_population_survey(
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
     user_filters = []
-    if year:
-        user_filters.extend(
+    if year is not None:
+        user_filters.append(
             [
-                (DATASETS.cps.date_column_name, ">=", pd.Timestamp(f"{year}-01-01")),
-                (DATASETS.cps.date_column_name, "<=", pd.Timestamp(f"{year}-12-31")),
+                (
+                    DATASETS.cps.date_column_name,
+                    ">=",
+                    pd.Timestamp(year=year, month=1, day=1),
+                ),
+                (
+                    DATASETS.cps.date_column_name,
+                    "<=",
+                    pd.Timestamp(year=year, month=12, day=31),
+                ),
             ]
         )
         seed = seed * 10_000 + year
-    if state:
+    if state is not None:
         user_filters.append(
             (DATASETS.cps.state_column_name, "==", get_state_abbreviation(state))
         )
@@ -289,12 +308,12 @@ def generate_taxes_w2_and_1099(
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
-    :param year: The tax year (format YYYY) to include in the dataset. Will return
-        an empty pd.DataFrame if there are no data with this year. If None is provided,
+    :param year: The tax year (format YYYY) to include in the dataset. Will raise
+        a ValueError if there is no data for this year. If None is provided,
         data from all years are included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
-        data pertaining to this state. If None is provided, data from all locations are
+        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
+        no data for this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated W2 and 1099 tax data.
@@ -302,10 +321,10 @@ def generate_taxes_w2_and_1099(
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
     user_filters = []
-    if year:
+    if year is not None:
         user_filters.append((DATASETS.tax_w2_1099.date_column_name, "==", year))
         seed = seed * 10_000 + year
-    if state:
+    if state is not None:
         user_filters.append(
             (DATASETS.tax_w2_1099.state_column_name, "==", get_state_abbreviation(state))
         )
@@ -336,12 +355,12 @@ def generate_women_infants_and_children(
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
-    :param year: The year (format YYYY) to include in the dataset. Will return an
-        empty pd.DataFrame if there are no data with this year. If None is provided,
+    :param year: The year (format YYYY) to include in the dataset. Will raise a
+        ValueError if there is no data for this year. If None is provided,
         data from all years are included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
-        data pertaining to this state. If None is provided, data from all locations are
+        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
+        no data for this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated WIC data.
@@ -349,10 +368,10 @@ def generate_women_infants_and_children(
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
     user_filters = []
-    if year:
+    if year is not None:
         user_filters.append((DATASETS.wic.date_column_name, "==", year))
         seed = seed * 10_000 + year
-    if state:
+    if state is not None:
         user_filters.append(
             (DATASETS.wic.state_column_name, "==", get_state_abbreviation(state))
         )
@@ -376,18 +395,17 @@ def generate_social_security(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The latest year (format YYYY) to include in the dataset; will also
-        include all previous years. Will return an empty pd.DataFrame if there are no
-        data on or before this year. If None is provided, data from all years are
-        included in the dataset.
+        include all previous years. Will raise a ValueError if there is no data for
+        this year. If None is provided, data from all years are included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated SSA data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
     user_filters = []
-    if year:
+    if year is not None:
         user_filters.append(
-            (DATASETS.ssa.date_column_name, "<=", pd.Timestamp(f"{year}-12-31"))
+            (DATASETS.ssa.date_column_name, "<=", pd.Timestamp(year=year, month=12, day=31))
         )
         seed = seed * 10_000 + year
     return _generate_dataset(DATASETS.ssa, source, seed, config, user_filters, verbose)
@@ -410,12 +428,12 @@ def generate_taxes_1040(
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
-    :param year: The tax year (format YYYY) to include in the dataset. Will return
-        an empty pd.DataFrame if there are no data with this year. If None is provided,
+    :param year: The tax year (format YYYY) to include in the dataset. Will raise
+        a ValueError if there is no data with this year. If None is provided,
         data from all years are included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
-        data pertaining to this state. If None is provided, data from all locations are
+        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
+        no data with this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated 1040 tax data.
@@ -423,10 +441,10 @@ def generate_taxes_1040(
     :raises DataSourceError: An incorrect pseudopeople input data source is provided.
     """
     user_filters = []
-    if year:
+    if year is not None:
         user_filters.append((DATASETS.tax_1040.date_column_name, "==", year))
         seed = seed * 10_000 + year
-    if state:
+    if state is not None:
         user_filters.append(
             (DATASETS.tax_1040.state_column_name, "==", get_state_abbreviation(state))
         )
