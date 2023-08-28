@@ -16,7 +16,7 @@ Glossary
         The types of data that can be simulated with pseudopeople, each of which is
         the simulated analog of a "real world" database of administrative records.
         For example, pseudopeople's American Community Survey (ACS) dataset is analogous to the
-        data that would be collected by that survey in real-life.
+        data that would be collected by that survey in real life.
 
     Entity resolution (ER)
         The task of identifying the unique entities associated with a set of records,
