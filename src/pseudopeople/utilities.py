@@ -166,6 +166,14 @@ def get_state_abbreviation(state: str) -> str:
         raise ValueError(f"Unexpected state input: '{state}'") from None
 
 
+def cleanse_integer_columns(column: pd.Series) -> pd.Series:
+    column = column.copy()
+    column[column.notna()] = column[column.notna()].astype(str)
+    float_mask = column.notna() & (column.astype(str).str.contains(".", regex=False))
+    column.loc[float_mask] = column.loc[float_mask].astype(str).str.split(".").str[0]
+    return column
+
+
 ##########################
 # Data utility functions #
 ##########################

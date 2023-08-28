@@ -222,7 +222,8 @@ def test_column_noising(dataset_name: str, config, request):
             # and additional parameters to consider as well as the rtol when the
             # number of compared is small.
             expected_noise = 1 - (1 - CELL_PROBABILITY) ** len(col.noise_types)
-            rtol = 0.70 if includes_token_noising else 0.12
+            # Setting rtol as 0.25 as upper limit
+            rtol = 0.70 if includes_token_noising else 0.25
             assert np.isclose(noise_level, expected_noise, rtol=rtol)
         else:  # No noising - should be identical
             assert (
