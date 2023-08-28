@@ -4,9 +4,7 @@
 Datasets
 ========
 
-Here we cover the realistic simulated datasets, which are analogous to "real world" administrative records such as tax documents
-and routinely generated files of social security numbers, that users can generate using Pseudopeople for developing and testing Entity
-Resolution algorithms and software.
+In this section, we discuss the creation of simulated datasets that closely resemble real-world administrative records. These include tax documents and routinely generated files containing social security numbers. Users can generate these realistic datasets using the Pseudopeople package. This is particularly useful for developing and testing Entity Resolution algorithms and software.
 
 Each of the datasets that can be generated using Pseudopeople have "noise" added to them, thereby realistically
 simulating how administrative records can be corrupted or distorted, which creates challenges in linking those
