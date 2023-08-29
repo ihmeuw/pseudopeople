@@ -153,7 +153,7 @@ def generate_decennial_census(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The year (format YYYY) to include in the dataset. Must be a decennial
-        year (e.g. 2020, 2030, 2040). Will raise a ValueError if there is no data for
+        year (e.g. 2020, 2030, 2040). Will raise a ValueError if there are no data for
         this year. If None is provided, data from all years are
         included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
