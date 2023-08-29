@@ -70,16 +70,19 @@ def _generate_dataset(
         logger.debug(f"Loading data from {data_path}.")
         data = _load_data_from_path(data_path, user_filters)
         if data.empty:
-            raise ValueError(
-                "Invalid value provided for 'state' or 'year'. User input value(s) provided "
-                f"are {user_filters}. No data found with these filters at {data_path}."
-            )
+            continue
         data = _reformat_dates_for_noising(data, dataset)
         data = _coerce_dtypes(data, dataset)
         noised_data = noise_dataset(dataset, data, configuration_tree, seed)
         noised_data = _extract_columns(dataset.columns, noised_data)
         noised_dataset.append(noised_data)
 
+    # Check if all shards for the dataset are empty
+    if len(noised_dataset) == 0:
+        raise ValueError(
+            "Invalid value provided for 'state' or 'year'. User input value(s) provided "
+            f"are {user_filters}. No data found with these filters at {data_path}."
+        )
     noised_dataset = pd.concat(noised_dataset, ignore_index=True)
 
     # Known pandas bug: pd.concat does not preserve category dtypes so we coerce
@@ -209,26 +212,29 @@ def generate_american_community_survey(
     """
     user_filters = []
     if year is not None:
-        user_filters.append(
-            [
+        try:
+            user_filters.append(
                 (
                     DATASETS.acs.date_column_name,
                     ">=",
                     pd.Timestamp(year=year, month=1, day=1),
-                ),
+                )
+            )
+            user_filters.append(
                 (
                     DATASETS.acs.date_column_name,
                     "<=",
                     pd.Timestamp(year=year, month=12, day=31),
-                ),
-            ]
-        )
+                )
+            )
+        except (pd.errors.OutOfBoundsDatetime, ValueError):
+            raise ValueError(f"Invalid year provided: '{year}'")
         seed = seed * 10_000 + year
     if state is not None:
         user_filters.append(
             (DATASETS.acs.state_column_name, "==", get_state_abbreviation(state))
         )
-    return _generate_dataset(DATASETS.acs, source, seed, config, user_filters, verbose)
+    return _generate_dataset(DATASETS.acs, source, seed, config, list(user_filters), verbose)
 
 
 def generate_current_population_survey(
@@ -269,26 +275,29 @@ def generate_current_population_survey(
     """
     user_filters = []
     if year is not None:
-        user_filters.append(
-            [
+        try:
+            user_filters.append(
                 (
                     DATASETS.cps.date_column_name,
                     ">=",
                     pd.Timestamp(year=year, month=1, day=1),
-                ),
+                )
+            )
+            user_filters.append(
                 (
                     DATASETS.cps.date_column_name,
                     "<=",
                     pd.Timestamp(year=year, month=12, day=31),
-                ),
-            ]
-        )
+                )
+            )
+        except (pd.errors.OutOfBoundsDatetime, ValueError):
+            raise ValueError(f"Invalid year provided: '{year}'")
         seed = seed * 10_000 + year
     if state is not None:
         user_filters.append(
             (DATASETS.cps.state_column_name, "==", get_state_abbreviation(state))
         )
-    return _generate_dataset(DATASETS.cps, source, seed, config, user_filters, verbose)
+    return _generate_dataset(DATASETS.cps, source, seed, config, list(user_filters), verbose)
 
 
 def generate_taxes_w2_and_1099(
@@ -404,9 +413,16 @@ def generate_social_security(
     """
     user_filters = []
     if year is not None:
-        user_filters.append(
-            (DATASETS.ssa.date_column_name, "<=", pd.Timestamp(year=year, month=12, day=31))
-        )
+        try:
+            user_filters.append(
+                (
+                    DATASETS.ssa.date_column_name,
+                    "<=",
+                    pd.Timestamp(year=year, month=12, day=31),
+                )
+            )
+        except (pd.errors.OutOfBoundsDatetime, ValueError):
+            raise ValueError(f"Invalid year provided: '{year}'")
         seed = seed * 10_000 + year
     return _generate_dataset(DATASETS.ssa, source, seed, config, user_filters, verbose)
 
