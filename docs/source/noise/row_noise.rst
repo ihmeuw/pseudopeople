@@ -7,6 +7,24 @@ Row-based Noise
 Row-based noise operates on one row of data at a time, for example by omitting
 or duplicating entire rows.
 
+Do not respond
+--------------
+
+Sometimes people don't respond to a census or survey questionnaire and are
+unable to be reached by other means such as telephone or personal visit. For the
+decennial census and household surveys, people are found to respond at different
+rates depending on demographics (e.g., age, sex, race/ethnicity) and mode of
+contact (e.g., mail/online, telephone, personal visit). To simulate nonresponse
+bias in the decennial census and household surveys, the user can choose an
+overall rate of nonresponse, and pseudopeople will scale the nonresponse rates
+for different demographic subgroups to match the overall target. The datasources
+used to inform differential nonresponse rates for the decennial census and
+household surveys are
+
+* `Post-Enumeration Survey (PES) estimates of coverage error for the 2020 Census <https://www.census.gov/library/stories/2022/03/who-was-undercounted-overcounted-in-2020-census.html>`_
+* `Response Profile of the 2005 ACS, by Geoffrey I. Jackson, US Census Bureau <https://www.fcsm.gov/assets/files/docs/2007FCSM_Jackson-III-C.pdf>`_
+* `Household and Establishment Survey Response Rates: U.S. Bureau of Labor Statistics <https://www.bls.gov/osmr/response-rates/home.htm>`_
+
 Omit a row
 ----------
 
