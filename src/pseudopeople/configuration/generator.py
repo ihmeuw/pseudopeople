@@ -154,7 +154,6 @@ def _generate_configuration(is_no_noise: bool) -> ConfigTree:
     # Update configuration with non-baseline default values
     if not is_no_noise:
         noising_configuration.update(DEFAULT_NOISE_VALUES, layer="default")
-
     return noising_configuration
 
 
