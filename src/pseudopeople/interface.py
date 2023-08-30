@@ -80,8 +80,8 @@ def _generate_dataset(
     # Check if all shards for the dataset are empty
     if len(noised_dataset) == 0:
         raise ValueError(
-            "Invalid value provided for 'state' or 'year'. User input value(s) provided "
-            f"are {user_filters}. No data found with these filters at {data_path}."
+            "Invalid value provided for 'state' or 'year'. No data found with "
+            f"the user provided 'state' or 'year' filters at {data_path}."
         )
     noised_dataset = pd.concat(noised_dataset, ignore_index=True)
 
@@ -154,11 +154,11 @@ def generate_decennial_census(
         to a configuration YAML file or a dictionary.
     :param year: The year (format YYYY) to include in the dataset. Must be a decennial
         year (e.g. 2020, 2030, 2040). Will raise a ValueError if there is no data for
-        this year. If None is provided, data from all years are
+        this year. If None is provided, data for all years are
         included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
         abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
-        no data for this state. If None is provided, data from all locations are
+        no data for this state. If None is provided, data for all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated decennial census data.
@@ -213,28 +213,28 @@ def generate_american_community_survey(
     user_filters = []
     if year is not None:
         try:
-            user_filters.append(
-                (
-                    DATASETS.acs.date_column_name,
-                    ">=",
-                    pd.Timestamp(year=year, month=1, day=1),
-                )
-            )
-            user_filters.append(
-                (
-                    DATASETS.acs.date_column_name,
-                    "<=",
-                    pd.Timestamp(year=year, month=12, day=31),
-                )
+            user_filters.extend(
+                [
+                    (
+                        DATASETS.acs.date_column_name,
+                        ">=",
+                        pd.Timestamp(year=year, month=1, day=1),
+                    ),
+                    (
+                        DATASETS.acs.date_column_name,
+                        "<=",
+                        pd.Timestamp(year=year, month=12, day=31),
+                    ),
+                ]
             )
         except (pd.errors.OutOfBoundsDatetime, ValueError):
             raise ValueError(f"Invalid year provided: '{year}'")
         seed = seed * 10_000 + year
     if state is not None:
-        user_filters.append(
-            (DATASETS.acs.state_column_name, "==", get_state_abbreviation(state))
+        user_filters.extend(
+            [(DATASETS.acs.state_column_name, "==", get_state_abbreviation(state))]
         )
-    return _generate_dataset(DATASETS.acs, source, seed, config, list(user_filters), verbose)
+    return _generate_dataset(DATASETS.acs, source, seed, config, user_filters, verbose)
 
 
 def generate_current_population_survey(
@@ -276,28 +276,28 @@ def generate_current_population_survey(
     user_filters = []
     if year is not None:
         try:
-            user_filters.append(
-                (
-                    DATASETS.cps.date_column_name,
-                    ">=",
-                    pd.Timestamp(year=year, month=1, day=1),
-                )
-            )
-            user_filters.append(
-                (
-                    DATASETS.cps.date_column_name,
-                    "<=",
-                    pd.Timestamp(year=year, month=12, day=31),
-                )
+            user_filters.extend(
+                [
+                    (
+                        DATASETS.cps.date_column_name,
+                        ">=",
+                        pd.Timestamp(year=year, month=1, day=1),
+                    ),
+                    (
+                        DATASETS.cps.date_column_name,
+                        "<=",
+                        pd.Timestamp(year=year, month=12, day=31),
+                    ),
+                ]
             )
         except (pd.errors.OutOfBoundsDatetime, ValueError):
             raise ValueError(f"Invalid year provided: '{year}'")
         seed = seed * 10_000 + year
     if state is not None:
-        user_filters.append(
-            (DATASETS.cps.state_column_name, "==", get_state_abbreviation(state))
+        user_filters.extend(
+            [(DATASETS.cps.state_column_name, "==", get_state_abbreviation(state))]
         )
-    return _generate_dataset(DATASETS.cps, source, seed, config, list(user_filters), verbose)
+    return _generate_dataset(DATASETS.cps, source, seed, config, user_filters, verbose)
 
 
 def generate_taxes_w2_and_1099(
