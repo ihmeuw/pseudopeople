@@ -54,7 +54,7 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
     - Example cause
   * - Do not respond
     - ``do_not_respond``
-    - Not returning the American Community Survey form that the US Census Bureau sent you
+    - Not returning the American Community Survey questionnaire that the US Census Bureau sent you
   * - Omit a row
     - ``omit_row``
     - Losing data because of an administrative error
