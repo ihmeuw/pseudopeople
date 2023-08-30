@@ -17,33 +17,33 @@ for details.
    :local:
    :backlinks: entry
 
+..
+  Note that the Configuration page links to the categories_of_noise label (as
+  well as the other original sections on this page), so if we remove the
+  label(s), that page will need to be edited.
 
 .. _categories_of_noise:
-
-Categories of noise
--------------------
-
-pseudopeople can add two broad categories of noise to the datasets it generates:
-
-#. **Row-based noise:** Errors in the inclusion or exclusion of entire rows of
-   data, such as duplication or omission
-#. **Column-based noise:** Errors in data entry for an individual field within a
-   row, such as miswriting or incorrectly selecting responses
-
-Each type of row-based noise operates on the entire dataset (selecting rows to
-include or exclude), while each type of column-based noise operates on one
-column of data at a time (selecting cells within that column to noise).
-Currently, errors added in different columns are independent of each other.
 
 .. _available_noise_types:
 
 Available noise types
 ---------------------
 
-These tables list all the available noise types, but not every
-type of noise will necessarily be applied to every dataset or every column.
-Noise types are applied in the order they are listed here.
-The "Config key" column shows the name of the noise type in the :ref:`configuration system <configuration_main>`.
+pseudopeople can add two broad categories of noise to the datasets it generates: **row-based noise** and **column-based noise**.
+
+Row-based noise operates on one row of data at a time, for example by omitting or duplicating entire rows. Column-based noise operates on one column of data at a time, introducing errors to individual cells within the column.
+
+The following two sections contain tables listing all the available row-based and column-based noise types. Note that not every
+type of noise can be applied to every dataset or every column.
+The "Config key" column in the tables shows the name of the noise type in the :ref:`configuration system <configuration_main>`.
+
+.. _noise_main_row_noise:
+
+Row-based noise
++++++++++++++++
+
+The :ref:`Row-based Noise <row_noise>` page contains full details about each type of noise listed in the table below.
+Different types of row-based noise are applied in the order they are listed here.
 
 .. list-table:: Types of row-based noise (``row_noise``)
   :widths: 1 2 5
@@ -55,6 +55,16 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
   * - Omit a row
     - ``omit_row``
     - Neglecting to file a tax form on time
+
+.. _noise_main_column_noise:
+
+Column-based noise
+++++++++++++++++++
+
+The :ref:`Column-based Noise <column_noise>` page contains full details about each type of noise listed in the table below.
+Different types of column-based noise are applied in the order they are listed here.
+Currently, errors added in different columns are independent of each other, and different noise types applied to the same column are also independent of each other.
+In particular, note that the cell probability for each noise type is applied independently of missingness in the column (whether inherent or due to ``leave_blank`` noise), so the overall cell probability will end up being the probability of *non-missing* cells.
 
 .. list-table:: Types of column-based noise (``column_noise``)
   :widths: 1 2 5
