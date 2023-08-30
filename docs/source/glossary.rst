@@ -14,7 +14,7 @@ Glossary
 
     Datasets
         The types of data that can be simulated with pseudopeople, each of which is
-        the simulated analog of a "real world" database of administrative records.
+        the simulated analog of a "real world" database from a census, survey, or administrative source.
         For example, pseudopeople's American Community Survey (ACS) dataset is analogous to the
         data that would be collected by that survey in real life.
 
