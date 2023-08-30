@@ -129,6 +129,11 @@ def _validate_possible_age_differences(
             base_error_message + f"'{parameter}' must be a Dict or List. "
             f"Provided {noise_type_config} of type {type(noise_type_config)}."
         )
+    if len(noise_type_config) == 0:
+        raise ConfigurationError(
+            base_error_message + f"'{parameter}' must not be empty. "
+            f"Provided {noise_type_config}."
+        )
     for key in noise_type_config:
         if not isinstance(key, int):
             raise ConfigurationError(
