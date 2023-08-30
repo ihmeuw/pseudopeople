@@ -54,10 +54,10 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
     - Example cause
   * - Do not respond
     - ``do_not_respond``
-    - You don't return the American Community Survey form that the US Census Bureau sent you
+    - Not returning the American Community Survey form that the US Census Bureau sent you
   * - Omit a row
     - ``omit_row``
-    - Neglecting to file a tax form on time
+    - Losing data because of an administrative error
 
 .. list-table:: Types of column-based noise (``column_noise``)
   :widths: 1 2 5

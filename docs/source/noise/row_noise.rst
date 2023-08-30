@@ -45,8 +45,8 @@ Omit a row
 
 Sometimes an entire record may be missing from a dataset where one would
 normally expect to find it. For example, a WIC record could be missing by
-mistake because of a clerical error, or someone's tax record could be missing
-because they didn't file their taxes on time.
+mistake because of an administrative error, or someone's tax record could be
+missing because they didn't file their taxes on time.
 
 This noise type is called :code:`omit_row` in the configuration. It takes one
 parameter:
