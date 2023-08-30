@@ -451,7 +451,7 @@ def test_validate_nickname_configuration(caplog):
         if config_value == 0.45:
             assert not caplog.records
         else:
-            assert "Noise level has been adjusted" in caplog.text
+            assert "Replacing as many names with nicknames as possible" in caplog.text
 
 
 def test_no_noise():
