@@ -30,7 +30,7 @@ This noise type is called :code:`do_not_respond` in the configuration. It takes
 one parameter:
 
 .. list-table:: Parameters to the do_not_respond noise type
-  :widths: 1 5 2
+  :widths: 1 5 3
   :header-rows: 1
 
   * - Parameter
@@ -38,7 +38,8 @@ one parameter:
     - Default
   * - :code:`row_probability`
     - The probability that a simulant does not respond to the census or survey.
-    - 0.0145 (1.45%) for the Decennial Census and ACS; 0.2905 (29.05%) for CPS
+    - * 0.0145 (1.45%) for the Decennial Census and ACS
+      * 0.2905 (29.05%) for CPS
 
 Omit a row
 ----------
