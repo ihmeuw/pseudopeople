@@ -32,6 +32,13 @@ Available noise types
 pseudopeople can add two broad categories of noise to the datasets it generates: **row-based noise** and **column-based noise**.
 
 Row-based noise operates on one row of data at a time, for example by omitting or duplicating entire rows. Column-based noise operates on one column of data at a time, introducing errors to individual cells within the column.
+The following two pages contain the full details of each noise type in the two categories.
+
+.. toctree::
+  :maxdepth: 1
+
+  row_noise
+  column_noise
 
 The following two sections contain tables listing all the available row-based and column-based noise types. Note that not every
 type of noise can be applied to every dataset or every column.
@@ -226,8 +233,9 @@ Noise types for each column
 Noise type details
 ----------------------
 
-.. toctree::
-  :maxdepth: 2
+..
+  .. toctree::
+    :maxdepth: 2
 
-  row_noise
-  column_noise
+    row_noise
+    column_noise
