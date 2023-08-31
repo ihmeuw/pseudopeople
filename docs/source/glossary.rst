@@ -30,10 +30,10 @@ Glossary
 
     Noise types
         The types of error that can be introduced to a pseudopeople dataset.
-        Each one simulates a specific type of mistake/inaccuracy that could occur in
+        Each one simulates a specific type of mistake or inaccuracy that could occur in
         a real-life data collection or generation process.
         For example, one of the noise types in pseudopeople is
-        a simulant recording a nickname rather than their legal name.
+        a simulant choosing the wrong option from a list of choices on a form.
 
     Probabilistic record linkage (PRL)
         Entity resolution ("record linkage") methods that internally use probabilities of
