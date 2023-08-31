@@ -28,9 +28,11 @@ See the sections below for more information about accessing and using the larger
 data used by pseudopeople is the output of a Vivarium_ microsimulation and must be in a
 specific format for the dataset generation functions to work.
 Vivarium uses real, publicly available data to stochastically simulate multiple decades of population dynamics such as fertility, mortality, migration, and employment. Then pseudopeople takes the simulated population data output by Vivarium and simulates the data collection process with user-configurable :ref:`noise <noise_main>` added to the resulting datasets.
-The entire simulation process can be visualized as follows.
 
-[[Insert image here]]
+..
+  The entire simulation process can be visualized as follows.
+
+  [[Insert image here]]
 
 Accessing the large-scale simulated populations
 -----------------------------------------------
