@@ -79,6 +79,8 @@ US_STATE_ABBRV_MAP = {
     "WISCONSIN": "WI",
     "WYOMING": "WY",
     "DISTRICT OF COLUMBIA": "DC",
+    # US for sample data
+    "United State": "US",
     # "PUERTO RICO": "PR",
 }
 
