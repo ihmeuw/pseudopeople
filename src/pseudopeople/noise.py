@@ -11,6 +11,8 @@ provided by the user.  First, the Dataset will be noised for missing data and ha
 rows in each columns changed to null values.  Then, the dataset data will be noised
 by column and row for each type of additional noise type.
 """
+from typing import Any
+
 import pandas as pd
 from tqdm import tqdm
 from vivarium import ConfigTree
@@ -26,7 +28,7 @@ def noise_dataset(
     dataset: Dataset,
     dataset_data: pd.DataFrame,
     configuration: ConfigTree,
-    seed: int,
+    seed: Any,
 ) -> pd.DataFrame:
     """
     Adds noise to the input dataset data. Noise functions are executed in the order
