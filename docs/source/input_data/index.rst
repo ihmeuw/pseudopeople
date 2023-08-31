@@ -7,16 +7,9 @@ Simulated populations
 .. _Vivarium: https://vivarium.readthedocs.io/en/latest/
 
 pseudopeople leverages the power of the Vivarium_ microsimulation platform to
-generate multiple datasets about a simulated population that can be specified by the user. Vivarium uses real, publicly available data to stochastically simulate multiple decades of population dynamics such as fertility, mortality, migration, and employment. Then pseudopeople takes the simulated population data output by Vivarium and simulates the data collection process with user-configurable noise added to the resulting datasets. The entire simulation process can be visualized as follows.
-
-[[Insert image here]]
-
-
-The input
-data for pseudopeople is the output of a Vivarium simulation and must be in a
-specific format for the :ref:`dataset generation functions
-<dataset_generation_functions>` to work.
-There are currently three simulated populations availible for generating datasets with pseudopeople:
+generate multiple datasets about a simulated population that can be specified by the user with the ``source`` argument of the :ref:`dataset generation functions
+<dataset_generation_functions>`.
+There are currently three simulated populations available for generating datasets with pseudopeople:
 
 - **Sample data** (a fictional population of ~10,000 simulants living in the fictional Anytown, US, included with the pseudopeople package)
 - **Rhode Island** (a fictional population of ~1,000,000 simulants living in a simulated state of Rhode Island)
@@ -25,6 +18,20 @@ There are currently three simulated populations availible for generating dataset
 When generating a dataset, pseudopeople uses the included sample data by default
 unless an explicit path to another directory containing pseudopeople input data
 is specified.
+See the sections below for more information about accessing and using the larger simulated populations.
+
+.. contents::
+  :local:
+
+Note that the simulated population
+data used by pseudopeople is the output of a Vivarium simulation and must be in a
+specific format for the :ref:`dataset generation functions
+<dataset_generation_functions>` to work.
+The entire simulation process can be visualized as follows.
+
+[[Insert image here]]
+
+In more detail, Vivarium uses real, publicly available data to stochastically simulate multiple decades of population dynamics such as fertility, mortality, migration, and employment. Then pseudopeople takes the simulated population data output by Vivarium and simulates the data collection process with user-configurable noise added to the resulting datasets.
 
 Accessing the large-scale input data
 ------------------------------------
