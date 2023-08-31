@@ -435,6 +435,7 @@ def test_validate_nickname_configuration(caplog):
     """
     config_values = [0.45, 0.65]
     for config_value in config_values:
+        caplog.clear()
         get_configuration(
             {
                 DATASETS.census.name: {
@@ -451,7 +452,41 @@ def test_validate_nickname_configuration(caplog):
         if config_value == 0.45:
             assert not caplog.records
         else:
-            assert "Noise level has been adjusted" in caplog.text
+            assert "Replacing as many names with nicknames as possible" in caplog.text
+
+
+def test_validate_choose_wrong_option_configuration(caplog):
+    """
+    Tests that warning is thrown if cell probability is higher than possible given the
+    number of options.
+    """
+    column_maximums = {
+        "sex": 1 / 2,  # even if you noise all of the cells, only 1 / 2 will actually be wrong
+        "state": 50 / 51,  # likewise, but with many more categories (51)
+    }
+    config_values = [0.1, 0.4, 0.5, 0.6, 1]
+    for column, maximum in column_maximums.items():
+        caplog.clear()
+        for config_value in config_values:
+            get_configuration(
+                {
+                    DATASETS.census.name: {
+                        Keys.COLUMN_NOISE: {
+                            column: {
+                                NOISE_TYPES.choose_wrong_option.name: {
+                                    Keys.CELL_PROBABILITY: config_value,
+                                },
+                            },
+                        },
+                    },
+                },
+            )
+            if config_value <= maximum:
+                assert not caplog.records
+            else:
+                assert (
+                    "This maximum will be used instead of the configured value" in caplog.text
+                )
 
 
 def test_no_noise():
