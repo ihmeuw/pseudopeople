@@ -37,9 +37,4 @@ def get_config(overrides: Union[Path, str, Dict] = None) -> Dict:
     :raises ConfigurationError: An invalid configuration is passed with overrides.
 
     """
-    if isinstance(overrides, (Path, str)) and overrides != NO_NOISE:
-        with open(overrides, "r") as f:
-            overrides = yaml.full_load(f)
-    config = get_configuration(overrides).to_dict()
-
-    return config
+    return get_configuration(overrides).to_dict()
