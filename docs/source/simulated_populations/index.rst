@@ -53,6 +53,10 @@ United States), follow these steps:
 Validating the simulated population data
 ----------------------------------------
 
+.. _Checksums: https://en.wikipedia.org/wiki/Checksum
+
+Checksums_ can be used to validate that you've successfully
+downloaded the correct and uncorrupted zip file.
 The following table provides the SHA-256 checksum for the larger-scale simulated population zip files:
 
 .. list-table:: SHA-256 checksums
@@ -68,8 +72,7 @@ The following table provides the SHA-256 checksum for the larger-scale simulated
     - pseudopeople_input_data_ri_1_0_0.zip
     - d3f1ccdfbfca8b53254c4ceeb18afe17c3d3b3fe02f56cc20d1254f818c39435
 
-These checksums can be used to validate that you've successfully
-downloaded the correct and uncorrupted zip file; if the SHA-256 checksum that
+If the SHA-256 checksum that
 you generate for the downloaded file matches the value provided above, you can
 be sure you downloaded the file successfully.
 
