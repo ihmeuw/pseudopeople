@@ -6,35 +6,34 @@ Simulated populations
 
 .. _Vivarium: https://vivarium.readthedocs.io/en/latest/
 
-pseudopeople leverages the power of the Vivarium_ microsimulation platform to
-generate multiple datasets about a simulated population that can be specified by the user with the ``source`` argument of the :ref:`dataset generation functions
+pseudopeople
+generates multiple :ref:`datasets <datasets_main>` about a simulated population which can be specified by the user when calling the :ref:`dataset generation functions
 <dataset_generation_functions>`.
 There are currently three simulated populations available for generating datasets with pseudopeople:
 
-- **Sample data** (a fictional population of ~10,000 simulants living in the fictional Anytown, US, included with the pseudopeople package)
+- **Sample population** (a fictional population of ~10,000 simulants living in the fictional Anytown, US, included with the pseudopeople package)
 - **Rhode Island** (a fictional population of ~1,000,000 simulants living in a simulated state of Rhode Island)
 - **United States** (a fictional population of ~330,000,000 simulants living throughout a simulated United States)
 
-When generating a dataset, pseudopeople uses the included sample data by default
-unless an explicit path to another directory containing pseudopeople input data
+When generating a dataset, pseudopeople uses the included sample population by default
+unless an explicit path to another directory containing simulated population data
 is specified.
 See the sections below for more information about accessing and using the larger simulated populations.
 
 .. contents::
   :local:
 
-Note that the simulated population
-data used by pseudopeople is the output of a Vivarium simulation and must be in a
-specific format for the :ref:`dataset generation functions
-<dataset_generation_functions>` to work.
+
+**Note:** The simulated population
+data used by pseudopeople is the output of a Vivarium_ microsimulation and must be in a
+specific format for the dataset generation functions to work.
+Vivarium uses real, publicly available data to stochastically simulate multiple decades of population dynamics such as fertility, mortality, migration, and employment. Then pseudopeople takes the simulated population data output by Vivarium and simulates the data collection process with user-configurable :ref:`noise <noise_main>` added to the resulting datasets.
 The entire simulation process can be visualized as follows.
 
 [[Insert image here]]
 
-In more detail, Vivarium uses real, publicly available data to stochastically simulate multiple decades of population dynamics such as fertility, mortality, migration, and employment. Then pseudopeople takes the simulated population data output by Vivarium and simulates the data collection process with user-configurable noise added to the resulting datasets.
-
-Accessing the large-scale input data
-------------------------------------
+Accessing the large-scale simulated populations
+-----------------------------------------------
 
 To gain access to the larger-scale input data (i.e., Rhode Island and United States),
 follow these steps:
@@ -44,8 +43,8 @@ follow these steps:
 #. Fill out the information on the access request form to tell us about your project. You can simply put "Data access request" in the title field.
 #. We will get back to you after we receive your request!
 
-Validating pseudopeople input data
-----------------------------------
+Validating the simulated population data
+----------------------------------------
 
 The following table provides the SHA-256 checksum for the larger-scale input
 data zip files:
@@ -105,17 +104,17 @@ please open a `Bug report <https://github.com/ihmeuw/pseudopeople/issues/new?ass
 using the template under the `Issues tab <https://github.com/ihmeuw/pseudopeople/issues>`_
 on pseudopeople's GitHub page.
 
-Using pseudopeople input data
------------------------------
+Using the simulated population data
+-----------------------------------
 
-Once you've downloaded the large-scale input data (either Rhode Island or United
+Once you've downloaded the large-scale simulated population (either Rhode Island or United
 States), unzip the contents to the desired location on your computer.
 
 .. important::
 
-  Do not modify the contents of the directory containing the unzipped input
+  Do not modify the contents of the directory containing the unzipped simulated population
   data! Modifications to the pseudopeople input data may cause the dataset
   generation functions to fail.
 
-Once you've unzipped the input data, you can pass the directory path to the
+Once you've unzipped the simulated population data, you can pass the directory path to the :code:`source` parameter of the
 :ref:`dataset generation functions <dataset_generation_functions>` to generate large-scale datasets!
