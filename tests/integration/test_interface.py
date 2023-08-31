@@ -68,9 +68,11 @@ def test_generate_dataset_from_sample_and_source(
         config=config,
     )
 
-    # Check same order of magnitude of rows was removed
+    # Check same order of magnitude of rows was removed -- we don't know the
+    # full data size (we would need unnoised data for that), so we just check
+    # for similar lengths
+    assert 0.9 <= (len(noised_dataset) / len(noised_sample)) <= 1.1
     # Check that columns are identical
-    assert np.isclose(len(noised_dataset), len(noised_sample), rtol=0.01)
     assert noised_dataset.columns.equals(noised_sample.columns)
 
     # Check that each columns level of noising are similar
