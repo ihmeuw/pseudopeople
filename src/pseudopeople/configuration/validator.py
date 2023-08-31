@@ -210,8 +210,9 @@ def _validate_nickname_probability(
     if noise_type_config > metadata.NICKNAMES_PROPORTION:
         logger.warning(
             base_error_message
-            + f"Maximum configuration value is {1/metadata.NICKNAMES_PROPORTION}. "
-            f"Noise level has been adjusted to {1/metadata.NICKNAMES_PROPORTION}."
+            + f"The configured '{parameter}' is {noise_type_config}, but only approximately "
+            f"{metadata.NICKNAMES_PROPORTION:.2%} of names have a nickname. "
+            f"Replacing as many names with nicknames as possible."
         )
 
 
