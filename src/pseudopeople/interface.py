@@ -66,14 +66,17 @@ def _generate_dataset(
         else data_paths
     )
 
-    for data_path in iterator:
+    for data_path_index, data_path in enumerate(iterator):
         logger.debug(f"Loading data from {data_path}.")
         data = _load_data_from_path(data_path, user_filters)
         if data.empty:
             continue
         data = _reformat_dates_for_noising(data, dataset)
         data = _coerce_dtypes(data, dataset)
-        noised_data = noise_dataset(dataset, data, configuration_tree, seed)
+        # Use a different seed for each data file/shard, otherwise the randomness will duplicate
+        # and the Nth row in each shard will get the same noise
+        data_path_seed = f"{seed}_{data_path_index}"
+        noised_data = noise_dataset(dataset, data, configuration_tree, data_path_seed)
         noised_data = _extract_columns(dataset.columns, noised_data)
         noised_dataset.append(noised_data)
 
