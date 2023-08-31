@@ -8,6 +8,7 @@ from pseudopeople.configuration import Keys
 from pseudopeople.constants import metadata
 from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.noise_entities import NOISE_TYPES
+from pseudopeople.noise_scaling import get_options_for_column
 
 
 def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
@@ -51,7 +52,12 @@ def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
                 parameter_config_validator_map = {
                     NOISE_TYPES.use_nickname.name: {
                         Keys.CELL_PROBABILITY: _validate_nickname_probability
-                    }
+                    },
+                    NOISE_TYPES.choose_wrong_option.name: {
+                        Keys.CELL_PROBABILITY: lambda *args, **kwargs: _validate_choose_wrong_option_probability(
+                            *args, **kwargs, column=column
+                        )
+                    },
                 }.get(noise_type, DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP)
                 _validate_noise_type_config(
                     noise_type_config,
@@ -206,6 +212,24 @@ def _validate_nickname_probability(
             base_error_message
             + f"Maximum configuration value is {1/metadata.NICKNAMES_PROPORTION}. "
             f"Noise level has been adjusted to {1/metadata.NICKNAMES_PROPORTION}."
+        )
+
+
+def _validate_choose_wrong_option_probability(
+    noise_type_config: Union[int, float], parameter: str, base_error_message: str, column: str
+):
+    _validate_probability(noise_type_config, parameter, base_error_message)
+    num_options = len(get_options_for_column(column))
+    # The maximum: if the cell *selection* probability were set to 1, and every cell
+    # selected an option uniformly at random, how many cells would actually change?
+    # Each cell would have a 1 / num_options chance of staying the same.
+    maximum_noise_probability = 1 - (1 / num_options)
+    if noise_type_config > maximum_noise_probability:
+        logger.warning(
+            base_error_message
+            + f"The configured '{parameter}' is {noise_type_config}, but pseudopeople "
+            f"can only choose the wrong option with a maximum of {maximum_noise_probability:.5f} probability. "
+            f"This maximum will be used instead of the configured value."
         )
 
 
