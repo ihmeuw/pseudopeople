@@ -28,19 +28,19 @@ If you notice any issues, please let us know `on GitHub <https://github.com/ihme
 Introduction
 ------------
 
-The Simulation Science Team of the University of Washington's Institute for Health Metrics and Evaluation 
-is excited to introduce pseudopeople, the Python package that simplifies entity resolution research and 
-development. This package generates large-scale, simulated population data according to specifications by the user, 
+The Simulation Science Team of the University of Washington's Institute for Health Metrics and Evaluation
+is excited to introduce pseudopeople, the Python package that simplifies entity resolution research and
+development. This package generates large-scale, simulated population data according to specifications by the user,
 to replicate a range of complexities found in real applications of probabilistic record linkage software.
-With sensitive data often required for entity resolution, accessing and testing new methods and software has been a challenge --- 
-until now. Our innovative approach creates realistic, simulated data including name, address, and date of birth, 
+With sensitive data often required for entity resolution, accessing and testing new methods and software has been a challenge ---
+until now. Our innovative approach creates realistic, simulated data including name, address, and date of birth,
 without compromising privacy.
 
-Our work builds on the success of previous data synthesis projects, such as FEBRL_, GeCo_, and SOG_, and 
+Our work builds on the success of previous data synthesis projects, such as FEBRL_, GeCo_, and SOG_, and
 generates a simulated population using real, publicly accessible data about the US population by leveraging the
 power of our simulation platform Vivarium_.
 
-Want to know more about pseudopeople? Please visit the `pseudopeople project website <https://www.pseudopeople.org/>`_, where you can find 
+Want to know more about pseudopeople? Please visit the `pseudopeople project website <https://www.pseudopeople.org/>`_, where you can find
 out more about the principles and processes underlying this work.
 
 .. _quickstart:
@@ -143,7 +143,7 @@ here are some next steps:
 * To learn more about the kinds of simulated datasets that are available,
   check out our :ref:`Datasets page <datasets_main>`.
 * If you need larger datasets with millions instead of thousands of rows,
-  take a look at the :ref:`Input Data page <input_data_main>`.
+  take a look at the :ref:`Simulated populations page <simulated_populations_main>`.
 * To dive deeper into noise, read the docs about :ref:`noise <noise_main>` and
   :ref:`noise configuration <configuration_main>`.
 * To stay informed and recieve updates about this software package
