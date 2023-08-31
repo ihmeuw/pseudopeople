@@ -412,6 +412,12 @@ def test_generate_dataset_with_state_filtered(
 def test_generate_dataset_with_state_unfiltered(
     dataset_name: str, split_sample_data_dir_state_edit, mocker
 ):
+    # Important note: Currently the way this test is working is we have a fixture where we have
+    # edited the sample data so half of it has a state to filter to. However, when we split the
+    # sample data and do this, all the 2020 data (the year we default to for all generate_xxx functions)
+    # results in the 2020 data being only in one of the files. In practice, this is how we want
+    # the functionality of these functions to work but we should consider updating fixtures/tests
+    # in the future. - albrja
     """Test that values returned by dataset generators are for all locations if state unspecified"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -505,6 +511,37 @@ def test_generate_dataset_with_bad_state(dataset_name: str, split_sample_data_di
         _ = generation_function(
             source=split_sample_data_dir_state_edit,
             state=bad_state,
+        )
+
+
+@pytest.mark.parametrize(
+    "dataset_name",
+    [
+        DATASETS.census.name,
+        DATASETS.acs.name,
+        DATASETS.cps.name,
+        DATASETS.tax_w2_1099.name,
+        DATASETS.wic.name,
+        DATASETS.tax_1040.name,
+    ],
+)
+def test_generate_dataset_with_bad_year(dataset_name: str, split_sample_data_dir):
+    """Test that a ValueError is raised both for a bad year and a year that has no data"""
+    if "TODO" in dataset_name:
+        pytest.skip(reason=dataset_name)
+    bad_year = 0
+    no_data_year = 2000
+
+    generation_function = DATASET_GENERATION_FUNCS[dataset_name]
+    with pytest.raises(ValueError):
+        _ = generation_function(
+            source=split_sample_data_dir,
+            year=bad_year,
+        )
+    with pytest.raises(ValueError):
+        _ = generation_function(
+            source=split_sample_data_dir,
+            year=no_data_year,
         )
 
 
