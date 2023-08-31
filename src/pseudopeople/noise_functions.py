@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import yaml
 from vivarium import ConfigTree
-from vivarium.framework.randomness import get_hash, RandomnessStream
+from vivarium.framework.randomness import RandomnessStream, get_hash
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import data_values, paths

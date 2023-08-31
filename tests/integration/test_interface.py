@@ -1,5 +1,5 @@
-from pathlib import Path
 import warnings
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
