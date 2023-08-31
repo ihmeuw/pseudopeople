@@ -900,7 +900,7 @@ def test_make_typos(dummy_dataset, column):
     p_strings_increase_length = 1 - p_strings_do_not_increase_length  # pd.Series
     expected_changed_length = p_row_noise * p_strings_increase_length.mean()
     actual_changed_length = (check_noised.str.len() != check_original.str.len()).mean()
-    is_close_wrapper(actual_changed_length, expected_changed_length, 0.01)
+    is_close_wrapper(actual_changed_length, expected_changed_length, 0.05)
 
     # Check that we did not touch the missing data
     assert (

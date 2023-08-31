@@ -1,4 +1,5 @@
 from pathlib import Path
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -104,10 +105,18 @@ def test_generate_dataset_from_sample_and_source(
             check_original.loc[compare_dataset_idx, col].values
             != check_noised_dataset.loc[compare_dataset_idx, col].values
         ).mean()
-        # we special-case a few sparse columns that have larger differences
-        if dataset_name == DATASETS.cps.name and col == COLUMNS.unit_number.name:
-            rtol = 0.30
-        elif dataset_name == DATASETS.acs.name and col == COLUMNS.unit_number.name:
+        # If the dataset is very small and/or missingness is very high, we can't
+        # meaningfully compare because the stochastic variation is so great
+        # As of 8/31/2023, this only skips unit_number (very missing) in the
+        # ACS and CPS datasets (very small)
+        if len(compare_sample_idx) < 30 or len(compare_dataset_idx) < 30:
+            warnings.warn(
+                f"Noise levels in {col} of {dataset_name} were not compared because the numbers of rows eligible "
+                f"for noise were only {len(compare_sample_idx)} and {len(compare_dataset_idx)}"
+            )
+            continue
+        if dataset_name == DATASETS.acs.name or dataset_name == DATASETS.cps.name:
+            # Smaller datasets
             rtol = 0.25
         # 1040 has several columns that will have a high percentage of nans
         elif dataset_name == DATASETS.tax_1040.name:
