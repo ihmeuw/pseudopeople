@@ -17,7 +17,7 @@ respond at different rates depending on demographics (e.g., age, sex,
 race/ethnicity) and mode of contact (e.g., mail/online, telephone, personal
 visit). To simulate nonresponse bias in the Decennial Census and household
 surveys, the user can choose an overall rate of nonresponse, and pseudopeople
-will scale the nonresponse rates for different demographic subgroups to match
+will scale the nonresponse rates for different demographic subgroups to approximate
 the overall target. The data sources used to inform differential nonresponse
 rates and default overall nonresponse rates for the simulated Decennial Census
 and household surveys are
