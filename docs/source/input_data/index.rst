@@ -1,18 +1,24 @@
 .. _input_data_main:
 
-==========
-Input Data
-==========
+=====================
+Simulated populations
+=====================
 
-pseudopeople leverages the power of the `Vivarium
-<https://vivarium.readthedocs.io/en/latest/>`_ microsimulation platform to
-incorporate real, publicly accessible data about the US population. The input
+.. _Vivarium: https://vivarium.readthedocs.io/en/latest/
+
+pseudopeople leverages the power of the Vivarium_ microsimulation platform to
+generate multiple datasets about a simulated population that can be specified by the user. Vivarium uses real, publicly available data to stochastically simulate multiple decades of population dynamics such as fertility, mortality, migration, and employment. Then pseudopeople takes the simulated population data output by Vivarium and simulates the data collection process with user-configurable noise added to the resulting datasets. The entire simulation process can be visualized as follows.
+
+[[Insert image here]]
+
+
+The input
 data for pseudopeople is the output of a Vivarium simulation and must be in a
 specific format for the :ref:`dataset generation functions
-<dataset_generation_functions>` to work. There are currently three collections
-of pseudopeople input data:
+<dataset_generation_functions>` to work.
+There are currently three simulated populations availible for generating datasets with pseudopeople:
 
-- **Sample data** (a fictional population of ~10,000 simulants living in Anytown, US, included with the pseudopeople package)
+- **Sample data** (a fictional population of ~10,000 simulants living in the fictional Anytown, US, included with the pseudopeople package)
 - **Rhode Island** (a fictional population of ~1,000,000 simulants living in a simulated state of Rhode Island)
 - **United States** (a fictional population of ~330,000,000 simulants living throughout a simulated United States)
 
@@ -55,10 +61,10 @@ downloaded the correct and uncorrupted zip file; if the SHA-256 checksum that
 you generate for the downloaded file matches the value provided above, you can
 be sure you downloaded the file successfully.
 
-Possibly the simplest way to verify checksums is to generate the value using the 
-terminal/cmd command below (be sure to replace `PATH/TO/ZIP`  with the actual path 
+Possibly the simplest way to verify checksums is to generate the value using the
+terminal/cmd command below (be sure to replace `PATH/TO/ZIP`  with the actual path
 to the zip you downloaded) and visually compare the result to the
-values provided above. Note that if even the first few and last few characters 
+values provided above. Note that if even the first few and last few characters
 match then it is very likely the entire string matches.
 
 Linux:
@@ -80,7 +86,7 @@ Windows:
   $ CertUtil -hashfile PATH/TO/ZIP SHA256
 
 .. note::
-  
+
   Generating the checksum can take a long time for larger files, e.g. several
   minutes for the Rhode Island dataset and ~1 hour for the United States dataset.
 
@@ -88,8 +94,8 @@ If the generated checksum does not match the one provided in the table above,
 please try re-downloading the dataset.
 
 If after downloading the file a second time the checksums still do not match,
-please open a `Bug report <https://github.com/ihmeuw/pseudopeople/issues/new?assignees=&labels=&template=bug_report.yml>`_ 
-using the template under the `Issues tab <https://github.com/ihmeuw/pseudopeople/issues>`_ 
+please open a `Bug report <https://github.com/ihmeuw/pseudopeople/issues/new?assignees=&labels=&template=bug_report.yml>`_
+using the template under the `Issues tab <https://github.com/ihmeuw/pseudopeople/issues>`_
 on pseudopeople's GitHub page.
 
 Using pseudopeople input data
