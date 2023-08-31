@@ -157,7 +157,7 @@ here are some next steps:
    self
    tutorials/index
    datasets/index
-   input_data/index
+   simulated_populations/index
    noise/index
    configuration/index
    api_reference/index
