@@ -35,8 +35,8 @@ The entire simulation process can be visualized as follows.
 Accessing the large-scale simulated populations
 -----------------------------------------------
 
-To gain access to the larger-scale input data (i.e., Rhode Island and United States),
-follow these steps:
+To gain access to the larger-scale simulated populations (i.e., Rhode Island and
+United States), follow these steps:
 
 #. Log in to `GitHub <https://github.com/>`_ (you must first create a GitHub account if you don't have one).
 #. Open a new `Data access request <https://github.com/ihmeuw/pseudopeople/issues/new?assignees=&labels=&template=data_access_request.yml>`_ using the template under the `Issues tab <https://github.com/ihmeuw/pseudopeople/issues>`_ on pseudopeople's GitHub page.
@@ -46,8 +46,7 @@ follow these steps:
 Validating the simulated population data
 ----------------------------------------
 
-The following table provides the SHA-256 checksum for the larger-scale input
-data zip files:
+The following table provides the SHA-256 checksum for the larger-scale simulated population zip files:
 
 .. list-table:: SHA-256 checksums
   :header-rows: 1
