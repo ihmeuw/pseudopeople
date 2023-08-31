@@ -1,4 +1,4 @@
-.. _input_data_main:
+.. _simulated_populations_main:
 
 =====================
 Simulated populations
