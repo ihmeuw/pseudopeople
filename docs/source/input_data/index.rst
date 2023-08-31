@@ -11,7 +11,7 @@ generates multiple :ref:`datasets <datasets_main>` about a simulated population 
 <dataset_generation_functions>`.
 There are currently three simulated populations available for generating datasets with pseudopeople:
 
-- **Sample population** (a fictional population of ~10,000 simulants living in the fictional Anytown, US, included with the pseudopeople package)
+- **Sample population** (a fictional population of ~10,000 simulants living in the fictional Anytown, WA, included with the pseudopeople package)
 - **Rhode Island** (a fictional population of ~1,000,000 simulants living in a simulated state of Rhode Island)
 - **United States** (a fictional population of ~330,000,000 simulants living throughout a simulated United States)
 
