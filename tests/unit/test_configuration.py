@@ -396,17 +396,13 @@ def test_get_config(caplog):
     assert isinstance(config_1, dict)
     assert not caplog.records
 
-    config_2 = get_config("decennial_census", overrides)
-    assert isinstance(config_2, dict)
-    assert "not in the user provided configuration" in caplog.text
+    with pytest.raises(FileNotFoundError, match="No such file or directory"):
+        get_config("Bad_file_path")
 
-    with pytest.raises(ConfigurationError, match="bad_form_name"):
-        get_config("bad_form_name")
-
-    config_3 = get_config(overrides=NO_NOISE)
-    for dataset in config_3.keys():
-        row_noise_dict = config_3[dataset][Keys.ROW_NOISE]
-        column_dict = config_3[dataset][Keys.COLUMN_NOISE]
+    config_2 = get_config(overrides=NO_NOISE)
+    for dataset in config_2.keys():
+        row_noise_dict = config_2[dataset][Keys.ROW_NOISE]
+        column_dict = config_2[dataset][Keys.COLUMN_NOISE]
         for row_noise in row_noise_dict:
             assert row_noise_dict[row_noise][Keys.ROW_PROBABILITY] == 0.0
         for column in column_dict:
@@ -504,25 +500,3 @@ def test_no_noise():
             column_noise_dict = dataset_column_dict[column]
             for column_noise_type in column_noise_dict.keys():
                 assert column_noise_dict[column_noise_type][Keys.CELL_PROBABILITY] == 0.0
-
-
-@pytest.mark.parametrize(
-    "dataset_name",
-    [x.name for x in DATASETS] + [None],
-)
-def test_get_config_dataset_name_key(dataset_name):
-    """Tests that the dataset name is returned as the first key"""
-    outer_keys = set(get_config(dataset_name).keys())
-    if dataset_name:
-        assert outer_keys == {dataset_name}
-    else:
-        # TODO: Convert pseudopeople.constants.metadata::DatasetNames to a NamedTuple
-        assert outer_keys == {x.name for x in DATASETS}
-
-
-def test_get_config_bad_dataset_name_fails():
-    """Tests that an error is raised if a bad dataset name is provided"""
-    with pytest.raises(
-        ConfigurationError, match="'foo' provided but is not a valid option for dataset type"
-    ):
-        get_config("foo")
