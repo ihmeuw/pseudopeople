@@ -1,24 +1,18 @@
 from pathlib import Path
 from typing import Dict, Union
 
-import yaml
-from loguru import logger
-
-from pseudopeople.configuration.entities import NO_NOISE
 from pseudopeople.configuration.generator import get_configuration
-from pseudopeople.exceptions import ConfigurationError
-from pseudopeople.schema_entities import DATASETS
 
 
 def get_config(overrides: Union[Path, str, Dict] = None) -> Dict:
     """
-    Function that returns the pseudopeople configuration for all default values.
+    Function that returns the pseudopeople configuration including all default values.
     To get the default probability of nonresponse in the Decennial Census dataset:
 
     .. code-block:: pycon
 
         >>> import pseudopeople as psp
-        >>> psp.get_config()[]'decennial_census']['row_noise']['do_not_respond']
+        >>> psp.get_config()['decennial_census']['row_noise']['do_not_respond']
         {'row_probability': 0.0145}
 
     To view that same part of the configuration after applying a user override:
@@ -26,7 +20,7 @@ def get_config(overrides: Union[Path, str, Dict] = None) -> Dict:
     .. code-block:: pycon
 
         >>> overrides = {'decennial_census': {'row_noise': {'do_not_respond': {'row_probability': 0.1}}}}
-        >>> psp.get_config(overrides)["decenial_census']['row_noise']['do_not_respond']
+        >>> psp.get_config(overrides)['decenial_census']['row_noise']['do_not_respond']
         {'row_probability': 0.1}
 
     :param overrides: An optional override to the default configuration. Can be
