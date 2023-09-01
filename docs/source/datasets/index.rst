@@ -499,8 +499,28 @@ Tax form: 1040
 As with data collected from W-2 and 1099 forms, pseudopeople enables the simulation of administrative records from 1040 forms, which are
 also reported to the IRS on an annual basis. To find out more about the 1040 tax form, visit the `IRS information page <https://www.irs.gov/instructions/i1040gi>`_.
 
-Generate 1040 data with :func:`pseudopeople.generate_taxes_1040`.
+A single row in a pseudopeople-generated 1040 dataset may contain information about several
+simulants: the primary filer, the primary filer's joint filer (spouse) if they are married filing
+jointly, and up to four claimed dependents.
+When not applicable, all relevant fields are :code:`numpy.nan`;
+for example, a row representing a 1040 filed by a simulant without dependents
+would have missingness in all dependent columns.
 
+If a simulant claims fewer than four dependents, they will be filled in starting
+with :code:`dependent_1`.
+For example, a simulant claiming three dependents would have missingness in all
+:code:`dependent_4` columns.
+A simulant may claim more than four dependents, but only four will appear in the
+dataset; the rest are omitted for brevity.
+
+A single simulant can appear in multiple rows in this dataset,
+for example if they filed a 1040 and were also claimed as a dependent on another
+simulant's 1040.
+
+This is a yearly dataset, where the user-specified year is the **tax year** of the data.
+1040 data can be generated for tax years 2019 through 2040 (inclusive).
+
+Generate 1040 data with :func:`pseudopeople.generate_taxes_1040`.
 
 The following columns are included in this dataset:
 
