@@ -122,7 +122,7 @@ or United States), unzip the contents to the desired location on your computer.
 .. important::
 
   Do not modify the contents of the directory containing the unzipped simulated
-  population data! Modifications to the pseudopeople input data may cause the
+  population data! Modifications to the pseudopeople simulated population data may cause the
   dataset generation functions to fail.
 
 Once you've unzipped the simulated population data, you can pass the directory
