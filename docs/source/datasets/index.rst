@@ -511,7 +511,7 @@ with :code:`dependent_1`.
 For example, a simulant claiming three dependents would have missingness in all
 :code:`dependent_4` columns.
 A simulant may claim more than four dependents, but only four will appear in the
-dataset; the rest are omitted for brevity.
+dataset; the rest are omitted.
 
 A single simulant can appear in multiple rows in this dataset,
 for example if they filed a 1040 and were also claimed as a dependent on another
