@@ -24,13 +24,15 @@ race or ethnicity.
 For each demographic subgroup in pseudopeople, we assumed the nonresponse rate
 in the Decennial Census was equal to the *net* rate of undercount (ignoring
 duplication) estimated in [Census_PES]_. Net undercount effects of age/sex were
-combined additively with effects of race/ethnicity, and demographic subgroups
-with resulting net overcounts (negative nonresponse rates) were given a
-nonresponse rate of 0. We assumed nonresponse in the ACS was the same as in the
-Decennial Census, since these are conducted similarly. We assumed that CPS had
-the same nonresponse pattern as the Decennial Census, but with a constant 27.6%
-added to the nonresponse rates, since that was the nonresponse rate for CPS in
-July 2022, found in [Response_Rates_BLS]_.
+combined additively with the effects of race/ethnicity, and demographic
+subgroups with resulting net overcounts (negative nonresponse rates) were given
+a nonresponse rate of 0. We assumed nonresponse in the ACS was the same as in
+the Decennial Census, since these are conducted similarly. By contrast, the CPS
+uses only phone calls and personal visits but not mail/online questionnaires, so
+we assumed that CPS had the same nonresponse pattern as the Decennial Census,
+but with a constant 27.6% added to the nonresponse rates due the different
+contact mode for this survey, as that was the nonresponse rate for CPS in July
+2022 reported by [Response_Rates_BLS]_.
 
 To simulate nonresponse bias in the Decennial Census and the ACS or CPS, the
 user can choose an overall rate of nonresponse, and pseudopeople will scale the
