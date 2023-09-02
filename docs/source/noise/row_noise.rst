@@ -23,8 +23,8 @@ race or ethnicity.
 
 For each demographic subgroup in pseudopeople, we assumed the nonresponse rate
 in the Decennial Census was equal to the *net* rate of undercount (ignoring
-duplication) estimated in [Census_PES]_. Net undercount rates for age/sex were
-combined additively with rates for race/ethnicity, and demographic subgroups
+duplication) estimated in [Census_PES]_. Net undercount effects of age/sex were
+combined additively with effects of race/ethnicity, and demographic subgroups
 with resulting net overcounts (negative nonresponse rates) were given a
 nonresponse rate of 0. We assumed nonresponse in the ACS was the same as in the
 Decennial Census, since these are conducted similarly. We assumed that CPS had
