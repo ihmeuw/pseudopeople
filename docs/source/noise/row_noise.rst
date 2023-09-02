@@ -12,24 +12,37 @@ Do not respond
 
 Sometimes people don't respond to a census or survey questionnaire and are
 unable to be reached by other means such as telephone or personal visit. For the
-Decennial Census and household surveys (ACS and CPS), people are found to
-respond at different rates depending on demographics such as age, sex, and
+Decennial Census and household surveys such as the ACS and CPS, people are found
+to respond at different rates depending on demographics such as age, sex, and
 race or ethnicity.
 
-We assumed nonresponse in the Decennial Census was equal to the *net* undercount for the relevant demographic group, ignoring duplication [Census_PES]_. We assumed nonresponse in the ACS was the same as in the Decennial Census, since these are conducted similarly. We assumed that CPS had the same nonresponse pattern as the Decennial Census, but with a constant 27.6% added to the nonresponse rates, since that was the nonresponse rate for CPS in July 2022. [cite BLS]
+For each demographic subgroup in pseudopeople, we assumed the nonresponse rate
+in the Decennial Census was equal to the *net* rate of undercount (ignoring
+duplication) estimated in [Census_PES]_. Net undercount rates for age/sex were
+combined additively with rates for race/ethnicity, and demographic subgroups
+with resulting net overcounts (negative nonresponse rates) were given a
+nonresponse rate of 0. We assumed nonresponse in the ACS was the same as in the
+Decennial Census, since these are conducted similarly. We assumed that CPS had
+the same nonresponse pattern as the Decennial Census, but with a constant 27.6%
+added to the nonresponse rates, since that was the nonresponse rate for CPS in
+July 2022, found in [Response_Rates_BLS]_.
 
+To simulate nonresponse bias in the Decennial Census and the ACS or CPS, the
+user can choose an overall rate of nonresponse, and pseudopeople will scale the
+nonresponse rates for different demographic subgroups so that the overall
+average rate approximately matches the  target. The default overall rates were
+calculated from our simulated population after applying the nonresponse rates
+derived from [Census_PES]_ and [Response_Rates_BLS]_ to each demographic
+subgroup as described above.
 
+..
+  The data sources used to inform differential nonresponse
+  rates and default overall nonresponse rates for the simulated Decennial Census
+  and household surveys are
 
-To simulate nonresponse bias in the Decennial Census and household
-surveys, the user can choose an overall rate of nonresponse, and pseudopeople
-will scale the nonresponse rates for different demographic subgroups to approximate
-the overall target. The data sources used to inform differential nonresponse
-rates and default overall nonresponse rates for the simulated Decennial Census
-and household surveys are
-
-* `Post-Enumeration Survey (PES) estimates of coverage error for the 2020 Census <https://www.census.gov/library/stories/2022/03/who-was-undercounted-overcounted-in-2020-census.html>`_
-* `Response Profile of the 2005 ACS, by Geoffrey I. Jackson, US Census Bureau <https://www.fcsm.gov/assets/files/docs/2007FCSM_Jackson-III-C.pdf>`_
-* `Household and Establishment Survey Response Rates: U.S. Bureau of Labor Statistics <https://www.bls.gov/osmr/response-rates/home.htm>`_
+  * `Post-Enumeration Survey (PES) estimates of coverage error for the 2020 Census <https://www.census.gov/library/stories/2022/03/who-was-undercounted-overcounted-in-2020-census.html>`_
+  * `Response Profile of the 2005 ACS, by Geoffrey I. Jackson, US Census Bureau <https://www.fcsm.gov/assets/files/docs/2007FCSM_Jackson-III-C.pdf>`_
+  * `Household and Establishment Survey Response Rates: U.S. Bureau of Labor Statistics <https://www.bls.gov/osmr/response-rates/home.htm>`_
 
 This noise type is called :code:`do_not_respond` in the configuration. It takes
 one parameter:
@@ -46,8 +59,9 @@ one parameter:
     - * 0.0145 (1.45%) for the Decennial Census and ACS
       * 0.2905 (29.05%) for CPS
 
-.. [Census_PES] Bureau, US Census. n.d. “Detailed Coverage Estimates for the 2020 Census Released Today.” Census.Gov. Accessed September 29, 2022. https://www.census.gov/library/stories/2022/03/who-was-undercounted-overcounted-in-2020-census.html.
+.. [Census_PES] Bureau, US Census. March 10, 2022. “Detailed Coverage Estimates for the 2020 Census Released Today.” Census.Gov. Accessed September 29, 2022. https://www.census.gov/library/stories/2022/03/who-was-undercounted-overcounted-in-2020-census.html.
 
+.. [Response_Rates_BLS] “Household and Establishment Survey Response Rates: U.S. Bureau of Labor Statistics.” n.d. Accessed October 11, 2022. https://www.bls.gov/osmr/response-rates/home.htm.
 
 
 Omit a row
