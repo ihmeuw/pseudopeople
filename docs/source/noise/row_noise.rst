@@ -7,6 +7,11 @@ Row-based Noise
 Row-based noise operates on one row of data at a time, for example by omitting
 or duplicating entire rows.
 
+Types of row-based noise:
+
+.. contents::
+   :local:
+
 Do not respond
 --------------
 
@@ -34,15 +39,6 @@ average rate approximately matches the  target. The default overall rates were
 calculated from our simulated population after applying the nonresponse rates
 derived from [Census_PES]_ and [Response_Rates_BLS]_ to each demographic
 subgroup as described above.
-
-..
-  The data sources used to inform differential nonresponse
-  rates and default overall nonresponse rates for the simulated Decennial Census
-  and household surveys are
-
-  * `Post-Enumeration Survey (PES) estimates of coverage error for the 2020 Census <https://www.census.gov/library/stories/2022/03/who-was-undercounted-overcounted-in-2020-census.html>`_
-  * `Response Profile of the 2005 ACS, by Geoffrey I. Jackson, US Census Bureau <https://www.fcsm.gov/assets/files/docs/2007FCSM_Jackson-III-C.pdf>`_
-  * `Household and Establishment Survey Response Rates: U.S. Bureau of Labor Statistics <https://www.bls.gov/osmr/response-rates/home.htm>`_
 
 This noise type is called :code:`do_not_respond` in the configuration. It takes
 one parameter:
