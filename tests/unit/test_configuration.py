@@ -1,5 +1,4 @@
 import itertools
-from types import NoneType
 
 import pytest
 import yaml
@@ -208,7 +207,7 @@ def test_type_checking_all_levels(object_bad_type):
     # At the top level only:
     # - A string can be passed, in which case it is interpreted as a file path
     # - None can be passed, in which case the defaults will be used
-    if not isinstance(object_bad_type, str) and not isinstance(object_bad_type, NoneType):
+    if not isinstance(object_bad_type, str) and object_bad_type is not None:
         with pytest.raises(ConfigurationError, match="Invalid configuration type"):
             get_configuration(object_bad_type)
 
