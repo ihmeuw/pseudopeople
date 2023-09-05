@@ -313,6 +313,8 @@ def test_validate_standard_parameters_failures_column_noise(column_noise_type, v
     "perturbations, match",
     [
         (-1, "must be a Dict or List"),
+        ([], "empty"),
+        ({}, "empty"),
         ([-1, 0.4, 1], "must be a List of ints"),
         ({-1: 0.5, 0.4: 0.2, 1: 0.3}, "must be a List of ints"),
         ([-1, 0, 1], "cannot include 0"),
@@ -323,6 +325,8 @@ def test_validate_standard_parameters_failures_column_noise(column_noise_type, v
     ],
     ids=[
         "bad type",
+        "empty list",
+        "empty dict",
         "non-int keys list",
         "non-int keys dict",
         "include 0 list",
