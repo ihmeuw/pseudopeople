@@ -75,6 +75,9 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
   * - Choose the wrong option
     - ``choose_wrong_option``
     - Marking the "Male" box when you meant "Female"
+  * - Copy from household member
+    - ``copy_from_household_member``
+    - Accidentally writing your daughter's age in a box that asked about your son's age on a survey questionnaire
   * - Use a nickname
     - ``use_nickname``
     - Writing 'Alex' instead of legal name 'Alexander'
