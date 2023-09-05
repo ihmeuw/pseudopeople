@@ -37,7 +37,7 @@ reported for July 2022 in [Response_Rates_BLS]_.
 To simulate nonresponse bias in the Decennial Census and the ACS or CPS, the
 user can choose an overall rate of nonresponse, and pseudopeople will scale the
 nonresponse rates for different demographic subgroups so that the overall
-average rate approximately matches the  target. The default overall rates were
+average rate approximately matches the target. The default overall rates were
 calculated from our simulated population after applying the nonresponse rates
 derived from [Census_PES]_ and [Response_Rates_BLS]_ to each demographic
 subgroup as described above.
