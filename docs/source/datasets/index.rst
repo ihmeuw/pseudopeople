@@ -503,8 +503,8 @@ A single row in a pseudopeople-generated 1040 dataset may contain information ab
 simulants: the primary filer, the primary filer's joint filer (spouse) if they are married filing
 jointly, and up to four claimed dependents.
 When not applicable, all relevant fields are :code:`numpy.nan`;
-for example, a row representing a 1040 filed by a simulant without dependents
-would have missingness in all dependent columns.
+for example, a row representing a 1040 filed by only one simulant, without a joint filer,
+would have missingness in all joint filer columns.
 
 If a simulant claims fewer than four dependents, they will be filled in starting
 with :code:`dependent_1`.
