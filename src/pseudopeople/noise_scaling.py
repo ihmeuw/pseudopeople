@@ -9,17 +9,10 @@ def scale_choose_wrong_option(data: pd.DataFrame, column_name: str) -> float:
     Function to scale noising for choose_wrong_option to adjust for the possibility
     of noising with the original values.
     """
-    from pseudopeople.schema_entities import COLUMNS
 
-    selection_type = {
-        COLUMNS.employer_state.name: COLUMNS.state.name,
-        COLUMNS.mailing_state.name: COLUMNS.state.name,
-    }.get(column_name, column_name)
-
-    selection_options = pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
     # Get possible noise values
     # todo: Update with exclusive resampling when vectorized_choice is improved
-    options = selection_options.loc[selection_options[selection_type].notna(), selection_type]
+    options = get_options_for_column(column_name)
 
     # Scale to adjust for possibility of noising with original value
     noise_scaling_value = 1 / (1 - 1 / len(options))
@@ -58,3 +51,21 @@ def load_nicknames_data():
     nicknames = nicknames.apply(lambda x: x.astype(str).str.title()).set_index("name")
     nicknames = nicknames.replace("Nan", np.nan)
     return nicknames
+
+
+def get_options_for_column(column_name: str) -> pd.Series:
+    """
+    For a column that has a set list of options, returns that set of options as
+    a Series.
+    Should only be passed a column that has options (i.e. should not be a free-form
+    string column such as first name, or a numeric column), or it will error.
+    """
+    from pseudopeople.schema_entities import COLUMNS
+
+    selection_type = {
+        COLUMNS.employer_state.name: COLUMNS.state.name,
+        COLUMNS.mailing_state.name: COLUMNS.state.name,
+    }.get(column_name, column_name)
+
+    selection_options = pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
+    return selection_options.loc[selection_options[selection_type].notna(), selection_type]

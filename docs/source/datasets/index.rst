@@ -18,6 +18,14 @@ time between January 1st, 2019 and May 1st, 2041.
 Most datasets are yearly and can be generated for any year between 2019 and 2041 (inclusive),
 though 2041 data will be partial.
 
+There are two kinds of street addresses present in pseudopeople datasets:
+physical addresses and mailing addresses.
+A **physical address** represents the physical location where a simulant lives,
+which is where they are recorded in the Decennial Census and surveys.
+A **mailing address** represents the address a simulant uses to receive mail,
+which may be different -- for example, a PO box.
+Mailing addresses, not physical addresses, are recorded in tax filings.
+
 The datasets that can be generated are listed below.
 
 .. contents::

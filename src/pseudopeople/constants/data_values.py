@@ -18,12 +18,13 @@ DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_RACE: Dict[str, float] = {
 }
 
 DO_NOT_RESPOND_AGE_INTERVALS: List[pd.Interval] = [
-    pd.Interval(0, 4),
-    pd.Interval(5, 9),
-    pd.Interval(10, 17),
-    pd.Interval(18, 29),
-    pd.Interval(30, 49),
-    pd.Interval(50, 125),
+    # Intervals should include their lower bound
+    pd.Interval(0, 5, closed="left"),
+    pd.Interval(5, 10, closed="left"),
+    pd.Interval(10, 18, closed="left"),
+    pd.Interval(18, 30, closed="left"),
+    pd.Interval(30, 50, closed="left"),
+    pd.Interval(50, 125, closed="left"),
 ]
 
 DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_SEX_AGE: Dict[str, pd.Series] = {
