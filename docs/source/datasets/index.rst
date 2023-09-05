@@ -513,6 +513,14 @@ For example, a simulant claiming three dependents would have missingness in all
 A simulant may claim more than four dependents, but only four will appear in the
 dataset; the rest are omitted.
 
+All columns not otherwise labeled are about the primary filer;
+for example, the :code:`first_name` column is the first name of the primary filer.
+The :code:`simulant_id` and :code:`household_id` columns represent the "ground truth"
+of which simulant is the primary filer, and which household *that primary filer* lives
+in.
+It is not guaranteed that all simulants described in a 1040 row live in the same household;
+for example, college students may be claimed as dependents while living elsewhere.
+
 A single simulant can appear in multiple rows in this dataset,
 for example if they filed a 1040 and were also claimed as a dependent on another
 simulant's 1040.
