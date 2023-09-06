@@ -92,12 +92,18 @@ It takes one parameter:
 Copy from household member
 --------------------------
 
-When responding to a questionnaire, someone might accidentally answer with
-information about one household member in a section that was asking about a
-different household member. To capture this type of error, pseudopeopld can fill
-in certain fields about a simulant with values from a different member of the
+When responding to a survey or filling out a form, someone might accidentally
+answer a question about one household member with information about a different
+household member. To capture this type of error, pseudopeople can fill in
+certain fields about a simulant with values from a different member of the
 simulant's household, chosen at random. This type of noise can be applied to
 ages, dates of birth, and social security numbers.
+
+Note that simulants who live in group quarters or who live alone are not
+eligible for this type of noise, so for each dataset, there is some maximum
+fraction of rows to which "copy from household member" noise can be applied. If
+the user requests a cell probability that is larger than what's possible,
+pseudopeople will add noise to the maximum possible number of rows.
 
 This noise type is called :code:`copy_from_household_member` in the configuration. It takes one parameter:
 
@@ -111,12 +117,6 @@ This noise type is called :code:`copy_from_household_member` in the configuratio
   * - :code:`cell_probability`
     - The probability that, for a cell in the column being configured, the cell's value is replaced by the corresponding value from a household member.
     - 0.01 (1%)
-
-Note that simulants who live in group quarters or who live alone are not
-eligible for this type of noise, so for each dataset, there is some maximum
-fraction of rows to which "copy from household member" noise can be applied. If
-the user requests a cell probability that is larger than what's possible,
-pseudopeople will add noise to the maximum possible number of rows.
 
 .. _use_a_nickname:
 
