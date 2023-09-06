@@ -115,7 +115,7 @@ which we wouldn't have for a linkage task with real, sensitive data.
 
 ::
 
-   >>> # To find how many matches there are to find between records about a given simulant,
+   >>> # To find how many matches there are between records about a given simulant,
    >>> # we need to multiply the number of records about that simulant in the census by
    >>> # the number of records about that simulant in taxes
    >>> true_matches = census.groupby("simulant_id").size().multiply(
