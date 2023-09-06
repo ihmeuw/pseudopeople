@@ -89,6 +89,29 @@ It takes one parameter:
     - The probability that, for a cell in the column being configured, the wrong option is chosen.
     - 0.01 (1%)
 
+Copy from household member
+--------------------------
+
+When responding to a questionnaire, someone might accidentally answer with
+information about one household member in a section that was asking about a
+different household member. To capture this type of error, pseudopeopld can fill
+in certain fields about a simulant with values from a different member of the
+simulant's household, chosen at random. This type of noise can be applied to
+ages, dates of birth, and social security numbers.
+
+This noise type is called :code:`copy_from_household_member` in the configuration. It takes one parameter:
+
+.. list-table:: Parameters to the use_nickname noise type
+  :widths: 1 5 1
+  :header-rows: 1
+
+  * - Parameter
+    - Description
+    - Default
+  * - :code:`cell_probability`
+    - The probability that, for a cell in the column being configured, the cell's value is replaced by the corresponding value from a household member.
+    - 0.01 (1%)
+
 .. _use_a_nickname:
 
 Use a nickname
