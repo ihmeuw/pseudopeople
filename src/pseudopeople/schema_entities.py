@@ -725,9 +725,9 @@ class __Datasets(NamedTuple):
         columns=(  # This defines the output column order
             COLUMNS.simulant_id,
             COLUMNS.household_id,
+            COLUMNS.employer_id,
             COLUMNS.ssn,
             COLUMNS.wages,
-            COLUMNS.employer_id,
             COLUMNS.employer_name,
             COLUMNS.employer_street_number,
             COLUMNS.employer_street_name,

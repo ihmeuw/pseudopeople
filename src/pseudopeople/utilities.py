@@ -10,7 +10,7 @@ from vivarium.framework.randomness.index_map import IndexMap
 from pseudopeople.constants import metadata, paths
 
 
-def get_randomness_stream(dataset_name: str, seed: int, index: pd.Index) -> RandomnessStream:
+def get_randomness_stream(dataset_name: str, seed: Any, index: pd.Index) -> RandomnessStream:
     map_size = max(1_000_000, max(index) * 2)
     return RandomnessStream(
         key=dataset_name,

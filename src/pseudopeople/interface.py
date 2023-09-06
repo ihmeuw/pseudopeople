@@ -66,17 +66,26 @@ def _generate_dataset(
         else data_paths
     )
 
-    for data_path in iterator:
+    for data_path_index, data_path in enumerate(iterator):
         logger.debug(f"Loading data from {data_path}.")
         data = _load_data_from_path(data_path, user_filters)
         if data.empty:
             continue
         data = _reformat_dates_for_noising(data, dataset)
         data = _coerce_dtypes(data, dataset)
-        noised_data = noise_dataset(dataset, data, configuration_tree, seed)
+        # Use a different seed for each data file/shard, otherwise the randomness will duplicate
+        # and the Nth row in each shard will get the same noise
+        data_path_seed = f"{seed}_{data_path_index}"
+        noised_data = noise_dataset(dataset, data, configuration_tree, data_path_seed)
         noised_data = _extract_columns(dataset.columns, noised_data)
         noised_dataset.append(noised_data)
 
+    # Check if all shards for the dataset are empty
+    if len(noised_dataset) == 0:
+        raise ValueError(
+            "Invalid value provided for 'state' or 'year'. No data found with "
+            f"the user provided 'state' or 'year' filters at {data_path}."
+        )
     noised_dataset = pd.concat(noised_dataset, ignore_index=True)
 
     # Known pandas bug: pd.concat does not preserve category dtypes so we coerce
@@ -141,28 +150,28 @@ def generate_decennial_census(
     Generates a pseudopeople decennial census dataset which represents simulated
     responses to the US Census Bureau's Census of Population and Housing.
 
-    :param source: The root directory containing pseudopeople input data. Defaults
-        to the pseudopeople sample datasets directory.
+    :param source: The root directory containing pseudopeople simulated population data. Defaults
+        to using the included sample population when source is `None`.
     :param seed: An integer seed for randomness.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The year (format YYYY) to include in the dataset. Must be a decennial
-        year (e.g. 2020, 2030, 2040). Will return an empty pd.DataFrame if there are no
-        data with this year. If None is provided, data from all years are
+        year (e.g. 2020, 2030, 2040). Will raise a ValueError if there is no data for
+        this year. If None is provided, data for all years are
         included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
-        data pertaining to this state. If None is provided, data from all locations are
+        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
+        no data for this state. If None is provided, data for all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated decennial census data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
     user_filters = []
-    if year:
+    if year is not None:
         user_filters.append((DATASETS.census.date_column_name, "==", year))
-    if state:
+    if state is not None:
         user_filters.append(
             (DATASETS.census.state_column_name, "==", get_state_abbreviation(state))
         )
@@ -187,35 +196,46 @@ def generate_american_community_survey(
     citizenship, education, income, language proficiency, migration, employment,
     disability, and housing characteristics.
 
-    :param source: The root directory containing pseudopeople input data. Defaults
-        to the pseudopeople sample datasets directory.
+    :param source: The root directory containing pseudopeople simulated population data. Defaults
+        to using the included sample population when source is `None`.
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The survey date year (format YYYY) to include in the dataset. Will
-        return an empty pd.DataFrame if there are no data with this year. If None is
+        raise a ValueError if there is no data for this year. If None is
         provided, data from all years are included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
-        data pertaining to this state. If None is provided, data from all locations are
+        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is no
+        data for this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated ACS data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
     user_filters = []
-    if year:
-        user_filters.extend(
-            [
-                (DATASETS.acs.date_column_name, ">=", pd.Timestamp(f"{year}-01-01")),
-                (DATASETS.acs.date_column_name, "<=", pd.Timestamp(f"{year}-12-31")),
-            ]
-        )
+    if year is not None:
+        try:
+            user_filters.extend(
+                [
+                    (
+                        DATASETS.acs.date_column_name,
+                        ">=",
+                        pd.Timestamp(year=year, month=1, day=1),
+                    ),
+                    (
+                        DATASETS.acs.date_column_name,
+                        "<=",
+                        pd.Timestamp(year=year, month=12, day=31),
+                    ),
+                ]
+            )
+        except (pd.errors.OutOfBoundsDatetime, ValueError):
+            raise ValueError(f"Invalid year provided: '{year}'")
         seed = seed * 10_000 + year
-    if state:
-        user_filters.append(
-            (DATASETS.acs.state_column_name, "==", get_state_abbreviation(state))
+    if state is not None:
+        user_filters.extend(
+            [(DATASETS.acs.state_column_name, "==", get_state_abbreviation(state))]
         )
     return _generate_dataset(DATASETS.acs, source, seed, config, user_filters, verbose)
 
@@ -239,35 +259,46 @@ def generate_current_population_survey(
     activity and income, veteran status, school enrollment, contingent employment,
     worker displacement, job tenure, and more.
 
-    :param source: The root directory containing pseudopeople input data. Defaults
-        to the pseudopeople sample datasets directory.
+    :param source: The root directory containing pseudopeople simulated population data. Defaults
+        to using the included sample population when source is `None`.
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The survey date year (format YYYY) to include in the dataset. Will
-        return an empty pd.DataFrame if there are no data with this year. If None is
+        raise a ValueError if there is no data for this year. If None is
         provided, data from all years are included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
-        data pertaining to this state. If None is provided, data from all locations are
+        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
+        no data for this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated CPS data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
     user_filters = []
-    if year:
-        user_filters.extend(
-            [
-                (DATASETS.cps.date_column_name, ">=", pd.Timestamp(f"{year}-01-01")),
-                (DATASETS.cps.date_column_name, "<=", pd.Timestamp(f"{year}-12-31")),
-            ]
-        )
+    if year is not None:
+        try:
+            user_filters.extend(
+                [
+                    (
+                        DATASETS.cps.date_column_name,
+                        ">=",
+                        pd.Timestamp(year=year, month=1, day=1),
+                    ),
+                    (
+                        DATASETS.cps.date_column_name,
+                        "<=",
+                        pd.Timestamp(year=year, month=12, day=31),
+                    ),
+                ]
+            )
+        except (pd.errors.OutOfBoundsDatetime, ValueError):
+            raise ValueError(f"Invalid year provided: '{year}'")
         seed = seed * 10_000 + year
-    if state:
-        user_filters.append(
-            (DATASETS.cps.state_column_name, "==", get_state_abbreviation(state))
+    if state is not None:
+        user_filters.extend(
+            [(DATASETS.cps.state_column_name, "==", get_state_abbreviation(state))]
         )
     return _generate_dataset(DATASETS.cps, source, seed, config, user_filters, verbose)
 
@@ -284,28 +315,28 @@ def generate_taxes_w2_and_1099(
     Generates a pseudopeople W2 and 1099 tax dataset which represents simulated
     tax form data.
 
-    :param source: The root directory containing pseudopeople input data. Defaults
-        to the pseudopeople sample datasets directory.
+    :param source: The root directory containing pseudopeople simulated population data. Defaults
+        to using the included sample population when source is `None`.
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
-    :param year: The tax year (format YYYY) to include in the dataset. Will return
-        an empty pd.DataFrame if there are no data with this year. If None is provided,
+    :param year: The tax year (format YYYY) to include in the dataset. Will raise
+        a ValueError if there is no data for this year. If None is provided,
         data from all years are included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
-        data pertaining to this state. If None is provided, data from all locations are
+        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
+        no data for this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated W2 and 1099 tax data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
     user_filters = []
-    if year:
+    if year is not None:
         user_filters.append((DATASETS.tax_w2_1099.date_column_name, "==", year))
         seed = seed * 10_000 + year
-    if state:
+    if state is not None:
         user_filters.append(
             (DATASETS.tax_w2_1099.state_column_name, "==", get_state_abbreviation(state))
         )
@@ -331,28 +362,28 @@ def generate_women_infants_and_children(
     is a government benefits program designed to support mothers and young children.
     The main qualifications are income and the presence of young children in the home.
 
-    :param source: The root directory containing pseudopeople input data. Defaults
-        to the pseudopeople sample datasets directory.
+    :param source: The root directory containing pseudopeople simulated population data. Defaults
+        to using the included sample population when source is `None`.
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
-    :param year: The year (format YYYY) to include in the dataset. Will return an
-        empty pd.DataFrame if there are no data with this year. If None is provided,
+    :param year: The year (format YYYY) to include in the dataset. Will raise a
+        ValueError if there is no data for this year. If None is provided,
         data from all years are included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
-        data pertaining to this state. If None is provided, data from all locations are
+        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
+        no data for this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated WIC data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
     user_filters = []
-    if year:
+    if year is not None:
         user_filters.append((DATASETS.wic.date_column_name, "==", year))
         seed = seed * 10_000 + year
-    if state:
+    if state is not None:
         user_filters.append(
             (DATASETS.wic.state_column_name, "==", get_state_abbreviation(state))
         )
@@ -370,25 +401,31 @@ def generate_social_security(
     Generates a pseudopeople SSA dataset which represents simulated Social Security
     Administration (SSA) data.
 
-    :param source: The root directory containing pseudopeople input data. Defaults
-        to the pseudopeople sample datasets directory.
+    :param source: The root directory containing pseudopeople simulated population data. Defaults
+        to using the included sample population when source is `None`.
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The latest year (format YYYY) to include in the dataset; will also
-        include all previous years. Will return an empty pd.DataFrame if there are no
-        data on or before this year. If None is provided, data from all years are
-        included in the dataset.
+        include all previous years. Will raise a ValueError if there is no data for
+        this year. If None is provided, data from all years are included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated SSA data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
     user_filters = []
-    if year:
-        user_filters.append(
-            (DATASETS.ssa.date_column_name, "<=", pd.Timestamp(f"{year}-12-31"))
-        )
+    if year is not None:
+        try:
+            user_filters.append(
+                (
+                    DATASETS.ssa.date_column_name,
+                    "<=",
+                    pd.Timestamp(year=year, month=12, day=31),
+                )
+            )
+        except (pd.errors.OutOfBoundsDatetime, ValueError):
+            raise ValueError(f"Invalid year provided: '{year}'")
         seed = seed * 10_000 + year
     return _generate_dataset(DATASETS.ssa, source, seed, config, user_filters, verbose)
 
@@ -405,28 +442,28 @@ def generate_taxes_1040(
     Generates a pseudopeople 1040 tax dataset which represents simulated
     tax form data.
 
-    :param source: The root directory containing pseudopeople input data. Defaults
-        to the pseudopeople sample datasets directory.
+    :param source: The root directory containing pseudopeople simulated population data. Defaults
+        to using the included sample population when source is `None`.
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
-    :param year: The tax year (format YYYY) to include in the dataset. Will return
-        an empty pd.DataFrame if there are no data with this year. If None is provided,
+    :param year: The tax year (format YYYY) to include in the dataset. Will raise
+        a ValueError if there is no data with this year. If None is provided,
         data from all years are included in the dataset.
     :param state: The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will return an empty pd.DataFrame if there are no
-        data pertaining to this state. If None is provided, data from all locations are
+        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
+        no data with this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated 1040 tax data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
     user_filters = []
-    if year:
+    if year is not None:
         user_filters.append((DATASETS.tax_1040.date_column_name, "==", year))
         seed = seed * 10_000 + year
-    if state:
+    if state is not None:
         user_filters.append(
             (DATASETS.tax_1040.state_column_name, "==", get_state_abbreviation(state))
         )
