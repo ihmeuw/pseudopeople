@@ -101,7 +101,7 @@ ages, dates of birth, and social security numbers.
 
 This noise type is called :code:`copy_from_household_member` in the configuration. It takes one parameter:
 
-.. list-table:: Parameters to the use_nickname noise type
+.. list-table:: Parameters to the copy_from_household_member noise type
   :widths: 1 5 1
   :header-rows: 1
 
@@ -111,6 +111,12 @@ This noise type is called :code:`copy_from_household_member` in the configuratio
   * - :code:`cell_probability`
     - The probability that, for a cell in the column being configured, the cell's value is replaced by the corresponding value from a household member.
     - 0.01 (1%)
+
+Note that simulants who live in group quarters or who live alone are not
+eligible for this type of noise, so for each dataset, there is some maximum
+fraction of rows to which "copy from household member" noise can be applied. If
+the user requests a cell probability that is larger than what's possible,
+pseudopeople will add noise to the maximum possible number of rows.
 
 .. _use_a_nickname:
 
