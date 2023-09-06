@@ -55,33 +55,54 @@ Let's take a look at the names in our generated CPS dataset:
 
     >>> cps_2025[['first_name', 'middle_initial', 'last_name']]
        first_name middle_initial          last_name
-    0      Regina              S                Coh
-    1         Pat              J              Posey
-    2   Stephanie              Y             Martin
-    3      Alaina              S               Resp
-    4       Haley              T                Goh
-    5     Katrina              V            Deltoro
-    6     Gregory              D             Talley
-    7   Catherine              R           Benjamin
-    8      Dustin              J           Benjamin
-    9        John              S              Bakal
-    10  Catherine              K            Trexler
-    11     Tamela              V             Female
-    12       Reed              J                  F
-    13    William              D            Masters
-    14    Michael              D      Serna Marquez
-    15    Addison              I            Thomson
-    16     Denise              A     Harting-Conant
-    17      David              J                Goh
-    18       Mary              A  Lady Od The House
-    19     Pamela              M               Reed
-    20       Alex              S             Ojukwu
+    0     Gregory              J               Four
+    1   Bridgette              J            Kennedy
+    2     William              G           Phillips
+    3     Valerie              M               Male
+    4       Molly              A            Wheeler
+    5      Thomas              K             Eastep
+    6     Kenneth              C             Harper
+    7      Daniel              M             Harper
+    8       Susan              M              Adult
+    9     Dorothy              P             Gaytan
+    10      Daisy              R           Williams
+    11       Mark              T               Rock
+    12    Mohamed              C             Person
+    13    Giselle              L              Weber
+    14       Jean              F              Stull
+    15       Lila              L                  C
+    16      Carli              G            Mckamey
+    17     Justin              B                  E
+    18        Ana              S  Davidson Granados
+    19       Rose              K           Carrillo
+    20     Nayeli              A           Carrillo
+    21     Robert              O           Carrillo
+    22     Emilio              P           Carrillo
+    23      Mindy              K             Walton
+    24        Lee              J          Household
+    25  Janautica              K            Clapper
+    26     Tanner              M            Clapper
+    27      Helen              K        Of The Home
+    28      Tonya              A                  Y
+    29      Chris              C            Frazier
+    30     Arnold              J             Friend
+    31   Patricia              C               Wife
+    32     Jessie              L             Madden
+    33      Laura              V        Fortenberry
+    34       Zaid              B        Fortenberry
+    35      Sammy              R          Mcfarlan
 
 As expected, we see a number of strings in the last name column that are unlikely to be true last names.
 We can check exactly which ones are fake names by comparing to the same dataset without fake name noise in
 the last name column.
 For brevity, we do not show the steps to do this here, but
-we would find that there are seven such strings, which is almost exactly 30% of our 21 respondents.
+we would find that there are eleven such strings, which is almost exactly 30% of our 36 respondents.
+
+..
+    Code to do this:
+    cps_2025_nonoise = psp.generate_current_population_survey(year=2025, config=psp.NO_NOISE)
+    difference = cps_2025.set_index('simulant_id').pipe(lambda s: s.last_name != cps_2025_nonoise.set_index('simulant_id').loc[s.index].last_name)
+    print(f'there are {difference.sum()} such strings, {difference.mean():.5%} of our {len(cps_2025)} respondents')
 
 Increasing noise in first names
 -------------------------------
@@ -118,33 +139,55 @@ Let's see how our CPS data look now:
 .. code-block:: pycon
 
     >>> cps_2025[['first_name', 'middle_initial', 'last_name']]
-       first_name middle_initial          last_name
-    0      Regina              S                Coh
-    1         Pat              J              Posey
-    2   Stephanie              Y             Martin
-    3      Alaina              S               Resp
-    4       Haley              T                Goh
-    5     Katrina              V            Deltoro
-    6     Gregory              D             Talley
-    7   Catherine              R           Benjamin
-    8      Dustin              J           Benjamin
-    9        John              S              Bakal
-    10  Catherine              K            Trexler
-    11     Tamela              V             Female
-    12   Daughter              J                  F
-    13    William              D            Masters
-    14    Michael              D      Serna Marquez
-    15    Addison              I            Thomson
-    16     Denise              A     Harting-Conant
-    17      David              J                Goh
-    18       Mary              A  Lady Od The House
-    19     Pamela              M               Reed
-    20          B              S             Ojukwu
+           first_name middle_initial          last_name
+    0         Gregory              J               Four
+    1       Bridgette              J            Kennedy
+    2         William              G           Phillips
+    3         Valerie              M               Male
+    4           Molly              A            Wheeler
+    5          Thomas              K             Eastep
+    6      Man In The              C             Harper
+    7             Man              M             Harper
+    8               R              M              Adult
+    9   Granddaughter              P             Gaytan
+    10              G              R           Williams
+    11           Mark              T               Rock
+    12           Girl              C             Person
+    13        Giselle              L              Weber
+    14         Friend              F              Stull
+    15           Lila              L                  C
+    16          Carli              G            Mckamey
+    17         Justin              B                  E
+    18            Ana              S  Davidson Granados
+    19           Rose              K           Carrillo
+    20         Son Of              A           Carrillo
+    21         Sister              O           Carrillo
+    22         Emilio              P           Carrillo
+    23          Mindy              K             Walton
+    24            Lee              J          Household
+    25      Janautica              K            Clapper
+    26         Tanner              M            Clapper
+    27          Helen              K        Of The Home
+    28          Tonya              A                  Y
+    29          Chris              C            Frazier
+    30         Arnold              J             Friend
+    31        Brother              C               Wife
+    32          House              L             Madden
+    33              T              V        Fortenberry
+    34           Zaid              B        Fortenberry
+    35              H              R          Mcfarlane
 
-Here we see that only respondents number 12 and 20 have used fake first names.
-Why aren't there closer to :math:`0.2 * 21 = 4.2` respondents with fake first names?
+Here we see that 13 respondents have used fake first names.
+Why aren't there closer to :math:`0.2 * 36 = 7.2` respondents with fake first names?
 Remember that the parameter we set was called cell **probability** -- there is randomness
 involved in whether or not each cell in the column actually receives noise.
+
+..
+    code to check which respondents used fake first names:
+
+    cps_2025_nonoise = psp.generate_current_population_survey(year=2025, config=psp.NO_NOISE)
+    difference = cps_2025.set_index('simulant_id').pipe(lambda s: s.first_name != cps_2025_nonoise.set_index('simulant_id').loc[s.index].first_name)
+    cps_2025[cps_2025.simulant_id.isin(difference[difference].index)][['first_name', 'middle_initial', 'last_name']]
 
 An alternate format for configuration
 -------------------------------------
