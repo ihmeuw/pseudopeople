@@ -382,6 +382,10 @@ The following columns are included in this dataset:
      - :code:`simulant_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
        datasets.
+   * - Social security number
+     - :code:`ssn`
+     - By default, the SSN column in the SSA dataset has no :ref:`column-based noise <column_noise>`.
+       However, it can be :ref:`configured <configuration_main>` to have noise if desired.
    * - First name
      - :code:`first_name`
      -
@@ -397,16 +401,12 @@ The following columns are included in this dataset:
    * - Sex
      - :code:`sex`
      - Binary; "male" or "female"
-   * - Social security number
-     - :code:`ssn`
-     - By default, the SSN column in the SSA dataset has no :ref:`column-based noise <column_noise>`.
-       However, it can be :ref:`configured <configuration_main>` to have noise if desired.
-   * - Date of event
-     - :code:`event_date`
-     - Formatted as YYYYMMDD.
    * - Type of event
      - :code:`event_type`
      - Possible values are "Creation" and "Death".
+   * - Date of event
+     - :code:`event_date`
+     - Formatted as YYYYMMDD.
 
 
 Tax forms: W-2 & 1099
@@ -437,41 +437,14 @@ The following columns are included in these datasets:
      - :code:`household_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
        datasets.
-   * - First name
-     - :code:`first_name`
-     -
-   * - Middle initial
-     - :code:`middle_initial`
-     -
-   * - Last name
-     - :code:`last_name`
-     -
-   * - Mailing address street number
-     - :code:`mailing_address_street_number`
-     -
-   * - Mailing address street name
-     - :code:`mailing_address_street_name`
-     -
-   * - Mailing address unit number
-     - :code:`mailing_address_unit_number`
-     -
-   * - Mailing address city
-     - :code:`mailing_address_city`
-     -
-   * - Mailing address state
-     - :code:`mailing_address_state`
-     -
-   * - Mailing address ZIP code
-     - :code:`mailing_address_zipcode`
+   * - Employer ID
+     - :code:`employer_id`
      -
    * - Social security number
      - :code:`ssn`
      -
    * - Wages
      - :code:`wages`
-     -
-   * - Employer ID
-     - :code:`employer_id`
      -
    * - Employer Name
      - :code:`employer_name`
@@ -493,6 +466,36 @@ The following columns are included in these datasets:
      -
    * - Employer ZIP code
      - :code:`employer_zipcode`
+     -
+   * - First name
+     - :code:`first_name`
+     -
+   * - Middle initial
+     - :code:`middle_initial`
+     -
+   * - Last name
+     - :code:`last_name`
+     -
+   * - Mailing address street number
+     - :code:`mailing_address_street_number`
+     -
+   * - Mailing address street name
+     - :code:`mailing_address_street_name`
+     -
+   * - Mailing address unit number
+     - :code:`mailing_address_unit_number`
+     -
+   * - Mailing address PO Box
+     - :code:`mailing_address_po_box`
+     -
+   * - Mailing address city
+     - :code:`mailing_address_city`
+     -
+   * - Mailing address state
+     - :code:`mailing_address_state`
+     -
+   * - Mailing address ZIP code
+     - :code:`mailing_address_zipcode`
      -
    * - Type of tax form
      - :code:`tax_form`
@@ -563,6 +566,9 @@ The following columns are included in this dataset:
    * - Last name
      - :code:`last_name`
      -
+   * - Social Security Number (SSN)
+     - :code:`ssn`
+     - Individual Taxpayer Identification Number (ITIN) if no SSN
    * - Mailing address street number
      - :code:`mailing_address_street_number`
      -
@@ -584,9 +590,6 @@ The following columns are included in this dataset:
    * - Mailing address ZIP code
      - :code:`mailing_address_zipcode`
      -
-   * - Social Security Number (SSN)
-     - :code:`ssn`
-     - Individual Taxpayer Identification Number (ITIN) if no SSN
    * - Joint filer first name
      - :code:`spouse_first_name`
      -
