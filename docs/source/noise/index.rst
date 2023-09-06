@@ -190,8 +190,9 @@ Noise types for each column
   * - SSN
     - W-2 and 1099, 1040, SSA
     - Borrow a social security number, leave a field blank, copy from household member, write the wrong digits, make OCR errors, make typos
-    - Note that 'borrow a social security number' only applies to the W-2 and 1099 dataset.
-      In the 1040 form, the same noise types apply to the SSN columns for the joint filer and dependents
+    - Note that "borrow a social security number" only applies to the W-2 and 1099 dataset, and by default, "copy from household member" noise is turned off in this dataset (but can be turned on if desired).
+      In the SSA dataset, the SSN column has no column-based noise by default (but can be configured to have noise if desired).
+      In the 1040 form, the same noise types apply to the SSN columns for the joint filer and dependents.
   * - Wages
     - W-2 and 1099
     - Leave a field blank, write the wrong digits, make OCR errors, make typos
