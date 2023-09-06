@@ -89,6 +89,41 @@ It takes one parameter:
     - The probability that, for a cell in the column being configured, the wrong option is chosen.
     - 0.01 (1%)
 
+Copy from household member
+--------------------------
+
+When responding to a survey or filling out a form, someone might accidentally or
+purposely answer a question about one household member with information about a
+different household member. To capture this type of error, pseudopeople can fill
+in certain fields about a simulant with values from a different member of the
+simulant's household, chosen at random. This type of noise can be applied to
+ages, dates of birth, and social security numbers.
+
+Note that simulants who live in group quarters or who live alone are not
+eligible for this type of noise, so for each dataset, there is some maximum
+fraction of rows to which "copy from household member" noise can be applied. If
+the user requests a cell probability that is larger than what's possible,
+pseudopeople will add noise to the maximum possible number of rows.
+
+This noise type is called :code:`copy_from_household_member` in the configuration. It takes one parameter:
+
+.. list-table:: Parameters to the copy_from_household_member noise type
+  :widths: 1 5 1
+  :header-rows: 1
+
+  * - Parameter
+    - Description
+    - Default
+  * - :code:`cell_probability`
+    - The probability that, for a cell in the column being configured, the cell's value is replaced by the corresponding value from a household member.
+    - 0.01 (1%)
+
+**Note:** The default value of 0.01 applies to most datasets. However, the
+default value is 0.0 for the SSN column in the W2 & 1099 dataset since SSNs are
+already subject to "borrow a social security number" noise in that dataset, and
+is also 0.0 for the SSN column in the SSA dataset because that column has no
+noise by default.
+
 .. _use_a_nickname:
 
 Use a nickname
