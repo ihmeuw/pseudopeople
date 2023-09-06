@@ -118,6 +118,12 @@ This noise type is called :code:`copy_from_household_member` in the configuratio
     - The probability that, for a cell in the column being configured, the cell's value is replaced by the corresponding value from a household member.
     - 0.01 (1%)
 
+**Note:** The default value of 0.01 applies to most datasets. However, the
+default value is 0.0 for the SSN column in the W2 & 1099 dataset since SSNs are
+already subject to "borrow a social security number" noise in that dataset, and
+is also 0.0 for the SSN column in the SSA dataset because that column has no
+noise by default.
+
 .. _use_a_nickname:
 
 Use a nickname
