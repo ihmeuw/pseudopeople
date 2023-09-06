@@ -12,6 +12,8 @@ Types of row-based noise:
 .. contents::
    :local:
 
+.. _do_not_respond:
+
 Do not respond
 --------------
 
