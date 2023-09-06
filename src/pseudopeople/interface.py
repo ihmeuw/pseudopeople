@@ -151,7 +151,7 @@ def generate_decennial_census(
     responses to the US Census Bureau's Census of Population and Housing.
 
     :param source: The root directory containing pseudopeople simulated population data. Defaults
-        to the pseudopeople sample population directory.
+        to using the pseudopeople sample population.
     :param seed: An integer seed for randomness.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
