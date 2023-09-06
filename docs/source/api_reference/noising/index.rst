@@ -11,7 +11,7 @@ For example, :func:`pseudopeople.generate_decennial_census` generates the Decenn
 All of the dataset generation functions have the same (optional) parameters.
 Notable parameters include:
 
-    - a `source` path to the root directory of pseudopeople input data (defaults to using the sample dataset included with pseudopeople).
+    - a `source` path to the root directory of :ref:`pseudopeople simulated population data <simulated_populations_main>` (defaults to using the sample dataset included with pseudopeople).
     - a `config` path to a YAML file, a Python dictionary, or the special value :code:`pseudopeople.NO_NOISE`, to :ref:`override the default configuration <configuration_main>`.
     - a `year` (defaults to 2020).
 
