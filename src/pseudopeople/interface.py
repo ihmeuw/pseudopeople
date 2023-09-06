@@ -150,7 +150,7 @@ def generate_decennial_census(
     Generates a pseudopeople decennial census dataset which represents simulated
     responses to the US Census Bureau's Census of Population and Housing.
 
-    :param source: The root directory containing pseudopeople input data. Defaults
+    :param source: The root directory containing pseudopeople simulated population data. Defaults
         to the pseudopeople sample datasets directory.
     :param seed: An integer seed for randomness.
     :param config: An optional override to the default configuration. Can be a path
@@ -166,7 +166,7 @@ def generate_decennial_census(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated decennial census data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
     user_filters = []
     if year is not None:
@@ -196,7 +196,7 @@ def generate_american_community_survey(
     citizenship, education, income, language proficiency, migration, employment,
     disability, and housing characteristics.
 
-    :param source: The root directory containing pseudopeople input data. Defaults
+    :param source: The root directory containing pseudopeople simulated population data. Defaults
         to the pseudopeople sample datasets directory.
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
@@ -211,7 +211,7 @@ def generate_american_community_survey(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated ACS data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
     user_filters = []
     if year is not None:
@@ -259,7 +259,7 @@ def generate_current_population_survey(
     activity and income, veteran status, school enrollment, contingent employment,
     worker displacement, job tenure, and more.
 
-    :param source: The root directory containing pseudopeople input data. Defaults
+    :param source: The root directory containing pseudopeople simulated population data. Defaults
         to the pseudopeople sample datasets directory.
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
@@ -274,7 +274,7 @@ def generate_current_population_survey(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated CPS data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
     user_filters = []
     if year is not None:
@@ -315,7 +315,7 @@ def generate_taxes_w2_and_1099(
     Generates a pseudopeople W2 and 1099 tax dataset which represents simulated
     tax form data.
 
-    :param source: The root directory containing pseudopeople input data. Defaults
+    :param source: The root directory containing pseudopeople simulated population data. Defaults
         to the pseudopeople sample datasets directory.
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
@@ -330,7 +330,7 @@ def generate_taxes_w2_and_1099(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated W2 and 1099 tax data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
     user_filters = []
     if year is not None:
@@ -362,7 +362,7 @@ def generate_women_infants_and_children(
     is a government benefits program designed to support mothers and young children.
     The main qualifications are income and the presence of young children in the home.
 
-    :param source: The root directory containing pseudopeople input data. Defaults
+    :param source: The root directory containing pseudopeople simulated population data. Defaults
         to the pseudopeople sample datasets directory.
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
@@ -377,7 +377,7 @@ def generate_women_infants_and_children(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated WIC data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
     user_filters = []
     if year is not None:
@@ -401,7 +401,7 @@ def generate_social_security(
     Generates a pseudopeople SSA dataset which represents simulated Social Security
     Administration (SSA) data.
 
-    :param source: The root directory containing pseudopeople input data. Defaults
+    :param source: The root directory containing pseudopeople simulated population data. Defaults
         to the pseudopeople sample datasets directory.
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
@@ -412,7 +412,7 @@ def generate_social_security(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated SSA data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
     user_filters = []
     if year is not None:
@@ -442,7 +442,7 @@ def generate_taxes_1040(
     Generates a pseudopeople 1040 tax dataset which represents simulated
     tax form data.
 
-    :param source: The root directory containing pseudopeople input data. Defaults
+    :param source: The root directory containing pseudopeople simulated population data. Defaults
         to the pseudopeople sample datasets directory.
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
@@ -457,7 +457,7 @@ def generate_taxes_1040(
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated 1040 tax data.
     :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect pseudopeople input data source is provided.
+    :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
     user_filters = []
     if year is not None:
