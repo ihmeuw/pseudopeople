@@ -92,10 +92,10 @@ It takes one parameter:
 Copy from household member
 --------------------------
 
-When responding to a survey or filling out a form, someone might accidentally
-answer a question about one household member with information about a different
-household member. To capture this type of error, pseudopeople can fill in
-certain fields about a simulant with values from a different member of the
+When responding to a survey or filling out a form, someone might accidentally or
+purposely answer a question about one household member with information about a
+different household member. To capture this type of error, pseudopeople can fill
+in certain fields about a simulant with values from a different member of the
 simulant's household, chosen at random. This type of noise can be applied to
 ages, dates of birth, and social security numbers.
 
