@@ -151,7 +151,7 @@ def generate_decennial_census(
     responses to the US Census Bureau's Census of Population and Housing.
 
     :param source: The root directory containing pseudopeople simulated population data. Defaults
-        to using the pseudopeople sample population.
+        to using the included sample population.
     :param seed: An integer seed for randomness.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
@@ -197,7 +197,7 @@ def generate_american_community_survey(
     disability, and housing characteristics.
 
     :param source: The root directory containing pseudopeople simulated population data. Defaults
-        to the pseudopeople sample population directory.
+        to using the included sample population.
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
@@ -260,7 +260,7 @@ def generate_current_population_survey(
     worker displacement, job tenure, and more.
 
     :param source: The root directory containing pseudopeople simulated population data. Defaults
-        to the pseudopeople sample population directory.
+        to using the included sample population.
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
@@ -316,7 +316,7 @@ def generate_taxes_w2_and_1099(
     tax form data.
 
     :param source: The root directory containing pseudopeople simulated population data. Defaults
-        to the pseudopeople sample population directory.
+        to using the included sample population.
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
@@ -363,7 +363,7 @@ def generate_women_infants_and_children(
     The main qualifications are income and the presence of young children in the home.
 
     :param source: The root directory containing pseudopeople simulated population data. Defaults
-        to the pseudopeople sample population directory.
+        to using the included sample population.
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
@@ -402,7 +402,7 @@ def generate_social_security(
     Administration (SSA) data.
 
     :param source: The root directory containing pseudopeople simulated population data. Defaults
-        to the pseudopeople sample population directory.
+        to using the included sample population.
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
@@ -443,7 +443,7 @@ def generate_taxes_1040(
     tax form data.
 
     :param source: The root directory containing pseudopeople simulated population data. Defaults
-        to the pseudopeople sample population directory.
+        to using the included sample population.
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
