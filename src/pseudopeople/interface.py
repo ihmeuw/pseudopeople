@@ -201,7 +201,7 @@ def generate_american_community_survey(
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
-    :param year: The survey date year (format YYYY, e.g., 2036) to include in the dataset. Will
+    :param year: The year in which the survey was conducted (format YYYY, e.g., 2036). Will
         raise a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all avaliable years are
         included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
@@ -264,7 +264,7 @@ def generate_current_population_survey(
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
-    :param year: The survey date year (format YYYY, e.g., 2036) to include in the dataset. Will
+    :param year: The year in which the survey was conducted (format YYYY, e.g., 2036). Will
         raise a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all avaliable years are
         included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
@@ -320,7 +320,7 @@ def generate_taxes_w2_and_1099(
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
-    :param year: The tax year (format YYYY, e.g., 2036) to include in the dataset. Will raise
+    :param year: The tax year for which data was collected (format YYYY, e.g., 2036). Will raise
         a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all avaliable years are
         included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
@@ -367,7 +367,7 @@ def generate_women_infants_and_children(
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
-    :param year: The year (format YYYY, e.g., 2036) to include in the dataset. Will raise a
+    :param year: The year in which WIC benefits were received (format YYYY, e.g., 2036). Will raise a
         `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all avaliable years are
         included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
@@ -406,8 +406,8 @@ def generate_social_security(
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
-    :param year: The latest year (format YYYY, e.g., 2036) to include in the dataset; will also
-        include all previous years. Will raise a `ValueError` if there is no data for
+    :param year: The final year of records to include (format YYYY, e.g., 2036); will also
+        include records from all previous years. Will raise a `ValueError` if there is no data for
         this year. Default is 2020. If `None` is passed instead, data for all avaliable years are
         included in the returned dataset.
     :param verbose: Log with verbosity if True.
@@ -448,7 +448,7 @@ def generate_taxes_1040(
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
-    :param year: The tax year (format YYYY, e.g., 2036) to include in the dataset. Will raise
+    :param year: The tax year for which data was collected (format YYYY, e.g., 2036). Will raise
         a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all avaliable years are
         included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
