@@ -5,6 +5,7 @@ import pandas as pd
 from loguru import logger
 from tqdm import tqdm
 
+from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, INT_COLUMNS
@@ -99,7 +100,7 @@ def _generate_dataset(
     return noised_dataset
 
 
-def validate_source_compatibility(source):
+def validate_source_compatibility(source: Path):
     # TODO: Clean this up w/ metadata
     changelog = source / "CHANGELOG.rst"
     if changelog.exists():
@@ -110,19 +111,19 @@ def validate_source_compatibility(source):
         # TODO: log pseudopeople version where appropriate
         if version > "1.4.2":
             raise DataSourceError(
-                "The provided simulated population data is incompatible with this version of pseudopeople.\n"
+                f"The provided simulated population data is incompatible with this version of pseudopeople ({psp_version}).\n"
                 "A newer version of simulated population data has been provided.\n"
                 "Please upgrade the pseudopeople package."
             )
         if version < "1.4.2":
             raise DataSourceError(
-                "The provided simulated population data is incompatible with this version of pseudopeople.\n"
+                "The provided simulated population data is incompatible with this version of pseudopeople ({psp_version}).\n"
                 "The simulated population data has been corrupted.\n"
                 "Please re-download the simulated population data."
             )
     else:
         raise DataSourceError(
-            "The provided simulated population data is incompatible with this version of pseudopeople.\n"
+            "The provided simulated population data is incompatible with this version of pseudopeople ({psp_version}).\n"
             "An older version of simulated population data has been provided.\n"
             "Please either request updated simulated population data or downgrade the pseudopeople package."
         )
