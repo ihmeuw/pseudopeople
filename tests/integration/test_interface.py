@@ -51,13 +51,14 @@ DATASET_GENERATION_FUNCS = {
     ],
 )
 def test_generate_dataset_from_sample_and_source(
-    dataset_name: str, config, request, split_sample_data_dir
+    dataset_name: str, config, request, split_sample_data_dir, mocker
 ):
     """Tests that the amount of noising is approximately the same whether we
     noise a single sample dataset or we concatenate and noise multiple datasets
     """
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
+    mocker.patch("pseudopeople.interface.validate_source_compatibility")
     generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
     data = _load_sample_data(dataset_name, request)
     noised_sample = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
