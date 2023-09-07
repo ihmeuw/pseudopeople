@@ -164,7 +164,7 @@ def generate_decennial_census(
         no data for this state. If None is provided, data for all locations are
         included in the dataset.
     :param verbose: Log with verbosity if `True`. Default is `False`.
-    :return: A pd.DataFrame of simulated decennial census data.
+    :return: A `pandas.DataFrame` of simulated decennial census data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
@@ -209,7 +209,7 @@ def generate_american_community_survey(
         data for this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if `True`. Default is `False`.
-    :return: A pd.DataFrame of simulated ACS data.
+    :return: A `pandas.DataFrame` of simulated ACS data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
@@ -272,7 +272,7 @@ def generate_current_population_survey(
         no data for this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if `True`. Default is `False`.
-    :return: A pd.DataFrame of simulated CPS data.
+    :return: A `pandas.DataFrame` of simulated CPS data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
@@ -328,7 +328,7 @@ def generate_taxes_w2_and_1099(
         no data for this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if `True`. Default is `False`.
-    :return: A pd.DataFrame of simulated W2 and 1099 tax data.
+    :return: A `pandas.DataFrame` of simulated W2 and 1099 tax data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
@@ -375,7 +375,7 @@ def generate_women_infants_and_children(
         no data for this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if `True`. Default is `False`.
-    :return: A pd.DataFrame of simulated WIC data.
+    :return: A `pandas.DataFrame` of simulated WIC data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
@@ -410,7 +410,7 @@ def generate_social_security(
         include all previous years. Will raise a ValueError if there is no data for
         this year. If None is provided, data from all years are included in the dataset.
     :param verbose: Log with verbosity if `True`. Default is `False`.
-    :return: A pd.DataFrame of simulated SSA data.
+    :return: A `pandas.DataFrame` of simulated SSA data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
@@ -455,7 +455,7 @@ def generate_taxes_1040(
         no data with this state. If None is provided, data from all locations are
         included in the dataset.
     :param verbose: Log with verbosity if `True`. Default is `False`.
-    :return: A pd.DataFrame of simulated 1040 tax data.
+    :return: A `pandas.DataFrame` of simulated 1040 tax data.
     :raises ConfigurationError: An incorrect config is provided.
     :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
     """
