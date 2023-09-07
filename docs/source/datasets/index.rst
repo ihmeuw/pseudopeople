@@ -151,6 +151,9 @@ The following columns are included in this dataset:
      - :code:`household_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
        datasets.
+   * - Survey date
+     - :code:`survey_date`
+     -
    * - First name
      - :code:`first_name`
      -
@@ -239,6 +242,9 @@ The following columns are included in this dataset:
      - :code:`household_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
        datasets.
+   * - Survey date
+     - :code:`survey_date`
+     -
    * - First name
      - :code:`first_name`
      -
@@ -319,7 +325,7 @@ The following columns are included in this dataset:
      -
    * - Last name
      - :code:`last_name`
-     - 
+     -
    * - Date of birth
      - :code:`date_of_birth`
      - Formatted as MMDDYYYY.
