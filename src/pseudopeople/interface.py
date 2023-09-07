@@ -52,6 +52,8 @@ def _generate_dataset(
         source = paths.SAMPLE_DATA_ROOT
     else:
         source = Path(source)
+        validate_source_compatibility(source)
+
     data_paths = fetch_filepaths(dataset, source)
     if not data_paths:
         raise DataSourceError(
@@ -95,6 +97,33 @@ def _generate_dataset(
     logger.debug("*** Finished ***")
 
     return noised_dataset
+
+
+def validate_source_compatibility(source):
+    # TODO: Clean this up w/ metadata
+    changelog = source / "CHANGELOG.rst"
+    if changelog.exists():
+        with open(changelog, "r") as file:
+            first_line = file.readline()
+        version = first_line.split("**")[1].split("-")[0].strip()
+        if version > "1.4.2":
+            raise DataSourceError(
+                "The provided input data is incompatible with this version of pseudopeople.\n"
+                "A newer version of input data has been provided.\n"
+                "Please upgrade the pseudopeople package."
+            )
+        if version < "1.4.2":
+            raise DataSourceError(
+                "The provided input data is incompatible with this version of pseudopeople.\n"
+                "The input data has been corrupted.\n"
+                "Please re-download the input data."
+            )
+    else:
+        raise DataSourceError(
+            "The provided input data is incompatible with this version of pseudopeople.\n"
+            "An older version of input data has been provided.\n"
+            "Please either request updated input data or downgrade the pseudopeople package."
+        )
 
 
 def _coerce_dtypes(
