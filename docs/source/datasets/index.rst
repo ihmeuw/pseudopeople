@@ -153,7 +153,7 @@ The following columns are included in this dataset:
        datasets.
    * - Survey date
      - :code:`survey_date`
-     -
+     - Date on which the survey was conducted; metadata that would not be collected directly; not affected by noise functions.
    * - First name
      - :code:`first_name`
      -
@@ -244,7 +244,7 @@ The following columns are included in this dataset:
        datasets.
    * - Survey date
      - :code:`survey_date`
-     -
+     - Date on which the survey was conducted; metadata that would not be collected directly; not affected by noise functions.
    * - First name
      - :code:`first_name`
      -
