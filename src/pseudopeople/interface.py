@@ -406,9 +406,9 @@ def generate_social_security(
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
-    :param year: The final year of records to include (format YYYY, e.g., 2036); will also
+    :param year: The final year of records to include in the dataset (format YYYY, e.g., 2036); will also
         include records from all previous years. Will raise a `ValueError` if there is no data for
-        this year. Default is 2020. If `None` is passed instead, data for all avaliable years are
+        the specified year or any prior years. Default is 2020. If `None` is passed instead, data for all avaliable years are
         included in the returned dataset.
     :param verbose: Log with verbosity if True.
     :return: A pd.DataFrame of simulated SSA data.
