@@ -106,23 +106,25 @@ def validate_source_compatibility(source):
         with open(changelog, "r") as file:
             first_line = file.readline()
         version = first_line.split("**")[1].split("-")[0].strip()
+        # TODO: Implement a more robust check on version numbers
+        # TODO: log pseudopeople version where appropriate
         if version > "1.4.2":
             raise DataSourceError(
-                "The provided input data is incompatible with this version of pseudopeople.\n"
-                "A newer version of input data has been provided.\n"
+                "The provided simulated population data is incompatible with this version of pseudopeople.\n"
+                "A newer version of simulated population data has been provided.\n"
                 "Please upgrade the pseudopeople package."
             )
         if version < "1.4.2":
             raise DataSourceError(
-                "The provided input data is incompatible with this version of pseudopeople.\n"
-                "The input data has been corrupted.\n"
-                "Please re-download the input data."
+                "The provided simulated population data is incompatible with this version of pseudopeople.\n"
+                "The simulated population data has been corrupted.\n"
+                "Please re-download the simulated population data."
             )
     else:
         raise DataSourceError(
-            "The provided input data is incompatible with this version of pseudopeople.\n"
-            "An older version of input data has been provided.\n"
-            "Please either request updated input data or downgrade the pseudopeople package."
+            "The provided simulated population data is incompatible with this version of pseudopeople.\n"
+            "An older version of simulated population data has been provided.\n"
+            "Please either request updated simulated population data or downgrade the pseudopeople package."
         )
 
 
