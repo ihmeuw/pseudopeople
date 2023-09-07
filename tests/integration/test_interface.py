@@ -58,11 +58,11 @@ def test_generate_dataset_from_sample_and_source(
     """
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
-    mocker.patch("pseudopeople.interface.validate_source_compatibility")
     generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
     data = _load_sample_data(dataset_name, request)
     noised_sample = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
 
+    mocker.patch("pseudopeople.interface.validate_source_compatibility")
     noised_dataset = generation_function(
         seed=SEED,
         year=None,
@@ -405,6 +405,7 @@ def test_generate_dataset_with_state_filtered(
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
 
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
+    mocker.patch("pseudopeople.interface.validate_source_compatibility")
     noised_data = generation_function(source=split_sample_data_dir_state_edit, state=STATE)
 
     assert (noised_data[dataset.state_column_name] == STATE).all()
