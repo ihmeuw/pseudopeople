@@ -152,7 +152,7 @@ def generate_decennial_census(
 
     :param source: The root directory containing pseudopeople simulated population data. Defaults
         to using the included sample population when source is `None`.
-    :param seed: An integer seed for randomness.
+    :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
     :param year: The year (format YYYY) to include in the dataset. Must be a decennial
