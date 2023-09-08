@@ -188,7 +188,7 @@ def generate_decennial_census(
         to a configuration YAML file, a configuration dictionary,
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
-    :param year: The year to conduct the simulated census (format YYYY, e.g., 2030). Must be a decennial
+    :param year: The year in which to conduct the census for the simulated population (format YYYY, e.g., 2030). Must be a decennial
         year (e.g., 2020, 2030, 2040). Will raise a `ValueError` if there is no data for
         the specified year. Default is 2020. If `None` is passed instead, data for all available years are
         included in the returned dataset.
@@ -359,7 +359,9 @@ def generate_taxes_w2_and_1099(
         to a configuration YAML file, a configuration dictionary,
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
-    :param year: The tax year for which data will be collected (format YYYY, e.g., 2036). Will raise
+    :param year: The tax year for which to generate records (format YYYY, e.g., 2036);
+        the simulated dataset will contain the W2 & 1099 tax forms filed by simulated employers for the specified year.
+        Will raise
         a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all available years are
         included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
@@ -493,7 +495,8 @@ def generate_taxes_1040(
         to a configuration YAML file, a configuration dictionary,
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
-    :param year: The tax year for which data will be collected (format YYYY, e.g., 2036). Will raise
+    :param year: The tax year for which to generate records (format YYYY, e.g., 2036);
+        the simulated dataset will contain the 1040 tax forms filed by individual simulants for the specified year. Will raise
         a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all available years are
         included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
