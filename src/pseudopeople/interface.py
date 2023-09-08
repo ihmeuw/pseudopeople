@@ -3,8 +3,10 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from loguru import logger
+from packaging.version import parse
 from tqdm import tqdm
 
+from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, INT_COLUMNS
@@ -52,6 +54,8 @@ def _generate_dataset(
         source = paths.SAMPLE_DATA_ROOT
     else:
         source = Path(source)
+        validate_source_compatibility(source)
+
     data_paths = fetch_filepaths(dataset, source)
     if not data_paths:
         raise DataSourceError(
@@ -95,6 +99,33 @@ def _generate_dataset(
     logger.debug("*** Finished ***")
 
     return noised_dataset
+
+
+def validate_source_compatibility(source: Path):
+    # TODO: Clean this up w/ metadata
+    changelog = source / "CHANGELOG.rst"
+    if changelog.exists():
+        with open(changelog, "r") as file:
+            first_line = file.readline()
+        version = parse(first_line.split("**")[1].split("-")[0].strip())
+        if version > parse("1.4.2"):
+            raise DataSourceError(
+                f"The provided simulated population data is incompatible with this version of pseudopeople ({psp_version}).\n"
+                "A newer version of simulated population data has been provided.\n"
+                "Please upgrade the pseudopeople package."
+            )
+        if version < parse("1.4.2"):
+            raise DataSourceError(
+                f"The provided simulated population data is incompatible with this version of pseudopeople ({psp_version}).\n"
+                "The simulated population data has been corrupted.\n"
+                "Please re-download the simulated population data."
+            )
+    else:
+        raise DataSourceError(
+            f"The provided simulated population data is incompatible with this version of pseudopeople ({psp_version}).\n"
+            "An older version of simulated population data has been provided.\n"
+            "Please either request updated simulated population data or downgrade the pseudopeople package."
+        )
 
 
 def _coerce_dtypes(

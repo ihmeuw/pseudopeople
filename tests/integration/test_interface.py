@@ -51,13 +51,14 @@ DATASET_GENERATION_FUNCS = {
     ],
 )
 def test_generate_dataset_from_sample_and_source(
-    dataset_name: str, config, request, split_sample_data_dir
+    dataset_name: str, config, request, split_sample_data_dir, mocker
 ):
     """Tests that the amount of noising is approximately the same whether we
     noise a single sample dataset or we concatenate and noise multiple datasets
     """
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
+    mocker.patch("pseudopeople.interface.validate_source_compatibility")
     generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
     data = _load_sample_data(dataset_name, request)
     noised_sample = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
@@ -397,6 +398,7 @@ def test_generate_dataset_with_state_filtered(
     """Test that values returned by dataset generators are only for the specified state"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
+    mocker.patch("pseudopeople.interface.validate_source_compatibility")
     dataset = DATASETS.get_dataset(dataset_name)
     generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
 
@@ -432,6 +434,7 @@ def test_generate_dataset_with_state_unfiltered(
     """Test that values returned by dataset generators are for all locations if state unspecified"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
+    mocker.patch("pseudopeople.interface.validate_source_compatibility")
     dataset = DATASETS.get_dataset(dataset_name)
 
     # Skip noising (noising can incorrect select another state)
@@ -458,6 +461,7 @@ def test_dataset_filter_by_state_and_year(
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     year = 2030  # not default 2020
+    mocker.patch("pseudopeople.interface.validate_source_compatibility")
     mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
@@ -480,6 +484,7 @@ def test_dataset_filter_by_state_and_year_with_full_dates(
 ):
     """Test that dataset generation works with state and year filters in conjunction"""
     year = 2030  # not default 2020
+    mocker.patch("pseudopeople.interface.validate_source_compatibility")
     mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
@@ -511,12 +516,14 @@ def test_dataset_filter_by_state_and_year_with_full_dates(
         DATASETS.tax_1040.name,
     ],
 )
-def test_generate_dataset_with_bad_state(dataset_name: str, split_sample_data_dir_state_edit):
+def test_generate_dataset_with_bad_state(
+    dataset_name: str, split_sample_data_dir_state_edit, mocker
+):
     """Test that bad state values result in informative ValueErrors"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     bad_state = "Silly State That Doesn't Exist"
-
+    mocker.patch("pseudopeople.interface.validate_source_compatibility")
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
     with pytest.raises(ValueError, match=bad_state.upper()):
         _ = generation_function(
@@ -536,13 +543,13 @@ def test_generate_dataset_with_bad_state(dataset_name: str, split_sample_data_di
         DATASETS.tax_1040.name,
     ],
 )
-def test_generate_dataset_with_bad_year(dataset_name: str, split_sample_data_dir):
+def test_generate_dataset_with_bad_year(dataset_name: str, split_sample_data_dir, mocker):
     """Test that a ValueError is raised both for a bad year and a year that has no data"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     bad_year = 0
     no_data_year = 2000
-
+    mocker.patch("pseudopeople.interface.validate_source_compatibility")
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
     with pytest.raises(ValueError):
         _ = generation_function(
