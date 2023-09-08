@@ -235,7 +235,7 @@ def generate_american_community_survey(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file, a configuration dictionary,
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
-        dataset with all noise levels set to 0.
+        dataset without any configurable noise.
     :param year: The year in which the survey was conducted (format YYYY, e.g., 2036). Will
         raise a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all avaliable years are
         included in the returned dataset.
