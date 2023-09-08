@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from loguru import logger
+from packaging.version import parse
 from tqdm import tqdm
 
 from pseudopeople import __version__ as psp_version
@@ -106,16 +107,16 @@ def validate_source_compatibility(source: Path):
     if changelog.exists():
         with open(changelog, "r") as file:
             first_line = file.readline()
-        version = first_line.split("**")[1].split("-")[0].strip()
+        version = parse(first_line.split("**")[1].split("-")[0].strip())
         # TODO: Implement a more robust check on version numbers
         # TODO: log pseudopeople version where appropriate
-        if version > "1.4.2":
+        if version > parse("1.4.2"):
             raise DataSourceError(
                 f"The provided simulated population data is incompatible with this version of pseudopeople ({psp_version}).\n"
                 "A newer version of simulated population data has been provided.\n"
                 "Please upgrade the pseudopeople package."
             )
-        if version < "1.4.2":
+        if version < parse("1.4.2"):
             raise DataSourceError(
                 "The provided simulated population data is incompatible with this version of pseudopeople ({psp_version}).\n"
                 "The simulated population data has been corrupted.\n"
