@@ -108,8 +108,6 @@ def validate_source_compatibility(source: Path):
         with open(changelog, "r") as file:
             first_line = file.readline()
         version = parse(first_line.split("**")[1].split("-")[0].strip())
-        # TODO: Implement a more robust check on version numbers
-        # TODO: log pseudopeople version where appropriate
         if version > parse("1.4.2"):
             raise DataSourceError(
                 f"The provided simulated population data is incompatible with this version of pseudopeople ({psp_version}).\n"
