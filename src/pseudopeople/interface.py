@@ -188,7 +188,7 @@ def generate_decennial_census(
         to a configuration YAML file, a configuration dictionary,
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
-    :param year: The year in which to conduct the census for the simulated population (format YYYY, e.g., 2030). Must be a decennial
+    :param year: The year for which to generate a simulated decennial census of the simulated population (format YYYY, e.g., 2030). Must be a decennial
         year (e.g., 2020, 2030, 2040). Will raise a `ValueError` if there is no data for
         the specified year. Default is 2020. If `None` is passed instead, data for all available years are
         included in the returned dataset.
@@ -236,7 +236,9 @@ def generate_american_community_survey(
         to a configuration YAML file, a configuration dictionary,
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
-    :param year: The year in which the survey was conducted (format YYYY, e.g., 2036). Will
+    :param year: The year for which to generate simulated American Community Surveys of the simulated population (format YYYY, e.g., 2036);
+        the simulated dataset will contain records for surveys conducted on any date in the specified year.
+        Will
         raise a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all available years are
         included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
@@ -301,7 +303,9 @@ def generate_current_population_survey(
         to a configuration YAML file, a configuration dictionary,
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
-    :param year: The year in which the survey was conducted (format YYYY, e.g., 2036). Will
+    :param year: The year for which to generate simulated Current Population Surveys of the simulated population (format YYYY, e.g., 2036);
+        the simulated dataset will contain records for surveys conducted on any date in the specified year.
+        Will
         raise a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all available years are
         included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
@@ -453,7 +457,7 @@ def generate_social_security(
         to a configuration YAML file, a configuration dictionary,
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
-    :param year: The final year of records to include in the dataset (format YYYY, e.g., 2036); will also
+    :param year: The final year of social security records to include in the dataset (format YYYY, e.g., 2036); will also
         include records from all previous years. Will raise a `ValueError` if there is no data for
         the specified year or any prior years. Default is 2020. If `None` is passed instead, data for all available years are
         included in the returned dataset.
