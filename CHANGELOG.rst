@@ -1,5 +1,5 @@
 **0.7.0 - 09/08/23**
- - Added generate_tax_1040 method
+ - Added generate_taxes_1040 method
  - Added copy_from_household_member noise type
  - Improved performance of typographic noise type
  - Added NO_NOISE option to dataset generation functions to aid in generating datasets without any noise
