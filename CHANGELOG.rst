@@ -1,3 +1,13 @@
+**0.7.0 - 09/08/23**
+ - Added generate_taxes_1040 function
+ - Added copy_from_household_member noise type
+ - Improved performance of typographic noise type
+ - Added option to dataset generation functions to generate datasets without any noise
+ - Added support for python 3.11
+ - Sample population data has been updated to reflect new data schema and simulation methods
+ - Changed sample population state from "US" to "WA"
+ - Assorted bug fixes
+
 **0.6.5 - 05/09/23**
  - Hotfix to pin vivarium dependency
 
