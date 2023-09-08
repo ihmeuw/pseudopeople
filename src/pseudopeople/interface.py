@@ -156,7 +156,7 @@ def generate_decennial_census(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file, a configuration dictionary,
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
-        dataset with all noise levels set to 0.
+        dataset without any configurable noise.
     :param year: The year (format YYYY) to include in the dataset. Must be a decennial
         year (e.g. 2020, 2030, 2040). Will raise a ValueError if there is no data for
         this year. If None is provided, data for all years are
