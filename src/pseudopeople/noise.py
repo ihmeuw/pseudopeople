@@ -40,7 +40,7 @@ def noise_dataset(
     :param dataset:
         Dataset needing to be noised
     :param dataset_data:
-        Clean data input which needs to be noised.
+        Simulated population data which needs to be noised.
     :param configuration:
         Object to configure noise levels
     :param seed:
