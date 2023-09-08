@@ -448,7 +448,7 @@ def generate_taxes_1040(
     :param seed: An integer seed for randomness. Defaults to 0.
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file or a dictionary.
-    :param year: The tax year for which data was collected (format YYYY, e.g., 2036). Will raise
+    :param year: The tax year for which data will be collected (format YYYY, e.g., 2036). Will raise
         a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all avaliable years are
         included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
