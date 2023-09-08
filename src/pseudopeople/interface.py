@@ -237,7 +237,7 @@ def generate_american_community_survey(
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
     :param year: The year in which the survey was conducted (format YYYY, e.g., 2036). Will
-        raise a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all avaliable years are
+        raise a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all available years are
         included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
         abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is no
@@ -302,7 +302,7 @@ def generate_current_population_survey(
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
     :param year: The year in which the survey was conducted (format YYYY, e.g., 2036). Will
-        raise a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all avaliable years are
+        raise a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all available years are
         included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
         abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
@@ -360,7 +360,7 @@ def generate_taxes_w2_and_1099(
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
     :param year: The tax year for which data will be collected (format YYYY, e.g., 2036). Will raise
-        a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all avaliable years are
+        a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all available years are
         included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
         abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
@@ -409,7 +409,7 @@ def generate_women_infants_and_children(
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
     :param year: The year in which WIC benefits were received (format YYYY, e.g., 2036). Will raise a
-        `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all avaliable years are
+        `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all available years are
         included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
         abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
@@ -451,7 +451,7 @@ def generate_social_security(
         dataset without any configurable noise.
     :param year: The final year of records to include in the dataset (format YYYY, e.g., 2036); will also
         include records from all previous years. Will raise a `ValueError` if there is no data for
-        the specified year or any prior years. Default is 2020. If `None` is passed instead, data for all avaliable years are
+        the specified year or any prior years. Default is 2020. If `None` is passed instead, data for all available years are
         included in the returned dataset.
     :param verbose: Log with verbosity if `True`. Default is `False`.
     :return: A `pandas.DataFrame` of simulated SSA data.
@@ -494,7 +494,7 @@ def generate_taxes_1040(
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
     :param year: The tax year for which data will be collected (format YYYY, e.g., 2036). Will raise
-        a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all avaliable years are
+        a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all available years are
         included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
         abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
