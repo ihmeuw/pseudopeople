@@ -269,7 +269,7 @@ def generate_current_population_survey(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file, a configuration dictionary,
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
-        dataset with all noise levels set to 0.
+        dataset without any configurable noise.
     :param year: The survey date year (format YYYY) to include in the dataset. Will
         raise a ValueError if there is no data for this year. If None is
         provided, data from all years are included in the dataset.
