@@ -2,7 +2,7 @@
  - Added generate_taxes_1040 method
  - Added copy_from_household_member noise type
  - Improved performance of typographic noise type
- - Added NO_NOISE option to dataset generation functions to aid in generating datasets without any noise
+ - Added option to dataset generation functions to generate datasets without any noise
  - Added support for python 3.11
  - Sample data has been updated to reflect new data schema and simulation methods
  - Changed sample dataset state from "US" to "WA"
