@@ -410,7 +410,9 @@ def generate_women_infants_and_children(
         to a configuration YAML file, a configuration dictionary,
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
-    :param year: The year in which WIC benefits were received (format YYYY, e.g., 2036). Will raise a
+    :param year: The year for which to generate WIC administrative records (format YYYY, e.g., 2036);
+        the simulated dataset will contain records for simulants enrolled in WIC at the end of the specified year (or on May 1, 2041 if `year=2041` since that is the end date of the simulation).
+        Will raise a
         `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all available years are
         included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
