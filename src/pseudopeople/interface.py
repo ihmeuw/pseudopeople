@@ -457,7 +457,7 @@ def generate_social_security(
         to a configuration YAML file, a configuration dictionary,
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
-    :param year: The final year of social security records to include in the dataset (format YYYY, e.g., 2036); will also
+    :param year: The final year of simulated social security records to include in the dataset (format YYYY, e.g., 2036); will also
         include records from all previous years. Will raise a `ValueError` if there is no data for
         the specified year or any prior years. Default is 2020. If `None` is passed instead, data for all available years are
         included in the returned dataset.
