@@ -4,7 +4,7 @@
  - Improved performance of typographic noise type
  - Added option to dataset generation functions to generate datasets without any noise
  - Added support for python 3.11
- - Sample data has been updated to reflect new data schema and simulation methods
+ - Sample population data has been updated to reflect new data schema and simulation methods
  - Changed sample population state from "US" to "WA"
  - Assorted bug fixes
 
