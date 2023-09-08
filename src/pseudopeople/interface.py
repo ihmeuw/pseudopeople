@@ -181,25 +181,43 @@ def generate_decennial_census(
     Generates a pseudopeople decennial census dataset which represents simulated
     responses to the US Census Bureau's Census of Population and Housing.
 
-    :param source: The root directory containing pseudopeople simulated population data. Defaults
-        to using the included sample population when source is `None`.
-    :param seed: An integer seed for randomness. Defaults to 0.
-    :param config: An optional override to the default configuration. Can be a path
-        to a configuration YAML file, a configuration dictionary,
-        or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
-        dataset without any configurable noise.
-    :param year: The year for which to generate a simulated decennial census of the simulated population (format YYYY, e.g., 2030). Must be a decennial
-        year (e.g., 2020, 2030, 2040). Will raise a `ValueError` if there is no data for
-        the specified year. Default is 2020. If `None` is passed instead, data for all available years are
-        included in the returned dataset.
-    :param state: The state string to include in the dataset. Either full name or
+    :param source:
+        The root directory containing pseudopeople simulated population data.
+        Defaults to using the included sample population when source is `None`.
+
+    :param seed:
+        An integer seed for randomness. Defaults to 0.
+
+    :param config:
+        An optional override to the default configuration. Can be a path to a
+        configuration YAML file, a configuration dictionary, or the sentinel
+        value `pseudopeople.NO_NOISE`, which will generate a dataset without any
+        configurable noise.
+
+    :param year:
+        The year for which to generate a simulated decennial census of the
+        simulated population (format YYYY, e.g., 2030). Must be a decennial year
+        (e.g., 2020, 2030, 2040). Will raise a `ValueError` if there is no data
+        for the specified year. Default is 2020. If `None` is passed instead,
+        data for all available years are included in the returned dataset.
+
+    :param state:
+        The state string to include in the dataset. Either full name or
         abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
         no data for this state. If None is provided, data for all locations are
         included in the dataset.
-    :param verbose: Log with verbosity if `True`. Default is `False`.
-    :return: A `pandas.DataFrame` of simulated decennial census data.
-    :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
+
+    :param verbose:
+        Log with verbosity if `True`. Default is `False`.
+
+    :return:
+        A `pandas.DataFrame` of simulated decennial census data.
+
+    :raises ConfigurationError:
+        An incorrect config is provided.
+
+    :raises DataSourceError:
+        An incorrect pseudopeople simulated population data source is provided.
     """
     user_filters = []
     if year is not None:
