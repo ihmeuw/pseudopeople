@@ -502,7 +502,7 @@ def generate_taxes_1040(
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
     :param year: The tax year for which to generate records (format YYYY, e.g., 2036);
-        the simulated dataset will contain the 1040 tax forms filed by individual simulants for the specified year. Will raise
+        the simulated dataset will contain the 1040 tax forms filed by simulants for the specified year. Will raise
         a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all available years are
         included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
