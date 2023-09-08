@@ -89,7 +89,7 @@ class ColumnNoiseType:
         if to_noise_idx.empty:
             logger.debug(
                 f"No cells chosen to noise for noise function {self.name} on column {column_name}. "
-                "This is likely due to a combination of the configuration noise levels and the input data."
+                "This is likely due to a combination of the configuration noise levels and the simulated population data."
             )
             return data[column_name]
         noised_data = self.noise_function(

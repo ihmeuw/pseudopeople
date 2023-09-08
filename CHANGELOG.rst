@@ -15,7 +15,7 @@
 **0.6.1 - 04/21/23**
  - Updated documentation
  - Standardized configuration key names
- - Updated to account for changes to input data schema
+ - Updated to account for changes to simulated population data schema
 
 **0.6.0 - 04/19/23**
  - Update documentation (landing page, datasets section, quickstart)
