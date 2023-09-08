@@ -5,7 +5,7 @@
  - Added option to dataset generation functions to generate datasets without any noise
  - Added support for python 3.11
  - Sample data has been updated to reflect new data schema and simulation methods
- - Changed sample dataset state from "US" to "WA"
+ - Changed sample population state from "US" to "WA"
  - Assorted bug fixes
 
 **0.6.5 - 05/09/23**
