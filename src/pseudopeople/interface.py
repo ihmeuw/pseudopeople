@@ -460,7 +460,7 @@ def generate_taxes_1040(
     :param config: An optional override to the default configuration. Can be a path
         to a configuration YAML file, a configuration dictionary,
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
-        dataset with all noise levels set to 0.
+        dataset without any configurable noise.
     :param year: The tax year (format YYYY) to include in the dataset. Will raise
         a ValueError if there is no data with this year. If None is provided,
         data from all years are included in the dataset.
