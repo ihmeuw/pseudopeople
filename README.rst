@@ -1,13 +1,14 @@
 ============
-Pseudopeople
+pseudopeople
 ============
 
-Pseudopeople is a package intended to add configurable noise to a simulated
-census-scale data-set written using standard scientific Python tools.
+pseudopeople is a Python package that generates realistic simulated data about a
+fictional United States population, designed for use in testing entity resolution
+(record linkage) methods or other data science algorithms at scale.
 
-**Pseudopeople requires Python 3.7-3.10 to run**
+**pseudopeople requires Python 3.8-3.11 to run**
 
-You can install ``pseudopeople`` from PyPI with pip:
+You can install pseudopeople from PyPI with pip:
 
   ``> pip install pseudopeople``
 

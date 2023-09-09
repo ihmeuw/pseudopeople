@@ -11,6 +11,8 @@ provided by the user.  First, the Dataset will be noised for missing data and ha
 rows in each columns changed to null values.  Then, the dataset data will be noised
 by column and row for each type of additional noise type.
 """
+from typing import Any
+
 import pandas as pd
 from tqdm import tqdm
 from vivarium import ConfigTree
@@ -18,7 +20,7 @@ from vivarium import ConfigTree
 from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import Dataset
+from pseudopeople.schema_entities import COLUMNS, Dataset
 from pseudopeople.utilities import get_randomness_stream
 
 
@@ -26,7 +28,7 @@ def noise_dataset(
     dataset: Dataset,
     dataset_data: pd.DataFrame,
     configuration: ConfigTree,
-    seed: int,
+    seed: Any,
 ) -> pd.DataFrame:
     """
     Adds noise to the input dataset data. Noise functions are executed in the order
@@ -38,7 +40,7 @@ def noise_dataset(
     :param dataset:
         Dataset needing to be noised
     :param dataset_data:
-        Clean data input which needs to be noised.
+        Simulated population data which needs to be noised.
     :param configuration:
         Object to configure noise levels
     :param seed:
@@ -46,7 +48,7 @@ def noise_dataset(
     :return:
         Noised dataset data
     """
-    randomness = get_randomness_stream(dataset.name, seed)
+    randomness = get_randomness_stream(dataset.name, seed, dataset_data.index)
 
     noise_configuration = configuration[dataset.name]
     for noise_type in tqdm(NOISE_TYPES, desc="Applying noise", unit="type", leave=False):
@@ -73,10 +75,12 @@ def noise_dataset(
                 ]
                 # Apply column noise to each column as appropriate
                 for column in columns_to_noise:
+                    required_cols = [column] + noise_type.additional_column_getter(column)
                     dataset_data[column] = noise_type(
-                        dataset_data[column],
+                        dataset_data[required_cols],
                         noise_configuration.column_noise[column][noise_type.name],
                         randomness,
+                        dataset.name,
                         column,
                     )
         else:

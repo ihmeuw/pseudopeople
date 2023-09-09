@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from _pytest.logging import LogCaptureFixture
 from loguru import logger
@@ -17,6 +19,9 @@ def pytest_collection_modifyitems(config, items):
         return
     skip_slow = pytest.mark.skip(reason="need --runslow option to run")
     for item in items:
+        # Automatically tag all tests in the tests/integration dir as slow
+        if Path(item.parent.path).parent.stem == "integration":
+            item.add_marker(pytest.mark.slow)
         if "slow" in item.keywords:
             item.add_marker(skip_slow)
 

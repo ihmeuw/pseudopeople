@@ -14,6 +14,7 @@ from pseudopeople.interface import (
     generate_current_population_survey,
     generate_decennial_census,
     generate_social_security,
+    generate_taxes_1040,
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
@@ -38,8 +39,7 @@ def dummy_data():
     )
 
 
-@pytest.fixture(scope="module")
-def dummy_config_noise_numbers():
+def get_dummy_config_noise_numbers(dataset):
     """Create a dummy configuration that applies all noise functions to a single
     column in the dummy_data fixture. All noise function specs are defined in
     reverse order here compared to how they are to be applied.
@@ -49,59 +49,64 @@ def dummy_config_noise_numbers():
     """
     return ConfigTree(
         {
-            DATASETS.census.name: {
+            dataset.name: {
                 Keys.COLUMN_NOISE: {
                     "event_type": {
-                        NOISE_TYPES.missing_data.name: {Keys.CELL_PROBABILITY: 0.01},
-                        NOISE_TYPES.incorrect_selection.name: {Keys.CELL_PROBABILITY: 0.01},
-                        "copy_from_within_household": {Keys.CELL_PROBABILITY: 0.01},
-                        "month_day_swap": {Keys.CELL_PROBABILITY: 0.01},
-                        NOISE_TYPES.zipcode_miswriting.name: {
+                        NOISE_TYPES.leave_blank.name: {Keys.CELL_PROBABILITY: 0.01},
+                        NOISE_TYPES.choose_wrong_option.name: {Keys.CELL_PROBABILITY: 0.01},
+                        NOISE_TYPES.copy_from_household_member.name: {
+                            Keys.CELL_PROBABILITY: 0.01
+                        },
+                        NOISE_TYPES.swap_month_and_day.name: {Keys.CELL_PROBABILITY: 0.01},
+                        NOISE_TYPES.write_wrong_zipcode_digits.name: {
                             Keys.CELL_PROBABILITY: 0.01,
                             Keys.ZIPCODE_DIGIT_PROBABILITIES: [0.04, 0.04, 0.2, 0.36, 0.36],
                         },
-                        NOISE_TYPES.age_miswriting.name: {
+                        NOISE_TYPES.misreport_age.name: {
                             Keys.CELL_PROBABILITY: 0.01,
                             Keys.POSSIBLE_AGE_DIFFERENCES: [1, -1],
                         },
-                        NOISE_TYPES.numeric_miswriting.name: {
-                            Keys.CELL_PROBABILITY: 0.01,
-                            "numeric_miswriting": [0.1],
-                        },
-                        "nickname": {Keys.CELL_PROBABILITY: 0.01},
-                        NOISE_TYPES.fake_name.name: {Keys.CELL_PROBABILITY: 0.01},
-                        "phonetic": {
+                        NOISE_TYPES.write_wrong_digits.name: {
                             Keys.CELL_PROBABILITY: 0.01,
                             Keys.TOKEN_PROBABILITY: 0.1,
                         },
-                        "ocr": {
+                        NOISE_TYPES.use_nickname.name: {Keys.CELL_PROBABILITY: 0.01},
+                        NOISE_TYPES.use_fake_name.name: {Keys.CELL_PROBABILITY: 0.01},
+                        NOISE_TYPES.make_phonetic_errors.name: {
                             Keys.CELL_PROBABILITY: 0.01,
                             Keys.TOKEN_PROBABILITY: 0.1,
                         },
-                        NOISE_TYPES.typographic.name: {
+                        NOISE_TYPES.make_ocr_errors.name: {
+                            Keys.CELL_PROBABILITY: 0.01,
+                            Keys.TOKEN_PROBABILITY: 0.1,
+                        },
+                        NOISE_TYPES.make_typos.name: {
                             Keys.CELL_PROBABILITY: 0.01,
                             Keys.TOKEN_PROBABILITY: 0.1,
                         },
                     },
                 },
                 Keys.ROW_NOISE: {
-                    "duplication": {
+                    noise_type.name: {
                         Keys.ROW_PROBABILITY: 0.01,
-                    },
-                    NOISE_TYPES.omission.name: {
-                        Keys.ROW_PROBABILITY: 0.01,
-                    },
+                    }
+                    for noise_type in dataset.row_noise_types
                 },
             },
         }
     )
 
 
-def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
-    """From docs: "Noising should be applied in the following order: omissions, duplications,
-    missing data, incorrect selection, copy from w/in household, month and day
-    swaps, zip code miswriting, age miswriting, numeric miswriting, nicknames,
-    fake names, phonetic, OCR, typographic"
+@pytest.mark.parametrize(
+    "dataset",
+    list(DATASETS),
+)
+def test_noise_order(mocker, dummy_data, dataset):
+    """From docs: "Noising should be applied in the following order: omit_row,
+    do_not_respond, duplicate_row, leave_blank, choose_wrong_option,
+    copy_from_household_member, swap_month_and_day, write_wrong_zipcode_digits,
+    misreport_age, write_wrong_digits, use_nickname, use_fake_name,
+    make_phonetic_errors, make_ocr_errors, make_typos
     """
     mock = mocker.MagicMock()
     # Mock the noise_functions functions so that they are not actually called and
@@ -113,7 +118,8 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
     for field in NOISE_TYPES._fields:
         mock_return = (
             dummy_data[["event_type"]]
-            if field in ["omission", "duplication"]
+            if field
+            in [NOISE_TYPES.do_not_respond.name, NOISE_TYPES.omit_row.name, "duplicate_row"]
             else dummy_data["event_type"]
         )
         mock.attach_mock(
@@ -123,27 +129,53 @@ def test_noise_order(mocker, dummy_data, dummy_config_noise_numbers):
             ),
             field,
         )
+        if field not in [
+            NOISE_TYPES.do_not_respond.name,
+            NOISE_TYPES.omit_row.name,
+            "duplicate_row",
+        ]:
+            mock.attach_mock(
+                mocker.patch(
+                    f"pseudopeople.noise.NOISE_TYPES.{field}.additional_column_getter",
+                    return_value=[],
+                ),
+                field,
+            )
+            mock.attach_mock(
+                mocker.patch(
+                    f"pseudopeople.noise.NOISE_TYPES.{field}.noise_level_scaling_function",
+                    return_value=1,
+                ),
+                field,
+            )
 
+    # Get config for dataset
+    dummy_config = get_dummy_config_noise_numbers(dataset)
     # FIXME: would be better to mock the dataset instead of using census
-    noise_dataset(DATASETS.census, dummy_data, dummy_config_noise_numbers, 0)
+    noise_dataset(dataset, dummy_data, dummy_config, 0)
 
-    call_order = [x[0] for x in mock.mock_calls if not x[0].startswith("__")]
-    expected_call_order = [
-        "omission",
-        # "duplication",
-        "missing_data",
-        "incorrect_selection",
-        # "copy_from_within_household",
-        # "month_day_swap",
-        "zipcode_miswriting",
-        "age_miswriting",
-        "numeric_miswriting",
-        # "nickname",
-        "fake_name",
-        # "phonetic",
-        # "ocr",
-        "typographic",
+    # This is getting the string of each noise type. There are two mock calls
+    # being made to each noise type with how we are mocking noise type attirbutes
+    # above causing duplicates in the call list. Call order is each instance a noise
+    # function is called. Here we grab the string of the noise type for one mock method
+    # call and not the second method.
+    call_order = [x[0] for x in mock.mock_calls if type(x[1][0]) == str]
+    row_order = [row_noise_type.name for row_noise_type in dataset.row_noise_types]
+    column_order = [
+        NOISE_TYPES.leave_blank.name,
+        NOISE_TYPES.choose_wrong_option.name,
+        NOISE_TYPES.copy_from_household_member.name,
+        NOISE_TYPES.swap_month_and_day.name,
+        NOISE_TYPES.write_wrong_zipcode_digits.name,
+        NOISE_TYPES.misreport_age.name,
+        NOISE_TYPES.write_wrong_digits.name,
+        NOISE_TYPES.use_nickname.name,
+        NOISE_TYPES.use_fake_name.name,
+        NOISE_TYPES.make_phonetic_errors.name,
+        NOISE_TYPES.make_ocr_errors.name,
+        NOISE_TYPES.make_typos.name,
     ]
+    expected_call_order = row_order + column_order
 
     assert expected_call_order == call_order
 
@@ -158,7 +190,7 @@ def test_columns_noised(dummy_data):
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "event_type": {
-                        NOISE_TYPES.missing_data.name: {Keys.CELL_PROBABILITY: 0.1},
+                        NOISE_TYPES.leave_blank.name: {Keys.CELL_PROBABILITY: 0.1},
                     },
                 },
             },
@@ -180,7 +212,7 @@ def test_columns_noised(dummy_data):
         (generate_women_infants_and_children, DATASETS.wic),
         (generate_social_security, DATASETS.ssa),
         (generate_taxes_w2_and_1099, DATASETS.tax_w2_1099),
-        ("todo", "DATASETS.tax_1040"),
+        (generate_taxes_1040, DATASETS.tax_1040),
     ],
 )
 def test_correct_datasets_are_used(func, dataset, mocker):
@@ -216,10 +248,12 @@ def test_two_noise_functions_are_independent(mocker):
 
     class MockNoiseTypes(NamedTuple):
         ALPHA: ColumnNoiseType = ColumnNoiseType(
-            "alpha", lambda column, *_: column.str.cat(pd.Series("abc", index=column.index))
+            "alpha",
+            lambda data, *_: data.squeeze().str.cat(pd.Series("abc", index=data.index)),
         )
         BETA: ColumnNoiseType = ColumnNoiseType(
-            "beta", lambda column, *_: column.str.cat(pd.Series("123", index=column.index))
+            "beta",
+            lambda data, *_: data.squeeze().str.cat(pd.Series("123", index=data.index)),
         )
 
     mock_noise_types = MockNoiseTypes()

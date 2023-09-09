@@ -1,11 +1,11 @@
-state,relation_to_reference_person,sex,race_ethnicity,tax_form,event_type
-AL,Reference person,Female,White,W2,creation
-AK,Opp-sex spouse,Male,Black,1099,death
-AZ,Opp-sex partner,,Asian,,
-AR,Same-sex spouse,,AIAN,,
-CA,Same-sex partner,,NHOPI,,
-CO,Biological child,,Multiracial or Other,,
-CT,Adopted child,,Latino,,
+state,relationship_to_reference_person,sex,race_ethnicity,tax_form,event_type,housing_type
+AL,Reference person,Female,White,W2,creation,Household
+AK,Opposite-sex spouse,Male,Black,1099,death,Carceral
+AZ,Opposite-sex unmarried partner,,Asian,,Nursing home
+AR,Same-sex spouse,,AIAN,,Other institutional
+CA,Same-sex unmarried partner,,NHOPI,,College
+CO,Biological child,,Multiracial or Other,,Military
+CT,Adopted child,,Latino,,Other noninstitutional
 DE,Stepchild,,,,
 FL,Sibling,,,,
 GA,Parent,,,,
@@ -13,11 +13,11 @@ HI,Grandchild,,,,
 ID,Parent-in-law,,,,
 IL,Child-in-law,,,,
 IN,Other relative,,,,
-IA,Roommate,,,,
+IA,Roommate or housemate,,,,
 KS,Foster child,,,,
 KY,Other nonrelative,,,,
-LA,Institutionalized GQ pop,,,,
-ME,Noninstitutionalized GQ pop,,,,
+LA,Institutionalized group quarters population,,,,
+ME,Noninstitutionalized group quarters population,,,,
 MD,,,,,
 MA,,,,,
 MI,,,,,

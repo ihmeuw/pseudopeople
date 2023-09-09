@@ -1,11 +1,13 @@
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 import yaml
 from vivarium.config_tree import ConfigTree
 
-from pseudopeople.configuration import Keys
-from pseudopeople.configuration.validator import validate_user_configuration
+from pseudopeople.configuration import NO_NOISE, Keys
+from pseudopeople.configuration.validator import validate_overrides
+from pseudopeople.constants.data_values import DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY
+from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
 
@@ -14,29 +16,42 @@ from pseudopeople.schema_entities import COLUMNS, DATASETS
 DEFAULT_NOISE_VALUES = {
     DATASETS.census.name: {
         Keys.ROW_NOISE: {
-            NOISE_TYPES.omission.name: {
-                Keys.ROW_PROBABILITY: 0.0145,
+            NOISE_TYPES.do_not_respond.name: {
+                Keys.ROW_PROBABILITY: DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY[
+                    DATASETS.census.name
+                ],
             }
         },
     },
     DATASETS.acs.name: {
         Keys.ROW_NOISE: {
-            NOISE_TYPES.omission.name: {
-                Keys.ROW_PROBABILITY: 0.0145,
+            NOISE_TYPES.do_not_respond.name: {
+                Keys.ROW_PROBABILITY: DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY[
+                    DATASETS.acs.name
+                ],
             },
         },
     },
     DATASETS.cps.name: {
         Keys.ROW_NOISE: {
-            NOISE_TYPES.omission.name: {
-                Keys.ROW_PROBABILITY: 0.2905,
+            NOISE_TYPES.do_not_respond.name: {
+                Keys.ROW_PROBABILITY: DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY[
+                    DATASETS.cps.name
+                ],
             },
         },
     },
     DATASETS.tax_w2_1099.name: {
         Keys.ROW_NOISE: {
-            NOISE_TYPES.omission.name: {
+            NOISE_TYPES.omit_row.name: {
                 Keys.ROW_PROBABILITY: 0.005,
+            },
+        },
+        Keys.COLUMN_NOISE: {
+            COLUMNS.ssn.name: {
+                NOISE_TYPES.copy_from_household_member.name: {
+                    Keys.CELL_PROBABILITY: 0.00,
+                }
             },
         },
     },
@@ -48,28 +63,37 @@ DEFAULT_NOISE_VALUES = {
                     Keys.CELL_PROBABILITY: 0.0,
                 }
                 for noise_type in COLUMNS.ssn.noise_types
-            }
-        }
+            },
+        },
     },
 }
 
 
-def get_configuration(user_configuration: Union[Path, str, Dict] = None) -> ConfigTree:
+def get_configuration(overrides: Optional[Union[Path, str, Dict]] = None) -> ConfigTree:
     """
     Gets a noising configuration ConfigTree, optionally overridden by a user-provided YAML.
 
-    :param user_configuration: A path to the YAML file or a dictionary defining user overrides for the defaults
+    :param overrides: A path to the YAML file or a dictionary defining user overrides for the defaults
     :return: a ConfigTree object of the noising configuration
     """
 
-    noising_configuration = _generate_default_configuration()
-    if user_configuration:
-        add_user_configuration(noising_configuration, user_configuration)
+    if overrides == NO_NOISE:
+        is_no_noise = True
+        overrides = None
+    elif isinstance(overrides, (Path, str)):
+        with open(overrides, "r") as f:
+            overrides = yaml.full_load(f)
+        is_no_noise = False
+    else:
+        is_no_noise = False
+    noising_configuration = _generate_configuration(is_no_noise)
+    if overrides is not None:
+        add_overrides(noising_configuration, overrides)
 
     return noising_configuration
 
 
-def _generate_default_configuration() -> ConfigTree:
+def _generate_configuration(is_no_noise: bool) -> ConfigTree:
     default_config_layers = [
         "baseline",
         "default",
@@ -88,7 +112,11 @@ def _generate_default_configuration() -> ConfigTree:
         for row_noise in dataset.row_noise_types:
             row_noise_type_dict = {}
             if row_noise.row_probability is not None:
-                row_noise_type_dict[Keys.ROW_PROBABILITY] = row_noise.row_probability
+                if is_no_noise:
+                    noise_level = 0.0
+                else:
+                    noise_level = row_noise.row_probability
+                row_noise_type_dict[Keys.ROW_PROBABILITY] = noise_level
             if row_noise_type_dict:
                 row_noise_dict[row_noise.name] = row_noise_type_dict
 
@@ -98,9 +126,11 @@ def _generate_default_configuration() -> ConfigTree:
             for noise_type in column.noise_types:
                 column_noise_type_dict = {}
                 if noise_type.cell_probability is not None:
-                    column_noise_type_dict[
-                        Keys.CELL_PROBABILITY
-                    ] = noise_type.cell_probability
+                    if is_no_noise:
+                        noise_level = 0.0
+                    else:
+                        noise_level = noise_type.cell_probability
+                    column_noise_type_dict[Keys.CELL_PROBABILITY] = noise_level
                 if noise_type.additional_parameters is not None:
                     for key, value in noise_type.additional_parameters.items():
                         column_noise_type_dict[key] = value
@@ -122,46 +152,40 @@ def _generate_default_configuration() -> ConfigTree:
     noising_configuration.update(baseline_dict, layer="baseline")
 
     # Update configuration with non-baseline default values
-    noising_configuration.update(DEFAULT_NOISE_VALUES, layer="default")
+    if not is_no_noise:
+        noising_configuration.update(DEFAULT_NOISE_VALUES, layer="default")
     return noising_configuration
 
 
-def add_user_configuration(
-    noising_configuration: ConfigTree, user_configuration: Union[Path, str, Dict]
-) -> None:
-    if isinstance(user_configuration, (Path, str)):
-        with open(user_configuration, "r") as f:
-            user_configuration = yaml.full_load(f)
-
-    validate_user_configuration(user_configuration, noising_configuration)
-
-    user_configuration = _format_user_configuration(noising_configuration, user_configuration)
-    noising_configuration.update(user_configuration, layer="user")
+def add_overrides(noising_configuration: ConfigTree, overrides: Dict) -> None:
+    validate_overrides(overrides, noising_configuration)
+    overrides = _format_overrides(noising_configuration, overrides)
+    noising_configuration.update(overrides, layer="user")
 
 
-def _format_user_configuration(default_config: ConfigTree, user_dict: Dict) -> Dict:
+def _format_overrides(default_config: ConfigTree, user_dict: Dict) -> Dict:
     """Formats the user's configuration file as necessary, so it can properly
     update noising configuration to be used
     """
-    user_dict = _format_age_miswriting_perturbations(default_config, user_dict)
+    user_dict = _format_misreport_age_perturbations(default_config, user_dict)
     return user_dict
 
 
-def _format_age_miswriting_perturbations(default_config: ConfigTree, user_dict: Dict) -> Dict:
+def _format_misreport_age_perturbations(default_config: ConfigTree, user_dict: Dict) -> Dict:
     # Format any age perturbation lists as a dictionary with uniform probabilities
     for dataset in user_dict:
         user_perturbations = (
             user_dict[dataset]
             .get(Keys.COLUMN_NOISE, {})
             .get("age", {})
-            .get(NOISE_TYPES.age_miswriting.name, {})
+            .get(NOISE_TYPES.misreport_age.name, {})
             .get(Keys.POSSIBLE_AGE_DIFFERENCES, {})
         )
         if not user_perturbations:
             continue
         formatted = {}
         default_perturbations = default_config[dataset][Keys.COLUMN_NOISE]["age"][
-            NOISE_TYPES.age_miswriting.name
+            NOISE_TYPES.misreport_age.name
         ][Keys.POSSIBLE_AGE_DIFFERENCES]
         # Replace default configuration with 0 probabilities
         for perturbation in default_perturbations:
@@ -175,7 +199,7 @@ def _format_age_miswriting_perturbations(default_config: ConfigTree, user_dict: 
             for perturbation, prob in user_perturbations.items():
                 formatted[perturbation] = prob
 
-        user_dict[dataset][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.age_miswriting.name][
+        user_dict[dataset][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.misreport_age.name][
             Keys.POSSIBLE_AGE_DIFFERENCES
         ] = formatted
 
