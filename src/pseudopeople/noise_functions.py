@@ -263,8 +263,10 @@ def write_wrong_zipcode_digits(
     column = data[column_name]
     str_len = column.str.len()
     if (str_len != 5).sum() > 0:
+        # TODO: This is a BAD error message. It should never appear and if it
+        #   does, the user shouldn't be checking the simulated population data.
         raise ValueError(
-            "Zipcode data contains zipcodes that are not 5 digits long. Please check input data."
+            "Zipcode data contains zipcodes that are not 5 digits long. Please check simulated population data."
         )
 
     rng = np.random.default_rng(
