@@ -181,25 +181,43 @@ def generate_decennial_census(
     Generates a pseudopeople decennial census dataset which represents simulated
     responses to the US Census Bureau's Census of Population and Housing.
 
-    :param source: The root directory containing pseudopeople simulated population data. Defaults
-        to using the included sample population when source is `None`.
-    :param seed: An integer seed for randomness. Defaults to 0.
-    :param config: An optional override to the default configuration. Can be a path
-        to a configuration YAML file, a configuration dictionary,
-        or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
-        dataset without any configurable noise.
-    :param year: The year (format YYYY) to include in the dataset. Must be a decennial
-        year (e.g. 2020, 2030, 2040). Will raise a ValueError if there is no data for
-        this year. If None is provided, data for all years are
-        included in the dataset.
-    :param state: The state string to include in the dataset. Either full name or
+    :param source:
+        The root directory containing pseudopeople simulated population data.
+        Defaults to using the included sample population when source is `None`.
+
+    :param seed:
+        An integer seed for randomness. Defaults to 0.
+
+    :param config:
+        An optional override to the default configuration. Can be a path to a
+        configuration YAML file, a configuration dictionary, or the sentinel
+        value `pseudopeople.NO_NOISE`, which will generate a dataset without any
+        configurable noise.
+
+    :param year:
+        The year for which to generate a simulated decennial census of the
+        simulated population (format YYYY, e.g., 2030). Must be a decennial year
+        (e.g., 2020, 2030, 2040). Will raise a `ValueError` if there is no data
+        for the specified year. Default is 2020. If `None` is passed instead,
+        data for all available years are included in the returned dataset.
+
+    :param state:
+        The state string to include in the dataset. Either full name or
         abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
         no data for this state. If None is provided, data for all locations are
         included in the dataset.
-    :param verbose: Log with verbosity if `True`. Default is `False`.
-    :return: A `pandas.DataFrame` of simulated decennial census data.
-    :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
+
+    :param verbose:
+        Log with verbosity if `True`. Default is `False`.
+
+    :return:
+        A `pandas.DataFrame` of simulated decennial census data.
+
+    :raises ConfigurationError:
+        An incorrect config is provided.
+
+    :raises DataSourceError:
+        An incorrect pseudopeople simulated population data source is provided.
     """
     user_filters = []
     if year is not None:
@@ -229,24 +247,44 @@ def generate_american_community_survey(
     citizenship, education, income, language proficiency, migration, employment,
     disability, and housing characteristics.
 
-    :param source: The root directory containing pseudopeople simulated population data. Defaults
-        to using the included sample population when source is `None`.
-    :param seed: An integer seed for randomness. Defaults to 0.
-    :param config: An optional override to the default configuration. Can be a path
-        to a configuration YAML file, a configuration dictionary,
-        or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
-        dataset with all noise levels set to 0.
-    :param year: The survey date year (format YYYY) to include in the dataset. Will
-        raise a ValueError if there is no data for this year. If None is
-        provided, data from all years are included in the dataset.
-    :param state: The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is no
-        data for this state. If None is provided, data from all locations are
+    :param source:
+        The root directory containing pseudopeople simulated population data.
+        Defaults to using the included sample population when source is `None`.
+
+    :param seed:
+        An integer seed for randomness. Defaults to 0.
+
+    :param config:
+        An optional override to the default configuration. Can be a path to a
+        configuration YAML file, a configuration dictionary, or the sentinel
+        value `pseudopeople.NO_NOISE`, which will generate a dataset without any
+        configurable noise.
+
+    :param year:
+        The year for which to generate simulated American Community Surveys of
+        the simulated population (format YYYY, e.g., 2036); the simulated
+        dataset will contain records for surveys conducted on any date in the
+        specified year. Will raise a `ValueError` if there is no data for this
+        year. Default is 2020. If `None` is passed instead, data for all
+        available years are included in the returned dataset.
+
+    :param state:
+        The state string to include in the dataset. Either full name or
+        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
+        no data for this state. If None is provided, data from all locations are
         included in the dataset.
-    :param verbose: Log with verbosity if `True`. Default is `False`.
-    :return: A `pandas.DataFrame` of simulated ACS data.
-    :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
+
+    :param verbose:
+        Log with verbosity if `True`. Default is `False`.
+
+    :return:
+        A `pandas.DataFrame` of simulated ACS data.
+
+    :raises ConfigurationError:
+        An incorrect config is provided.
+
+    :raises DataSourceError:
+        An incorrect pseudopeople simulated population data source is provided.
     """
     user_filters = []
     if year is not None:
@@ -301,9 +339,11 @@ def generate_current_population_survey(
         to a configuration YAML file, a configuration dictionary,
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
-    :param year: The survey date year (format YYYY) to include in the dataset. Will
-        raise a ValueError if there is no data for this year. If None is
-        provided, data from all years are included in the dataset.
+    :param year: The year for which to generate simulated Current Population Surveys of the simulated population (format YYYY, e.g., 2036);
+        the simulated dataset will contain records for surveys conducted on any date in the specified year.
+        Will
+        raise a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all available years are
+        included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
         abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
         no data for this state. If None is provided, data from all locations are
@@ -359,9 +399,11 @@ def generate_taxes_w2_and_1099(
         to a configuration YAML file, a configuration dictionary,
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
-    :param year: The tax year (format YYYY) to include in the dataset. Will raise
-        a ValueError if there is no data for this year. If None is provided,
-        data from all years are included in the dataset.
+    :param year: The tax year for which to generate records (format YYYY, e.g., 2036);
+        the simulated dataset will contain the W2 & 1099 tax forms filed by simulated employers for the specified year.
+        Will raise
+        a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all available years are
+        included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
         abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
         no data for this state. If None is provided, data from all locations are
@@ -408,9 +450,11 @@ def generate_women_infants_and_children(
         to a configuration YAML file, a configuration dictionary,
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
-    :param year: The year (format YYYY) to include in the dataset. Will raise a
-        ValueError if there is no data for this year. If None is provided,
-        data from all years are included in the dataset.
+    :param year: The year for which to generate WIC administrative records (format YYYY, e.g., 2036);
+        the simulated dataset will contain records for simulants enrolled in WIC at the end of the specified year (or on May 1, 2041 if `year=2041` since that is the end date of the simulation).
+        Will raise a
+        `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all available years are
+        included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
         abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
         no data for this state. If None is provided, data from all locations are
@@ -449,9 +493,10 @@ def generate_social_security(
         to a configuration YAML file, a configuration dictionary,
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
-    :param year: The latest year (format YYYY) to include in the dataset; will also
-        include all previous years. Will raise a ValueError if there is no data for
-        this year. If None is provided, data from all years are included in the dataset.
+    :param year: The final year of simulated social security records to include in the dataset (format YYYY, e.g., 2036); will also
+        include records from all previous years. Will raise a `ValueError` if there is no data for
+        the specified year or any prior years. Default is 2020. If `None` is passed instead, data for all available years are
+        included in the returned dataset.
     :param verbose: Log with verbosity if `True`. Default is `False`.
     :return: A `pandas.DataFrame` of simulated SSA data.
     :raises ConfigurationError: An incorrect config is provided.
@@ -492,9 +537,10 @@ def generate_taxes_1040(
         to a configuration YAML file, a configuration dictionary,
         or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
-    :param year: The tax year (format YYYY) to include in the dataset. Will raise
-        a ValueError if there is no data with this year. If None is provided,
-        data from all years are included in the dataset.
+    :param year: The tax year for which to generate records (format YYYY, e.g., 2036);
+        the simulated dataset will contain the 1040 tax forms filed by simulants for the specified year. Will raise
+        a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all available years are
+        included in the returned dataset.
     :param state: The state string to include in the dataset. Either full name or
         abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
         no data with this state. If None is provided, data from all locations are
