@@ -20,6 +20,12 @@ def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
     if not isinstance(overrides, Dict):
         raise ConfigurationError("Invalid configuration type provided.") from None
     for dataset, dataset_config in overrides.items():
+        if not isinstance(dataset_config, Dict):
+            raise ConfigurationError(
+                f"'{dataset}' must be a Dict. "
+                f"Provided {dataset_config} of type {type(dataset_config)}."
+            )
+
         default_dataset_config = _get_default_config_node(default_config, dataset, "dataset")
         for key in dataset_config:
             _get_default_config_node(
@@ -29,7 +35,20 @@ def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
         default_row_noise_config = default_dataset_config[Keys.ROW_NOISE]
         default_column_noise_config = default_dataset_config[Keys.COLUMN_NOISE]
 
-        for noise_type, noise_type_config in dataset_config.get(Keys.ROW_NOISE, {}).items():
+        row_noise_config = dataset_config.get(Keys.ROW_NOISE, {})
+        if not isinstance(row_noise_config, Dict):
+            raise ConfigurationError(
+                f"'{Keys.ROW_NOISE}' of '{dataset}' must be a Dict. "
+                f"Provided {row_noise_config} of type {type(row_noise_config)}."
+            )
+
+        for noise_type, noise_type_config in row_noise_config.items():
+            if not isinstance(noise_type_config, Dict):
+                raise ConfigurationError(
+                    f"Row noise type '{noise_type}' of dataset '{dataset}' must be a Dict. "
+                    f"Provided {noise_type_config} of type {type(noise_type_config)}."
+                )
+
             default_noise_type_config = _get_default_config_node(
                 default_row_noise_config, noise_type, "noise type", dataset
             )
@@ -41,11 +60,30 @@ def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
                 DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP,
             )
 
-        for column, column_config in dataset_config.get(Keys.COLUMN_NOISE, {}).items():
+        column_noise_config = dataset_config.get(Keys.COLUMN_NOISE, {})
+        if not isinstance(column_noise_config, Dict):
+            raise ConfigurationError(
+                f"'{Keys.COLUMN_NOISE}' of '{dataset}' must be a Dict. "
+                f"Provided {column_noise_config} of type {type(column_noise_config)}."
+            )
+
+        for column, column_config in column_noise_config.items():
+            if not isinstance(column_config, Dict):
+                raise ConfigurationError(
+                    f"Column '{column}' of dataset '{dataset}' must be a Dict. "
+                    f"Provided {column_config} of type {type(column_config)}."
+                )
+
             default_column_config = _get_default_config_node(
                 default_column_noise_config, column, "column", dataset
             )
             for noise_type, noise_type_config in column_config.items():
+                if not isinstance(noise_type_config, Dict):
+                    raise ConfigurationError(
+                        f"Noise type '{noise_type}' of column '{column}' in dataset '{dataset}' must be a Dict. "
+                        f"Provided {noise_type_config} of type {type(noise_type_config)}."
+                    )
+
                 default_noise_type_config = _get_default_config_node(
                     default_column_config, noise_type, "noise type", dataset, column
                 )
