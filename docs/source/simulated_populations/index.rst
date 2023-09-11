@@ -66,10 +66,16 @@ The following table provides the SHA-256 checksum for the larger-scale simulated
     - File
     - SHA-256 checksum
   * - US
-    - pseudopeople_simulated_population_usa_1_0_1.zip
+    - pseudopeople_simulated_population_usa_2_0_0.zip
+    - 0025978196c2a84c1df502e857bec35a84c25092fbfb6b143c0b8ff30dea5eed
+  * - Rhode Island
+    - pseudopeople_simulated_population_ri_2_0_0.zip
+    - bfec148c947096b44201a7961a1b38f63961cd820578f10a479f623d8d79f0d1
+  * - US
+    - pseudopeople_simulated_population_usa_1_0_0.zip
     - 9462cc60b333fb2a3d16554a9e59b5428a81a2b1d2c34ed383883d7b68d2f89f
   * - Rhode Island
-    - pseudopeople_simulated_population_ri_1_0_1.zip
+    - pseudopeople_simulated_population_ri_1_0_0.zip
     - d3f1ccdfbfca8b53254c4ceeb18afe17c3d3b3fe02f56cc20d1254f818c39435
 
 If the SHA-256 checksum that

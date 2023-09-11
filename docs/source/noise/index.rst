@@ -52,9 +52,12 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
   * - Noise type
     - Config key
     - Example cause
+  * - Do not respond
+    - ``do_not_respond``
+    - Not returning the American Community Survey questionnaire that the US Census Bureau sent you
   * - Omit a row
     - ``omit_row``
-    - Neglecting to file a tax form on time
+    - Losing data because of an administrative error
 
 .. list-table:: Types of column-based noise (``column_noise``)
   :widths: 1 2 5
@@ -72,6 +75,9 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
   * - Choose the wrong option
     - ``choose_wrong_option``
     - Marking the "Male" box when you meant "Female"
+  * - Copy from household member
+    - ``copy_from_household_member``
+    - Accidentally writing your daughter's age in a box that asked about your son's age on a survey questionnaire
   * - Use a nickname
     - ``use_nickname``
     - Writing 'Alex' instead of legal name 'Alexander'
@@ -131,11 +137,11 @@ Noise types for each column
     - Last names use a different list of fake names than the list for first names. In the 1040 form, the same noise types apply to the last name columns for the joint filer and dependents
   * - Age
     - Decennial Census, ACS, CPS
-    - Leave a field blank, misreport age, make OCR errors, make typos
+    - Leave a field blank, copy from household member, misreport age, make OCR errors, make typos
     -
   * - Date of birth
     - Decennial Census, ACS, CPS, WIC, SSA
-    - Leave a field blank, swap month and day, write the wrong digits, make OCR errors, make typos
+    - Leave a field blank, copy from household member, swap month and day, write the wrong digits, make OCR errors, make typos
     -
   * - Street number for any address (physical, mailing, or employer)
     - Decennial Census, ACS, CPS, WIC, W-2 and 1099, 1040
@@ -183,9 +189,10 @@ Noise types for each column
     -
   * - SSN
     - W-2 and 1099, 1040, SSA
-    - Borrow a social security number, leave a field blank, write the wrong digits, make OCR errors, make typos
-    - Note that 'borrow a social security number' only applies to the W-2 and 1099 dataset.
-      In the 1040 form, the same noise types apply to the SSN columns for the joint filer and dependents
+    - Borrow a social security number, leave a field blank, copy from household member, write the wrong digits, make OCR errors, make typos
+    - Note that "borrow a social security number" only applies to the W-2 and 1099 dataset, and by default, "copy from household member" noise is turned off in this dataset (but can be turned on if desired).
+      In the SSA dataset, the SSN column has no column-based noise by default (but can be configured to have noise if desired).
+      In the 1040 form, the same noise types apply to the SSN columns for the joint filer and dependents.
   * - Wages
     - W-2 and 1099
     - Leave a field blank, write the wrong digits, make OCR errors, make typos
