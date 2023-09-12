@@ -293,10 +293,13 @@ def generate_american_community_survey(
 
     :param state:
 
-        The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if
-        there is no data for this state. If None is provided, data from
-        all locations are included in the dataset.
+        The US state for which to generate simulated American Community
+        Surveys of the simulated population, or `None` (default) to
+        generate data for all available US states. The returned dataset
+        will contain survey data for simulants living in the specified
+        state during the specified year. Can be a full state name or a
+        state abbreviation (e.g., "Ohio" or "OH"). Will raise a
+        `ValueError` if there is no data for this state.
 
     :param verbose:
 
@@ -391,10 +394,13 @@ def generate_current_population_survey(
 
     :param state:
 
-        The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if
-        there is no data for this state. If None is provided, data from
-        all locations are included in the dataset.
+        The US state for which to generate simulated Current Population
+        Surveys of the simulated population, or `None` (default) to
+        generate data for all available US states. The returned dataset
+        will contain survey data for simulants living in the specified
+        state during the specified year. Can be a full state name or a
+        state abbreviation (e.g., "Ohio" or "OH"). Will raise a
+        `ValueError` if there is no data for this state.
 
     :param verbose:
 
