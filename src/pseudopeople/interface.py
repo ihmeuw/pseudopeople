@@ -210,10 +210,13 @@ def generate_decennial_census(
 
     :param state:
 
-        The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if
-        there is no data for this state. If None is provided, data for
-        all locations are included in the dataset.
+        The US state for which to generate the simulated dataset. The
+        returned dataset will contain data for simulants living in the
+        specified state during the specified year. Can be either a full
+        state name or abbreviation (e.g., "Ohio" or "OH"). Will raise a
+        `ValueError` if there is no data for this state. If `None` is
+        provided (default), data for all US states are included in the
+        dataset.
 
     :param verbose:
 
