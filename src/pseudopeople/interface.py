@@ -573,10 +573,15 @@ def generate_women_infants_and_children(
 
     :param state:
 
-        The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if
-        there is no data for this state. If None is provided, data from
-        all locations are included in the dataset.
+        The US state for which to generate WIC administrative records
+        from the simulated population, or `None` (default) to generate
+        data for all available US states. The returned dataset will
+        contain records for enrolled simulants living in the specified
+        state at the end of the specified year (or on May 1, 2041 if
+        `year=2041` since that is the end date of the simulation). Can
+        be a full state name or a state abbreviation (e.g., "Ohio" or
+        "OH"). Will raise a `ValueError` if there is no data for this
+        state.
 
     :param verbose:
 
