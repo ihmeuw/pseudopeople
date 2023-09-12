@@ -178,46 +178,59 @@ def generate_decennial_census(
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
-    Generates a pseudopeople decennial census dataset which represents simulated
-    responses to the US Census Bureau's Census of Population and Housing.
+    Generates a pseudopeople decennial census dataset which represents
+    simulated responses to the US Census Bureau's Census of Population
+    and Housing.
 
     :param source:
-        The root directory containing pseudopeople simulated population data.
-        Defaults to using the included sample population when source is `None`.
+
+        The root directory containing pseudopeople simulated population
+        data. Defaults to using the included sample population when
+        source is `None`.
 
     :param seed:
+
         An integer seed for randomness. Defaults to 0.
 
     :param config:
-        An optional override to the default configuration. Can be a path to a
-        configuration YAML file, a configuration dictionary, or the sentinel
-        value `pseudopeople.NO_NOISE`, which will generate a dataset without any
-        configurable noise.
+
+        An optional override to the default configuration. Can be a path
+        to a configuration YAML file, a configuration dictionary, or the
+        sentinel value `pseudopeople.NO_NOISE`, which will generate a
+        dataset without any configurable noise.
 
     :param year:
-        The year for which to generate a simulated decennial census of the
-        simulated population (format YYYY, e.g., 2030). Must be a decennial year
-        (e.g., 2020, 2030, 2040). Will raise a `ValueError` if there is no data
-        for the specified year. Default is 2020. If `None` is passed instead,
-        data for all available years are included in the returned dataset.
+
+        The year for which to generate a simulated decennial census of
+        the simulated population (format YYYY, e.g., 2030). Must be a
+        decennial year (e.g., 2020, 2030, 2040). Will raise a
+        `ValueError` if there is no data for the specified year. Default
+        is 2020. If `None` is passed instead, data for all available
+        years are included in the returned dataset.
 
     :param state:
+
         The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
-        no data for this state. If None is provided, data for all locations are
-        included in the dataset.
+        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if
+        there is no data for this state. If None is provided, data for
+        all locations are included in the dataset.
 
     :param verbose:
+
         Log with verbosity if `True`. Default is `False`.
 
     :return:
+
         A `pandas.DataFrame` of simulated decennial census data.
 
     :raises ConfigurationError:
+
         An incorrect config is provided.
 
     :raises DataSourceError:
-        An incorrect pseudopeople simulated population data source is provided.
+
+        An incorrect pseudopeople simulated population data source is
+        provided.
     """
     user_filters = []
     if year is not None:
@@ -238,53 +251,66 @@ def generate_american_community_survey(
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
-    Generates a pseudopeople ACS dataset which represents simulated responses to
-    the ACS survey.
+    Generates a pseudopeople ACS dataset which represents simulated
+    responses to the ACS survey.
 
-    The American Community Survey (ACS) is an ongoing household survey conducted by
-    the US Census Bureau that gathers information on a rolling basis about
-    American community populations. Information collected includes ancestry,
-    citizenship, education, income, language proficiency, migration, employment,
-    disability, and housing characteristics.
+    The American Community Survey (ACS) is an ongoing household survey
+    conducted by the US Census Bureau that gathers information on a
+    rolling basis about American community populations. Information
+    collected includes ancestry, citizenship, education, income,
+    language proficiency, migration, employment, disability, and housing
+    characteristics.
 
     :param source:
-        The root directory containing pseudopeople simulated population data.
-        Defaults to using the included sample population when source is `None`.
+
+        The root directory containing pseudopeople simulated population
+        data. Defaults to using the included sample population when
+        source is `None`.
 
     :param seed:
+
         An integer seed for randomness. Defaults to 0.
 
     :param config:
-        An optional override to the default configuration. Can be a path to a
-        configuration YAML file, a configuration dictionary, or the sentinel
-        value `pseudopeople.NO_NOISE`, which will generate a dataset without any
-        configurable noise.
+
+        An optional override to the default configuration. Can be a path
+        to a configuration YAML file, a configuration dictionary, or the
+        sentinel value `pseudopeople.NO_NOISE`, which will generate a
+        dataset without any configurable noise.
 
     :param year:
-        The year for which to generate simulated American Community Surveys of
-        the simulated population (format YYYY, e.g., 2036); the simulated
-        dataset will contain records for surveys conducted on any date in the
-        specified year. Will raise a `ValueError` if there is no data for this
-        year. Default is 2020. If `None` is passed instead, data for all
-        available years are included in the returned dataset.
+
+        The year for which to generate simulated American Community
+        Surveys of the simulated population (format YYYY, e.g., 2036);
+        the simulated dataset will contain records for surveys conducted
+        on any date in the specified year. Will raise a `ValueError` if
+        there is no data for this year. Default is 2020. If `None` is
+        passed instead, data for all available years are included in the
+        returned dataset.
 
     :param state:
+
         The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
-        no data for this state. If None is provided, data from all locations are
-        included in the dataset.
+        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if
+        there is no data for this state. If None is provided, data from
+        all locations are included in the dataset.
 
     :param verbose:
+
         Log with verbosity if `True`. Default is `False`.
 
     :return:
+
         A `pandas.DataFrame` of simulated ACS data.
 
     :raises ConfigurationError:
+
         An incorrect config is provided.
 
     :raises DataSourceError:
-        An incorrect pseudopeople simulated population data source is provided.
+
+        An incorrect pseudopeople simulated population data source is
+        provided.
     """
     user_filters = []
     if year is not None:
@@ -322,36 +348,69 @@ def generate_current_population_survey(
     verbose: bool = False,
 ) -> pd.DataFrame:
     """
-    Generates a pseudopeople CPS dataset which represents simulated responses to
-    the CPS survey.
 
-    The Current Population Survey (CPS) is a household survey conducted by the
-    US Census Bureau and the US Bureau of Labor Statistics. This survey is administered
-    by Census Bureau field representatives across the country through both personal
-    and telephone interviews. CPS collects labor force data, such as annual work
-    activity and income, veteran status, school enrollment, contingent employment,
-    worker displacement, job tenure, and more.
+    Generates a pseudopeople CPS dataset which represents simulated
+    responses to the CPS survey.
 
-    :param source: The root directory containing pseudopeople simulated population data. Defaults
-        to using the included sample population when source is `None`.
-    :param seed: An integer seed for randomness. Defaults to 0.
-    :param config: An optional override to the default configuration. Can be a path
-        to a configuration YAML file, a configuration dictionary,
-        or the sentinel value `pseudopeople.NO_NOISE`, which will generate a
+    The Current Population Survey (CPS) is a household survey conducted
+    by the US Census Bureau and the US Bureau of Labor Statistics. This
+    survey is administered by Census Bureau field representatives across
+    the country through both personal and telephone interviews. CPS
+    collects labor force data, such as annual work activity and income,
+    veteran status, school enrollment, contingent employment, worker
+    displacement, job tenure, and more.
+
+    :param source:
+
+        The root directory containing pseudopeople simulated population
+        data. Defaults to using the included sample population when
+        source is `None`.
+
+    :param seed:
+
+        An integer seed for randomness. Defaults to 0.
+
+    :param config:
+
+        An optional override to the default configuration. Can be a path
+        to a configuration YAML file, a configuration dictionary, or the
+        sentinel value `pseudopeople.NO_NOISE`, which will generate a
         dataset without any configurable noise.
-    :param year: The year for which to generate simulated Current Population Surveys of the simulated population (format YYYY, e.g., 2036);
-        the simulated dataset will contain records for surveys conducted on any date in the specified year.
-        Will
-        raise a `ValueError` if there is no data for this year. Default is 2020. If `None` is passed instead, data for all available years are
-        included in the returned dataset.
-    :param state: The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if there is
-        no data for this state. If None is provided, data from all locations are
-        included in the dataset.
-    :param verbose: Log with verbosity if `True`. Default is `False`.
-    :return: A `pandas.DataFrame` of simulated CPS data.
-    :raises ConfigurationError: An incorrect config is provided.
-    :raises DataSourceError: An incorrect pseudopeople simulated population data source is provided.
+
+    :param year:
+
+        The year for which to generate simulated Current Population
+        Surveys of the simulated population (format YYYY, e.g., 2036);
+        the simulated dataset will contain records for surveys conducted
+        on any date in the specified year. Will raise a `ValueError` if
+        there is no data for this year. Default is 2020. If `None` is
+        passed instead, data for all available years are included in the
+        returned dataset.
+
+    :param state:
+
+        The state string to include in the dataset. Either full name or
+        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if
+        there is no data for this state. If None is provided, data from
+        all locations are included in the dataset.
+
+    :param verbose:
+
+        Log with verbosity if `True`. Default is `False`.
+
+    :return:
+
+        A `pandas.DataFrame` of simulated CPS data.
+
+    :raises ConfigurationError:
+
+        An incorrect config is provided.
+
+    :raises DataSourceError:
+
+        An incorrect pseudopeople simulated population data source is
+        provided.
+
     """
     user_filters = []
     if year is not None:
