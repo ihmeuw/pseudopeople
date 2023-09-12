@@ -486,10 +486,13 @@ def generate_taxes_w2_and_1099(
 
     :param state:
 
-        The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if
-        there is no data for this state. If None is provided, data from
-        all locations are included in the dataset.
+        The US state for which to generate tax records from the
+        simulated population, or `None` (default) to generate data for
+        all available US states. The returned dataset will contain W2 &
+        1099 tax forms filed for simulants living in the specified state
+        during the specified tax year. Can be a full state name or a
+        state abbreviation (e.g., "Ohio" or "OH"). Will raise a
+        `ValueError` if there is no data for this state.
 
     :param verbose:
 
@@ -712,10 +715,12 @@ def generate_taxes_1040(
 
     :param state:
 
-        The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if
-        there is no data with this state. If None is provided, data from
-        all locations are included in the dataset.
+        The US state for which to generate tax records from the
+        simulated population, or `None` (default) to generate data for
+        all available US states. The returned dataset will contain 1040 tax forms filed by simulants living in the specified state
+        during the specified tax year. Can be a full state name or a
+        state abbreviation (e.g., "Ohio" or "OH"). Will raise a
+        `ValueError` if there is no data for this state.
 
     :param verbose:
 
