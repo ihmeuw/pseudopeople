@@ -722,7 +722,8 @@ def generate_taxes_1040(
 
         The US state for which to generate tax records from the
         simulated population, or `None` (default) to generate data for
-        all available US states. The returned dataset will contain 1040 tax forms filed by simulants living in the specified state
+        all available US states. The returned dataset will contain 1040
+        tax forms filed by simulants living in the specified state
         during the specified tax year. Can be a full state name or a
         state abbreviation (e.g., "Ohio" or "OH"). Will raise a
         `ValueError` if there is no data for this state.
