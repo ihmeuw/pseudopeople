@@ -234,6 +234,10 @@ def generate_decennial_census(
 
         An incorrect pseudopeople simulated population data source is
         provided.
+
+    :raises ValueError:
+
+        There is no data for the specified year or state.
     """
     user_filters = []
     if year is not None:
@@ -317,6 +321,10 @@ def generate_american_community_survey(
 
         An incorrect pseudopeople simulated population data source is
         provided.
+
+    :raises ValueError:
+
+        There is no data for the specified year or state.
     """
     user_filters = []
     if year is not None:
@@ -418,6 +426,10 @@ def generate_current_population_survey(
 
         An incorrect pseudopeople simulated population data source is
         provided.
+
+    :raises ValueError:
+
+        There is no data for the specified year or state.
     """
     user_filters = []
     if year is not None:
@@ -510,6 +522,10 @@ def generate_taxes_w2_and_1099(
 
         An incorrect pseudopeople simulated population data source is
         provided.
+
+    :raises ValueError:
+
+        There is no data for the specified year or state.
     """
     user_filters = []
     if year is not None:
@@ -598,6 +614,10 @@ def generate_women_infants_and_children(
 
         An incorrect pseudopeople simulated population data source is
         provided.
+
+    :raises ValueError:
+
+        There is no data for the specified year or state.
     """
     user_filters = []
     if year is not None:
@@ -663,6 +683,10 @@ def generate_social_security(
 
         An incorrect pseudopeople simulated population data source is
         provided.
+
+    :raises ValueError:
+
+        There is no data for the specified year or any prior years.
     """
     user_filters = []
     if year is not None:
@@ -744,6 +768,10 @@ def generate_taxes_1040(
 
         An incorrect pseudopeople simulated population data source is
         provided.
+
+    :raises ValueError:
+
+        There is no data for the specified year or state.
     """
     user_filters = []
     if year is not None:
