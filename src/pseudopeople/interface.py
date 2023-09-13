@@ -226,11 +226,11 @@ def generate_decennial_census(
 
     :raises ConfigurationError:
 
-        An incorrect config is provided.
+        An invalid config is provided.
 
     :raises DataSourceError:
 
-        An incorrect pseudopeople simulated population data source is
+        An invalid pseudopeople simulated population data source is
         provided.
 
     :raises ValueError:
@@ -312,11 +312,11 @@ def generate_american_community_survey(
 
     :raises ConfigurationError:
 
-        An incorrect config is provided.
+        An invalid config is provided.
 
     :raises DataSourceError:
 
-        An incorrect pseudopeople simulated population data source is
+        An invalid pseudopeople simulated population data source is
         provided.
 
     :raises ValueError:
@@ -416,11 +416,11 @@ def generate_current_population_survey(
 
     :raises ConfigurationError:
 
-        An incorrect config is provided.
+        An invalid config is provided.
 
     :raises DataSourceError:
 
-        An incorrect pseudopeople simulated population data source is
+        An invalid pseudopeople simulated population data source is
         provided.
 
     :raises ValueError:
@@ -511,11 +511,11 @@ def generate_taxes_w2_and_1099(
 
     :raises ConfigurationError:
 
-        An incorrect config is provided.
+        An invalid config is provided.
 
     :raises DataSourceError:
 
-        An incorrect pseudopeople simulated population data source is
+        An invalid pseudopeople simulated population data source is
         provided.
 
     :raises ValueError:
@@ -602,11 +602,11 @@ def generate_women_infants_and_children(
 
     :raises ConfigurationError:
 
-        An incorrect config is provided.
+        An invalid config is provided.
 
     :raises DataSourceError:
 
-        An incorrect pseudopeople simulated population data source is
+        An invalid pseudopeople simulated population data source is
         provided.
 
     :raises ValueError:
@@ -671,11 +671,11 @@ def generate_social_security(
 
     :raises ConfigurationError:
 
-        An incorrect config is provided.
+        An invalid config is provided.
 
     :raises DataSourceError:
 
-        An incorrect pseudopeople simulated population data source is
+        An invalid pseudopeople simulated population data source is
         provided.
 
     :raises ValueError:
@@ -755,11 +755,11 @@ def generate_taxes_1040(
 
     :raises ConfigurationError:
 
-        An incorrect config is provided.
+        An invalid config is provided.
 
     :raises DataSourceError:
 
-        An incorrect pseudopeople simulated population data source is
+        An invalid pseudopeople simulated population data source is
         provided.
 
     :raises ValueError:
