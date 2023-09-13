@@ -210,10 +210,13 @@ def generate_decennial_census(
 
     :param state:
 
-        The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if
-        there is no data for this state. If None is provided, data for
-        all locations are included in the dataset.
+        The US state for which to generate a simulated census of the
+        simulated population, or `None` (default) to generate data for
+        all available US states. The returned dataset will contain data
+        for simulants living in the specified state on Census Day (April
+        1) of the specified year. Can be a full state name or a state
+        abbreviation (e.g., "Ohio" or "OH"). Will raise a `ValueError`
+        if there is no data for this state.
 
     :param verbose:
 
@@ -290,10 +293,13 @@ def generate_american_community_survey(
 
     :param state:
 
-        The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if
-        there is no data for this state. If None is provided, data from
-        all locations are included in the dataset.
+        The US state for which to generate simulated American Community
+        Surveys of the simulated population, or `None` (default) to
+        generate data for all available US states. The returned dataset
+        will contain survey data for simulants living in the specified
+        state during the specified year. Can be a full state name or a
+        state abbreviation (e.g., "Ohio" or "OH"). Will raise a
+        `ValueError` if there is no data for this state.
 
     :param verbose:
 
@@ -388,10 +394,13 @@ def generate_current_population_survey(
 
     :param state:
 
-        The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if
-        there is no data for this state. If None is provided, data from
-        all locations are included in the dataset.
+        The US state for which to generate simulated Current Population
+        Surveys of the simulated population, or `None` (default) to
+        generate data for all available US states. The returned dataset
+        will contain survey data for simulants living in the specified
+        state during the specified year. Can be a full state name or a
+        state abbreviation (e.g., "Ohio" or "OH"). Will raise a
+        `ValueError` if there is no data for this state.
 
     :param verbose:
 
@@ -477,10 +486,13 @@ def generate_taxes_w2_and_1099(
 
     :param state:
 
-        The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if
-        there is no data for this state. If None is provided, data from
-        all locations are included in the dataset.
+        The US state for which to generate tax records from the
+        simulated population, or `None` (default) to generate data for
+        all available US states. The returned dataset will contain W2 &
+        1099 tax forms filed for simulants living in the specified state
+        during the specified tax year. Can be a full state name or a
+        state abbreviation (e.g., "Ohio" or "OH"). Will raise a
+        `ValueError` if there is no data for this state.
 
     :param verbose:
 
@@ -561,10 +573,15 @@ def generate_women_infants_and_children(
 
     :param state:
 
-        The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if
-        there is no data for this state. If None is provided, data from
-        all locations are included in the dataset.
+        The US state for which to generate WIC administrative records
+        from the simulated population, or `None` (default) to generate
+        data for all available US states. The returned dataset will
+        contain records for enrolled simulants living in the specified
+        state at the end of the specified year (or on May 1, 2041 if
+        `year=2041` since that is the end date of the simulation). Can
+        be a full state name or a state abbreviation (e.g., "Ohio" or
+        "OH"). Will raise a `ValueError` if there is no data for this
+        state.
 
     :param verbose:
 
@@ -703,10 +720,13 @@ def generate_taxes_1040(
 
     :param state:
 
-        The state string to include in the dataset. Either full name or
-        abbreviation (e.g., "Ohio" or "OH"). Will raise a ValueError if
-        there is no data with this state. If None is provided, data from
-        all locations are included in the dataset.
+        The US state for which to generate tax records from the
+        simulated population, or `None` (default) to generate data for
+        all available US states. The returned dataset will contain 1040
+        tax forms filed by simulants living in the specified state
+        during the specified tax year. Can be a full state name or a
+        state abbreviation (e.g., "Ohio" or "OH"). Will raise a
+        `ValueError` if there is no data for this state.
 
     :param verbose:
 
