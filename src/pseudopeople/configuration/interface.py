@@ -6,8 +6,9 @@ from pseudopeople.configuration.generator import get_configuration
 
 def get_config(overrides: Union[Path, str, Dict] = None) -> Dict:
     """
-    Function that returns the pseudopeople configuration including all default values.
-    To get the default probability of nonresponse in the Decennial Census dataset:
+    Function that returns the pseudopeople configuration containing all
+    default values. To get the default probability of nonresponse in the
+    Decennial Census dataset:
 
     .. code-block:: pycon
 
@@ -15,7 +16,8 @@ def get_config(overrides: Union[Path, str, Dict] = None) -> Dict:
         >>> psp.get_config()['decennial_census']['row_noise']['do_not_respond']
         {'row_probability': 0.0145}
 
-    To view that same part of the configuration after applying a user override:
+    To view that same part of the configuration after applying a user
+    override:
 
     .. code-block:: pycon
 
@@ -23,12 +25,27 @@ def get_config(overrides: Union[Path, str, Dict] = None) -> Dict:
         >>> psp.get_config(overrides)['decenial_census']['row_noise']['do_not_respond']
         {'row_probability': 0.1}
 
-    :param overrides: An optional override to the default configuration. Can be
-        a path to a configuration YAML file or a dictionary. Passing a sentinel value
-        of psp.NO_NOISE will override default values and return a configuration
-        where all noise levels are set to 0.
-    :return: Dictionary of the config.
-    :raises ConfigurationError: An invalid configuration is passed with overrides.
+    :param overrides:
+
+        An optional set of overrides to the default configuration. Can
+        be a (nested) Python dictionary mapping noise type parameters to
+        the desired override values, a path to a YAML file with the same
+        nested structure (see the :ref:`configuration structure
+        <configuration_structure>` section of the documentation for
+        details), or the special sentinel value `pseudopeople.NO_NOISE`,
+        which will return a configuration in which all configurable
+        noise is set to zero. When passing a dictionary or YAML file, it
+        is not necessary to provide a complete configuration; any
+        configuration parameters not specified in `overrides` will be
+        filled in with the default values.
+
+    :return:
+
+        A complete configuration dictionary.
+
+    :raises ConfigurationError:
+
+        An invalid configuration is passed with `overrides`.
 
     """
     return get_configuration(overrides).to_dict()

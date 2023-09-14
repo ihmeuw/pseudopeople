@@ -25,6 +25,8 @@ from occurring at all.
 To learn more about the default settings, see :ref:`Noise Type Details <noise_type_details>`.
 You can access the defaults from your Python code by calling the :func:`pseudopeople.get_config` function.
 
+.. _configuration_structure:
+
 Configuration structure
 -----------------------
 
