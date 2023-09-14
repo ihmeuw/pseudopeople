@@ -226,7 +226,7 @@ def generate_decennial_census(
 
     :raises ConfigurationError:
 
-        An invalid config is provided.
+        An invalid `config` is provided.
 
     :raises DataSourceError:
 
@@ -312,7 +312,7 @@ def generate_american_community_survey(
 
     :raises ConfigurationError:
 
-        An invalid config is provided.
+        An invalid `config` is provided.
 
     :raises DataSourceError:
 
@@ -416,7 +416,7 @@ def generate_current_population_survey(
 
     :raises ConfigurationError:
 
-        An invalid config is provided.
+        An invalid `config` is provided.
 
     :raises DataSourceError:
 
@@ -511,7 +511,7 @@ def generate_taxes_w2_and_1099(
 
     :raises ConfigurationError:
 
-        An invalid config is provided.
+        An invalid `config` is provided.
 
     :raises DataSourceError:
 
@@ -602,7 +602,7 @@ def generate_women_infants_and_children(
 
     :raises ConfigurationError:
 
-        An invalid config is provided.
+        An invalid `config` is provided.
 
     :raises DataSourceError:
 
@@ -671,7 +671,7 @@ def generate_social_security(
 
     :raises ConfigurationError:
 
-        An invalid config is provided.
+        An invalid `config` is provided.
 
     :raises DataSourceError:
 
@@ -755,7 +755,7 @@ def generate_taxes_1040(
 
     :raises ConfigurationError:
 
-        An invalid config is provided.
+        An invalid `config` is provided.
 
     :raises DataSourceError:
 
