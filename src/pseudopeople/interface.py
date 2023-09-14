@@ -203,10 +203,9 @@ def generate_decennial_census(
 
         The year for which to generate a simulated decennial census of
         the simulated population (format YYYY, e.g., 2030). Must be a
-        decennial year (e.g., 2020, 2030, 2040). Will raise a
-        `ValueError` if there is no data for the specified year. Default
-        is 2020. If `None` is passed instead, data for all available
-        years are included in the returned dataset.
+        decennial year (e.g., 2020, 2030, 2040). Default is 2020. If
+        `None` is passed instead, data for all available years are
+        included in the returned dataset.
 
     :param state:
 
@@ -215,8 +214,7 @@ def generate_decennial_census(
         all available US states. The returned dataset will contain data
         for simulants living in the specified state on Census Day (April
         1) of the specified year. Can be a full state name or a state
-        abbreviation (e.g., "Ohio" or "OH"). Will raise a `ValueError`
-        if there is no data for this state.
+        abbreviation (e.g., "Ohio" or "OH").
 
     :param verbose:
 
@@ -228,12 +226,17 @@ def generate_decennial_census(
 
     :raises ConfigurationError:
 
-        An incorrect config is provided.
+        An invalid `config` is provided.
 
     :raises DataSourceError:
 
-        An incorrect pseudopeople simulated population data source is
+        An invalid pseudopeople simulated population data source is
         provided.
+
+    :raises ValueError:
+
+        The simulated population has no data for this dataset in the
+        specified year or state.
     """
     user_filters = []
     if year is not None:
@@ -286,8 +289,7 @@ def generate_american_community_survey(
         The year for which to generate simulated American Community
         Surveys of the simulated population (format YYYY, e.g., 2036);
         the simulated dataset will contain records for surveys conducted
-        on any date in the specified year. Will raise a `ValueError` if
-        there is no data for this year. Default is 2020. If `None` is
+        on any date in the specified year. Default is 2020. If `None` is
         passed instead, data for all available years are included in the
         returned dataset.
 
@@ -298,8 +300,7 @@ def generate_american_community_survey(
         generate data for all available US states. The returned dataset
         will contain survey data for simulants living in the specified
         state during the specified year. Can be a full state name or a
-        state abbreviation (e.g., "Ohio" or "OH"). Will raise a
-        `ValueError` if there is no data for this state.
+        state abbreviation (e.g., "Ohio" or "OH").
 
     :param verbose:
 
@@ -311,12 +312,17 @@ def generate_american_community_survey(
 
     :raises ConfigurationError:
 
-        An incorrect config is provided.
+        An invalid `config` is provided.
 
     :raises DataSourceError:
 
-        An incorrect pseudopeople simulated population data source is
+        An invalid pseudopeople simulated population data source is
         provided.
+
+    :raises ValueError:
+
+        The simulated population has no data for this dataset in the
+        specified year or state.
     """
     user_filters = []
     if year is not None:
@@ -387,8 +393,7 @@ def generate_current_population_survey(
         The year for which to generate simulated Current Population
         Surveys of the simulated population (format YYYY, e.g., 2036);
         the simulated dataset will contain records for surveys conducted
-        on any date in the specified year. Will raise a `ValueError` if
-        there is no data for this year. Default is 2020. If `None` is
+        on any date in the specified year. Default is 2020. If `None` is
         passed instead, data for all available years are included in the
         returned dataset.
 
@@ -399,8 +404,7 @@ def generate_current_population_survey(
         generate data for all available US states. The returned dataset
         will contain survey data for simulants living in the specified
         state during the specified year. Can be a full state name or a
-        state abbreviation (e.g., "Ohio" or "OH"). Will raise a
-        `ValueError` if there is no data for this state.
+        state abbreviation (e.g., "Ohio" or "OH").
 
     :param verbose:
 
@@ -412,12 +416,17 @@ def generate_current_population_survey(
 
     :raises ConfigurationError:
 
-        An incorrect config is provided.
+        An invalid `config` is provided.
 
     :raises DataSourceError:
 
-        An incorrect pseudopeople simulated population data source is
+        An invalid pseudopeople simulated population data source is
         provided.
+
+    :raises ValueError:
+
+        The simulated population has no data for this dataset in the
+        specified year or state.
     """
     user_filters = []
     if year is not None:
@@ -479,10 +488,9 @@ def generate_taxes_w2_and_1099(
 
         The tax year for which to generate records (format YYYY, e.g.,
         2036); the simulated dataset will contain the W2 & 1099 tax
-        forms filed by simulated employers for the specified year. Will
-        raise a `ValueError` if there is no data for this year. Default
-        is 2020. If `None` is passed instead, data for all available
-        years are included in the returned dataset.
+        forms filed by simulated employers for the specified year.
+        Default is 2020. If `None` is passed instead, data for all
+        available years are included in the returned dataset.
 
     :param state:
 
@@ -491,8 +499,7 @@ def generate_taxes_w2_and_1099(
         all available US states. The returned dataset will contain W2 &
         1099 tax forms filed for simulants living in the specified state
         during the specified tax year. Can be a full state name or a
-        state abbreviation (e.g., "Ohio" or "OH"). Will raise a
-        `ValueError` if there is no data for this state.
+        state abbreviation (e.g., "Ohio" or "OH").
 
     :param verbose:
 
@@ -504,12 +511,17 @@ def generate_taxes_w2_and_1099(
 
     :raises ConfigurationError:
 
-        An incorrect config is provided.
+        An invalid `config` is provided.
 
     :raises DataSourceError:
 
-        An incorrect pseudopeople simulated population data source is
+        An invalid pseudopeople simulated population data source is
         provided.
+
+    :raises ValueError:
+
+        The simulated population has no data for this dataset in the
+        specified year or state.
     """
     user_filters = []
     if year is not None:
@@ -566,8 +578,7 @@ def generate_women_infants_and_children(
         (format YYYY, e.g., 2036); the simulated dataset will contain
         records for simulants enrolled in WIC at the end of the
         specified year (or on May 1, 2041 if `year=2041` since that is
-        the end date of the simulation). Will raise a `ValueError` if
-        there is no data for this year. Default is 2020. If `None` is
+        the end date of the simulation). Default is 2020. If `None` is
         passed instead, data for all available years are included in the
         returned dataset.
 
@@ -580,8 +591,7 @@ def generate_women_infants_and_children(
         state at the end of the specified year (or on May 1, 2041 if
         `year=2041` since that is the end date of the simulation). Can
         be a full state name or a state abbreviation (e.g., "Ohio" or
-        "OH"). Will raise a `ValueError` if there is no data for this
-        state.
+        "OH").
 
     :param verbose:
 
@@ -592,12 +602,17 @@ def generate_women_infants_and_children(
 
     :raises ConfigurationError:
 
-        An incorrect config is provided.
+        An invalid `config` is provided.
 
     :raises DataSourceError:
 
-        An incorrect pseudopeople simulated population data source is
+        An invalid pseudopeople simulated population data source is
         provided.
+
+    :raises ValueError:
+
+        The simulated population has no data for this dataset in the
+        specified year or state.
     """
     user_filters = []
     if year is not None:
@@ -642,10 +657,9 @@ def generate_social_security(
 
         The final year of simulated social security records to include
         in the dataset (format YYYY, e.g., 2036); will also include
-        records from all previous years. Will raise a `ValueError` if
-        there is no data for the specified year or any prior years.
-        Default is 2020. If `None` is passed instead, data for all
-        available years are included in the returned dataset.
+        records from all previous years. Default is 2020. If `None` is
+        passed instead, data for all available years are included in the
+        returned dataset.
 
     :param verbose:
 
@@ -657,12 +671,17 @@ def generate_social_security(
 
     :raises ConfigurationError:
 
-        An incorrect config is provided.
+        An invalid `config` is provided.
 
     :raises DataSourceError:
 
-        An incorrect pseudopeople simulated population data source is
+        An invalid pseudopeople simulated population data source is
         provided.
+
+    :raises ValueError:
+
+        The simulated population has no data for this dataset in the
+        specified year or any prior years.
     """
     user_filters = []
     if year is not None:
@@ -713,9 +732,8 @@ def generate_taxes_1040(
 
         The tax year for which to generate records (format YYYY, e.g.,
         2036); the simulated dataset will contain the 1040 tax forms
-        filed by simulants for the specified year. Will raise a
-        `ValueError` if there is no data for this year. Default is 2020.
-        If `None` is passed instead, data for all available years are
+        filed by simulants for the specified year. Default is 2020. If
+        `None` is passed instead, data for all available years are
         included in the returned dataset.
 
     :param state:
@@ -725,8 +743,7 @@ def generate_taxes_1040(
         all available US states. The returned dataset will contain 1040
         tax forms filed by simulants living in the specified state
         during the specified tax year. Can be a full state name or a
-        state abbreviation (e.g., "Ohio" or "OH"). Will raise a
-        `ValueError` if there is no data for this state.
+        state abbreviation (e.g., "Ohio" or "OH").
 
     :param verbose:
 
@@ -738,12 +755,17 @@ def generate_taxes_1040(
 
     :raises ConfigurationError:
 
-        An incorrect config is provided.
+        An invalid `config` is provided.
 
     :raises DataSourceError:
 
-        An incorrect pseudopeople simulated population data source is
+        An invalid pseudopeople simulated population data source is
         provided.
+
+    :raises ValueError:
+
+        The simulated population has no data for this dataset in the
+        specified year or state.
     """
     user_filters = []
     if year is not None:
