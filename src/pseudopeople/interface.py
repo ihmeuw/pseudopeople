@@ -235,7 +235,7 @@ def generate_decennial_census(
 
     :raises ValueError:
 
-        The simulated population has no data for the specified year or
+        The simulated population has no data for this dataset in the specified year or
         state.
     """
     user_filters = []
