@@ -30,13 +30,14 @@ def get_config(overrides: Union[Path, str, Dict] = None) -> Dict:
         An optional set of overrides to the default configuration. Can
         be a (nested) Python dictionary mapping noise type parameters to
         the desired override values, a path to a YAML file with the same
-        :ref:`nested structure <configuration_structure>`, or the
-        special sentinel value `pseudopeople.NO_NOISE`, which will
-        return a configuration in which all configurable noise is set to
-        zero. When passing a dictionary or YAML file, it is not
-        necessary to provide a complete configuration; any configuration
-        parameters not specified in `overrides` will be filled in with
-        the default values.
+        nested structure (see the :ref:`configuration structure
+        <configuration_structure>` section of the documentation for
+        details), or the special sentinel value `pseudopeople.NO_NOISE`,
+        which will return a configuration in which all configurable
+        noise is set to zero. When passing a dictionary or YAML file, it
+        is not necessary to provide a complete configuration; any
+        configuration parameters not specified in `overrides` will be
+        filled in with the default values.
 
     :return:
 
