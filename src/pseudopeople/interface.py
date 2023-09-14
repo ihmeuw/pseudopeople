@@ -235,8 +235,8 @@ def generate_decennial_census(
 
     :raises ValueError:
 
-        The simulated population has no data for this dataset in the specified year or
-        state.
+        The simulated population has no data for this dataset in the
+        specified year or state.
     """
     user_filters = []
     if year is not None:
@@ -321,8 +321,8 @@ def generate_american_community_survey(
 
     :raises ValueError:
 
-        The simulated population has no data for the specified year or
-        state.
+        The simulated population has no data for this dataset in the
+        specified year or state.
     """
     user_filters = []
     if year is not None:
@@ -425,8 +425,8 @@ def generate_current_population_survey(
 
     :raises ValueError:
 
-        The simulated population has no data for the specified year or
-        state.
+        The simulated population has no data for this dataset in the
+        specified year or state.
     """
     user_filters = []
     if year is not None:
@@ -520,8 +520,8 @@ def generate_taxes_w2_and_1099(
 
     :raises ValueError:
 
-        The simulated population has no data for the specified year or
-        state.
+        The simulated population has no data for this dataset in the
+        specified year or state.
     """
     user_filters = []
     if year is not None:
@@ -611,8 +611,8 @@ def generate_women_infants_and_children(
 
     :raises ValueError:
 
-        The simulated population has no data for the specified year or
-        state.
+        The simulated population has no data for this dataset in the
+        specified year or state.
     """
     user_filters = []
     if year is not None:
@@ -680,8 +680,8 @@ def generate_social_security(
 
     :raises ValueError:
 
-        The simulated population has no data for the specified year or
-        any prior years.
+        The simulated population has no data for this dataset in the
+        specified year or any prior years.
     """
     user_filters = []
     if year is not None:
@@ -764,8 +764,8 @@ def generate_taxes_1040(
 
     :raises ValueError:
 
-        The simulated population has no data for the specified year or
-        state.
+        The simulated population has no data for this dataset in the
+        specified year or state.
     """
     user_filters = []
     if year is not None:
