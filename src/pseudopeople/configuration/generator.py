@@ -82,7 +82,7 @@ def get_configuration(overrides: Optional[Union[Path, str, Dict]] = None) -> Con
         overrides = None
     elif isinstance(overrides, (Path, str)):
         with open(overrides, "r") as f:
-            overrides = yaml.full_load(f)
+            overrides = yaml.safe_load(f)
         is_no_noise = False
     else:
         is_no_noise = False
