@@ -102,12 +102,10 @@ def _generate_dataset(
 
 
 def validate_source_compatibility(source: Path):
-    # TODO: Clean this up w/ metadata
+    # TODO [MIC-4546]: Clean this up w/ metadata and update test_interface.py tests to be generic
     changelog = source / "CHANGELOG.rst"
     if changelog.exists():
-        with open(changelog, "r") as file:
-            first_line = file.readline()
-        version = parse(first_line.split("**")[1].split("-")[0].strip())
+        version = _get_data_changelog_version(changelog)
         if version > parse("1.4.2"):
             raise DataSourceError(
                 f"The provided simulated population data is incompatible with this version of pseudopeople ({psp_version}).\n"
@@ -126,6 +124,13 @@ def validate_source_compatibility(source: Path):
             "An older version of simulated population data has been provided.\n"
             "Please either request updated simulated population data or downgrade the pseudopeople package."
         )
+
+
+def _get_data_changelog_version(changelog):
+    with open(changelog, "r") as file:
+        first_line = file.readline()
+    version = parse(first_line.split("**")[1].split("-")[0].strip())
+    return version
 
 
 def _coerce_dtypes(
