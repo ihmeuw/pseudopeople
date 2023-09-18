@@ -40,7 +40,9 @@ def simulated_data_changelog_path(tmpdir_factory):
 
 def test__get_data_changelog_version(simulated_data_changelog_path):
     """Test that the data version is extracted from the CHANGELOG correctly"""
-    assert _get_data_changelog_version(simulated_data_changelog_path / "CHANGELOG.rst") == parse("1.4.2")
+    assert _get_data_changelog_version(
+        simulated_data_changelog_path / "CHANGELOG.rst"
+    ) == parse("1.4.2")
 
 
 def mock_data_version(version, mocker):
