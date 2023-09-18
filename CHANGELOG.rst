@@ -1,3 +1,9 @@
+**0.7.1 - 09/18/23**
+ - Improved configuration validation
+ - Security patch for configuration file loading
+ - Fixed bug introduced by newest numpy release
+ - Improved docstrings
+
 **0.7.0 - 09/08/23**
  - Added generate_taxes_1040 function
  - Added copy_from_household_member noise type
