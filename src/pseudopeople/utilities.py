@@ -26,7 +26,7 @@ def vectorized_choice(
     randomness_stream: RandomnessStream,
     weights: Union[list, pd.Series] = None,
     additional_key: Any = None,
-):
+) -> pd.Series:
     """
     Function that takes a list of options and uses Vivarium common random numbers framework to make a given number
     of random choice selections.
@@ -54,7 +54,7 @@ def vectorized_choice(
 
     # for each p_i in probs, count how many elements of cdf for which p_i >= cdf_i
     chosen_indices = np.searchsorted(cdf, probs, side="right")
-    return np.take(options, chosen_indices)
+    return np.take(options, chosen_indices, axis=0)
 
 
 def get_index_to_noise(

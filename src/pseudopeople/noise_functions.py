@@ -531,7 +531,7 @@ def make_typos(
     :returns: pd.Series of column with noised data
     """
     with open(paths.QWERTY_ERRORS) as f:
-        qwerty_errors = yaml.full_load(f)
+        qwerty_errors = yaml.safe_load(f)
     qwerty_errors = pd.DataFrame.from_dict(qwerty_errors, orient="index")
     column = data[column_name]
     if column.empty:

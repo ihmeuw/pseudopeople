@@ -194,6 +194,59 @@ def test_format_miswrite_ages(age_differences, expected):
 
 
 @pytest.mark.parametrize(
+    "object_bad_type",
+    [
+        None,
+        "foo",
+        True,
+        4,
+        5.5,
+    ],
+)
+def test_type_checking_all_levels(object_bad_type):
+    # At the top level only:
+    # - A string can be passed, in which case it is interpreted as a file path
+    # - None can be passed, in which case the defaults will be used
+    if not isinstance(object_bad_type, str) and object_bad_type is not None:
+        with pytest.raises(ConfigurationError, match="Invalid configuration type"):
+            get_configuration(object_bad_type)
+
+    with pytest.raises(ConfigurationError, match="must be a Dict"):
+        get_configuration({DATASETS.acs.name: object_bad_type})
+
+    with pytest.raises(ConfigurationError, match="must be a Dict"):
+        get_configuration({DATASETS.acs.name: {Keys.ROW_NOISE: object_bad_type}})
+
+    with pytest.raises(ConfigurationError, match="must be a Dict"):
+        get_configuration(
+            {
+                DATASETS.acs.name: {
+                    Keys.ROW_NOISE: {NOISE_TYPES.do_not_respond.name: object_bad_type}
+                }
+            }
+        )
+
+    with pytest.raises(ConfigurationError, match="must be a Dict"):
+        get_configuration({DATASETS.acs.name: {Keys.COLUMN_NOISE: object_bad_type}})
+
+    with pytest.raises(ConfigurationError, match="must be a Dict"):
+        get_configuration(
+            {DATASETS.acs.name: {Keys.COLUMN_NOISE: {COLUMNS.age.name: object_bad_type}}}
+        )
+
+    with pytest.raises(ConfigurationError, match="must be a Dict"):
+        get_configuration(
+            {
+                DATASETS.acs.name: {
+                    Keys.COLUMN_NOISE: {
+                        COLUMNS.age.name: {NOISE_TYPES.leave_blank.name: object_bad_type}
+                    }
+                }
+            }
+        )
+
+
+@pytest.mark.parametrize(
     "config, match",
     [
         ({"fake_dataset": {}}, "Invalid dataset '.*' provided. Valid datasets are "),
@@ -313,6 +366,8 @@ def test_validate_standard_parameters_failures_column_noise(column_noise_type, v
     "perturbations, match",
     [
         (-1, "must be a Dict or List"),
+        ([], "empty"),
+        ({}, "empty"),
         ([-1, 0.4, 1], "must be a List of ints"),
         ({-1: 0.5, 0.4: 0.2, 1: 0.3}, "must be a List of ints"),
         ([-1, 0, 1], "cannot include 0"),
@@ -323,6 +378,8 @@ def test_validate_standard_parameters_failures_column_noise(column_noise_type, v
     ],
     ids=[
         "bad type",
+        "empty list",
+        "empty dict",
         "non-int keys list",
         "non-int keys dict",
         "include 0 list",
