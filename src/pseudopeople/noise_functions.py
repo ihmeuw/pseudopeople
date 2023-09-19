@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import yaml
 from vivarium import ConfigTree
-from vivarium.framework.randomness import RandomnessStream
+from vivarium.framework.randomness import RandomnessStream, get_hash
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import data_values, paths
@@ -263,11 +263,15 @@ def write_wrong_zipcode_digits(
     column = data[column_name]
     str_len = column.str.len()
     if (str_len != 5).sum() > 0:
+        # TODO: This is a BAD error message. It should never appear and if it
+        #   does, the user shouldn't be checking the simulated population data.
         raise ValueError(
-            "Zipcode data contains zipcodes that are not 5 digits long. Please check input data."
+            "Zipcode data contains zipcodes that are not 5 digits long. Please check simulated population data."
         )
 
-    rng = np.random.default_rng(randomness_stream.seed)
+    rng = np.random.default_rng(
+        get_hash(f"{randomness_stream.seed}_write_wrong_zipcode_digits")
+    )
     shape = (len(column), 5)
 
     # todo: Update when vectorized choice is improved
@@ -347,7 +351,7 @@ def write_wrong_digits(
         return column
     # This is a fix to not replacing the original token for noise options
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY] / 0.9
-    rng = np.random.default_rng(randomness_stream.seed)
+    rng = np.random.default_rng(get_hash(f"{randomness_stream.seed}_write_wrong_digits"))
     column = column.astype(str)
     max_str_length = column.str.len().max()
     same_len_col = column.str.pad(max_str_length, side="right")
@@ -477,7 +481,9 @@ def make_phonetic_errors(
         return err
 
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
-    rng = np.random.default_rng(seed=randomness_stream.seed)
+    rng = np.random.default_rng(
+        seed=get_hash(f"{randomness_stream.seed}_make_phonetic_errors")
+    )
     column = data[column_name]
     column = column.astype(str)
     for idx in column.index:
@@ -525,7 +531,7 @@ def make_typos(
     :returns: pd.Series of column with noised data
     """
     with open(paths.QWERTY_ERRORS) as f:
-        qwerty_errors = yaml.full_load(f)
+        qwerty_errors = yaml.safe_load(f)
     qwerty_errors = pd.DataFrame.from_dict(qwerty_errors, orient="index")
     column = data[column_name]
     if column.empty:
@@ -534,7 +540,7 @@ def make_typos(
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
     # TODO: remove this hard-coding
     include_token_probability_level = 0.1
-    rng = np.random.default_rng(seed=randomness_stream.seed)
+    rng = np.random.default_rng(seed=get_hash(f"{randomness_stream.seed}_make_typos"))
 
     # Make all strings the same length by padding with spaces
     max_str_length = column.str.len().max()
@@ -607,7 +613,7 @@ def make_ocr_errors(
 
     # Apply keyboard corrupt for OCR to column
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
-    rng = np.random.default_rng(seed=randomness_stream.seed)
+    rng = np.random.default_rng(seed=get_hash(f"{randomness_stream.seed}_make_ocr_errors"))
     column = data[column_name]
     column = column.astype(str)
     for idx in column.index:

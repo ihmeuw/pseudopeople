@@ -18,6 +18,14 @@ time between January 1st, 2019 and May 1st, 2041.
 Most datasets are yearly and can be generated for any year between 2019 and 2041 (inclusive),
 though 2041 data will be partial.
 
+There are two kinds of street addresses present in pseudopeople datasets:
+physical addresses and mailing addresses.
+A **physical address** represents the physical location where a simulant lives,
+which is where they are recorded in the Decennial Census and surveys.
+A **mailing address** represents the address a simulant uses to receive mail,
+which may be different -- for example, a PO box.
+Mailing addresses, not physical addresses, are recorded in tax filings.
+
 The datasets that can be generated are listed below.
 
 .. contents::
@@ -143,6 +151,10 @@ The following columns are included in this dataset:
      - :code:`household_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
        datasets.
+   * - Survey date
+     - :code:`survey_date`
+     - Date on which the survey was conducted; metadata that would not be collected directly; not affected by noise functions.
+       Stored as a ``pandas.Timestamp``, which displays in YYYY-MM-DD format by default.
    * - First name
      - :code:`first_name`
      -
@@ -231,6 +243,10 @@ The following columns are included in this dataset:
      - :code:`household_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
        datasets.
+   * - Survey date
+     - :code:`survey_date`
+     - Date on which the survey was conducted; metadata that would not be collected directly; not affected by noise functions.
+       Stored as a ``pandas.Timestamp``, which displays in YYYY-MM-DD format by default.
    * - First name
      - :code:`first_name`
      -
@@ -311,7 +327,7 @@ The following columns are included in this dataset:
      -
    * - Last name
      - :code:`last_name`
-     - 
+     -
    * - Date of birth
      - :code:`date_of_birth`
      - Formatted as MMDDYYYY.
@@ -374,6 +390,10 @@ The following columns are included in this dataset:
      - :code:`simulant_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
        datasets.
+   * - Social security number
+     - :code:`ssn`
+     - By default, the SSN column in the SSA dataset has no :ref:`column-based noise <column_noise>`.
+       However, it can be :ref:`configured <configuration_main>` to have noise if desired.
    * - First name
      - :code:`first_name`
      -
@@ -389,16 +409,12 @@ The following columns are included in this dataset:
    * - Sex
      - :code:`sex`
      - Binary; "male" or "female"
-   * - Social security number
-     - :code:`ssn`
-     - By default, the SSN column in the SSA dataset has no :ref:`column-based noise <column_noise>`.
-       However, it can be :ref:`configured <configuration_main>` to have noise if desired.
-   * - Date of event
-     - :code:`event_date`
-     - Formatted as YYYYMMDD.
    * - Type of event
      - :code:`event_type`
      - Possible values are "Creation" and "Death".
+   * - Date of event
+     - :code:`event_date`
+     - Formatted as YYYYMMDD.
 
 
 Tax forms: W-2 & 1099
@@ -429,41 +445,14 @@ The following columns are included in these datasets:
      - :code:`household_id`
      - Not affected by noise functions; intended use is "ground truth" for testing and validation; consistent across all
        datasets.
-   * - First name
-     - :code:`first_name`
-     -
-   * - Middle initial
-     - :code:`middle_initial`
-     -
-   * - Last name
-     - :code:`last_name`
-     -
-   * - Mailing address street number
-     - :code:`mailing_address_street_number`
-     -
-   * - Mailing address street name
-     - :code:`mailing_address_street_name`
-     -
-   * - Mailing address unit number
-     - :code:`mailing_address_unit_number`
-     -
-   * - Mailing address city
-     - :code:`mailing_address_city`
-     -
-   * - Mailing address state
-     - :code:`mailing_address_state`
-     -
-   * - Mailing address ZIP code
-     - :code:`mailing_address_zipcode`
+   * - Employer ID
+     - :code:`employer_id`
      -
    * - Social security number
      - :code:`ssn`
      -
    * - Wages
      - :code:`wages`
-     -
-   * - Employer ID
-     - :code:`employer_id`
      -
    * - Employer Name
      - :code:`employer_name`
@@ -486,6 +475,36 @@ The following columns are included in these datasets:
    * - Employer ZIP code
      - :code:`employer_zipcode`
      -
+   * - First name
+     - :code:`first_name`
+     -
+   * - Middle initial
+     - :code:`middle_initial`
+     -
+   * - Last name
+     - :code:`last_name`
+     -
+   * - Mailing address street number
+     - :code:`mailing_address_street_number`
+     -
+   * - Mailing address street name
+     - :code:`mailing_address_street_name`
+     -
+   * - Mailing address unit number
+     - :code:`mailing_address_unit_number`
+     -
+   * - Mailing address PO Box
+     - :code:`mailing_address_po_box`
+     -
+   * - Mailing address city
+     - :code:`mailing_address_city`
+     -
+   * - Mailing address state
+     - :code:`mailing_address_state`
+     -
+   * - Mailing address ZIP code
+     - :code:`mailing_address_zipcode`
+     -
    * - Type of tax form
      - :code:`tax_form`
      - Possible values are "W2" or "1099".
@@ -499,8 +518,36 @@ Tax form: 1040
 As with data collected from W-2 and 1099 forms, pseudopeople enables the simulation of administrative records from 1040 forms, which are
 also reported to the IRS on an annual basis. To find out more about the 1040 tax form, visit the `IRS information page <https://www.irs.gov/instructions/i1040gi>`_.
 
-Generate 1040 data with :func:`pseudopeople.generate_taxes_1040`.
+A single row in a pseudopeople-generated 1040 dataset may contain information about several
+simulants: the primary filer, the primary filer's joint filer (spouse) if they are married filing
+jointly, and up to four claimed dependents.
+When not applicable, all relevant fields are :code:`numpy.nan`;
+for example, a row representing a 1040 filed by only one simulant, without a joint filer,
+would have missingness in all joint filer columns.
 
+If a simulant claims fewer than four dependents, they will be filled in starting
+with :code:`dependent_1`.
+For example, a simulant claiming three dependents would have missingness in all
+:code:`dependent_4` columns.
+A simulant may claim more than four dependents, but only four will appear in the
+dataset; the rest are omitted.
+
+All columns not otherwise labeled are about the primary filer;
+for example, the :code:`first_name` column is the first name of the primary filer.
+The :code:`simulant_id` and :code:`household_id` columns represent the "ground truth"
+of which simulant is the primary filer, and which household *that primary filer* lives
+in.
+It is not guaranteed that all simulants described in a 1040 row live in the same household;
+for example, college students may be claimed as dependents while living elsewhere.
+
+A single simulant can appear in multiple rows in this dataset,
+for example if they filed a 1040 and were also claimed as a dependent on another
+simulant's 1040.
+
+This is a yearly dataset, where the user-specified year is the **tax year** of the data.
+1040 data can be generated for tax years 2019 through 2040 (inclusive).
+
+Generate 1040 data with :func:`pseudopeople.generate_taxes_1040`.
 
 The following columns are included in this dataset:
 
@@ -527,6 +574,9 @@ The following columns are included in this dataset:
    * - Last name
      - :code:`last_name`
      -
+   * - Social Security Number (SSN)
+     - :code:`ssn`
+     - Individual Taxpayer Identification Number (ITIN) if no SSN
    * - Mailing address street number
      - :code:`mailing_address_street_number`
      -
@@ -548,9 +598,6 @@ The following columns are included in this dataset:
    * - Mailing address ZIP code
      - :code:`mailing_address_zipcode`
      -
-   * - Social Security Number (SSN)
-     - :code:`ssn`
-     - Individual Taxpayer Identification Number (ITIN) if no SSN
    * - Joint filer first name
      - :code:`spouse_first_name`
      -

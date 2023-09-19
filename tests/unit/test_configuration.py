@@ -194,6 +194,59 @@ def test_format_miswrite_ages(age_differences, expected):
 
 
 @pytest.mark.parametrize(
+    "object_bad_type",
+    [
+        None,
+        "foo",
+        True,
+        4,
+        5.5,
+    ],
+)
+def test_type_checking_all_levels(object_bad_type):
+    # At the top level only:
+    # - A string can be passed, in which case it is interpreted as a file path
+    # - None can be passed, in which case the defaults will be used
+    if not isinstance(object_bad_type, str) and object_bad_type is not None:
+        with pytest.raises(ConfigurationError, match="Invalid configuration type"):
+            get_configuration(object_bad_type)
+
+    with pytest.raises(ConfigurationError, match="must be a Dict"):
+        get_configuration({DATASETS.acs.name: object_bad_type})
+
+    with pytest.raises(ConfigurationError, match="must be a Dict"):
+        get_configuration({DATASETS.acs.name: {Keys.ROW_NOISE: object_bad_type}})
+
+    with pytest.raises(ConfigurationError, match="must be a Dict"):
+        get_configuration(
+            {
+                DATASETS.acs.name: {
+                    Keys.ROW_NOISE: {NOISE_TYPES.do_not_respond.name: object_bad_type}
+                }
+            }
+        )
+
+    with pytest.raises(ConfigurationError, match="must be a Dict"):
+        get_configuration({DATASETS.acs.name: {Keys.COLUMN_NOISE: object_bad_type}})
+
+    with pytest.raises(ConfigurationError, match="must be a Dict"):
+        get_configuration(
+            {DATASETS.acs.name: {Keys.COLUMN_NOISE: {COLUMNS.age.name: object_bad_type}}}
+        )
+
+    with pytest.raises(ConfigurationError, match="must be a Dict"):
+        get_configuration(
+            {
+                DATASETS.acs.name: {
+                    Keys.COLUMN_NOISE: {
+                        COLUMNS.age.name: {NOISE_TYPES.leave_blank.name: object_bad_type}
+                    }
+                }
+            }
+        )
+
+
+@pytest.mark.parametrize(
     "config, match",
     [
         ({"fake_dataset": {}}, "Invalid dataset '.*' provided. Valid datasets are "),
@@ -313,6 +366,8 @@ def test_validate_standard_parameters_failures_column_noise(column_noise_type, v
     "perturbations, match",
     [
         (-1, "must be a Dict or List"),
+        ([], "empty"),
+        ({}, "empty"),
         ([-1, 0.4, 1], "must be a List of ints"),
         ({-1: 0.5, 0.4: 0.2, 1: 0.3}, "must be a List of ints"),
         ([-1, 0, 1], "cannot include 0"),
@@ -323,6 +378,8 @@ def test_validate_standard_parameters_failures_column_noise(column_noise_type, v
     ],
     ids=[
         "bad type",
+        "empty list",
+        "empty dict",
         "non-int keys list",
         "non-int keys dict",
         "include 0 list",
@@ -396,17 +453,13 @@ def test_get_config(caplog):
     assert isinstance(config_1, dict)
     assert not caplog.records
 
-    config_2 = get_config("decennial_census", overrides)
-    assert isinstance(config_2, dict)
-    assert "not in the user provided configuration" in caplog.text
+    with pytest.raises(FileNotFoundError, match="No such file or directory"):
+        get_config("Bad_file_path")
 
-    with pytest.raises(ConfigurationError, match="bad_form_name"):
-        get_config("bad_form_name")
-
-    config_3 = get_config(overrides=NO_NOISE)
-    for dataset in config_3.keys():
-        row_noise_dict = config_3[dataset][Keys.ROW_NOISE]
-        column_dict = config_3[dataset][Keys.COLUMN_NOISE]
+    config_2 = get_config(overrides=NO_NOISE)
+    for dataset in config_2.keys():
+        row_noise_dict = config_2[dataset][Keys.ROW_NOISE]
+        column_dict = config_2[dataset][Keys.COLUMN_NOISE]
         for row_noise in row_noise_dict:
             assert row_noise_dict[row_noise][Keys.ROW_PROBABILITY] == 0.0
         for column in column_dict:
@@ -435,6 +488,7 @@ def test_validate_nickname_configuration(caplog):
     """
     config_values = [0.45, 0.65]
     for config_value in config_values:
+        caplog.clear()
         get_configuration(
             {
                 DATASETS.census.name: {
@@ -451,7 +505,41 @@ def test_validate_nickname_configuration(caplog):
         if config_value == 0.45:
             assert not caplog.records
         else:
-            assert "Noise level has been adjusted" in caplog.text
+            assert "Replacing as many names with nicknames as possible" in caplog.text
+
+
+def test_validate_choose_wrong_option_configuration(caplog):
+    """
+    Tests that warning is thrown if cell probability is higher than possible given the
+    number of options.
+    """
+    column_maximums = {
+        "sex": 1 / 2,  # even if you noise all of the cells, only 1 / 2 will actually be wrong
+        "state": 50 / 51,  # likewise, but with many more categories (51)
+    }
+    config_values = [0.1, 0.4, 0.5, 0.6, 1]
+    for column, maximum in column_maximums.items():
+        caplog.clear()
+        for config_value in config_values:
+            get_configuration(
+                {
+                    DATASETS.census.name: {
+                        Keys.COLUMN_NOISE: {
+                            column: {
+                                NOISE_TYPES.choose_wrong_option.name: {
+                                    Keys.CELL_PROBABILITY: config_value,
+                                },
+                            },
+                        },
+                    },
+                },
+            )
+            if config_value <= maximum:
+                assert not caplog.records
+            else:
+                assert (
+                    "This maximum will be used instead of the configured value" in caplog.text
+                )
 
 
 def test_no_noise():
@@ -469,25 +557,3 @@ def test_no_noise():
             column_noise_dict = dataset_column_dict[column]
             for column_noise_type in column_noise_dict.keys():
                 assert column_noise_dict[column_noise_type][Keys.CELL_PROBABILITY] == 0.0
-
-
-@pytest.mark.parametrize(
-    "dataset_name",
-    [x.name for x in DATASETS] + [None],
-)
-def test_get_config_dataset_name_key(dataset_name):
-    """Tests that the dataset name is returned as the first key"""
-    outer_keys = set(get_config(dataset_name).keys())
-    if dataset_name:
-        assert outer_keys == {dataset_name}
-    else:
-        # TODO: Convert pseudopeople.constants.metadata::DatasetNames to a NamedTuple
-        assert outer_keys == {x.name for x in DATASETS}
-
-
-def test_get_config_bad_dataset_name_fails():
-    """Tests that an error is raised if a bad dataset name is provided"""
-    with pytest.raises(
-        ConfigurationError, match="'foo' provided but is not a valid option for dataset type"
-    ):
-        get_config("foo")

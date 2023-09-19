@@ -36,7 +36,8 @@ def load_standard_dataset(
         # memory on a single machine, which mostly beats the point.
         # This has been fixed in the master branch of Modin's GitHub, but we can't use a bleeding edge version
         # because it requires pandas>=2.0.0 which Vivarium doesn't support yet.
-        # For now, install modin from the modin_22_backport_parquet_filters branch at https://github.com/zmbc/modin
+        # For now, install modin from the modin_22_3_backport_parquet_filters branch at https://github.com/zmbc/modin:
+        # pip install git+https://github.com/zmbc/modin.git@modin_22_3_backport_parquet_filters
         data = mpd.read_parquet(str(data_path), filters=user_filters)
 
     if not isinstance(data, engine.dataframe_class):

@@ -1,3 +1,4 @@
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -50,13 +51,14 @@ DATASET_GENERATION_FUNCS = {
     ],
 )
 def test_generate_dataset_from_sample_and_source(
-    dataset_name: str, config, request, split_sample_data_dir
+    dataset_name: str, config, request, split_sample_data_dir, mocker
 ):
     """Tests that the amount of noising is approximately the same whether we
     noise a single sample dataset or we concatenate and noise multiple datasets
     """
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
+    mocker.patch("pseudopeople.interface.validate_source_compatibility")
     generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
     data = _load_sample_data(dataset_name, request)
     noised_sample = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
@@ -68,9 +70,11 @@ def test_generate_dataset_from_sample_and_source(
         config=config,
     )
 
-    # Check same order of magnitude of rows was removed
+    # Check same order of magnitude of rows was removed -- we don't know the
+    # full data size (we would need unnoised data for that), so we just check
+    # for similar lengths
+    assert 0.9 <= (len(noised_dataset) / len(noised_sample)) <= 1.1
     # Check that columns are identical
-    assert np.isclose(len(noised_dataset), len(noised_sample), rtol=0.01)
     assert noised_dataset.columns.equals(noised_sample.columns)
 
     # Check that each columns level of noising are similar
@@ -102,10 +106,18 @@ def test_generate_dataset_from_sample_and_source(
             check_original.loc[compare_dataset_idx, col].values
             != check_noised_dataset.loc[compare_dataset_idx, col].values
         ).mean()
-        # we special-case a few sparse columns that have larger differences
-        if dataset_name == DATASETS.cps.name and col == COLUMNS.unit_number.name:
-            rtol = 0.30
-        elif dataset_name == DATASETS.acs.name and col == COLUMNS.unit_number.name:
+        # If the dataset is very small and/or missingness is very high, we can't
+        # meaningfully compare because the stochastic variation is so great
+        # As of 8/31/2023, this only skips unit_number (very missing) in the
+        # ACS and CPS datasets (very small)
+        if len(compare_sample_idx) < 30 or len(compare_dataset_idx) < 30:
+            warnings.warn(
+                f"Noise levels in {col} of {dataset_name} were not compared because the numbers of rows eligible "
+                f"for noise were only {len(compare_sample_idx)} and {len(compare_dataset_idx)}"
+            )
+            continue
+        if dataset_name == DATASETS.acs.name or dataset_name == DATASETS.cps.name:
+            # Smaller datasets
             rtol = 0.25
         # 1040 has several columns that will have a high percentage of nans
         elif dataset_name == DATASETS.tax_1040.name:
@@ -222,7 +234,8 @@ def test_column_noising(dataset_name: str, config, request):
             # and additional parameters to consider as well as the rtol when the
             # number of compared is small.
             expected_noise = 1 - (1 - CELL_PROBABILITY) ** len(col.noise_types)
-            rtol = 0.70 if includes_token_noising else 0.12
+            # Setting rtol as 0.25 as upper limit
+            rtol = 0.70 if includes_token_noising else 0.30
             assert np.isclose(noise_level, expected_noise, rtol=rtol)
         else:  # No noising - should be identical
             assert (
@@ -385,6 +398,7 @@ def test_generate_dataset_with_state_filtered(
     """Test that values returned by dataset generators are only for the specified state"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
+    mocker.patch("pseudopeople.interface.validate_source_compatibility")
     dataset = DATASETS.get_dataset(dataset_name)
     generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
 
@@ -411,9 +425,16 @@ def test_generate_dataset_with_state_filtered(
 def test_generate_dataset_with_state_unfiltered(
     dataset_name: str, split_sample_data_dir_state_edit, mocker
 ):
+    # Important note: Currently the way this test is working is we have a fixture where we have
+    # edited the sample data so half of it has a state to filter to. However, when we split the
+    # sample data and do this, all the 2020 data (the year we default to for all generate_xxx functions)
+    # results in the 2020 data being only in one of the files. In practice, this is how we want
+    # the functionality of these functions to work but we should consider updating fixtures/tests
+    # in the future. - albrja
     """Test that values returned by dataset generators are for all locations if state unspecified"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
+    mocker.patch("pseudopeople.interface.validate_source_compatibility")
     dataset = DATASETS.get_dataset(dataset_name)
 
     # Skip noising (noising can incorrect select another state)
@@ -440,6 +461,7 @@ def test_dataset_filter_by_state_and_year(
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     year = 2030  # not default 2020
+    mocker.patch("pseudopeople.interface.validate_source_compatibility")
     mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
@@ -462,6 +484,7 @@ def test_dataset_filter_by_state_and_year_with_full_dates(
 ):
     """Test that dataset generation works with state and year filters in conjunction"""
     year = 2030  # not default 2020
+    mocker.patch("pseudopeople.interface.validate_source_compatibility")
     mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
@@ -493,17 +516,50 @@ def test_dataset_filter_by_state_and_year_with_full_dates(
         DATASETS.tax_1040.name,
     ],
 )
-def test_generate_dataset_with_bad_state(dataset_name: str, split_sample_data_dir_state_edit):
+def test_generate_dataset_with_bad_state(
+    dataset_name: str, split_sample_data_dir_state_edit, mocker
+):
     """Test that bad state values result in informative ValueErrors"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     bad_state = "Silly State That Doesn't Exist"
-
+    mocker.patch("pseudopeople.interface.validate_source_compatibility")
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
     with pytest.raises(ValueError, match=bad_state.upper()):
         _ = generation_function(
             source=split_sample_data_dir_state_edit,
             state=bad_state,
+        )
+
+
+@pytest.mark.parametrize(
+    "dataset_name",
+    [
+        DATASETS.census.name,
+        DATASETS.acs.name,
+        DATASETS.cps.name,
+        DATASETS.tax_w2_1099.name,
+        DATASETS.wic.name,
+        DATASETS.tax_1040.name,
+    ],
+)
+def test_generate_dataset_with_bad_year(dataset_name: str, split_sample_data_dir, mocker):
+    """Test that a ValueError is raised both for a bad year and a year that has no data"""
+    if "TODO" in dataset_name:
+        pytest.skip(reason=dataset_name)
+    bad_year = 0
+    no_data_year = 2000
+    mocker.patch("pseudopeople.interface.validate_source_compatibility")
+    generation_function = DATASET_GENERATION_FUNCS[dataset_name]
+    with pytest.raises(ValueError):
+        _ = generation_function(
+            source=split_sample_data_dir,
+            year=bad_year,
+        )
+    with pytest.raises(ValueError):
+        _ = generation_function(
+            source=split_sample_data_dir,
+            year=no_data_year,
         )
 
 

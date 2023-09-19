@@ -66,17 +66,6 @@ DEFAULT_NOISE_VALUES = {
             },
         },
     },
-    # No noise for date in tax w2 1099 dataset
-    DATASETS.tax_w2_1099.name: {
-        Keys.COLUMN_NOISE: {
-            COLUMNS.dob.name: {
-                noise_type.name: {
-                    Keys.CELL_PROBABILITY: 0.0,
-                }
-                for noise_type in COLUMNS.dob.noise_types
-            },
-        },
-    },
 }
 
 
@@ -93,7 +82,7 @@ def get_configuration(overrides: Optional[Union[Path, str, Dict]] = None) -> Con
         overrides = None
     elif isinstance(overrides, (Path, str)):
         with open(overrides, "r") as f:
-            overrides = yaml.full_load(f)
+            overrides = yaml.safe_load(f)
         is_no_noise = False
     else:
         is_no_noise = False

@@ -8,6 +8,7 @@ from pseudopeople.configuration import Keys
 from pseudopeople.constants import metadata
 from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.noise_entities import NOISE_TYPES
+from pseudopeople.noise_scaling import get_options_for_column
 
 
 def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
@@ -19,6 +20,12 @@ def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
     if not isinstance(overrides, Dict):
         raise ConfigurationError("Invalid configuration type provided.") from None
     for dataset, dataset_config in overrides.items():
+        if not isinstance(dataset_config, Dict):
+            raise ConfigurationError(
+                f"'{dataset}' must be a Dict. "
+                f"Provided {dataset_config} of type {type(dataset_config)}."
+            )
+
         default_dataset_config = _get_default_config_node(default_config, dataset, "dataset")
         for key in dataset_config:
             _get_default_config_node(
@@ -28,7 +35,20 @@ def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
         default_row_noise_config = default_dataset_config[Keys.ROW_NOISE]
         default_column_noise_config = default_dataset_config[Keys.COLUMN_NOISE]
 
-        for noise_type, noise_type_config in dataset_config.get(Keys.ROW_NOISE, {}).items():
+        row_noise_config = dataset_config.get(Keys.ROW_NOISE, {})
+        if not isinstance(row_noise_config, Dict):
+            raise ConfigurationError(
+                f"'{Keys.ROW_NOISE}' of '{dataset}' must be a Dict. "
+                f"Provided {row_noise_config} of type {type(row_noise_config)}."
+            )
+
+        for noise_type, noise_type_config in row_noise_config.items():
+            if not isinstance(noise_type_config, Dict):
+                raise ConfigurationError(
+                    f"Row noise type '{noise_type}' of dataset '{dataset}' must be a Dict. "
+                    f"Provided {noise_type_config} of type {type(noise_type_config)}."
+                )
+
             default_noise_type_config = _get_default_config_node(
                 default_row_noise_config, noise_type, "noise type", dataset
             )
@@ -40,18 +60,42 @@ def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
                 DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP,
             )
 
-        for column, column_config in dataset_config.get(Keys.COLUMN_NOISE, {}).items():
+        column_noise_config = dataset_config.get(Keys.COLUMN_NOISE, {})
+        if not isinstance(column_noise_config, Dict):
+            raise ConfigurationError(
+                f"'{Keys.COLUMN_NOISE}' of '{dataset}' must be a Dict. "
+                f"Provided {column_noise_config} of type {type(column_noise_config)}."
+            )
+
+        for column, column_config in column_noise_config.items():
+            if not isinstance(column_config, Dict):
+                raise ConfigurationError(
+                    f"Column '{column}' of dataset '{dataset}' must be a Dict. "
+                    f"Provided {column_config} of type {type(column_config)}."
+                )
+
             default_column_config = _get_default_config_node(
                 default_column_noise_config, column, "column", dataset
             )
             for noise_type, noise_type_config in column_config.items():
+                if not isinstance(noise_type_config, Dict):
+                    raise ConfigurationError(
+                        f"Noise type '{noise_type}' of column '{column}' in dataset '{dataset}' must be a Dict. "
+                        f"Provided {noise_type_config} of type {type(noise_type_config)}."
+                    )
+
                 default_noise_type_config = _get_default_config_node(
                     default_column_config, noise_type, "noise type", dataset, column
                 )
                 parameter_config_validator_map = {
                     NOISE_TYPES.use_nickname.name: {
                         Keys.CELL_PROBABILITY: _validate_nickname_probability
-                    }
+                    },
+                    NOISE_TYPES.choose_wrong_option.name: {
+                        Keys.CELL_PROBABILITY: lambda *args, **kwargs: _validate_choose_wrong_option_probability(
+                            *args, **kwargs, column=column
+                        )
+                    },
                 }.get(noise_type, DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP)
                 _validate_noise_type_config(
                     noise_type_config,
@@ -129,6 +173,11 @@ def _validate_possible_age_differences(
             base_error_message + f"'{parameter}' must be a Dict or List. "
             f"Provided {noise_type_config} of type {type(noise_type_config)}."
         )
+    if len(noise_type_config) == 0:
+        raise ConfigurationError(
+            base_error_message + f"'{parameter}' must not be empty. "
+            f"Provided {noise_type_config}."
+        )
     for key in noise_type_config:
         if not isinstance(key, int):
             raise ConfigurationError(
@@ -199,8 +248,27 @@ def _validate_nickname_probability(
     if noise_type_config > metadata.NICKNAMES_PROPORTION:
         logger.warning(
             base_error_message
-            + f"Maximum configuration value is {1/metadata.NICKNAMES_PROPORTION}. "
-            f"Noise level has been adjusted to {1/metadata.NICKNAMES_PROPORTION}."
+            + f"The configured '{parameter}' is {noise_type_config}, but only approximately "
+            f"{metadata.NICKNAMES_PROPORTION:.2%} of names have a nickname. "
+            f"Replacing as many names with nicknames as possible."
+        )
+
+
+def _validate_choose_wrong_option_probability(
+    noise_type_config: Union[int, float], parameter: str, base_error_message: str, column: str
+):
+    _validate_probability(noise_type_config, parameter, base_error_message)
+    num_options = len(get_options_for_column(column))
+    # The maximum: if the cell *selection* probability were set to 1, and every cell
+    # selected an option uniformly at random, how many cells would actually change?
+    # Each cell would have a 1 / num_options chance of staying the same.
+    maximum_noise_probability = 1 - (1 / num_options)
+    if noise_type_config > maximum_noise_probability:
+        logger.warning(
+            base_error_message
+            + f"The configured '{parameter}' is {noise_type_config}, but pseudopeople "
+            f"can only choose the wrong option with a maximum of {maximum_noise_probability:.5f} probability. "
+            f"This maximum will be used instead of the configured value."
         )
 
 

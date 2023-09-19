@@ -94,3 +94,6 @@ COPY_HOUSEHOLD_MEMBER_COLS = {
     "dependent_4_ssn": "dependent_4_copy_ssn",
     # TODO: add itins
 }
+
+
+INT_COLUMNS = ["age", "wages", "mailing_address_po_box"]

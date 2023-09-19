@@ -151,21 +151,7 @@ def config():
 # Un-noised 1040
 @pytest.fixture(scope="session")
 def formatted_1040_sample_data():
-    formatted_1040 = generate_taxes_1040(
-        seed=SEED, year=None, source=paths.SAMPLE_DATA_ROOT, config=NO_NOISE
-    )
-    return formatted_1040
-
-
-@pytest.fixture(scope="session")
-def formatted_1040_sample_data_state_edit(split_sample_data_dir_state_edit):
-    formatted_1040 = generate_taxes_1040(
-        seed=SEED,
-        year=None,
-        source=split_sample_data_dir_state_edit,
-        config=NO_NOISE,
-        state=STATE,
-    )
+    formatted_1040 = generate_taxes_1040(seed=SEED, year=None, config=NO_NOISE)
     return formatted_1040
 
 

@@ -11,7 +11,7 @@ from vivarium.framework.randomness.index_map import IndexMap
 from pseudopeople.constants import metadata, paths
 
 
-def get_randomness_stream(dataset_name: str, seed: int, index: pd.Index) -> RandomnessStream:
+def get_randomness_stream(dataset_name: str, seed: Any, index: pd.Index) -> RandomnessStream:
     map_size = max(1_000_000, max(index) * 2)
     return RandomnessStream(
         key=dataset_name,
@@ -27,7 +27,7 @@ def vectorized_choice(
     randomness_stream: RandomnessStream,
     weights: Union[list, pd.Series] = None,
     additional_key: Any = None,
-):
+) -> pd.Series:
     """
     Function that takes a list of options and uses Vivarium common random numbers framework to make a given number
     of random choice selections.
@@ -55,7 +55,7 @@ def vectorized_choice(
 
     # for each p_i in probs, count how many elements of cdf for which p_i >= cdf_i
     chosen_indices = np.searchsorted(cdf, probs, side="right")
-    return np.take(options, chosen_indices)
+    return np.take(options, chosen_indices, axis=0)
 
 
 def get_index_to_noise(
@@ -165,6 +165,14 @@ def get_state_abbreviation(state: str) -> str:
         return metadata.US_STATE_ABBRV_MAP[state]
     except KeyError:
         raise ValueError(f"Unexpected state input: '{state}'") from None
+
+
+def cleanse_integer_columns(column: pd.Series) -> pd.Series:
+    column = column.copy()
+    column[column.notna()] = column[column.notna()].astype(str)
+    float_mask = column.notna() & (column.astype(str).str.contains(".", regex=False))
+    column.loc[float_mask] = column.loc[float_mask].astype(str).str.split(".").str[0]
+    return column
 
 
 ####################
