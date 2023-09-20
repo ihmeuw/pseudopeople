@@ -65,6 +65,9 @@ The following table provides the SHA-256 checksum for the larger-scale simulated
   * - Location
     - File
     - SHA-256 checksum
+  * - Rhode Island
+    - pseudopeople_simulated_population_ri_2_0_1.zip
+    - fadcbf40c87217f77f36f2c684a6a568460a1215696bc2f8a0c2069a00cdc78c
   * - US
     - pseudopeople_simulated_population_usa_2_0_0.zip
     - 0025978196c2a84c1df502e857bec35a84c25092fbfb6b143c0b8ff30dea5eed
