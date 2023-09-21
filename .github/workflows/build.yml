@@ -7,7 +7,7 @@ on:
   push:
   pull_request:
   workflow_dispatch:
-  schedule:
+  schedule: 
     - cron: "0 8 * * *"
 
 jobs:
@@ -39,7 +39,11 @@ jobs:
           isort . --check --verbose --only-modified --diff
       - name: Test
         run: |
-          pytest ./tests
+          if github.event_name == 'schedule'; then
+            pytest --runslow ./tests
+          else
+            pytest ./tests
+          fi
       - name: Doc build
         run: |
           make html -C docs/ SPHINXOPTS="-W --keep-going -n"
