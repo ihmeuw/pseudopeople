@@ -12,6 +12,13 @@ reasonable settings. If desired, the user can change the noise settings through
 the configuration system---see the :ref:`Configuration section <configuration_main>`
 for details.
 
+The following page provides an overview of the various noise types that are currently 
+available through pseudopeople, including what the noise types are, what they represent
+in the real world, and how you can customize them according to your interests. 
+
+To get started with customizing the noise in your datasets, you can also try out the 
+:ref:`tutorial on configuring noise <tutorial_configuring_noise>`.
+
 .. contents::
    :depth: 2
    :local:
