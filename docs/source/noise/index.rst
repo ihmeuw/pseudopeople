@@ -223,7 +223,7 @@ Noise types for each column
 Noise type details
 ----------------------
 
-For more details on the different row-based and column-based noise types above, please follow the links
+For more details on the different row-based and column-based noise types covered above, please follow the links
 below. 
 
 .. toctree::
