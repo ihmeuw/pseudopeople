@@ -26,6 +26,9 @@ A **mailing address** represents the address a simulant uses to receive mail,
 which may be different -- for example, a PO box.
 Mailing addresses, not physical addresses, are recorded in tax filings.
 
+Some columns in the generated data may contain missing values, even if no noise has been added to 
+the data. These missing values are represented by :code:`np.nan`.
+
 The datasets that can be generated are listed below.
 
 .. contents::
