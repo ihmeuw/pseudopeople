@@ -120,7 +120,7 @@ The following columns are included in this dataset:
        "Multiracial or Some Other Race".
    * - Year
      - :code:`year`
-     - Year in which data were collected; metadata that would not be collected directly; not affected by noise .
+     - Year in which data were collected; metadata that would not be collected directly; not affected by noise.
 
 American Community Survey (ACS)
 -------------------------------
@@ -153,7 +153,7 @@ The following columns are included in this dataset:
        datasets.
    * - Survey date
      - :code:`survey_date`
-     - Date on which the survey was conducted; metadata that would not be collected directly; not affected by noise .
+     - Date on which the survey was conducted; metadata that would not be collected directly; not affected by noise.
        Stored as a ``pandas.Timestamp``, which displays in YYYY-MM-DD format by default.
    * - First name
      - :code:`first_name`
@@ -245,7 +245,7 @@ The following columns are included in this dataset:
        datasets.
    * - Survey date
      - :code:`survey_date`
-     - Date on which the survey was conducted; metadata that would not be collected directly; not affected by noise .
+     - Date on which the survey was conducted; metadata that would not be collected directly; not affected by noise.
        Stored as a ``pandas.Timestamp``, which displays in YYYY-MM-DD format by default.
    * - First name
      - :code:`first_name`
@@ -359,7 +359,7 @@ The following columns are included in this dataset:
        "Multiracial or Some Other Race".
    * - Year
      - :code:`year`
-     - Year in which benefits were received; metadata that would not be collected directly; not affected by noise .
+     - Year in which benefits were received; metadata that would not be collected directly; not affected by noise.
 
 
 Social Security Administration
@@ -510,7 +510,7 @@ The following columns are included in these datasets:
      - Possible values are "W2" or "1099".
    * - Tax year
      - :code:`tax_year`
-     - Year for which tax data were collected; metadata that would not be collected directly; not affected by noise .
+     - Year for which tax data were collected; metadata that would not be collected directly; not affected by noise.
 
 
 Tax form: 1040
@@ -648,4 +648,4 @@ The following columns are included in this dataset:
      - Individual Taxpayer Identification Number (ITIN) if no SSN
    * - Tax year
      - :code:`tax_year`
-     - Year for which tax data were collected; metadata that would not be collected directly; not affected by noise .
+     - Year for which tax data were collected; metadata that would not be collected directly; not affected by noise.
