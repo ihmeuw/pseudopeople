@@ -450,10 +450,13 @@ def test_miswrite_ages_flips_negative_to_positive():
     assert (noised_data == 4).all()
 
 
-def test_write_wrong_digits(dummy_dataset):
+@pytest.mark.slow
+def test_write_wrong_digits_robust(dummy_dataset):
     """
     Validates that only numeric characters are noised in a series at a provided noise level.
     """
+    # This test is pretty slow because of the number of times we have to iterate through the series
+    # so I have marked it as slow - albrja
     config = get_configuration()
     config.update(
         {
@@ -553,6 +556,51 @@ def test_write_wrong_digits(dummy_dataset):
             actual_noise = (data[ssn].str[i] != noised_data[ssn].str[i]).mean()
             is_close_wrapper(actual_noise, expected_noise, 0.02)
             assert (noised_data[ssn].str[i].str.isdigit()).all()
+
+
+def test_write_wrong_digits(dummy_dataset):
+    # This is a quicker (less robust) version of the test above to run on push and pull
+    # requests. It only checks that numeric characters are noised at the correct level as
+    # a sanity check our noise is of the right magnitude
+    config = get_configuration()
+    config.update(
+        {
+            DATASETS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    "street_number": {
+                        NOISE_TYPES.write_wrong_digits.name: {
+                            Keys.CELL_PROBABILITY: 0.4,
+                            Keys.TOKEN_PROBABILITY: 0.5,
+                        },
+                    },
+                },
+            },
+        }
+    )
+    config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["street_number"][
+        NOISE_TYPES.write_wrong_digits.name
+    ]
+    expected_cell_noise = config[Keys.CELL_PROBABILITY]
+
+    data = dummy_dataset[["street_number"]]
+    # Note: I changed this column from string_series to street number. It has several string formats
+    # containing both numeric and alphabetically string characters.
+    noised_data = NOISE_TYPES.write_wrong_digits(
+        data, config, RANDOMNESS0, "dataset", "street_number"
+    )
+
+    # Validate we do not change any missing data
+    data = data.squeeze()
+    missing_mask = data == ""
+    assert (noised_data[missing_mask] == "").all()
+
+    # Check expected noise level
+    check_original = data[~missing_mask]
+    check_noised = noised_data[~missing_mask]
+    actual_noise = (check_original != check_noised).mean()
+    # We are setting lower and upper bounds for testing
+    assert actual_noise < expected_cell_noise
+    assert actual_noise > expected_cell_noise / 10
 
 
 def test_use_nickname(dummy_dataset):
