@@ -559,8 +559,8 @@ def test_write_wrong_digits_robust(dummy_dataset):
 
 
 def test_write_wrong_digits(dummy_dataset):
-    # This is a quicker (less robust) version of the test above to run on push and pull
-    # requests. It only checks that numeric characters are noised at the correct level as
+    # This is a quicker (less robust) version of the test above.
+    # It only checks that numeric characters are noised at the correct level as
     # a sanity check our noise is of the right magnitude
     config = get_configuration()
     config.update(

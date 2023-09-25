@@ -12,7 +12,7 @@ def pytest_addoption(parser):
         action="store",
         default=-1,
         type=int,
-        help="Maximum number of permutations of parametrised tests to run",
+        help="Maximum number of parametrized tests to run",
     )
 
 
@@ -36,7 +36,7 @@ def pytest_collection_modifyitems(config, items):
     limit = config.getoption("--limit")
     if limit > 0:
         tests_by_name = {item.name: item for item in items}
-        # Add the name of parametrize base tests to this list.
+        # Add the name of parametrized base tests to this list.
         tests_to_skip_parametrize = ["test_noise_order"]
 
         for base_name in tests_to_skip_parametrize:
