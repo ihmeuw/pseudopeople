@@ -12,7 +12,7 @@ def pytest_addoption(parser):
         action="store",
         default=-1,
         type=int,
-        help="Maximum number of parametrized tests to run",
+        help="Maximum number of parameterized tests to run",
     )
 
 
