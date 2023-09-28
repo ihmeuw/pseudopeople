@@ -16,7 +16,7 @@ from pseudopeople.loader import load_standard_dataset
 from pseudopeople.noise import noise_dataset
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
 from pseudopeople.utilities import (
-    PANDAS,
+    PANDAS_ENGINE,
     DataFrame,
     cleanse_integer_columns,
     configure_logging_to_terminal,
@@ -32,7 +32,7 @@ def _generate_dataset(
     config: Union[Path, str, Dict],
     user_filters: List[tuple],
     verbose: bool = False,
-    engine: Literal["pandas", "modin"] = "pandas",
+    engine_name: Literal["pandas", "modin"] = "pandas",
 ) -> DataFrame:
     """
     Helper for generating noised datasets.
@@ -49,8 +49,8 @@ def _generate_dataset(
         List of parquet filters, possibly empty
     :param verbose:
         Log with verbosity if True. Default is False.
-    :param engine:
-        Engine to use for loading data. Determines the return type.
+    :param engine_name:
+        String indicating engine to use for loading data. Determines the return type.
     :return:
         Noised dataset data in a dataframe
     """
@@ -63,9 +63,9 @@ def _generate_dataset(
         source = Path(source)
         validate_source_compatibility(source)
 
-    engine = get_engine_from_string(engine)
+    engine = get_engine_from_string(engine_name)
 
-    if engine == PANDAS:
+    if engine == PANDAS_ENGINE:
         # We process shards serially
         data_paths = fetch_filepaths(dataset, source)
         if not data_paths:
@@ -304,7 +304,7 @@ def generate_decennial_census(
             (DATASETS.census.state_column_name, "==", get_state_abbreviation(state))
         )
     return _generate_dataset(
-        DATASETS.census, source, seed, config, user_filters, verbose, engine=engine
+        DATASETS.census, source, seed, config, user_filters, verbose, engine_name=engine
     )
 
 
@@ -414,7 +414,7 @@ def generate_american_community_survey(
             [(DATASETS.acs.state_column_name, "==", get_state_abbreviation(state))]
         )
     return _generate_dataset(
-        DATASETS.acs, source, seed, config, user_filters, verbose, engine=engine
+        DATASETS.acs, source, seed, config, user_filters, verbose, engine_name=engine
     )
 
 
@@ -525,7 +525,7 @@ def generate_current_population_survey(
             [(DATASETS.cps.state_column_name, "==", get_state_abbreviation(state))]
         )
     return _generate_dataset(
-        DATASETS.cps, source, seed, config, user_filters, verbose, engine=engine
+        DATASETS.cps, source, seed, config, user_filters, verbose, engine_name=engine
     )
 
 
@@ -611,7 +611,7 @@ def generate_taxes_w2_and_1099(
             (DATASETS.tax_w2_1099.state_column_name, "==", get_state_abbreviation(state))
         )
     return _generate_dataset(
-        DATASETS.tax_w2_1099, source, seed, config, user_filters, verbose, engine=engine
+        DATASETS.tax_w2_1099, source, seed, config, user_filters, verbose, engine_name=engine
     )
 
 
@@ -708,7 +708,7 @@ def generate_women_infants_and_children(
             (DATASETS.wic.state_column_name, "==", get_state_abbreviation(state))
         )
     return _generate_dataset(
-        DATASETS.wic, source, seed, config, user_filters, verbose, engine=engine
+        DATASETS.wic, source, seed, config, user_filters, verbose, engine_name=engine
     )
 
 
@@ -789,7 +789,7 @@ def generate_social_security(
             raise ValueError(f"Invalid year provided: '{year}'")
         seed = seed * 10_000 + year
     return _generate_dataset(
-        DATASETS.ssa, source, seed, config, user_filters, verbose, engine=engine
+        DATASETS.ssa, source, seed, config, user_filters, verbose, engine_name=engine
     )
 
 
@@ -875,7 +875,7 @@ def generate_taxes_1040(
             (DATASETS.tax_1040.state_column_name, "==", get_state_abbreviation(state))
         )
     return _generate_dataset(
-        DATASETS.tax_1040, source, seed, config, user_filters, verbose, engine=engine
+        DATASETS.tax_1040, source, seed, config, user_filters, verbose, engine_name=engine
     )
 
 

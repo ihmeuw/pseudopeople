@@ -190,7 +190,7 @@ class Engine:
         return self.dataframe_class_getter()
 
 
-PANDAS = Engine("pandas", lambda: pd.DataFrame)
+PANDAS_ENGINE = Engine("pandas", lambda: pd.DataFrame)
 
 
 def get_modin_dataframe():
@@ -199,14 +199,14 @@ def get_modin_dataframe():
     return mpd.DataFrame
 
 
-MODIN = Engine("modin", get_modin_dataframe)
+MODIN_ENGINE = Engine("modin", get_modin_dataframe)
 
 
 def get_engine_from_string(engine: str):
     if engine == "pandas":
-        return PANDAS
+        return PANDAS_ENGINE
     elif engine == "modin":
-        return MODIN
+        return MODIN_ENGINE
     else:
         raise ValueError(f"Unknown engine {engine}")
 
