@@ -1,5 +1,6 @@
 import sys
-from typing import Any, Union
+from dataclasses import dataclass
+from typing import Any, Callable, Union
 
 import numpy as np
 import pandas as pd
@@ -172,6 +173,51 @@ def cleanse_integer_columns(column: pd.Series) -> pd.Series:
     float_mask = column.notna() & (column.astype(str).str.contains(".", regex=False))
     column.loc[float_mask] = column.loc[float_mask].astype(str).str.split(".").str[0]
     return column
+
+
+####################
+# Engine utilities #
+####################
+
+
+@dataclass
+class Engine:
+    name: str
+    dataframe_class_getter: Callable
+
+    @property
+    def dataframe_class(self):
+        return self.dataframe_class_getter()
+
+
+PANDAS_ENGINE = Engine("pandas", lambda: pd.DataFrame)
+
+
+def get_modin_dataframe():
+    import modin.pandas as mpd
+
+    return mpd.DataFrame
+
+
+MODIN_ENGINE = Engine("modin", get_modin_dataframe)
+
+
+def get_engine_from_string(engine: str):
+    if engine == "pandas":
+        return PANDAS_ENGINE
+    elif engine == "modin":
+        return MODIN_ENGINE
+    else:
+        raise ValueError(f"Unknown engine {engine}")
+
+
+try:
+    # Optional dependency
+    import modin.pandas as mpd
+
+    DataFrame = Union[mpd.DataFrame, pd.DataFrame]
+except ImportError:
+    DataFrame = pd.DataFrame
 
 
 ##########################

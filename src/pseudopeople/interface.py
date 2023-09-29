@@ -1,22 +1,26 @@
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 import pandas as pd
 from loguru import logger
 from packaging.version import parse
 from tqdm import tqdm
+from vivarium import ConfigTree
 
 from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, INT_COLUMNS
 from pseudopeople.exceptions import DataSourceError
-from pseudopeople.loader import load_standard_dataset_file
+from pseudopeople.loader import load_standard_dataset
 from pseudopeople.noise import noise_dataset
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
 from pseudopeople.utilities import (
+    PANDAS_ENGINE,
+    DataFrame,
     cleanse_integer_columns,
     configure_logging_to_terminal,
+    get_engine_from_string,
     get_state_abbreviation,
 )
 
@@ -28,7 +32,8 @@ def _generate_dataset(
     config: Union[Path, str, Dict],
     user_filters: List[tuple],
     verbose: bool = False,
-) -> pd.DataFrame:
+    engine_name: Literal["pandas", "modin"] = "pandas",
+) -> DataFrame:
     """
     Helper for generating noised datasets.
 
@@ -44,8 +49,10 @@ def _generate_dataset(
         List of parquet filters, possibly empty
     :param verbose:
         Log with verbosity if True. Default is False.
+    :param engine_name:
+        String indicating engine to use for loading data. Determines the return type.
     :return:
-        Noised dataset data in a pd.DataFrame
+        Noised dataset data in a dataframe
     """
     configure_logging_to_terminal(verbose)
     configuration_tree = get_configuration(config)
@@ -56,49 +63,96 @@ def _generate_dataset(
         source = Path(source)
         validate_source_compatibility(source)
 
-    data_paths = fetch_filepaths(dataset, source)
-    if not data_paths:
-        raise DataSourceError(
-            f"No datasets found at directory {str(source)}. "
-            "Please provide the path to the unmodified root data directory."
+    engine = get_engine_from_string(engine_name)
+
+    if engine == PANDAS_ENGINE:
+        # We process shards serially
+        data_paths = fetch_filepaths(dataset, source)
+        if not data_paths:
+            raise DataSourceError(
+                f"No datasets found at directory {str(source)}. "
+                "Please provide the path to the unmodified root data directory."
+            )
+
+        validate_data_path_suffix(data_paths)
+
+        # Iterate sequentially
+        noised_dataset = []
+        iterator = (
+            tqdm(data_paths, desc="Noising data", leave=False)
+            if len(data_paths) > 1
+            else data_paths
         )
-    validate_data_path_suffix(data_paths)
-    noised_dataset = []
-    iterator = (
-        tqdm(data_paths, desc="Noising data", leave=False)
-        if len(data_paths) > 1
-        else data_paths
-    )
 
-    for data_path_index, data_path in enumerate(iterator):
-        logger.debug(f"Loading data from {data_path}.")
-        data = _load_data_from_path(data_path, user_filters)
-        if data.empty:
-            continue
-        data = _reformat_dates_for_noising(data, dataset)
-        data = _coerce_dtypes(data, dataset)
-        # Use a different seed for each data file/shard, otherwise the randomness will duplicate
-        # and the Nth row in each shard will get the same noise
-        data_path_seed = f"{seed}_{data_path_index}"
-        noised_data = noise_dataset(dataset, data, configuration_tree, data_path_seed)
-        noised_data = _extract_columns(dataset.columns, noised_data)
-        noised_dataset.append(noised_data)
+        for data_path_index, data_path in enumerate(iterator):
+            logger.debug(f"Loading data from {data_path}.")
+            data = load_standard_dataset(data_path, user_filters, engine=engine, is_file=True)
+            if len(data.index) == 0:
+                continue
+            # Use a different seed for each data file/shard, otherwise the randomness will duplicate
+            # and the Nth row in each shard will get the same noise
+            data_path_seed = f"{seed}_{data_path_index}"
+            noised_data = _prep_and_noise_dataset(
+                data, dataset, configuration_tree, data_path_seed
+            )
+            noised_dataset.append(noised_data)
 
-    # Check if all shards for the dataset are empty
-    if len(noised_dataset) == 0:
-        raise ValueError(
-            "Invalid value provided for 'state' or 'year'. No data found with "
-            f"the user provided 'state' or 'year' filters at {data_path}."
+        # Check if all shards for the dataset are empty
+        if len(noised_dataset) == 0:
+            raise ValueError(
+                "Invalid value provided for 'state' or 'year'. No data found with "
+                f"the user provided 'state' or 'year' filters at {data_path}."
+            )
+        noised_dataset = pd.concat(noised_dataset, ignore_index=True)
+
+        # Known pandas bug: pd.concat does not preserve category dtypes so we coerce
+        # again after concat (https://github.com/pandas-dev/pandas/issues/51362)
+        noised_dataset = _coerce_dtypes(noised_dataset, dataset, cleanse_int_cols=True)
+    else:
+        import modin.pandas as mpd
+
+        # Let modin deal with how to partition the shards -- the data path is the
+        # entire directory containing the parquet files
+        data_path = source / dataset.name
+        data = load_standard_dataset(data_path, user_filters, engine=engine, is_file=False)
+
+        # Check if all shards for the dataset are empty
+        if len(data.index) == 0:
+            raise ValueError(
+                "Invalid value provided for 'state' or 'year'. No data found with "
+                f"the user provided 'state' or 'year' filters at {data_path}."
+            )
+
+        # FIXME: This is using private Modin APIs
+        #  How do we do this using the public API?
+        #  See https://github.com/modin-project/modin/issues/6498
+        from modin.core.storage_formats import PandasQueryCompiler
+
+        noised_dataset = mpd.DataFrame(
+            query_compiler=PandasQueryCompiler(
+                data._query_compiler._modin_frame.apply_full_axis(
+                    axis=1,
+                    enumerate_partitions=True,
+                    func=lambda df, partition_idx: _prep_and_noise_dataset(
+                        df, dataset, configuration_tree, seed=f"{seed}_{partition_idx}"
+                    ),
+                )
+            )
         )
-    noised_dataset = pd.concat(noised_dataset, ignore_index=True)
-
-    # Known pandas bug: pd.concat does not preserve category dtypes so we coerce
-    # again after concat (https://github.com/pandas-dev/pandas/issues/51362)
-    noised_dataset = _coerce_dtypes(noised_dataset, dataset, cleanse_int_cols=True)
 
     logger.debug("*** Finished ***")
 
     return noised_dataset
+
+
+def _prep_and_noise_dataset(
+    data: pd.DataFrame, dataset: Dataset, configuration_tree: ConfigTree, seed: Any
+) -> pd.DataFrame:
+    data = _reformat_dates_for_noising(data, dataset)
+    data = _coerce_dtypes(data, dataset)
+    noised_data = noise_dataset(dataset, data, configuration_tree, seed)
+    noised_data = _extract_columns(dataset.columns, noised_data)
+    return noised_data
 
 
 def validate_source_compatibility(source: Path):
@@ -147,12 +201,6 @@ def _coerce_dtypes(
     return data
 
 
-def _load_data_from_path(data_path: Path, user_filters: List[Tuple]) -> pd.DataFrame:
-    """Load data from a data file given a data_path and a year_filter."""
-    data = load_standard_dataset_file(data_path, user_filters)
-    return data
-
-
 def _reformat_dates_for_noising(data: pd.DataFrame, dataset: Dataset):
     """Formats date columns so they can be noised as strings."""
     data = data.copy()
@@ -181,7 +229,8 @@ def generate_decennial_census(
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
-) -> pd.DataFrame:
+    engine: Literal["pandas", "modin"] = "pandas",
+) -> DataFrame:
     """
     Generates a pseudopeople decennial census dataset which represents
     simulated responses to the US Census Bureau's Census of Population
@@ -225,9 +274,13 @@ def generate_decennial_census(
 
         Log with verbosity if `True`. Default is `False`.
 
+    :param engine:
+
+        Engine to use for loading data. Determines the return type.
+
     :return:
 
-        A `pandas.DataFrame` of simulated decennial census data.
+        A DataFrame of simulated decennial census data.
 
     :raises ConfigurationError:
 
@@ -250,7 +303,9 @@ def generate_decennial_census(
         user_filters.append(
             (DATASETS.census.state_column_name, "==", get_state_abbreviation(state))
         )
-    return _generate_dataset(DATASETS.census, source, seed, config, user_filters, verbose)
+    return _generate_dataset(
+        DATASETS.census, source, seed, config, user_filters, verbose, engine_name=engine
+    )
 
 
 def generate_american_community_survey(
@@ -260,7 +315,8 @@ def generate_american_community_survey(
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
-) -> pd.DataFrame:
+    engine: Literal["pandas", "modin"] = "pandas",
+) -> DataFrame:
     """
     Generates a pseudopeople ACS dataset which represents simulated
     responses to the ACS survey.
@@ -311,9 +367,13 @@ def generate_american_community_survey(
 
         Log with verbosity if `True`. Default is `False`.
 
+    :param engine:
+
+        Engine to use for loading data. Determines the return type.
+
     :return:
 
-        A `pandas.DataFrame` of simulated ACS data.
+        A DataFrame of simulated ACS data.
 
     :raises ConfigurationError:
 
@@ -353,7 +413,9 @@ def generate_american_community_survey(
         user_filters.extend(
             [(DATASETS.acs.state_column_name, "==", get_state_abbreviation(state))]
         )
-    return _generate_dataset(DATASETS.acs, source, seed, config, user_filters, verbose)
+    return _generate_dataset(
+        DATASETS.acs, source, seed, config, user_filters, verbose, engine_name=engine
+    )
 
 
 def generate_current_population_survey(
@@ -363,7 +425,8 @@ def generate_current_population_survey(
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
-) -> pd.DataFrame:
+    engine: Literal["pandas", "modin"] = "pandas",
+) -> DataFrame:
     """
     Generates a pseudopeople CPS dataset which represents simulated
     responses to the CPS survey.
@@ -415,9 +478,13 @@ def generate_current_population_survey(
 
         Log with verbosity if `True`. Default is `False`.
 
+    :param engine:
+
+        Engine to use for loading data. Determines the return type.
+
     :return:
 
-        A `pandas.DataFrame` of simulated CPS data.
+        A DataFrame of simulated CPS data.
 
     :raises ConfigurationError:
 
@@ -457,7 +524,9 @@ def generate_current_population_survey(
         user_filters.extend(
             [(DATASETS.cps.state_column_name, "==", get_state_abbreviation(state))]
         )
-    return _generate_dataset(DATASETS.cps, source, seed, config, user_filters, verbose)
+    return _generate_dataset(
+        DATASETS.cps, source, seed, config, user_filters, verbose, engine_name=engine
+    )
 
 
 def generate_taxes_w2_and_1099(
@@ -467,7 +536,8 @@ def generate_taxes_w2_and_1099(
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
-) -> pd.DataFrame:
+    engine: Literal["pandas", "modin"] = "pandas",
+) -> DataFrame:
     """
     Generates a pseudopeople W2 and 1099 tax dataset which represents
     simulated tax form data.
@@ -510,9 +580,13 @@ def generate_taxes_w2_and_1099(
 
         Log with verbosity if `True`. Default is `False`.
 
+    :param engine:
+
+        Engine to use for loading data. Determines the return type.
+
     :return:
 
-        A `pandas.DataFrame` of simulated W2 and 1099 tax data.
+        A DataFrame of simulated W2 and 1099 tax data.
 
     :raises ConfigurationError:
 
@@ -537,7 +611,7 @@ def generate_taxes_w2_and_1099(
             (DATASETS.tax_w2_1099.state_column_name, "==", get_state_abbreviation(state))
         )
     return _generate_dataset(
-        DATASETS.tax_w2_1099, source, seed, config, user_filters, verbose
+        DATASETS.tax_w2_1099, source, seed, config, user_filters, verbose, engine_name=engine
     )
 
 
@@ -548,7 +622,8 @@ def generate_women_infants_and_children(
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
-) -> pd.DataFrame:
+    engine: Literal["pandas", "modin"] = "pandas",
+) -> DataFrame:
     """
     Generates a pseudopeople WIC dataset which represents a simulated
     version of the administrative data that would be recorded by WIC.
@@ -601,9 +676,14 @@ def generate_women_infants_and_children(
     :param verbose:
 
         Log with verbosity if `True`. Default is `False`.
+
+    :param engine:
+
+        Engine to use for loading data. Determines the return type.
+
     :return:
 
-        A `pandas.DataFrame` of simulated WIC data.
+        A DataFrame of simulated WIC data.
 
     :raises ConfigurationError:
 
@@ -627,7 +707,9 @@ def generate_women_infants_and_children(
         user_filters.append(
             (DATASETS.wic.state_column_name, "==", get_state_abbreviation(state))
         )
-    return _generate_dataset(DATASETS.wic, source, seed, config, user_filters, verbose)
+    return _generate_dataset(
+        DATASETS.wic, source, seed, config, user_filters, verbose, engine_name=engine
+    )
 
 
 def generate_social_security(
@@ -636,7 +718,8 @@ def generate_social_security(
     config: Union[Path, str, Dict[str, Dict]] = None,
     year: Optional[int] = 2020,
     verbose: bool = False,
-) -> pd.DataFrame:
+    engine: Literal["pandas", "modin"] = "pandas",
+) -> DataFrame:
     """
     Generates a pseudopeople SSA dataset which represents simulated
     Social Security Administration (SSA) data.
@@ -670,9 +753,13 @@ def generate_social_security(
 
         Log with verbosity if `True`. Default is `False`.
 
+    :param engine:
+
+        Engine to use for loading data. Determines the return type.
+
     :return:
 
-        A `pandas.DataFrame` of simulated SSA data.
+        A DataFrame of simulated SSA data.
 
     :raises ConfigurationError:
 
@@ -701,7 +788,9 @@ def generate_social_security(
         except (pd.errors.OutOfBoundsDatetime, ValueError):
             raise ValueError(f"Invalid year provided: '{year}'")
         seed = seed * 10_000 + year
-    return _generate_dataset(DATASETS.ssa, source, seed, config, user_filters, verbose)
+    return _generate_dataset(
+        DATASETS.ssa, source, seed, config, user_filters, verbose, engine_name=engine
+    )
 
 
 def generate_taxes_1040(
@@ -711,7 +800,8 @@ def generate_taxes_1040(
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
-) -> pd.DataFrame:
+    engine: Literal["pandas", "modin"] = "pandas",
+) -> DataFrame:
     """
     Generates a pseudopeople 1040 tax dataset which represents simulated
     tax form data.
@@ -754,9 +844,13 @@ def generate_taxes_1040(
 
         Log with verbosity if `True`. Default is `False`.
 
+    :param engine:
+
+        Engine to use for loading data. Determines the return type.
+
     :return:
 
-        A `pandas.DataFrame` of simulated 1040 tax data.
+        A DataFrame of simulated 1040 tax data.
 
     :raises ConfigurationError:
 
@@ -780,7 +874,9 @@ def generate_taxes_1040(
         user_filters.append(
             (DATASETS.tax_1040.state_column_name, "==", get_state_abbreviation(state))
         )
-    return _generate_dataset(DATASETS.tax_1040, source, seed, config, user_filters, verbose)
+    return _generate_dataset(
+        DATASETS.tax_1040, source, seed, config, user_filters, verbose, engine_name=engine
+    )
 
 
 def fetch_filepaths(dataset: Dataset, source: Path) -> Union[List, List[dict]]:
