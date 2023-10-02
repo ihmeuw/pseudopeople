@@ -47,7 +47,9 @@ Often some of the data in certain columns of a dataset will be missing.
 This could be because the input for that field was left blank, an answer was refused,
 or the answer was illegible or unintelligible.
 To simulate this type of noise, pseudopeople will replace the value in the relevant cell with
-:code:`numpy.nan` to indicate that the value is missing.
+:code:`numpy.nan` to indicate that the value is missing. It is important to note, however, that 
+some columns in the generated data may contain missing values, even if no noise has been added to the data.
+In these cases of "valid missingness", missing values are also represented by :code:`numpy.nan`.
 
 This noise type is called :code:`leave_blank` in the configuration. It takes one parameter:
 
