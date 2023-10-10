@@ -1,9 +1,14 @@
 # -----------------------------------------------------------------------------
-#   - invoked on push, pull_request, or manual trigger
+#   - invoked on push, pull_request, manual trigger, or schedule
 #   - test under at least 3 versions of python
 # -----------------------------------------------------------------------------
 name: build
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule: 
+    - cron: "0 8 * * *"
 
 jobs:
   build:
@@ -34,7 +39,11 @@ jobs:
           isort . --check --verbose --only-modified --diff
       - name: Test
         run: |
-          pytest ./tests
+          if github.event_name == 'schedule'; then
+            pytest --runslow ./tests
+          else
+            pytest ./tests
+          fi
       - name: Doc build
         run: |
           make html -C docs/ SPHINXOPTS="-W --keep-going -n"
