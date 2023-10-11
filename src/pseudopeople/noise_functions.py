@@ -2,7 +2,6 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-import yaml
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream, get_hash
 
@@ -10,11 +9,15 @@ from pseudopeople.configuration import Keys
 from pseudopeople.constants import data_values, paths
 from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, DatasetNames
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
-from pseudopeople.noise_scaling import load_nicknames_data
+from pseudopeople.noise_scaling import (
+    get_incorrect_select_noise_options,
+    load_nicknames_data,
+)
 from pseudopeople.utilities import (
     get_index_to_noise,
     load_ocr_errors_dict,
-    load_phonetic_errors_dict,
+    load_phonetic_errors_series,
+    load_qwerty_errors,
     two_d_array_choice,
     vectorized_choice,
 )
@@ -165,7 +168,7 @@ def choose_wrong_options(
         "mailing_address_state": "state",
     }.get(str(column_name), column_name)
 
-    selection_options = pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
+    selection_options = get_incorrect_select_noise_options()
 
     # Get possible noise values
     # todo: Update with exclusive resampling when vectorized_choice is improved
@@ -391,9 +394,10 @@ def use_nicknames(
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: pd.Series of nicknames replacing original names
     """
-    nicknames = load_nicknames_data()
+    nicknames, nicknames_set = load_nicknames_data()
+
     column = data[column_name]
-    have_nickname_idx = column.index[column.isin(nicknames.index)]
+    have_nickname_idx = column.index[column.isin(nicknames_set)]
     noised = two_d_array_choice(
         column.loc[have_nickname_idx], nicknames, randomness_stream, column_name
     )
@@ -461,7 +465,7 @@ def make_phonetic_errors(
     :return: pd.Series of noised data
     """
 
-    phonetic_error_dict = load_phonetic_errors_dict()
+    phonetic_error_series, tokens_eligible_for_phonetic_error = load_phonetic_errors_series()
 
     def phonetic_corrupt(truth, corrupted_pr, rng):
         err = ""
@@ -470,9 +474,9 @@ def make_phonetic_errors(
             error_introduced = False
             for token_length in [7, 6, 5, 4, 3, 2, 1]:
                 token = truth[i : (i + token_length)]
-                if token in phonetic_error_dict and not error_introduced:
+                if token in tokens_eligible_for_phonetic_error and not error_introduced:
                     if rng.uniform() < corrupted_pr:
-                        err += rng.choice(phonetic_error_dict[token])
+                        err += rng.choice(phonetic_error_series[token])
                         i += token_length
                         error_introduced = True
             if not error_introduced:
@@ -530,12 +534,12 @@ def make_typos(
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :returns: pd.Series of column with noised data
     """
-    with open(paths.QWERTY_ERRORS) as f:
-        qwerty_errors = yaml.safe_load(f)
-    qwerty_errors = pd.DataFrame.from_dict(qwerty_errors, orient="index")
     column = data[column_name]
     if column.empty:
         return column
+
+    qwerty_errors, qwerty_errors_eligible_chars = load_qwerty_errors()
+
     column = column.astype(str)
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
     # TODO: remove this hard-coding
@@ -547,7 +551,11 @@ def make_typos(
     same_len_col = column.str.pad(max_str_length, side="right")
 
     is_typo_option = pd.concat(
-        [same_len_col.str[i].isin(qwerty_errors.index) for i in range(max_str_length)], axis=1
+        [
+            same_len_col.str[i].isin(qwerty_errors_eligible_chars)
+            for i in range(max_str_length)
+        ],
+        axis=1,
     )
     replace = is_typo_option & (rng.random(is_typo_option.shape) < token_noise_level)
     keep_original = replace & (

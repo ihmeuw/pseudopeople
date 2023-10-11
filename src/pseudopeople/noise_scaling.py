@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 import numpy as np
 import pandas as pd
 
@@ -22,9 +24,9 @@ def scale_choose_wrong_option(data: pd.DataFrame, column_name: str) -> float:
 
 def scale_nicknames(data: pd.DataFrame, column_name: str) -> float:
     # Constant calculated by number of names with nicknames / number of names used in PRL name mapping
-    nicknames = load_nicknames_data()
+    _, nicknames_set = load_nicknames_data()
     proportion_have_nickname = (
-        data[column_name].isin(nicknames.index).sum() / data[column_name].notna().sum()
+        data[column_name].isin(nicknames_set).sum() / data[column_name].notna().sum()
     )
     if proportion_have_nickname == 0.0:
         return 0.0
@@ -47,14 +49,16 @@ def scale_copy_from_household_member(data: pd.DataFrame, column_name: str) -> fl
 ####################
 
 
+@lru_cache(maxsize=None)
 def load_nicknames_data():
     # Load and format nicknames dataset
     nicknames = pd.read_csv(paths.NICKNAMES_DATA)
     nicknames = nicknames.apply(lambda x: x.astype(str).str.title()).set_index("name")
     nicknames = nicknames.replace("Nan", np.nan)
-    return nicknames
+    return nicknames, set(nicknames.index)
 
 
+@lru_cache(maxsize=None)
 def get_options_for_column(column_name: str) -> pd.Series:
     """
     For a column that has a set list of options, returns that set of options as
@@ -69,5 +73,10 @@ def get_options_for_column(column_name: str) -> pd.Series:
         COLUMNS.mailing_state.name: COLUMNS.state.name,
     }.get(column_name, column_name)
 
-    selection_options = pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
+    selection_options = get_incorrect_select_noise_options()
     return selection_options.loc[selection_options[selection_type].notna(), selection_type]
+
+
+@lru_cache(maxsize=None)
+def get_incorrect_select_noise_options() -> pd.DataFrame:
+    return pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)

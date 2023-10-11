@@ -1,9 +1,11 @@
 import sys
 from dataclasses import dataclass
+from functools import lru_cache
 from typing import Any, Callable, Union
 
 import numpy as np
 import pandas as pd
+import yaml
 from loguru import logger
 from vivarium.framework.randomness import RandomnessStream
 from vivarium.framework.randomness.index_map import IndexMap
@@ -225,6 +227,7 @@ except ImportError:
 ##########################
 
 
+@lru_cache(maxsize=None)
 def load_ocr_errors_dict():
     ocr_errors = pd.read_csv(
         paths.OCR_ERRORS_DATA, skiprows=[0, 1], header=None, names=["ocr_true", "ocr_err"]
@@ -237,14 +240,25 @@ def load_ocr_errors_dict():
     return ocr_error_dict
 
 
-def load_phonetic_errors_dict():
+@lru_cache(maxsize=None)
+def load_phonetic_errors_series():
     phonetic_errors = pd.read_csv(
         paths.PHONETIC_ERRORS_DATA,
         skiprows=[0, 1],
         header=None,
         names=["where", "orig", "new", "pre", "post", "pattern", "start"],
     )
-    phonetic_error_dict = phonetic_errors.groupby("orig")["new"].apply(
+    phonetic_error_series = phonetic_errors.groupby("orig")["new"].apply(
         lambda x: list(x.str.replace("@", ""))
     )
-    return phonetic_error_dict
+    return phonetic_error_series, set(phonetic_error_series.index)
+
+
+@lru_cache(maxsize=None)
+def load_qwerty_errors():
+    with open(paths.QWERTY_ERRORS) as f:
+        qwerty_errors = yaml.safe_load(f)
+
+    error_eligible_chars = set(qwerty_errors.keys())
+
+    return pd.DataFrame.from_dict(qwerty_errors, orient="index"), error_eligible_chars

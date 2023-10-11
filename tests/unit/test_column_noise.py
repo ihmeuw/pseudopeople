@@ -12,7 +12,7 @@ from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS
-from pseudopeople.utilities import load_ocr_errors_dict, load_phonetic_errors_dict
+from pseudopeople.utilities import load_ocr_errors_dict, load_phonetic_errors_series
 
 RANDOMNESS0 = RandomnessStream(
     key="test_column_noise",
@@ -622,7 +622,7 @@ def test_use_nickname(dummy_dataset):
     # Validation for nicknames
     from pseudopeople.noise_scaling import load_nicknames_data
 
-    nicknames = load_nicknames_data()
+    nicknames, _ = load_nicknames_data()
     names_list = pd.Series(
         nicknames.apply(lambda row: row.dropna().tolist(), axis=1), index=nicknames.index
     )
@@ -765,8 +765,8 @@ def test_generate_phonetic_errors(dummy_dataset, column):
 
 
 def test_phonetic_error_values():
-    phonetic_errors_dict = load_phonetic_errors_dict()
-    data = pd.Series(list(phonetic_errors_dict.keys()) * 100, name="street_name")
+    phonetic_errors_series, _ = load_phonetic_errors_series()
+    data = pd.Series(list(phonetic_errors_series.keys()) * 100, name="street_name")
     config = get_configuration()
     config.update(
         {
@@ -790,10 +790,10 @@ def test_phonetic_error_values():
         df, config, RANDOMNESS0, "dataset", "street_name"
     )
 
-    for key in phonetic_errors_dict.keys():
+    for key in phonetic_errors_series.keys():
         key_idx = data.index[data == key]
         noised_values = set(noised_data.loc[key_idx])
-        pho_error_values = set(phonetic_errors_dict[key])
+        pho_error_values = set(phonetic_errors_series[key])
         assert noised_values == pho_error_values
 
     assert (data != noised_data).all()
