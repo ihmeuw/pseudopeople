@@ -1,6 +1,6 @@
 import sys
 from dataclasses import dataclass
-from functools import cache
+from functools import lru_cache
 from typing import Any, Callable, Union
 
 import numpy as np
@@ -227,7 +227,7 @@ except ImportError:
 ##########################
 
 
-@cache
+@lru_cache
 def load_ocr_errors_dict():
     ocr_errors = pd.read_csv(
         paths.OCR_ERRORS_DATA, skiprows=[0, 1], header=None, names=["ocr_true", "ocr_err"]
@@ -240,7 +240,7 @@ def load_ocr_errors_dict():
     return ocr_error_dict
 
 
-@cache
+@lru_cache
 def load_phonetic_errors_series():
     phonetic_errors = pd.read_csv(
         paths.PHONETIC_ERRORS_DATA,
@@ -254,7 +254,7 @@ def load_phonetic_errors_series():
     return phonetic_error_series, set(phonetic_error_series.index)
 
 
-@cache
+@lru_cache
 def load_qwerty_errors():
     with open(paths.QWERTY_ERRORS) as f:
         qwerty_errors = yaml.safe_load(f)

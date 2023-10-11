@@ -1,4 +1,4 @@
-from functools import cache
+from functools import lru_cache
 
 import numpy as np
 import pandas as pd
@@ -47,7 +47,7 @@ def scale_copy_from_household_member(data: pd.DataFrame, column_name: str) -> fl
 ####################
 
 
-@cache
+@lru_cache
 def load_nicknames_data():
     # Load and format nicknames dataset
     nicknames = pd.read_csv(paths.NICKNAMES_DATA)
@@ -56,7 +56,7 @@ def load_nicknames_data():
     return nicknames, set(nicknames.index)
 
 
-@cache
+@lru_cache
 def get_options_for_column(column_name: str) -> pd.Series:
     """
     For a column that has a set list of options, returns that set of options as
@@ -75,6 +75,6 @@ def get_options_for_column(column_name: str) -> pd.Series:
     return selection_options.loc[selection_options[selection_type].notna(), selection_type]
 
 
-@cache
+@lru_cache
 def get_incorrect_select_noise_options() -> pd.DataFrame:
     return pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
