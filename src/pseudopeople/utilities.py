@@ -73,11 +73,11 @@ def get_index_to_noise(
 
     # Get rows to noise
     if ignore_rows_missing_columns is not None:
-        missing_idx = data.index[
+        missing = (
             data[ignore_rows_missing_columns].isna().any(axis=1)
             | (data[ignore_rows_missing_columns] == "").any(axis=1)
-        ]
-        eligible_for_noise_idx = data.index.difference(missing_idx)
+        )
+        eligible_for_noise_idx = data.index[~missing]
     else:
         # Any index can be noised for row noise
         eligible_for_noise_idx = data.index
