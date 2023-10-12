@@ -66,15 +66,21 @@ def _get_census_omission_noise_levels(
         .astype(str)
         .map(data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_RACE)
     )
+    ages = pd.Series(np.arange(population["age"].max()))
     for sex in ["Female", "Male"]:
-        sex_mask = population["sex"] == sex
-        age_bins = pd.cut(
-            x=population[sex_mask]["age"],
-            bins=data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_SEX_AGE[sex].index,
+        effect_by_age_bin = data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_SEX_AGE[sex]
+        # NOTE: calling pd.cut on a large array with an IntervalIndex is slow,
+        # see https://github.com/pandas-dev/pandas/issues/47614
+        # Instead, we only pd.cut the unique ages, then do a simpler `.map` on the age column
+        age_bins = pd.cut(ages, bins=effect_by_age_bin.index)
+        effect_by_age = pd.Series(
+            age_bins.map(effect_by_age_bin),
+            index=ages,
         )
-        probabilities[sex_mask] += age_bins.map(
-            data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_SEX_AGE[sex]
-        ).astype(float)
+        sex_mask = population["sex"] == sex
+        probabilities[sex_mask] += (
+            population[sex_mask]["age"].map(effect_by_age).astype(float)
+        )
     probabilities[probabilities < 0.0] = 0.0
     probabilities[probabilities > 1.0] = 1.0
     return probabilities
