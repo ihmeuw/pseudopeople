@@ -551,6 +551,7 @@ def make_typos(
         column.str.split("", expand=True).iloc[:, 1:-1].fillna("").to_numpy()
     )
 
+    # NOTE: np.isin does not work with sets, see https://numpy.org/doc/stable/reference/generated/numpy.isin.html
     is_typo_option = np.isin(same_len_col_exploded, qwerty_errors_eligible_chars)
     replace = is_typo_option & (rng.random(is_typo_option.shape) < token_noise_level)
     keep_original = replace & (

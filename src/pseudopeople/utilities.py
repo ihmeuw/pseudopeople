@@ -262,6 +262,6 @@ def load_qwerty_errors():
     with open(paths.QWERTY_ERRORS) as f:
         qwerty_errors = yaml.safe_load(f)
 
-    error_eligible_chars = set(qwerty_errors.keys())
+    error_eligible_chars = list(qwerty_errors.keys())
 
     return pd.DataFrame.from_dict(qwerty_errors, orient="index"), error_eligible_chars
