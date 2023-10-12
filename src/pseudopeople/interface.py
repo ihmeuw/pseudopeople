@@ -9,7 +9,11 @@ from tqdm import tqdm
 from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
-from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, INT_COLUMNS
+from pseudopeople.constants.metadata import (
+    COPY_HOUSEHOLD_MEMBER_COLS,
+    DATEFORMATS,
+    INT_COLUMNS,
+)
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.loader import load_standard_dataset_file
 from pseudopeople.noise import noise_dataset
@@ -162,9 +166,31 @@ def _reformat_dates_for_noising(data: pd.DataFrame, dataset: Dataset):
         # to copy from a household member
         for column in [date_column, COPY_HOUSEHOLD_MEMBER_COLS.get(date_column)]:
             if column in data.columns:
-                data[column] = data[column].dt.strftime(dataset.date_format)
+                # Avoid running strftime on large data, since that will
+                # re-parse the format string for each row
+                # https://github.com/pandas-dev/pandas/issues/44764
+                # Year is already guaranteed to be 4-digit: https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#timeseries-timestamp-limits
+                year_string = data[column].dt.year.astype(str)
+                month_string = _zfill_fast(data[column].dt.month.astype(str), 2)
+                day_string = _zfill_fast(data[column].dt.day.astype(str), 2)
+                if dataset.date_format == DATEFORMATS.YYYYMMDD:
+                    data[column] = year_string + month_string + day_string
+                elif dataset.date_format == DATEFORMATS.MM_DD_YYYY:
+                    data[column] = month_string + "/" + day_string + "/" + year_string
+                elif dataset.date_format == DATEFORMATS.MMDDYYYY:
+                    data[column] = month_string + day_string + year_string
+                else:
+                    raise ValueError(f"Invalid date format in {dataset.name}.")
 
     return data
+
+
+def _zfill_fast(col: pd.Series, desired_length: int) -> pd.Series:
+    """Performs the same operation as col.str.zfill(desired_length), but vectorized."""
+    # The most zeroes that could ever be needed would be desired_length
+    maximum_padding = ("0" * desired_length) + col
+    # Now trim to only the zeroes needed
+    return maximum_padding.str[-desired_length:]
 
 
 def _extract_columns(columns_to_keep, noised_dataset):
