@@ -49,7 +49,8 @@ or the answer was illegible or unintelligible. To simulate this type of noise, p
 replace the value in the relevant cell with :code:`numpy.nan` to indicate that the value is missing. 
 
 It is important to note, however, that 
-some columns in the generated data may contain missing values, even if no noise has been added to the data.
+some columns in the generated data may contain missing values, even if no noise has been added to the data,
+simply because the column is not applicable to every row.
 Columns that may have missing values regardless of noise include unit number, street number, and any related 
 to spouse or dependents in the 1040 tax data, for example. In these cases where fields are blank even without noise, 
 missing values are also represented by :code:`numpy.nan`.
