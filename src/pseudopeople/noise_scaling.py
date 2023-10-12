@@ -32,9 +32,11 @@ def scale_nicknames(data: pd.DataFrame, column_name: str) -> float:
 
 
 def scale_copy_from_household_member(data: pd.DataFrame, column_name: str) -> float:
+    original_column = data[column_name]
     copy_column = data[metadata.COPY_HOUSEHOLD_MEMBER_COLS[column_name]]
-    eligible_idx = copy_column.index[(copy_column != "") & (copy_column.notna())]
-    proportion_eligible = len(eligible_idx) / len(data)
+    original_column_not_missing = (original_column != "") & (original_column.notna())
+    eligible = (copy_column != "") & (copy_column.notna()) & original_column_not_missing
+    proportion_eligible = eligible.sum() / original_column_not_missing.sum()
     if proportion_eligible == 0.0:
         return 0.0
     return 1 / proportion_eligible
