@@ -553,14 +553,14 @@ def make_typos(
 
     # NOTE: np.isin does not work with sets, see https://numpy.org/doc/stable/reference/generated/numpy.isin.html
     is_typo_option = np.isin(same_len_col_exploded, qwerty_errors_eligible_chars)
-    replace = is_typo_option & (rng.random(is_typo_option.shape) < token_noise_level)
-    keep_original = replace & (
-        rng.random(is_typo_option.shape) < include_token_probability_level
-    )
+    replace = np.zeros_like(is_typo_option)
+    replace[is_typo_option] = rng.random(is_typo_option.sum()) < token_noise_level
+    keep_original = np.zeros_like(replace)
+    keep_original[replace] = rng.random(replace.sum()) < include_token_probability_level
 
     # Apply noising
     to_replace = same_len_col_exploded[replace]
-    replace_random = rng.random(to_replace.shape)
+    replace_random = rng.random(replace.sum())
     number_of_options = qwerty_errors.count(axis=1)
     replace_option_index = np.floor(
         replace_random * number_of_options.loc[to_replace].to_numpy()
