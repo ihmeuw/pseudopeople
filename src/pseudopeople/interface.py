@@ -10,7 +10,11 @@ from vivarium import ConfigTree
 from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
-from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, INT_COLUMNS
+from pseudopeople.constants.metadata import (
+    COPY_HOUSEHOLD_MEMBER_COLS,
+    DATEFORMATS,
+    INT_COLUMNS,
+)
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.loader import load_standard_dataset
 from pseudopeople.noise import noise_dataset
@@ -218,7 +222,20 @@ def _reformat_dates_for_noising(data: pd.DataFrame, dataset: Dataset):
         # to copy from a household member
         for column in [date_column, COPY_HOUSEHOLD_MEMBER_COLS.get(date_column)]:
             if column in data.columns:
-                data[column] = data[column].dt.strftime(dataset.date_format)
+                # Avoid running strftime on large data, since that will
+                # re-parse the format string for each row
+                # https://github.com/pandas-dev/pandas/issues/44764
+                year_string = data[column].dt.year.astype(str).str.zfill(4)
+                month_string = data[column].dt.month.astype(str).str.zfill(2)
+                day_string = data[column].dt.day.astype(str).str.zfill(2)
+                if dataset.date_format == DATEFORMATS.YYYYMMDD:
+                    data[column] = year_string + month_string + day_string
+                elif dataset.date_format == DATEFORMATS.MM_DD_YYYY:
+                    data[column] = month_string + "/" + day_string + "/" + year_string
+                elif dataset.date_format == DATEFORMATS.MMDDYYYY:
+                    data[column] = month_string + day_string + year_string
+                else:
+                    raise ValueError(f"Invalid date format in {dataset.name}.")
 
 
 def _extract_columns(columns_to_keep, noised_dataset):
