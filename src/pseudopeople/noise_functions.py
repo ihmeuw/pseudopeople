@@ -66,7 +66,7 @@ def _get_census_omission_noise_levels(
         .astype(str)
         .map(data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_RACE)
     )
-    ages = pd.Series(np.arange(population["age"].max()))
+    ages = pd.Series(np.arange(population["age"].max() + 1))
     for sex in ["Female", "Male"]:
         effect_by_age_bin = data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_SEX_AGE[sex]
         # NOTE: calling pd.cut on a large array with an IntervalIndex is slow,
