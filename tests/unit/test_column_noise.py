@@ -150,10 +150,12 @@ def test_leave_blank(dummy_dataset):
         }
     )
     data = dummy_dataset[["numbers"]]
-    noised_data = NOISE_TYPES.leave_blank(data, config, RANDOMNESS0, "dataset", "numbers")
+    noised_data = data.copy()
+    NOISE_TYPES.leave_blank(noised_data, config, RANDOMNESS0, "dataset", "numbers")
 
     # Calculate newly missing data, ie data that didn't come in as already missing
     data = data.squeeze()
+    noised_data = noised_data.squeeze()
     orig_non_missing_idx = data.index[(data.notna()) & (data != "")]
     newly_missing_idx = noised_data.index[
         (noised_data.index.isin(orig_non_missing_idx)) & (noised_data.isna())
@@ -174,10 +176,10 @@ def test_choose_wrong_option(dummy_dataset):
         NOISE_TYPES.choose_wrong_option.name
     ]
     data = dummy_dataset[["state"]]
-    noised_data = NOISE_TYPES.choose_wrong_option(
-        data, config, RANDOMNESS0, "dataset", "state"
-    )
+    noised_data = data.copy()
+    NOISE_TYPES.choose_wrong_option(noised_data, config, RANDOMNESS0, "dataset", "state")
     data = data.squeeze()
+    noised_data = noised_data.squeeze()
     # Check for expected noise level
     expected_noise = config[Keys.CELL_PROBABILITY]
     # todo: Update when choose_wrong_options uses exclusive resampling
@@ -196,8 +198,9 @@ def test_generate_copy_from_household_member(dummy_dataset):
         NOISE_TYPES.copy_from_household_member.name
     ]
     data = dummy_dataset[["age", "copy_age"]]
-    noised_data = NOISE_TYPES.copy_from_household_member(
-        data, config, RANDOMNESS0, "dataset", "age"
+    noised_data = data.copy()
+    NOISE_TYPES.copy_from_household_member(
+        noised_data, config, RANDOMNESS0, "dataset", "age", required_cols=["age", "copy_age"]
     )
 
     # Check for expected noise level
@@ -205,6 +208,7 @@ def test_generate_copy_from_household_member(dummy_dataset):
     original_missing_idx = data.index[data["age"] == ""]
     eligible_for_noise_idx = data.index.difference(original_missing_idx)
     data = data["age"]
+    noised_data = noised_data["age"]
     actual_noise = (
         noised_data[eligible_for_noise_idx] != data[eligible_for_noise_idx]
     ).mean()
@@ -246,12 +250,14 @@ def test_swap_months_and_days(dummy_dataset):
                 NOISE_TYPES.swap_month_and_day.name
             ]
         expected_noise = config[Keys.CELL_PROBABILITY]
-        noised_data = NOISE_TYPES.swap_month_and_day(
-            data, config, RANDOMNESS0, DATASETS.census.name, col
+        noised_data = data.copy()
+        NOISE_TYPES.swap_month_and_day(
+            noised_data, config, RANDOMNESS0, DATASETS.census.name, col
         )
 
         # Confirm missing data remains missing
         data = data.squeeze()
+        noised_data = noised_data.squeeze()
         orig_missing = data.isna()
         assert (noised_data[orig_missing].isna()).all()
 
@@ -284,12 +290,15 @@ def test_write_wrong_zipcode_digits(dummy_dataset):
     # Get configuration values for each piece of 5 digit zipcode
     probability = config[Keys.CELL_PROBABILITY]
     data = dummy_dataset[["zipcode"]]
-    noised_data = NOISE_TYPES.write_wrong_zipcode_digits(
-        data, config, RANDOMNESS0, "dataset", "zipcode"
+    noised_data = data.copy()
+    NOISE_TYPES.write_wrong_zipcode_digits(
+        noised_data, config, RANDOMNESS0, "dataset", "zipcode"
     )
 
     # Confirm missing data remains missing
     data = data.squeeze()
+    noised_data = noised_data.squeeze()
+
     orig_missing = data == ""
     assert (noised_data[orig_missing] == "").all()
     # Check noise for each digits position matches expected noise
@@ -310,8 +319,10 @@ def test_miswrite_ages_default_config(dummy_dataset):
         NOISE_TYPES.misreport_age.name
     ]
     data = dummy_dataset[["age"]]
-    noised_data = NOISE_TYPES.misreport_age(data, config, RANDOMNESS0, "dataset", "age")
+    noised_data = data.copy()
+    NOISE_TYPES.misreport_age(noised_data, config, RANDOMNESS0, "dataset", "age")
     data = data.squeeze()
+    noised_data = noised_data.squeeze()
 
     # Check for expected noise level
     not_missing_idx = data.index[data != ""]
@@ -353,7 +364,8 @@ def test_miswrite_ages_uniform_probabilities():
 
     data = pd.Series([str(original_age)] * num_rows, name="age")
     df = pd.DataFrame({"age": data})
-    noised_data = NOISE_TYPES.misreport_age(df, config, RANDOMNESS0, "dataset", "age")
+    noised_data = df.copy()
+    NOISE_TYPES.misreport_age(noised_data, config, RANDOMNESS0, "dataset", "age")
     expected_noise = 1 / len(perturbations)
     for perturbation in perturbations:
         actual_noise = (noised_data.astype(int) - original_age == perturbation).mean()
@@ -383,7 +395,8 @@ def test_miswrite_ages_provided_probabilities():
 
     data = pd.Series([str(original_age)] * num_rows, name="age")
     df = pd.DataFrame({"age": data})
-    noised_data = NOISE_TYPES.misreport_age(df, config, RANDOMNESS0, "dataset", "age")
+    noised_data = df.copy()
+    NOISE_TYPES.misreport_age(noised_data, config, RANDOMNESS0, "dataset", "age")
     for perturbation in perturbations:
         expected_noise = perturbations[perturbation]
         actual_noise = (noised_data.astype(int) - original_age == perturbation).mean()
@@ -417,9 +430,10 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
 
     data = pd.Series([str(age)] * num_rows, name="age")
     df = pd.DataFrame({"age": data})
-    noised_data = NOISE_TYPES.misreport_age(df, config, RANDOMNESS0, "dataset", "age")
+    noised_data = df.copy()
+    NOISE_TYPES.misreport_age(noised_data, config, RANDOMNESS0, "dataset", "age")
 
-    assert (noised_data == 0).all()
+    assert (noised_data["age"] == 0).all()
 
 
 def test_miswrite_ages_flips_negative_to_positive():
@@ -445,9 +459,10 @@ def test_miswrite_ages_flips_negative_to_positive():
 
     data = pd.Series([str(age)] * num_rows, name="age")
     df = pd.DataFrame({"age": data})
-    noised_data = NOISE_TYPES.misreport_age(df, config, RANDOMNESS0, "dataset", "age")
+    noised_data = df.copy()
+    NOISE_TYPES.misreport_age(noised_data, config, RANDOMNESS0, "dataset", "age")
 
-    assert (noised_data == 4).all()
+    assert (noised_data["age"] == 4).all()
 
 
 def test_write_wrong_digits(dummy_dataset):
@@ -477,12 +492,14 @@ def test_write_wrong_digits(dummy_dataset):
     data = dummy_dataset[["street_number"]]
     # Note: I changed this column from string_series to street number. It has several string formats
     # containing both numeric and alphabetically string characters.
-    noised_data = NOISE_TYPES.write_wrong_digits(
-        data, config, RANDOMNESS0, "dataset", "street_number"
+    noised_data = data.copy()
+    NOISE_TYPES.write_wrong_digits(
+        noised_data, config, RANDOMNESS0, "dataset", "street_number"
     )
 
     # Get masks for helper groups, each string in categorical string purpose is to mimic possible string types
     data = data["street_number"]
+    noised_data = noised_data["street_number"]
     empty_str = data == ""
     ambig_str = data.str.len() == 3
     unit_number = data == "Unit 1A"
@@ -561,8 +578,10 @@ def test_use_nickname(dummy_dataset):
     ]
     expected_noise = config[Keys.CELL_PROBABILITY]
     data = dummy_dataset[["first_name"]]
-    noised_data = NOISE_TYPES.use_nickname(data, config, RANDOMNESS0, "dataset", "first_name")
+    noised_data = data.copy()
+    NOISE_TYPES.use_nickname(noised_data, config, RANDOMNESS0, "dataset", "first_name")
     data = data.squeeze()
+    noised_data = noised_data.squeeze()
 
     # Validate missing stays missing
     orig_missing = data.isna()
@@ -633,14 +652,18 @@ def test_use_fake_name(dummy_dataset):
     # This will help demonstrate that the additional key is working correctly
     first_name_data = dummy_dataset[["first_name"]]
     last_name_data = dummy_dataset[["last_name"]]
-    noised_first_names = NOISE_TYPES.use_fake_name(
-        first_name_data, first_name_config, RANDOMNESS0, "dataset", "first_name"
+    noised_first_names = first_name_data.copy()
+    NOISE_TYPES.use_fake_name(
+        noised_first_names, first_name_config, RANDOMNESS0, "dataset", "first_name"
     )
-    noised_last_names = NOISE_TYPES.use_fake_name(
-        last_name_data, last_name_config, RANDOMNESS0, "dataset", "last_name"
+    noised_last_names = last_name_data.copy()
+    NOISE_TYPES.use_fake_name(
+        noised_last_names, last_name_config, RANDOMNESS0, "dataset", "last_name"
     )
     first_name_data = first_name_data.squeeze()
+    noised_first_names = noised_first_names.squeeze()
     last_name_data = last_name_data.squeeze()
+    noised_last_names = noised_last_names.squeeze()
 
     # Check missing are unchanged
     orig_missing = first_name_data == ""
@@ -697,10 +720,10 @@ def test_generate_phonetic_errors(dummy_dataset, column):
     config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][
         NOISE_TYPES.make_phonetic_errors.name
     ]
-    noised_data = NOISE_TYPES.make_phonetic_errors(
-        dummy_dataset, config, RANDOMNESS0, "dataset", column
-    )
+    noised_data = data.copy()
+    NOISE_TYPES.make_phonetic_errors(noised_data, config, RANDOMNESS0, "dataset", column)
     data = data.squeeze()
+    noised_data = noised_data.squeeze()
 
     # Validate we do not change any missing data
     missing_mask = data.isna()
@@ -738,9 +761,11 @@ def test_phonetic_error_values():
         NOISE_TYPES.make_phonetic_errors.name
     ]
     df = pd.DataFrame({"street_name": data})
-    noised_data = NOISE_TYPES.make_phonetic_errors(
-        df, config, RANDOMNESS0, "dataset", "street_name"
+    noised_data = df.copy()
+    NOISE_TYPES.make_phonetic_errors(
+        noised_data, config, RANDOMNESS0, "dataset", "street_name"
     )
+    noised_data = noised_data["street_name"]
 
     for key in phonetic_errors_series.keys():
         key_idx = data.index[data == key]
@@ -779,8 +804,10 @@ def test_generate_ocr_errors(dummy_dataset, column):
         NOISE_TYPES.make_ocr_errors.name
     ]
     data = dummy_dataset[[column]]
-    noised_data = NOISE_TYPES.make_ocr_errors(data, config, RANDOMNESS0, "dataset", column)
+    noised_data = data.copy()
+    NOISE_TYPES.make_ocr_errors(noised_data, config, RANDOMNESS0, "dataset", column)
     data = data.squeeze()
+    noised_data = noised_data.squeeze()
 
     # Validate we do not change any missing data
     missing_mask = data == ""
@@ -831,9 +858,9 @@ def test_ocr_replacement_values():
     config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["employer_name"][
         NOISE_TYPES.make_ocr_errors.name
     ]
-    noised_data = NOISE_TYPES.make_ocr_errors(
-        df, config, RANDOMNESS0, "dataset", "employer_name"
-    )
+    noised_data = df.copy()
+    NOISE_TYPES.make_ocr_errors(noised_data, config, RANDOMNESS0, "dataset", "employer_name")
+    noised_data = noised_data["employer_name"]
 
     for key in ocr_errors_dict.keys():
         key_idx = data.index[data == key]
@@ -871,8 +898,10 @@ def test_make_typos(dummy_dataset, column):
         NOISE_TYPES.make_typos.name
     ]
     data = dummy_dataset[[column]]
-    noised_data = NOISE_TYPES.make_typos(data, config, RANDOMNESS0, "dataset", column)
+    noised_data = data.copy()
+    NOISE_TYPES.make_typos(noised_data, config, RANDOMNESS0, "dataset", column)
     data = data.squeeze()
+    noised_data = noised_data.squeeze()
 
     not_missing_idx = data.index[(data.notna()) & (data != "")]
     check_original = data.loc[not_missing_idx]
@@ -946,10 +975,16 @@ def test_seeds_behave_as_expected(noise_type, data_col, dataset, dataset_col, du
     else:
         data = dummy_dataset[[data_col]]
 
-    noised_data = noise_type(data, config, RANDOMNESS0, dataset, data_col)
-    noised_data_same_seed = noise_type(data, config, RANDOMNESS0, dataset, data_col)
-    noised_data_different_seed = noise_type(data, config, RANDOMNESS1, dataset, data_col)
+    noised_data = data.copy()
+    noise_type(noised_data, config, RANDOMNESS0, dataset, data_col)
+    noised_data_same_seed = data.copy()
+    noise_type(noised_data_same_seed, config, RANDOMNESS0, dataset, data_col)
+    noised_data_different_seed = data.copy()
+    noise_type(noised_data_different_seed, config, RANDOMNESS1, dataset, data_col)
     data = data[data_col]
+    noised_data = noised_data[data_col]
+    noised_data_same_seed = noised_data_same_seed[data_col]
+    noised_data_different_seed = noised_data_different_seed[data_col]
 
     assert (noised_data != data).any()
     assert (noised_data.isna() == noised_data_same_seed.isna()).all()

@@ -29,7 +29,7 @@ def noise_dataset(
     dataset_data: pd.DataFrame,
     configuration: ConfigTree,
     seed: Any,
-) -> pd.DataFrame:
+) -> None:
     """
     Adds noise to the input dataset data. Noise functions are executed in the order
     defined by :py:const: `.NOISE_TYPES`. Row noise functions are applied to the
@@ -45,8 +45,6 @@ def noise_dataset(
         Object to configure noise levels
     :param seed:
         Seed for controlling randomness
-    :return:
-        Noised dataset data
     """
     randomness = get_randomness_stream(dataset.name, seed, dataset_data.index)
 
@@ -58,7 +56,7 @@ def noise_dataset(
                 and noise_type.name in noise_configuration.row_noise
             ):
                 # Apply row noise
-                dataset_data = noise_type(
+                noise_type(
                     dataset.name,
                     dataset_data,
                     noise_configuration[Keys.ROW_NOISE][noise_type.name],
@@ -76,17 +74,16 @@ def noise_dataset(
                 # Apply column noise to each column as appropriate
                 for column in columns_to_noise:
                     required_cols = [column] + noise_type.additional_column_getter(column)
-                    dataset_data[column] = noise_type(
-                        dataset_data[required_cols],
+                    noise_type(
+                        dataset_data,
                         noise_configuration.column_noise[column][noise_type.name],
                         randomness,
                         dataset.name,
                         column,
+                        required_cols=required_cols,
                     )
         else:
             raise TypeError(
                 f"Invalid noise type. Allowed types are {RowNoiseType} and "
                 f"{ColumnNoiseType}. Provided {type(noise_type)}."
             )
-
-    return dataset_data

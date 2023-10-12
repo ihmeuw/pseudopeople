@@ -242,7 +242,7 @@ def sample_data_taxes_w2_and_1099_state_edit():
 def _load_sample_data(dataset, request):
     if dataset == DatasetNames.TAXES_1040:
         # We need to get formatted 1040 data that is not noised to get the expected columns
-        data = request.getfixturevalue("formatted_1040_sample_data")
+        data = request.getfixturevalue("formatted_1040_sample_data").copy()
     else:
         data_path = paths.SAMPLE_DATA_ROOT / dataset / f"{dataset}.parquet"
         data = pd.read_parquet(data_path)
@@ -257,7 +257,9 @@ def _get_common_datasets(dataset_name, data, noised_data):
     """
     idx_cols = IDX_COLS.get(dataset_name)
     dataset = DATASETS.get_dataset(dataset_name)
-    check_original = _reformat_dates_for_noising(data, dataset).set_index(idx_cols)
+    check_original = data.copy()
+    _reformat_dates_for_noising(check_original, dataset)
+    check_original = check_original.set_index(idx_cols)
     check_noised = noised_data.set_index(idx_cols)
     # Ensure the idx_cols are unique
     assert check_original.index.duplicated().sum() == 0

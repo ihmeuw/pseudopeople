@@ -98,14 +98,16 @@ def test_generate_dataset_from_sample_and_source(
         ].intersection(original_missing_idx)
         compare_sample_idx = shared_idx_sample.difference(both_missing_sample_idx)
         compare_dataset_idx = shared_idx_dataset.difference(both_missing_dataset_idx)
-        noise_level_single_dataset = (
+        noised_single_dataset = (
             check_original.loc[compare_sample_idx, col].values
             != check_noised_sample.loc[compare_sample_idx, col].values
-        ).mean()
-        noise_level_full_dataset = (
+        )
+        noise_level_single_dataset = noised_single_dataset.mean()
+        noised_full_dataset = (
             check_original.loc[compare_dataset_idx, col].values
             != check_noised_dataset.loc[compare_dataset_idx, col].values
-        ).mean()
+        )
+        noise_level_full_dataset = noised_full_dataset.mean()
         # If the dataset is very small and/or missingness is very high, we can't
         # meaningfully compare because the stochastic variation is so great
         # As of 8/31/2023, this only skips unit_number (very missing) in the
@@ -578,5 +580,5 @@ def _mock_noise_dataset(
     configuration,
     seed: int,
 ):
-    """Mock noise_dataset that just returns unnoised data"""
-    return dataset_data
+    """Mock noise_dataset that does nothing"""
+    return

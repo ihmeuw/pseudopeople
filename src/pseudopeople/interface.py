@@ -107,7 +107,7 @@ def _generate_dataset(
 
         # Known pandas bug: pd.concat does not preserve category dtypes so we coerce
         # again after concat (https://github.com/pandas-dev/pandas/issues/51362)
-        noised_dataset = _coerce_dtypes(noised_dataset, dataset, cleanse_int_cols=True)
+        _coerce_dtypes(noised_dataset, dataset, cleanse_int_cols=True)
     else:
         import modin.config as modin_cfg
         import modin.pandas as mpd
@@ -161,11 +161,10 @@ def _generate_dataset(
 def _prep_and_noise_dataset(
     data: pd.DataFrame, dataset: Dataset, configuration_tree: ConfigTree, seed: Any
 ) -> pd.DataFrame:
-    data = _reformat_dates_for_noising(data, dataset)
-    data = _coerce_dtypes(data, dataset)
-    noised_data = noise_dataset(dataset, data, configuration_tree, seed)
-    noised_data = _extract_columns(dataset.columns, noised_data)
-    return noised_data
+    _reformat_dates_for_noising(data, dataset)
+    _coerce_dtypes(data, dataset)
+    noise_dataset(dataset, data, configuration_tree, seed)
+    return _extract_columns(dataset.columns, data)
 
 
 def validate_source_compatibility(source: Path):
@@ -211,21 +210,15 @@ def _coerce_dtypes(
         if col.dtype_name != data[col.name].dtype.name:
             data[col.name] = data[col.name].astype(col.dtype_name)
 
-    return data
-
 
 def _reformat_dates_for_noising(data: pd.DataFrame, dataset: Dataset):
     """Formats date columns so they can be noised as strings."""
-    data = data.copy()
-
     for date_column in [COLUMNS.dob.name, COLUMNS.ssa_event_date.name]:
         # Format both the actual column, and the shadow version that will be used
         # to copy from a household member
         for column in [date_column, COPY_HOUSEHOLD_MEMBER_COLS.get(date_column)]:
             if column in data.columns:
                 data[column] = data[column].dt.strftime(dataset.date_format)
-
-    return data
 
 
 def _extract_columns(columns_to_keep, noised_dataset):
