@@ -482,6 +482,7 @@ def make_phonetic_errors(
                         err += rng.choice(phonetic_error_series[token])
                         i += token_length
                         error_introduced = True
+                        break
             if not error_introduced:
                 err += truth[i : (i + 1)]
                 i += 1
