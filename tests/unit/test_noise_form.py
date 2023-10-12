@@ -159,7 +159,13 @@ def test_noise_order(mocker, dummy_data, dataset):
     # above causing duplicates in the call list. Call order is each instance a noise
     # function is called. Here we grab the string of the noise type for one mock method
     # call and not the second method.
-    call_order = [x[0] for x in mock.mock_calls if type(x[1][0]) == str]
+    # TODO: Clean this up to better distinguish the calls we care about
+    call_order = [
+        x[0]
+        for x in mock.mock_calls
+        if (type(x[1][0]) == str and x[1][0] == dataset.name)
+        or (4 < len(x[1]) and type(x[1][4]) == str and x[1][4] == dataset.name)
+    ]
     row_order = [row_noise_type.name for row_noise_type in dataset.row_noise_types]
     column_order = [
         NOISE_TYPES.leave_blank.name,
@@ -197,7 +203,7 @@ def test_columns_noised(dummy_data):
         },
     )
     noised_data = dummy_data.copy()
-    noised_data = noise_dataset(DATASETS.census, noised_data, config, 0)
+    noise_dataset(DATASETS.census, noised_data, config, 0)
 
     assert (dummy_data["event_type"] != noised_data["event_type"]).any()
     assert (dummy_data["words"] == noised_data["words"]).all()
@@ -246,14 +252,28 @@ def test_two_noise_functions_are_independent(mocker):
 
     # Mock objects for testing
 
+    def alpha_noise_func(data, idx_to_noise, _, _1, _2, column_name):
+        data.loc[idx_to_noise, column_name] = (
+            data.loc[idx_to_noise, column_name]
+            .squeeze()
+            .str.cat(pd.Series("abc", index=idx_to_noise))
+        )
+
+    def beta_noise_func(data, idx_to_noise, _, _1, _2, column_name):
+        data.loc[idx_to_noise, column_name] = (
+            data.loc[idx_to_noise, column_name]
+            .squeeze()
+            .str.cat(pd.Series("123", index=idx_to_noise))
+        )
+
     class MockNoiseTypes(NamedTuple):
         ALPHA: ColumnNoiseType = ColumnNoiseType(
             "alpha",
-            lambda data, *_: data.squeeze().str.cat(pd.Series("abc", index=data.index)),
+            alpha_noise_func,
         )
         BETA: ColumnNoiseType = ColumnNoiseType(
             "beta",
-            lambda data, *_: data.squeeze().str.cat(pd.Series("123", index=data.index)),
+            beta_noise_func,
         )
 
     mock_noise_types = MockNoiseTypes()
@@ -266,9 +286,10 @@ def test_two_noise_functions_are_independent(mocker):
         }
     )
 
-    noised_data = noise_dataset(
+    noised_data = dummy_dataset.copy()
+    noise_dataset(
         dataset=DATASETS.census,
-        dataset_data=dummy_dataset,
+        dataset_data=noised_data,
         seed=0,
         configuration=config_tree,
     )

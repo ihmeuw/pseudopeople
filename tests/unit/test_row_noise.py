@@ -41,7 +41,8 @@ def test_omit_row(dummy_data):
         NOISE_TYPES.omit_row.name
     ]
     dataset_name_1 = "dummy_dataset_name"
-    noised_data1 = NOISE_TYPES.omit_row(dataset_name_1, dummy_data, config, RANDOMNESS)
+    noised_data1 = dummy_data.copy()
+    NOISE_TYPES.omit_row(dataset_name_1, noised_data1, config, RANDOMNESS)
 
     expected_noise_1 = config[Keys.ROW_PROBABILITY]
     assert np.isclose(1 - len(noised_data1) / len(dummy_data), expected_noise_1, rtol=0.02)
@@ -63,12 +64,10 @@ def test_do_not_respond(mocker, dummy_data):
     my_dummy_data["age"] = 27
     my_dummy_data["sex"] = "Female"
     my_dummy_data["race_ethnicity"] = "Vulcan"
-    noised_data1 = NOISE_TYPES.do_not_respond(
-        dataset_name_1, my_dummy_data, config, RANDOMNESS
-    )
-    noised_data2 = NOISE_TYPES.do_not_respond(
-        dataset_name_2, my_dummy_data, config, RANDOMNESS
-    )
+    noised_data1 = my_dummy_data.copy()
+    NOISE_TYPES.do_not_respond(dataset_name_1, noised_data1, config, RANDOMNESS)
+    noised_data2 = my_dummy_data.copy()
+    NOISE_TYPES.do_not_respond(dataset_name_2, noised_data2, config, RANDOMNESS)
 
     # Test that noising affects expected proportion with expected types
     assert np.isclose(
@@ -111,7 +110,7 @@ def test_do_not_respond_missing_columns(dummy_data):
         NOISE_TYPES.do_not_respond.name
     ]
     with pytest.raises(ValueError, match="missing required columns"):
-        _ = NOISE_TYPES.do_not_respond("silly_dataset", dummy_data, config, RANDOMNESS)
+        NOISE_TYPES.do_not_respond("silly_dataset", dummy_data, config, RANDOMNESS)
 
 
 @pytest.mark.skip(reason="TODO")

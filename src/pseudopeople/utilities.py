@@ -62,15 +62,18 @@ def get_index_to_noise(
     noise_level: float,
     randomness_stream: RandomnessStream,
     additional_key: Any,
-    is_column_noise: bool = False,
+    ignore_rows_missing_columns: str = None,
 ) -> pd.Index:
     """
     Function that takes a series and returns a pd.Index that chosen by Vivarium Common Random Number to be noised.
     """
 
     # Get rows to noise
-    if is_column_noise:
-        missing_idx = data.index[(data.isna().any(axis=1)) | (data.isin([""]).any(axis=1))]
+    if ignore_rows_missing_columns is not None:
+        missing_idx = data.index[
+            data[ignore_rows_missing_columns].isna().any(axis=1)
+            | (data[ignore_rows_missing_columns] == "").any(axis=1)
+        ]
         eligible_for_noise_idx = data.index.difference(missing_idx)
     else:
         # Any index can be noised for row noise

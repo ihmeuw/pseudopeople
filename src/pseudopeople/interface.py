@@ -75,13 +75,13 @@ def _generate_dataset(
         data = _load_data_from_path(data_path, user_filters)
         if data.empty:
             continue
-        data = _reformat_dates_for_noising(data, dataset)
-        data = _coerce_dtypes(data, dataset)
+        _reformat_dates_for_noising(data, dataset)
+        _coerce_dtypes(data, dataset)
         # Use a different seed for each data file/shard, otherwise the randomness will duplicate
         # and the Nth row in each shard will get the same noise
         data_path_seed = f"{seed}_{data_path_index}"
-        noised_data = noise_dataset(dataset, data, configuration_tree, data_path_seed)
-        noised_data = _extract_columns(dataset.columns, noised_data)
+        noise_dataset(dataset, data, configuration_tree, data_path_seed)
+        noised_data = _extract_columns(dataset.columns, data)
         noised_dataset.append(noised_data)
 
     # Check if all shards for the dataset are empty
@@ -94,7 +94,7 @@ def _generate_dataset(
 
     # Known pandas bug: pd.concat does not preserve category dtypes so we coerce
     # again after concat (https://github.com/pandas-dev/pandas/issues/51362)
-    noised_dataset = _coerce_dtypes(noised_dataset, dataset, cleanse_int_cols=True)
+    _coerce_dtypes(noised_dataset, dataset, cleanse_int_cols=True)
 
     logger.debug("*** Finished ***")
 
@@ -144,8 +144,6 @@ def _coerce_dtypes(
         if col.dtype_name != data[col.name].dtype.name:
             data[col.name] = data[col.name].astype(col.dtype_name)
 
-    return data
-
 
 def _load_data_from_path(data_path: Path, user_filters: List[Tuple]) -> pd.DataFrame:
     """Load data from a data file given a data_path and a year_filter."""
@@ -155,16 +153,12 @@ def _load_data_from_path(data_path: Path, user_filters: List[Tuple]) -> pd.DataF
 
 def _reformat_dates_for_noising(data: pd.DataFrame, dataset: Dataset):
     """Formats date columns so they can be noised as strings."""
-    data = data.copy()
-
     for date_column in [COLUMNS.dob.name, COLUMNS.ssa_event_date.name]:
         # Format both the actual column, and the shadow version that will be used
         # to copy from a household member
         for column in [date_column, COPY_HOUSEHOLD_MEMBER_COLS.get(date_column)]:
             if column in data.columns:
                 data[column] = data[column].dt.strftime(dataset.date_format)
-
-    return data
 
 
 def _extract_columns(columns_to_keep, noised_dataset):
