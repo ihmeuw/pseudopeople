@@ -51,8 +51,8 @@ replace the value in the relevant cell with :code:`numpy.nan` to indicate that t
 It is important to note, however, that 
 some columns in the generated data may contain missing values, even if no noise has been added to the data,
 simply because the column is not applicable to every row.
-Columns that may have missing values regardless of noise include unit number, street number, and any related 
-to spouse or dependents in the 1040 tax data, for example. In these cases where fields are blank even without noise, 
+Columns that may have missing values regardless of noise include unit number, street number, and any columns pertaining
+to spouse or dependents in the 1040 tax dataset, for example. In these cases where fields are blank even without noise,
 missing values are also represented by :code:`numpy.nan`.
 
 This noise type is called :code:`leave_blank` in the configuration. It takes one parameter:
