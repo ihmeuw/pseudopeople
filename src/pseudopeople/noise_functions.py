@@ -548,6 +548,8 @@ def make_typos(
     """
     with open(paths.QWERTY_ERRORS) as f:
         qwerty_errors = yaml.safe_load(f)
+
+    qwerty_errors_eligible_chars = set(qwerty_errors.keys())
     qwerty_errors = pd.DataFrame.from_dict(qwerty_errors, orient="index")
     column = data[column_name]
     if column.empty:
@@ -558,37 +560,59 @@ def make_typos(
     include_token_probability_level = 0.1
     rng = np.random.default_rng(seed=get_hash(f"{randomness_stream.seed}_make_typos"))
 
-    # Make all strings the same length by padding with spaces
-    max_str_length = column.str.len().max()
-    same_len_col = column.str.pad(max_str_length, side="right")
-
-    is_typo_option = pd.concat(
-        [same_len_col.str[i].isin(qwerty_errors.index) for i in range(max_str_length)], axis=1
+    same_len_col_exploded = (
+        # Somewhat counterintuitively, .astype(str) turns the column into a numpy,
+        # fixed-length string type, U#, where # is the length of the longest string.
+        column.values.astype(str)
+        # Split into individual characters
+        .view("U1").reshape((len(column), -1))
+        # https://stackoverflow.com/a/9493192/
+        # NOTE: Surprisingly, casting this to "object" (Python string type) seems to make
+        # the rest of this method faster. Without this cast, you have to use np.char.add to concatenate,
+        # which seems very slow for some reason?
+        .astype("object")
     )
-    replace = is_typo_option & (rng.random(is_typo_option.shape) < token_noise_level)
-    keep_original = replace & (
-        rng.random(is_typo_option.shape) < include_token_probability_level
-    )
 
-    # Loop through each column of string elements and apply noising
-    noised_column = pd.Series("", index=column.index, name=column.name)
-    for i in range(max_str_length):
-        orig = same_len_col.str[i]
-        replace_mask = replace.iloc[:, i]
-        keep_original_mask = keep_original.iloc[:, i]
-        typos = two_d_array_choice(
-            data=orig[replace_mask],
-            options=qwerty_errors,
-            randomness_stream=randomness_stream,
-            additional_key=f"{column_name}_{i}",
+    # Surprisingly, Numpy does not provide a computationally efficient way to do
+    # this check for which characters are eligible.
+    # A head-to-head comparison found np.isin to be orders of magnitude slower than using Pandas here.
+    # Also, np.isin fails silently with sets (see https://numpy.org/doc/stable/reference/generated/numpy.isin.html)
+    # so be careful if testing that in the future!
+    is_typo_option = (
+        pd.DataFrame(same_len_col_exploded).isin(qwerty_errors_eligible_chars).to_numpy()
+    )
+    replace = np.zeros_like(is_typo_option)
+    replace[is_typo_option] = rng.random(is_typo_option.sum()) < token_noise_level
+    keep_original = np.zeros_like(replace)
+    keep_original[replace] = rng.random(replace.sum()) < include_token_probability_level
+
+    # Apply noising
+    to_replace = same_len_col_exploded[replace]
+    replace_random = rng.random(replace.sum())
+    number_of_options = qwerty_errors.count(axis=1)
+    replace_option_index = np.floor(
+        replace_random * number_of_options.loc[to_replace].to_numpy()
+    )
+    originals_to_keep = same_len_col_exploded[keep_original]
+    # Numpy does not have an efficient way to do this merge operation
+    same_len_col_exploded[replace] = (
+        pd.DataFrame({"to_replace": to_replace, "replace_option_index": replace_option_index})
+        .reset_index()
+        .merge(
+            qwerty_errors.stack().rename("replacement"),
+            left_on=["to_replace", "replace_option_index"],
+            right_index=True,
         )
-        characters = orig.copy()
-        characters[replace_mask] = typos
-        characters[keep_original_mask] = characters + orig
-        noised_column = noised_column + characters
-    noised_column = noised_column.str.strip()
+        # Merge does not return the results in order
+        .sort_values("index")
+        .replacement.to_numpy()
+    )
 
-    return noised_column
+    same_len_col_exploded[keep_original] += originals_to_keep
+
+    noised_column = np.sum(same_len_col_exploded, axis=1)
+
+    return pd.Series(noised_column, index=column.index, name=column.name)
 
 
 def make_ocr_errors(
