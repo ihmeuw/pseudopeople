@@ -547,41 +547,34 @@ def make_typos(
     include_token_probability_level = 0.1
     rng = np.random.default_rng(seed=get_hash(f"{randomness_stream.seed}_make_typos"))
 
-    # Make all strings the same length by padding with spaces
-    max_str_length = column.str.len().max()
-    same_len_col = column.str.pad(max_str_length, side="right")
-
-    is_typo_option = pd.concat(
-        [
-            same_len_col.str[i].isin(qwerty_errors_eligible_chars)
-            for i in range(max_str_length)
-        ],
-        axis=1,
+    same_len_col_exploded = (
+        column.str.split("", expand=True).iloc[:, 1:-1].fillna("").to_numpy()
     )
+
+    is_typo_option = np.isin(same_len_col_exploded, qwerty_errors_eligible_chars)
     replace = is_typo_option & (rng.random(is_typo_option.shape) < token_noise_level)
     keep_original = replace & (
         rng.random(is_typo_option.shape) < include_token_probability_level
     )
 
-    # Loop through each column of string elements and apply noising
-    noised_column = pd.Series("", index=column.index, name=column.name)
-    for i in range(max_str_length):
-        orig = same_len_col.str[i]
-        replace_mask = replace.iloc[:, i]
-        keep_original_mask = keep_original.iloc[:, i]
-        typos = two_d_array_choice(
-            data=orig[replace_mask],
-            options=qwerty_errors,
-            randomness_stream=randomness_stream,
-            additional_key=f"{column_name}_{i}",
-        )
-        characters = orig.copy()
-        characters[replace_mask] = typos
-        characters[keep_original_mask] = characters + orig
-        noised_column = noised_column + characters
-    noised_column = noised_column.str.strip()
+    # Apply noising
+    to_replace = same_len_col_exploded[replace]
+    replace_random = rng.random(to_replace.shape)
+    number_of_options = qwerty_errors.count(axis=1)
+    replace_option_index = np.floor(
+        replace_random * number_of_options.loc[to_replace].to_numpy()
+    )
+    originals_to_keep = same_len_col_exploded[keep_original]
+    same_len_col_exploded[replace] = (
+        qwerty_errors.stack().loc[zip(to_replace, replace_option_index)].to_numpy()
+    )
+    same_len_col_exploded[keep_original] += originals_to_keep
 
-    data.loc[idx_to_noise, column_name] = noised_column
+    data.loc[idx_to_noise, column_name] = (
+        pd.DataFrame(same_len_col_exploded, index=column.index)
+        .agg("".join, axis=1)
+        .str.strip()
+    )
 
 
 def make_ocr_errors(
