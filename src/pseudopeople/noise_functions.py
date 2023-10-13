@@ -175,6 +175,10 @@ def choose_wrong_options(
         additional_key=f"{column_name}_incorrect_select_choice",
     ).to_numpy()
 
+    if data[column_name].dtype.name == "category":
+        data[column_name] = data[column_name].cat.add_categories(
+            set(options) - set(data[column_name].dtype.categories)
+        )
     data.loc[idx_to_noise, column_name] = new_values
 
 
