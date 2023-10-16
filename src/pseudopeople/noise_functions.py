@@ -551,12 +551,18 @@ def make_typos(
     include_token_probability_level = 0.1
     rng = np.random.default_rng(seed=get_hash(f"{randomness_stream.seed}_make_typos"))
 
+    # https://stackoverflow.com/a/9493192/
+    # NOTE: Surprisingly, casting this to "object" (Python string type) seems to make
+    # the rest of this method faster. Without this cast, you have to use np.char.add to concatenate,
+    # which seems very slow for some reason?
     same_len_col_exploded = (
-        column.str.split("", expand=True).iloc[:, 1:-1].fillna("").to_numpy()
+        column.values.astype(str).view("U1").reshape((len(column), -1)).astype("object")
     )
 
     # NOTE: np.isin does not work with sets, see https://numpy.org/doc/stable/reference/generated/numpy.isin.html
-    is_typo_option = np.isin(same_len_col_exploded, qwerty_errors_eligible_chars)
+    is_typo_option = (
+        pd.DataFrame(same_len_col_exploded).isin(qwerty_errors_eligible_chars).to_numpy()
+    )
     replace = np.zeros_like(is_typo_option)
     replace[is_typo_option] = rng.random(is_typo_option.sum()) < token_noise_level
     keep_original = np.zeros_like(replace)
@@ -570,16 +576,23 @@ def make_typos(
         replace_random * number_of_options.loc[to_replace].to_numpy()
     )
     originals_to_keep = same_len_col_exploded[keep_original]
+    # Numpy does not have an efficient way to do this merge operation
     same_len_col_exploded[replace] = (
-        qwerty_errors.stack().loc[zip(to_replace, replace_option_index)].to_numpy()
+        pd.DataFrame({"to_replace": to_replace, "replace_option_index": replace_option_index})
+        .reset_index()
+        .merge(
+            qwerty_errors.stack().rename("replacement"),
+            left_on=["to_replace", "replace_option_index"],
+            right_index=True,
+        )
+        # Merge does not return the results in order
+        .sort_values("index")
+        .replacement.to_numpy()
     )
+
     same_len_col_exploded[keep_original] += originals_to_keep
 
-    data.loc[idx_to_noise, column_name] = (
-        pd.DataFrame(same_len_col_exploded, index=column.index)
-        .agg("".join, axis=1)
-        .str.strip()
-    )
+    data.loc[idx_to_noise, column_name] = np.sum(same_len_col_exploded, axis=1)
 
 
 def make_ocr_errors(
