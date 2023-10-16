@@ -1,5 +1,6 @@
 **0.7.2 - 10/16/23**
  - Drop support for python 3.8
+ - Fix bug in "Choose the wrong option" noise type
 
 **0.7.1 - 09/18/23**
  - Improved configuration validation
