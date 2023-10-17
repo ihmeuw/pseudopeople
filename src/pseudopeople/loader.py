@@ -44,4 +44,8 @@ def load_standard_dataset(
             "Please provide the path to the unmodified root data directory."
         )
 
-    return data
+    # TODO: The index in our simulated population files is never meaningful.
+    # For some reason, the 1040 dataset is currently saved with a non-RangeIndex.
+    # If we don't reset here, our index can have duplicates, which breaks much of
+    # our noising logic.
+    return data.reset_index(drop=True)
