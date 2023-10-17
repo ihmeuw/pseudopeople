@@ -636,8 +636,13 @@ def generate_taxes_w2_and_1099(
     """
     user_filters = []
     if year is not None:
-        user_filters.append((DATASETS.tax_w2_1099.date_column_name, "==", year))
-        seed = seed * 10_000 + year
+        if isinstance(year, int):
+            user_filters.append((DATASETS.tax_w2_1099.date_column_name, "==", year))
+            seed = seed * 10_000 + year
+        else:
+            user_filters.append((DATASETS.tax_w2_1099.date_column_name, "in", year))
+            # TODO: Fix this to not use sum
+            seed = seed * 10_000 + sum(year)
     if state is not None:
         user_filters.append(
             (DATASETS.tax_w2_1099.state_column_name, "==", get_state_abbreviation(state))
@@ -900,8 +905,13 @@ def generate_taxes_1040(
     """
     user_filters = []
     if year is not None:
-        user_filters.append((DATASETS.tax_1040.date_column_name, "==", year))
-        seed = seed * 10_000 + year
+        if isinstance(year, int):
+            user_filters.append((DATASETS.tax_1040.date_column_name, "==", year))
+            seed = seed * 10_000 + year
+        else:
+            user_filters.append((DATASETS.tax_1040.date_column_name, "in", year))
+            # TODO: Fix this to not use sum
+            seed = seed * 10_000 + sum(year)
     if state is not None:
         user_filters.append(
             (DATASETS.tax_1040.state_column_name, "==", get_state_abbreviation(state))
