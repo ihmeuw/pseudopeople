@@ -281,7 +281,7 @@ def write_wrong_zipcode_digits(
     shape = (len(column), 5)
 
     # todo: Update when vectorized choice is improved
-    possible_replacements = list("0123456789")
+    possible_replacements = np.array(list("0123456789"))
     # Scale up noise levels to adjust for inclusive sampling with all numbers
     scaleup_factor = 1 / (1 - (1 / len(possible_replacements)))
     # Get configuration values for each piece of 5 digit zipcode
@@ -289,15 +289,19 @@ def write_wrong_zipcode_digits(
         configuration[Keys.ZIPCODE_DIGIT_PROBABILITIES]
     )
     replace = rng.random(shape) < digit_probabilities
-    random_digits = rng.choice(possible_replacements, shape)
-    digits = []
-    for i in range(5):
-        digit = np.where(replace[:, i], random_digits[:, i], column.str[i])
-        digit = pd.Series(digit, index=column.index, name=column.name)
-        digits.append(digit)
+    num_to_replace = replace.sum()
+    random_digits = rng.choice(possible_replacements, num_to_replace)
 
-    new_zipcodes = digits[0] + digits[1] + digits[2] + digits[3] + digits[4]
-    return new_zipcodes
+    # https://stackoverflow.com/a/9493192/
+    # Changing this to a U5 numpy string type means that each string will have exactly 5 characters.
+    # view("U1") then reinterprets this memory as an array of individual (Unicode) characters.
+    same_len_col_exploded = column.values.astype("U5").view("U1").reshape(shape)
+    same_len_col_exploded[replace] = random_digits
+    return pd.Series(
+        same_len_col_exploded.view("U5").reshape(len(column)),
+        index=column.index,
+        name=column.name,
+    )
 
 
 def misreport_ages(
