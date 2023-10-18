@@ -10,11 +10,15 @@ from pseudopeople.configuration import Keys
 from pseudopeople.constants import data_values, paths
 from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, DatasetNames
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
-from pseudopeople.noise_scaling import load_nicknames_data
+from pseudopeople.noise_scaling import (
+    load_incorrect_select_options,
+    load_nicknames_data,
+)
 from pseudopeople.utilities import (
     get_index_to_noise,
     load_ocr_errors_dict,
     load_phonetic_errors_dict,
+    load_qwerty_errors_data,
     two_d_array_choice,
     vectorized_choice,
 )
@@ -171,7 +175,7 @@ def choose_wrong_options(
         "mailing_address_state": "state",
     }.get(str(column_name), column_name)
 
-    selection_options = pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
+    selection_options = load_incorrect_select_options()
 
     # Get possible noise values
     # todo: Update with exclusive resampling when vectorized_choice is improved
@@ -546,11 +550,10 @@ def make_typos(
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :returns: pd.Series of column with noised data
     """
-    with open(paths.QWERTY_ERRORS) as f:
-        qwerty_errors = yaml.safe_load(f)
 
-    qwerty_errors_eligible_chars = set(qwerty_errors.keys())
-    qwerty_errors = pd.DataFrame.from_dict(qwerty_errors, orient="index")
+    qwerty_errors = load_qwerty_errors_data()
+    qwerty_errors_eligible_chars = set(qwerty_errors.index)
+
     column = data[column_name]
     if column.empty:
         return column

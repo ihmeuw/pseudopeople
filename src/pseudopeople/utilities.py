@@ -1,8 +1,10 @@
 import sys
+from functools import cache
 from typing import Any, Union
 
 import numpy as np
 import pandas as pd
+import yaml
 from loguru import logger
 from vivarium.framework.randomness import RandomnessStream, get_hash
 from vivarium.framework.randomness.index_map import IndexMap
@@ -191,6 +193,7 @@ def cleanse_integer_columns(column: pd.Series) -> pd.Series:
 ##########################
 
 
+@cache
 def load_ocr_errors_dict():
     ocr_errors = pd.read_csv(
         paths.OCR_ERRORS_DATA, skiprows=[0, 1], header=None, names=["ocr_true", "ocr_err"]
@@ -203,6 +206,7 @@ def load_ocr_errors_dict():
     return ocr_error_dict
 
 
+@cache
 def load_phonetic_errors_dict():
     phonetic_errors = pd.read_csv(
         paths.PHONETIC_ERRORS_DATA,
@@ -214,3 +218,11 @@ def load_phonetic_errors_dict():
         lambda x: list(x.str.replace("@", ""))
     )
     return phonetic_error_series.to_dict()
+
+
+@cache
+def load_qwerty_errors_data() -> pd.DataFrame:
+    with open(paths.QWERTY_ERRORS) as f:
+        qwerty_errors = yaml.safe_load(f)
+
+    return pd.DataFrame.from_dict(qwerty_errors, orient="index")
