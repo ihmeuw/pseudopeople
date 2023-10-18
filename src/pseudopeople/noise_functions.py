@@ -476,6 +476,7 @@ def make_phonetic_errors(
                         err += rng.choice(phonetic_error_dict[token])
                         i += token_length
                         error_introduced = True
+                        break
             if not error_introduced:
                 err += truth[i : (i + 1)]
                 i += 1
@@ -485,16 +486,11 @@ def make_phonetic_errors(
     rng = np.random.default_rng(
         seed=get_hash(f"{randomness_stream.seed}_make_phonetic_errors")
     )
-    column = data[column_name]
-    column = column.astype(str)
-    for idx in column.index:
-        noised_value = phonetic_corrupt(
-            column[idx],
-            token_noise_level,
-            rng,
-        )
-        column[idx] = noised_value
-    return column
+    return (
+        data[column_name]
+        .astype(str)
+        .apply(phonetic_corrupt, corrupted_pr=token_noise_level, rng=rng)
+    )
 
 
 def leave_blanks(
