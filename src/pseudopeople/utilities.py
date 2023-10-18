@@ -41,21 +41,22 @@ def vectorized_choice(
 
     returns: ndarray
     """
-    if weights is None:
-        n = len(options)
-        weights = np.ones(n) / n
-    if isinstance(weights, list):
-        weights = np.array(weights)
     # for each of n_to_choose, sample uniformly between 0 and 1
     index = pd.Index(np.arange(n_to_choose))
     probs = randomness_stream.get_draw(index, additional_key=additional_key)
 
-    # build cdf based on weights
-    pmf = weights / weights.sum()
-    cdf = np.cumsum(pmf)
+    if weights is None:
+        chosen_indices = np.floor(probs * len(options)).astype(int)
+    else:
+        if isinstance(weights, list):
+            weights = np.array(weights)
+        # build cdf based on weights
+        pmf = weights / weights.sum()
+        cdf = np.cumsum(pmf)
 
-    # for each p_i in probs, count how many elements of cdf for which p_i >= cdf_i
-    chosen_indices = np.searchsorted(cdf, probs, side="right")
+        # for each p_i in probs, count how many elements of cdf for which p_i >= cdf_i
+        chosen_indices = np.searchsorted(cdf, probs, side="right")
+
     return np.take(options, chosen_indices, axis=0)
 
 
