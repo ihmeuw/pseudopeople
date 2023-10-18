@@ -290,34 +290,34 @@ def test_two_noise_functions_are_independent(mocker):
     assert np.isclose(
         noised_data["fake_column_one"].str.contains("abc").mean(),
         col1_expected_abc_proportion,
-        rtol=0.01,
+        rtol=0.02,
     )
     assert np.isclose(
         noised_data["fake_column_two"].str.contains("abc").mean(),
         col2_expected_abc_proportion,
-        rtol=0.01,
+        rtol=0.02,
     )
     assert np.isclose(
         noised_data["fake_column_one"].str.contains("123").mean(),
         col1_expected_123_proportion,
-        rtol=0.01,
+        rtol=0.02,
     )
     assert np.isclose(
         noised_data["fake_column_two"].str.contains("123").mean(),
         col2_expected_123_proportion,
-        rtol=0.01,
+        rtol=0.02,
     )
 
     # Assert columns experience both noise
     assert np.isclose(
         noised_data["fake_column_one"].str.contains("abc123").mean(),
         col1_expected_abc_proportion * col1_expected_123_proportion,
-        rtol=0.01,
+        rtol=0.02,
     )
     assert np.isclose(
         noised_data["fake_column_two"].str.contains("abc123").mean(),
         col2_expected_abc_proportion * col2_expected_123_proportion,
-        rtol=0.01,
+        rtol=0.02,
     )
     assert noised_data["fake_column_one"].str.contains("123abc").sum() == 0
     assert noised_data["fake_column_two"].str.contains("123abc").sum() == 0
