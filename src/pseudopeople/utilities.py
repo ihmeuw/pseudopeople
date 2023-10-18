@@ -198,7 +198,7 @@ def load_phonetic_errors_dict():
         header=None,
         names=["where", "orig", "new", "pre", "post", "pattern", "start"],
     )
-    phonetic_error_dict = phonetic_errors.groupby("orig")["new"].apply(
+    phonetic_error_series = phonetic_errors.groupby("orig")["new"].apply(
         lambda x: list(x.str.replace("@", ""))
     )
-    return phonetic_error_dict
+    return phonetic_error_series.to_dict()
