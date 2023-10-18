@@ -51,6 +51,11 @@ def noise_dataset(
     randomness = get_randomness_stream(dataset.name, seed, dataset_data.index)
 
     noise_configuration = configuration[dataset.name]
+
+    # We only need to do this once, because noise does not introduce missingness,
+    # except for the leave_blank kind which is special-cased below
+    missingness = (dataset_data == "") | (dataset_data.isna())
+
     for noise_type in tqdm(NOISE_TYPES, desc="Applying noise", unit="type", leave=False):
         if isinstance(noise_type, RowNoiseType):
             if (
@@ -64,6 +69,7 @@ def noise_dataset(
                     noise_configuration[Keys.ROW_NOISE][noise_type.name],
                     randomness,
                 )
+                missingness = missingness.loc[dataset_data.index].copy()
 
         elif isinstance(noise_type, ColumnNoiseType):
             if Keys.COLUMN_NOISE in noise_configuration:
@@ -76,13 +82,17 @@ def noise_dataset(
                 # Apply column noise to each column as appropriate
                 for column in columns_to_noise:
                     required_cols = [column] + noise_type.additional_column_getter(column)
-                    dataset_data[column] = noise_type(
+                    dataset_data[column], index_noised = noise_type(
                         dataset_data[required_cols],
                         noise_configuration.column_noise[column][noise_type.name],
                         randomness,
                         dataset.name,
                         column,
+                        missingness=missingness[required_cols],
                     )
+                    if noise_type == NOISE_TYPES.leave_blank:
+                        # The only situation in which more missingness is introduced
+                        missingness.loc[index_noised, column] = True
         else:
             raise TypeError(
                 f"Invalid noise type. Allowed types are {RowNoiseType} and "
