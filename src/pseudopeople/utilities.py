@@ -1,6 +1,6 @@
 import sys
 from functools import cache
-from typing import Any, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -65,6 +65,7 @@ def get_index_to_noise(
     randomness_stream: RandomnessStream,
     additional_key: Any,
     is_column_noise: bool = False,
+    missingness: Optional[pd.DataFrame] = None,
 ) -> pd.Index:
     """
     Function that takes a series and returns a pd.Index that chosen by Vivarium Common Random Number to be noised.
@@ -72,8 +73,10 @@ def get_index_to_noise(
 
     # Get rows to noise
     if is_column_noise:
-        missing_idx = data.index[(data.isna().any(axis=1)) | (data.isin([""]).any(axis=1))]
-        eligible_for_noise_idx = data.index.difference(missing_idx)
+        if missingness is None:
+            missingness = data.isna() | (data == "")
+        missing = missingness.any(axis=1)
+        eligible_for_noise_idx = data.index[~missing]
     else:
         # Any index can be noised for row noise
         eligible_for_noise_idx = data.index

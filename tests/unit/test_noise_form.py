@@ -234,10 +234,12 @@ def test_two_noise_functions_are_independent(mocker):
                     "fake_column_one": {
                         "alpha": {Keys.CELL_PROBABILITY: 0.20},
                         "beta": {Keys.CELL_PROBABILITY: 0.30},
+                        "leave_blank": {Keys.CELL_PROBABILITY: 0},
                     },
                     "fake_column_two": {
                         "alpha": {Keys.CELL_PROBABILITY: 0.40},
                         "beta": {Keys.CELL_PROBABILITY: 0.50},
+                        "leave_blank": {Keys.CELL_PROBABILITY: 0},
                     },
                 },
             }
@@ -254,6 +256,10 @@ def test_two_noise_functions_are_independent(mocker):
         BETA: ColumnNoiseType = ColumnNoiseType(
             "beta",
             lambda data, *_: data.squeeze().str.cat(pd.Series("123", index=data.index)),
+        )
+        leave_blank = ColumnNoiseType(
+            "leave_blank",
+            lambda data, *_: pd.Series(np.nan, index=data.index),
         )
 
     mock_noise_types = MockNoiseTypes()
