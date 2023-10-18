@@ -4,7 +4,7 @@ from typing import Any, Union
 import numpy as np
 import pandas as pd
 from loguru import logger
-from vivarium.framework.randomness import RandomnessStream
+from vivarium.framework.randomness import RandomnessStream, get_hash
 from vivarium.framework.randomness.index_map import IndexMap
 
 from pseudopeople.constants import metadata, paths
@@ -59,7 +59,7 @@ def vectorized_choice(
 
 def get_index_to_noise(
     data: pd.DataFrame,
-    noise_level: float,
+    noise_level: Union[float, pd.Series],
     randomness_stream: RandomnessStream,
     additional_key: Any,
     is_column_noise: bool = False,
@@ -75,11 +75,23 @@ def get_index_to_noise(
     else:
         # Any index can be noised for row noise
         eligible_for_noise_idx = data.index
-    to_noise_idx = randomness_stream.filter_for_probability(
-        eligible_for_noise_idx,
-        probability=noise_level,
-        additional_key=additional_key,
-    )
+
+    # As long as noise is relatively rare, it will be faster to randomly select cells to
+    # noise rather than generating a random draw for every item eligible
+    if isinstance(noise_level, float) and noise_level < 0.2:
+        rng = np.random.default_rng(
+            seed=get_hash(f"{randomness_stream.seed}_get_index_to_noise_{additional_key}")
+        )
+        number_to_noise = rng.binomial(len(eligible_for_noise_idx), p=noise_level)
+        to_noise_idx = pd.Index(
+            rng.choice(eligible_for_noise_idx, size=number_to_noise, replace=False)
+        )
+    else:
+        to_noise_idx = randomness_stream.filter_for_probability(
+            eligible_for_noise_idx,
+            probability=noise_level,
+            additional_key=additional_key,
+        )
 
     return to_noise_idx
 
