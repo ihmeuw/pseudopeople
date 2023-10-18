@@ -611,14 +611,9 @@ def make_ocr_errors(
     # Apply keyboard corrupt for OCR to column
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
     rng = np.random.default_rng(seed=get_hash(f"{randomness_stream.seed}_make_ocr_errors"))
-    column = data[column_name]
-    column = column.astype(str)
-    for idx in column.index:
-        noised_value = ocr_corrupt(
-            column.loc[idx],
-            token_noise_level,
-            rng,
-        )
-        column[idx] = noised_value
 
-    return column
+    return (
+        data[column_name]
+        .astype(str)
+        .apply(ocr_corrupt, corrupted_pr=token_noise_level, rng=rng)
+    )
