@@ -1,6 +1,7 @@
 name: Notify-test
 
 on:
+  workflow_dispatch:
   push:
     branches: mic-4384/notify-cron-fail
 
@@ -12,7 +13,7 @@ jobs:
       - name: Hello World
         run: echo Hello, world! && exit 1
       - name: Send mail
-        if: (github.event_name == 'schedule' && job.status == 'failure')
+        if: job.status == 'failure'
         uses: dawidd6/action-send-mail@v2
         with:
           # mail server settings
