@@ -56,7 +56,7 @@ def noise_dataset(
     # except for the leave_blank kind which is special-cased below
     missingness = (dataset_data == "") | (dataset_data.isna())
 
-    for noise_type in tqdm(NOISE_TYPES, desc="Applying noise", unit="type", leave=False):
+    for noise_type in tqdm(NOISE_TYPES, desc="Applying noise", unit="type"):
         if isinstance(noise_type, RowNoiseType):
             if (
                 Keys.ROW_NOISE in noise_configuration
