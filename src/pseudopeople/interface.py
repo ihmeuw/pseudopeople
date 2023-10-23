@@ -109,7 +109,18 @@ def _generate_dataset(
         # again after concat (https://github.com/pandas-dev/pandas/issues/51362)
         noised_dataset = _coerce_dtypes(noised_dataset, dataset, cleanse_int_cols=True)
     else:
+        import modin.config as modin_cfg
         import modin.pandas as mpd
+
+        previous_async_read_mode = modin_cfg.AsyncReadMode.get()
+        # We need to change the categorical columns to strings before ever materializing
+        # data.dtypes, since that will try to collect all the categories in memory in one node
+        # NOTE: This is only necessary because Modin happens to use .dtypes as
+        # its way to wait for partitions when not in async mode!
+        # Workaround for https://github.com/modin-project/modin/issues/5944
+        # TODO: Investigate whether our use of pandas categories as a "dictionary encoding"
+        # is even necessary/working, given that we compress our parquet files.
+        modin_cfg.AsyncReadMode.put(True)
 
         # Let modin deal with how to partition the shards -- the data path is the
         # entire directory containing the parquet files
@@ -139,6 +150,8 @@ def _generate_dataset(
                 )
             )
         )
+
+        modin_cfg.AsyncReadMode.put(previous_async_read_mode)
 
     logger.debug("*** Finished ***")
 
