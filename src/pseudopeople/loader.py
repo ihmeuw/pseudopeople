@@ -44,4 +44,12 @@ def load_standard_dataset(
             "Please provide the path to the unmodified root data directory."
         )
 
+    # TODO: The index in our simulated population files is never meaningful.
+    # For some reason, the 1040 dataset is currently saved with a non-RangeIndex
+    # in the large data, and all datasets have a non-RangeIndex in the sample data.
+    # If we don't drop these here, our index can have duplicates when we load multiple
+    # shards at once. Having duplicates in the index breaks much of
+    # our noising logic.
+    data.reset_index(drop=True, inplace=True)
+
     return data

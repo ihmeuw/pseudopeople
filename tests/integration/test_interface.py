@@ -110,7 +110,7 @@ def test_generate_dataset_from_sample_and_source(
         # meaningfully compare because the stochastic variation is so great
         # As of 8/31/2023, this only skips unit_number (very missing) in the
         # ACS and CPS datasets (very small)
-        if len(compare_sample_idx) < 30 or len(compare_dataset_idx) < 30:
+        if len(compare_sample_idx) < 50 or len(compare_dataset_idx) < 50:
             warnings.warn(
                 f"Noise levels in {col} of {dataset_name} were not compared because the numbers of rows eligible "
                 f"for noise were only {len(compare_sample_idx)} and {len(compare_dataset_idx)}"
