@@ -118,8 +118,8 @@ def _generate_dataset(
         # NOTE: This is only necessary because Modin happens to use .dtypes as
         # its way to wait for partitions when not in async mode!
         # Workaround for https://github.com/modin-project/modin/issues/5944
-        # NOTE: Is our use of pandas categories as a "dictionary encoding" even necessary,
-        # given we compress our parquet files?
+        # TODO: Investigate whether our use of pandas categories as a "dictionary encoding"
+        # is even necessary/working, given that we compress our parquet files.
         modin_cfg.AsyncReadMode.put(True)
 
         # Let modin deal with how to partition the shards -- the data path is the
