@@ -2,7 +2,6 @@ __all__ = [
     "__title__",
     "__summary__",
     "__uri__",
-    "__version__",
     "__author__",
     "__email__",
     "__license__",
@@ -12,8 +11,6 @@ __all__ = [
 __title__ = "pseudopeople"
 __summary__ = "pseudopeople is package which adds noise to simulated census-scale data using standard scientific Python tools."
 __uri__ = "https://github.com/ihmeuw/pseudopeople"
-
-__version__ = "0.7.2"
 
 __author__ = "The pseudopeople developers"
 __email__ = "vivarium.dev@gmail.com"
