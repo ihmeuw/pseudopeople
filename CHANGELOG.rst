@@ -1,3 +1,6 @@
+**0.8.0 - 10/24/23**
+ - Improve performance of dataset generation functions
+
 **0.7.2 - 10/16/23**
  - Drop support for python 3.8
  - Fix bug in "Choose the wrong option" noise type
