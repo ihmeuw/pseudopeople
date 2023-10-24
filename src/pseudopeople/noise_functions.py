@@ -364,25 +364,34 @@ def write_wrong_digits(
     rng = np.random.default_rng(get_hash(f"{randomness_stream.seed}_write_wrong_digits"))
     column = column.astype(str)
     max_str_length = column.str.len().max()
-    same_len_col = column.str.pad(max_str_length, side="right")
-    is_number = pd.concat(
-        [same_len_col.str[i].str.isdigit() for i in range(max_str_length)], axis=1
+
+    possible_replacements = np.array(list("0123456789"))
+
+    # https://stackoverflow.com/a/9493192/
+    # Changing this to a numpy (not Python) string type means that it will have a fixed
+    # number of characters, equal to the longest string in the array.
+    # view("U1") then reinterprets this memory as an array of individual (Unicode) characters.
+    same_len_col_exploded = (
+        column.values.astype(str).view("U1").reshape((len(column), max_str_length))
+    )
+    # Surprisingly, Numpy does not provide a computationally efficient way to do
+    # this check for which characters are eligible.
+    # A head-to-head comparison found np.isin to be orders of magnitude slower than using Pandas here.
+    # Also, np.isin fails silently with sets (see https://numpy.org/doc/stable/reference/generated/numpy.isin.html)
+    # so be careful if testing that in the future!
+    is_number = (
+        pd.DataFrame(same_len_col_exploded).isin(set(possible_replacements)).to_numpy()
     )
 
-    replace = (rng.random(is_number.shape) < token_noise_level) & is_number
-    random_digits = rng.choice(list("0123456789"), is_number.shape)
+    replace = np.zeros_like(is_number, dtype=bool)
+    replace[is_number] = rng.random(is_number.sum()) < token_noise_level
+    num_to_replace = replace.sum()
+    random_digits = rng.choice(possible_replacements, num_to_replace)
 
-    # Choose and replace values for a noised series
-    noised_column = pd.Series("", index=column.index, name=column.name)
-    digits = []
-    for i in range(len(is_number.columns)):
-        digit = np.where(replace.iloc[:, i], random_digits[:, i], same_len_col.str[i])
-        digit = pd.Series(digit, index=column.index, name=column.name)
-        digits.append(digit)
-        noised_column = noised_column + digits[i]
-    noised_column = noised_column.str.strip()
+    same_len_col_exploded[replace] = random_digits
+    noised_column = same_len_col_exploded.view(f"U{max_str_length}").reshape(len(column))
 
-    return noised_column
+    return pd.Series(noised_column, index=column.index, name=column.name)
 
 
 def use_nicknames(
