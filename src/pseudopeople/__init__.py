@@ -6,8 +6,8 @@ from pseudopeople.__about__ import (
     __summary__,
     __title__,
     __uri__,
-    __version__,
 )
+from pseudopeople._version import __version__
 from pseudopeople.configuration.entities import NO_NOISE
 from pseudopeople.configuration.interface import get_config
 from pseudopeople.interface import (
