@@ -392,8 +392,9 @@ def use_nicknames(
     :return: pd.Series of nicknames replacing original names
     """
     nicknames = load_nicknames_data()
+    nickname_eligible_names = set(nicknames.index)
     column = data[column_name]
-    have_nickname_idx = column.index[column.isin(nicknames.index)]
+    have_nickname_idx = column.index[column.isin(nickname_eligible_names)]
     noised = two_d_array_choice(
         column.loc[have_nickname_idx], nicknames, randomness_stream, column_name
     )
