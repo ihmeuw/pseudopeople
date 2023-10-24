@@ -1016,6 +1016,42 @@ def test_seeds_behave_as_expected(noise_type, data_col, dataset, dataset_col, du
     assert (noised.iloc[:shortest] != noised_different_seed.iloc[:shortest]).any()
 
 
+def test_age_write_wrong_digits(dummy_dataset):
+    # Tests write wrong digits is now applied to age column - albrja(10/23/23)
+    config = get_configuration()
+    config.update(
+        {
+            DATASETS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    "age": {
+                        NOISE_TYPES.write_wrong_digits.name: {
+                            Keys.CELL_PROBABILITY: 0.4,
+                            Keys.TOKEN_PROBABILITY: 0.5,
+                        },
+                    },
+                },
+            },
+        }
+    )
+    config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][
+        NOISE_TYPES.write_wrong_digits.name
+    ]
+    expected_noise = config[Keys.CELL_PROBABILITY] * config[Keys.TOKEN_PROBABILITY]
+    data = dummy_dataset[["age"]]
+    noised_data = NOISE_TYPES.write_wrong_digits(data, config, RANDOMNESS0, "dataset", "age")
+    data = data.squeeze()
+    is_close_wrapper(
+        (data != noised_data).mean(),
+        expected_noise,
+        0.02,
+    )
+
+
+################
+### Wrappers ###
+################
+
+
 def np_isclose_wrapper(actual_noise, expected_noise, rtol):
     return np.isclose(actual_noise, expected_noise, rtol).all()
 
