@@ -32,6 +32,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.misreport_age,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
+            NOISE_TYPES.write_wrong_digits,
         ),
     )
     city: Column = Column(
