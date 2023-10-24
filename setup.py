@@ -42,7 +42,7 @@ if __name__ == "__main__":
         "tqdm",
     ]
 
-    setup_requires = ["packaging", "setuptools_scm"]
+    setup_requires = ["setuptools_scm"]
 
     interactive_requirements = [
         "IPython",
