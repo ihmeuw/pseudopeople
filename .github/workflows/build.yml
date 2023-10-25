@@ -16,9 +16,6 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.9", "3.10", "3.11"]
-    defaults:
-      run:
-        shell: bash -le {0}
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -42,7 +39,7 @@ jobs:
           isort . --check --verbose --only-modified --diff
       - name: Test
         run: |
-          if [ ${{ github.event_name }} == 'push']; then
+          if "${{ github.event_name == 'push' }}"; then
             pytest --runslow ./tests
           else
             pytest --limit=1 ./tests
