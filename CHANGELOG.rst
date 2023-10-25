@@ -1,4 +1,4 @@
-**0.8.0 - 10/24/23**
+**0.8.0 - 10/25/23**
  - Improve performance of dataset generation functions
 
 **0.7.2 - 10/16/23**
