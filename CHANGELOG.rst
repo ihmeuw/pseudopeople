@@ -1,3 +1,6 @@
+**0.8.1 - 10/25/23**
+ - Implements setuptools-scm for versioning
+
 **0.8.0 - 10/25/23**
  - Improve performance of dataset generation functions
 
