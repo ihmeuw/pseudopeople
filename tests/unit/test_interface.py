@@ -5,7 +5,7 @@ from packaging.version import parse
 
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.interface import (
-    _get_data_changelog_version,
+    _get_data_version,
     validate_source_compatibility,
 )
 
@@ -40,7 +40,7 @@ def simulated_data_changelog_path(tmpdir_factory):
 
 def test__get_data_changelog_version(simulated_data_changelog_path):
     """Test that the data version is extracted from the CHANGELOG correctly"""
-    assert _get_data_changelog_version(
+    assert _get_data_version(
         simulated_data_changelog_path / "CHANGELOG.rst"
     ) == parse("1.4.2")
 
