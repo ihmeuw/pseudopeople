@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 import pandas as pd
+import yaml
 from loguru import logger
 from packaging.version import parse
 from tqdm import tqdm
@@ -103,7 +104,7 @@ def _generate_dataset(
 
 def validate_source_compatibility(source: Path):
     # TODO [MIC-4546]: Clean this up w/ metadata and update test_interface.py tests to be generic
-    metadata = source / "metadata.parquet"
+    metadata = source / "metadata.yaml"
     if metadata.exists():
         version = _get_data_version(metadata)
         if version > parse("2.0.0"):
@@ -127,9 +128,10 @@ def validate_source_compatibility(source: Path):
 
 
 def _get_data_version(metadata_path: Path):
-    metadata = pd.read_parquet(metadata_path)
-    version = metadata["date_version"].iloc[0]
-    return version
+    with open(metadata_path) as f:
+        metadata = yaml.safe_load(f)
+        version = metadata["data_version"]
+    return parse(version)
 
 
 def _coerce_dtypes(
