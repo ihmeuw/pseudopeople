@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
+import numpy as np
 import pandas as pd
 from loguru import logger
 from packaging.version import parse
@@ -170,17 +171,22 @@ def _reformat_dates_for_noising(data: pd.DataFrame, dataset: Dataset):
                 # re-parse the format string for each row
                 # https://github.com/pandas-dev/pandas/issues/44764
                 # Year is already guaranteed to be 4-digit: https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#timeseries-timestamp-limits
-                year_string = data[column].dt.year.astype(str)
-                month_string = _zfill_fast(data[column].dt.month.astype(str), 2)
-                day_string = _zfill_fast(data[column].dt.day.astype(str), 2)
+                is_na = data[column].isna()
+                data_column = data.loc[~is_na, column]
+                year_string = data_column.dt.year.astype(str)
+                month_string = _zfill_fast(data_column.dt.month.astype(str), 2)
+                day_string = _zfill_fast(data_column.dt.day.astype(str), 2)
                 if dataset.date_format == DATEFORMATS.YYYYMMDD:
-                    data[column] = year_string + month_string + day_string
+                    result = year_string + month_string + day_string
                 elif dataset.date_format == DATEFORMATS.MM_DD_YYYY:
-                    data[column] = month_string + "/" + day_string + "/" + year_string
+                    result = month_string + "/" + day_string + "/" + year_string
                 elif dataset.date_format == DATEFORMATS.MMDDYYYY:
-                    data[column] = month_string + day_string + year_string
+                    result = month_string + day_string + year_string
                 else:
                     raise ValueError(f"Invalid date format in {dataset.name}.")
+
+                data[column] = pd.Series(np.nan, dtype=str)
+                data.loc[~is_na, column] = result
 
     return data
 
