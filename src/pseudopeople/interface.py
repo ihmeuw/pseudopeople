@@ -120,13 +120,13 @@ def validate_source_compatibility(source: Path):
         if version < parse(DATA_VERSION):
             raise DataSourceError(
                 f"The provided simulated population data is incompatible with this version of pseudopeople ({psp_version}).\n"
-                "The simulated population data has been corrupted.\n"
+                "Current data version is {version} but a newer version {DATA_VERSION} is available.\n"
                 "Please re-download the simulated population data."
             )
     else:
         raise DataSourceError(
             f"The provided simulated population data is incompatible with this version of pseudopeople ({psp_version}).\n"
-            f"Current data version is {version} but a newer version {DATA_VERSION} is available.\n"
+            "An older version of simulated population data has been provided.\n"
             "Please either request updated simulated population data or downgrade the pseudopeople package."
         )
 
