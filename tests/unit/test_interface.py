@@ -52,7 +52,7 @@ def test_validate_source_compatibility_no_metadata_error(simulated_data_metadata
 @pytest.mark.parametrize(
     "version, match",
     [
-        ("1.4.1", "The simulated population data has been corrupted."),
+        ("1.4.1", "Current data version is."),
         ("2.1.0", "A newer version of simulated population data has been provided."),
         ("2.4.12", "A newer version of simulated population data has been provided."),
     ],
