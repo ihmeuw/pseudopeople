@@ -10,7 +10,11 @@ from tqdm import tqdm
 from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
-from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, INT_COLUMNS
+from pseudopeople.constants.metadata import (
+    COPY_HOUSEHOLD_MEMBER_COLS,
+    DATA_VERSION,
+    INT_COLUMNS,
+)
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.loader import load_standard_dataset_file
 from pseudopeople.noise import noise_dataset
@@ -107,13 +111,13 @@ def validate_source_compatibility(source: Path):
     metadata = source / "metadata.yaml"
     if metadata.exists():
         version = _get_data_version(metadata)
-        if version > parse("2.0.0"):
+        if version > parse(DATA_VERSION):
             raise DataSourceError(
                 f"The provided simulated population data is incompatible with this version of pseudopeople ({psp_version}).\n"
                 "A newer version of simulated population data has been provided.\n"
                 "Please upgrade the pseudopeople package."
             )
-        if version < parse("2.0.0"):
+        if version < parse(DATA_VERSION):
             raise DataSourceError(
                 f"The provided simulated population data is incompatible with this version of pseudopeople ({psp_version}).\n"
                 "The simulated population data has been corrupted.\n"
@@ -122,7 +126,7 @@ def validate_source_compatibility(source: Path):
     else:
         raise DataSourceError(
             f"The provided simulated population data is incompatible with this version of pseudopeople ({psp_version}).\n"
-            "An older version of simulated population data has been provided.\n"
+            f"Current data version is {version} but a newer version {DATA_VERSION} is available.\n"
             "Please either request updated simulated population data or downgrade the pseudopeople package."
         )
 

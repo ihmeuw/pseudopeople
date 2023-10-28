@@ -97,3 +97,5 @@ COPY_HOUSEHOLD_MEMBER_COLS = {
 
 
 INT_COLUMNS = ["age", "wages", "mailing_address_po_box"]
+
+DATA_VERSION = "2.0.0"
