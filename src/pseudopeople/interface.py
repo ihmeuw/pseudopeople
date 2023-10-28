@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
+import yaml
 from loguru import logger
 from packaging.version import parse
 from tqdm import tqdm
@@ -13,6 +14,7 @@ from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import (
     COPY_HOUSEHOLD_MEMBER_COLS,
     DATEFORMATS,
+    DATA_VERSION,
     INT_COLUMNS,
 )
 from pseudopeople.exceptions import DataSourceError
@@ -108,19 +110,19 @@ def _generate_dataset(
 
 def validate_source_compatibility(source: Path):
     # TODO [MIC-4546]: Clean this up w/ metadata and update test_interface.py tests to be generic
-    changelog = source / "CHANGELOG.rst"
-    if changelog.exists():
-        version = _get_data_changelog_version(changelog)
-        if version > parse("1.4.2"):
+    metadata = source / "metadata.yaml"
+    if metadata.exists():
+        version = _get_data_version(metadata)
+        if version > parse(DATA_VERSION):
             raise DataSourceError(
                 f"The provided simulated population data is incompatible with this version of pseudopeople ({psp_version}).\n"
                 "A newer version of simulated population data has been provided.\n"
                 "Please upgrade the pseudopeople package."
             )
-        if version < parse("1.4.2"):
+        if version < parse(DATA_VERSION):
             raise DataSourceError(
                 f"The provided simulated population data is incompatible with this version of pseudopeople ({psp_version}).\n"
-                "The simulated population data has been corrupted.\n"
+                "Current data version is {version} but a newer version {DATA_VERSION} is available.\n"
                 "Please re-download the simulated population data."
             )
     else:
@@ -131,11 +133,11 @@ def validate_source_compatibility(source: Path):
         )
 
 
-def _get_data_changelog_version(changelog):
-    with open(changelog, "r") as file:
-        first_line = file.readline()
-    version = parse(first_line.split("**")[1].split("-")[0].strip())
-    return version
+def _get_data_version(metadata_path: Path):
+    with open(metadata_path) as f:
+        metadata = yaml.safe_load(f)
+        version = metadata["data_version"]
+    return parse(version)
 
 
 def _coerce_dtypes(
