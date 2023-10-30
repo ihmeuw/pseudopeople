@@ -1,3 +1,6 @@
+**0.8.2 - 10/30/23**
+- Fixes a bug in date formatting
+
 **0.8.1 - 10/25/23**
  - Implements setuptools-scm for versioning
 
