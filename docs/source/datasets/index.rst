@@ -94,7 +94,7 @@ The following columns are included in this dataset:
      -
    * - Physical address city
      - :code:`city`
-     - Default simulated data always has value "Anytown"
+     - Default simulated population always has value "Anytown"
    * - Physical address state
      - :code:`state`
      - Default simulated data always has value "WA"
