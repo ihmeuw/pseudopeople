@@ -113,6 +113,9 @@ Both datasets have a :code:`simulant_id` column that uniquely identifies an indi
 The unique :code:`simulant_id` present in both datasets provides us with a truth deck,
 which we wouldn't have for a linkage task with real, sensitive data.
 
+Note that in the small-scale simulated data that is available by default, these addresses all have their city/state/zip code set to the fictitious location of Anytown, WA 00000.  To read more about obtaining large-scale data with more realistic city, state, and zip code data, please see :ref:`Simulated populations <_simulated_populations_main>`.
+
+
 ::
 
    >>> # To find how many matches there are between records about a given simulant,
