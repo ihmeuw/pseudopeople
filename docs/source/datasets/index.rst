@@ -8,7 +8,7 @@ Here we cover the realistic simulated datasets, which are analogous to "real wor
 and routinely generated files of social security numbers, that users can generate using Pseudopeople for developing and testing Entity
 Resolution algorithms and software.
 
-Each of the datasets that can be generated using Pseudopeople has "noise" added to them, thereby realistically
+Each of the datasets that can be generated using pseudopeople has "noise" added to it, thereby realistically
 simulating how population data can be corrupted or distorted, which creates challenges in linking those
 records. To read more about the different kinds of noise that can be applied to the different datasets, please see the
 :ref:`Noise page <noise_main>`.
