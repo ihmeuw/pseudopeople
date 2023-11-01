@@ -26,7 +26,7 @@ A **mailing address** represents the address a simulant uses to receive mail,
 which may be different -- for example, a PO box.
 Mailing addresses, not physical addresses, are recorded in tax filings.
 
-Note that in the small-scale simulated data that is available by default, these addresses all have their city/state/zip code set to the fictitious location of Anytown, WA 00000.  To read more about obtaining large-scale data with more realistic city, state, and zip code data, please see :ref:`Simulated populations <_simulated_populations_main>`.
+Note that in the small-scale simulated data that is available by default, these addresses all have their city/state/zip code set to the fictitious location of Anytown, WA 00000.  To read more about obtaining large-scale data with more realistic city, state, and zip code data, please see :ref:`Simulated populations <simulated_populations_main>`.
 
 Some fields are not applicable to every record in a simulated dataset,
 so some columns may contain "missing" values, even if no noise has been added to the data.
