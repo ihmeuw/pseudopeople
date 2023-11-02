@@ -37,7 +37,7 @@ datasets.
 ..
   The entire simulation process can be visualized as follows.
 
-  [[Insert image here]]
+  [[TODO: Insert image here]]
 
 Accessing the large-scale simulated populations
 -----------------------------------------------

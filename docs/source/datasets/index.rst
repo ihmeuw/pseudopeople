@@ -8,8 +8,8 @@ Here we cover the realistic simulated datasets, which are analogous to "real wor
 and routinely generated files of social security numbers, that users can generate using Pseudopeople for developing and testing Entity
 Resolution algorithms and software.
 
-Each of the datasets that can be generated using Pseudopeople have "noise" added to them, thereby realistically
-simulating how administrative records can be corrupted or distorted, which creates challenges in linking those
+Each of the datasets that can be generated using pseudopeople has "noise" added to it, thereby realistically
+simulating how population data can be corrupted or distorted, which creates challenges in linking those
 records. To read more about the different kinds of noise that can be applied to the different datasets, please see the
 :ref:`Noise page <noise_main>`.
 
@@ -25,6 +25,8 @@ which is where they are recorded in the Decennial Census and surveys.
 A **mailing address** represents the address a simulant uses to receive mail,
 which may be different -- for example, a PO box.
 Mailing addresses, not physical addresses, are recorded in tax filings.
+
+Note that in the small-scale simulated population that is available by default, these addresses all have their city/state/zip code set to the fictitious location of Anytown, WA 00000.  To read more about obtaining large-scale data with more realistic city, state, and zip code data, please see :ref:`Simulated populations <simulated_populations_main>`.
 
 Some fields are not applicable to every record in a simulated dataset,
 so some columns may contain "missing" values, even if no noise has been added to the data.
@@ -92,13 +94,13 @@ The following columns are included in this dataset:
      -
    * - Physical address city
      - :code:`city`
-     -
+     - Default simulated population always has value "Anytown"
    * - Physical address state
      - :code:`state`
-     -
+     - Default simulated population always has value "WA"
    * - Physical address ZIP code
      - :code:`zipcode`
-     -
+     - Default simulated population always has value "00000"
    * - Housing type
      - :code:`housing_type`
      - Possible values for housing type are "Household" for an individual
@@ -187,13 +189,13 @@ The following columns are included in this dataset:
      -
    * - Physical address city
      - :code:`city`
-     -
+     - Default simulated population always has value "Anytown"
    * - Physical address state
      - :code:`state`
-     -
+     - Default simulated population always has value "WA"
    * - Physical address ZIP code
      - :code:`zipcode`
-     -
+     - Default simulated population always has value "00000"
    * - Housing type
      - :code:`housing_type`
      - Possible values for housing type are "Household" for an individual
@@ -279,13 +281,13 @@ The following columns are included in this dataset:
      -
    * - Physical address city
      - :code:`city`
-     -
+     - Default simulated population always has value "Anytown"
    * - Physical address state
      - :code:`state`
-     -
+     - Default simulated population always has value "WA"
    * - Physical address ZIP code
      - :code:`zipcode`
-     -
+     - Default simulated population always has value "00000"
    * - Sex
      - :code:`sex`
      - Binary; "male" or "female"
@@ -348,13 +350,13 @@ The following columns are included in this dataset:
      -
    * - Physical address city
      - :code:`city`
-     -
+     - Default simulated population always has value "Anytown"
    * - Physical address state
      - :code:`state`
-     -
+     - Default simulated population always has value "WA"
    * - Physical address ZIP code
      - :code:`zipcode`
-     -
+     - Default simulated population always has value "00000"
    * - Sex
      - :code:`sex`
      - Binary; "male" or "female"
@@ -474,13 +476,13 @@ The following columns are included in these datasets:
      -
    * - Employer city
      - :code:`employer_city`
-     -
+     - Default simulated population always has value "Anytown"
    * - Employer state
      - :code:`employer_state`
-     -
+     - Default simulated population always has value "WA"
    * - Employer ZIP code
      - :code:`employer_zipcode`
-     -
+     - Default simulated population always has value "00000"
    * - First name
      - :code:`first_name`
      -
@@ -504,13 +506,13 @@ The following columns are included in these datasets:
      -
    * - Mailing address city
      - :code:`mailing_address_city`
-     -
+     - Default simulated population always has value "Anytown"
    * - Mailing address state
      - :code:`mailing_address_state`
-     -
+     - Default simulated population always has value "WA"
    * - Mailing address ZIP code
      - :code:`mailing_address_zipcode`
-     -
+     - Default simulated population always has value "00000"
    * - Type of tax form
      - :code:`tax_form`
      - Possible values are "W2" or "1099".
@@ -597,13 +599,13 @@ The following columns are included in this dataset:
      -
    * - Mailing address city
      - :code:`mailing_address_city`
-     -
+     - Default simulated population always has value "Anytown"
    * - Mailing address state
      - :code:`mailing_address_state`
-     -
+     - Default simulated population always has value "WA"
    * - Mailing address ZIP code
      - :code:`mailing_address_zipcode`
-     -
+     - Default simulated population always has value "00000"
    * - Joint filer first name
      - :code:`spouse_first_name`
      -
