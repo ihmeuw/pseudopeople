@@ -99,3 +99,15 @@ COPY_HOUSEHOLD_MEMBER_COLS = {
 INT_COLUMNS = ["age", "wages", "mailing_address_po_box"]
 
 DATA_VERSION = "2.0.0"
+
+METADATA_COLUMNS = [
+    "first_name",
+    "copy_age",
+    "copy_date_of_birth",
+    "copy_ssn",
+    "spouse_copy_ssn",
+    "dependent_1_copy_ssn",
+    "dependent_2_copy_ssn",
+    "dependent_3_copy_ssn",
+    "de pendent_4_copy_ssn",
+]
