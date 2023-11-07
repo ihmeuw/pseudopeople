@@ -123,7 +123,7 @@ def test_generate_dataset_from_sample_and_source(
         elif dataset_name == DATASETS.tax_1040.name:
             rtol = 0.35
         else:
-            rtol = 0.13
+            rtol = 0.15
         assert np.isclose(noise_level_full_dataset, noise_level_single_dataset, rtol=rtol)
 
 

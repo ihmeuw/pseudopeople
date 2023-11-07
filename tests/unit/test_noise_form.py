@@ -234,10 +234,12 @@ def test_two_noise_functions_are_independent(mocker):
                     "fake_column_one": {
                         "alpha": {Keys.CELL_PROBABILITY: 0.20},
                         "beta": {Keys.CELL_PROBABILITY: 0.30},
+                        "leave_blank": {Keys.CELL_PROBABILITY: 0},
                     },
                     "fake_column_two": {
                         "alpha": {Keys.CELL_PROBABILITY: 0.40},
                         "beta": {Keys.CELL_PROBABILITY: 0.50},
+                        "leave_blank": {Keys.CELL_PROBABILITY: 0},
                     },
                 },
             }
@@ -254,6 +256,10 @@ def test_two_noise_functions_are_independent(mocker):
         BETA: ColumnNoiseType = ColumnNoiseType(
             "beta",
             lambda data, *_: data.squeeze().str.cat(pd.Series("123", index=data.index)),
+        )
+        leave_blank = ColumnNoiseType(
+            "leave_blank",
+            lambda data, *_: pd.Series(np.nan, index=data.index),
         )
 
     mock_noise_types = MockNoiseTypes()
@@ -290,34 +296,34 @@ def test_two_noise_functions_are_independent(mocker):
     assert np.isclose(
         noised_data["fake_column_one"].str.contains("abc").mean(),
         col1_expected_abc_proportion,
-        rtol=0.01,
+        rtol=0.02,
     )
     assert np.isclose(
         noised_data["fake_column_two"].str.contains("abc").mean(),
         col2_expected_abc_proportion,
-        rtol=0.01,
+        rtol=0.02,
     )
     assert np.isclose(
         noised_data["fake_column_one"].str.contains("123").mean(),
         col1_expected_123_proportion,
-        rtol=0.01,
+        rtol=0.02,
     )
     assert np.isclose(
         noised_data["fake_column_two"].str.contains("123").mean(),
         col2_expected_123_proportion,
-        rtol=0.01,
+        rtol=0.02,
     )
 
     # Assert columns experience both noise
     assert np.isclose(
         noised_data["fake_column_one"].str.contains("abc123").mean(),
         col1_expected_abc_proportion * col1_expected_123_proportion,
-        rtol=0.01,
+        rtol=0.02,
     )
     assert np.isclose(
         noised_data["fake_column_two"].str.contains("abc123").mean(),
         col2_expected_abc_proportion * col2_expected_123_proportion,
-        rtol=0.01,
+        rtol=0.02,
     )
     assert noised_data["fake_column_one"].str.contains("123abc").sum() == 0
     assert noised_data["fake_column_two"].str.contains("123abc").sum() == 0

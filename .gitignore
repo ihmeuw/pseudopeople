@@ -134,3 +134,6 @@ notebooks/
 
 # Mac OS stuff
 .DS_Store
+
+# Version
+src/pseudopeople/_version.py

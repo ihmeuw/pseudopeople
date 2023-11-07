@@ -10,11 +10,15 @@ from pseudopeople.configuration import Keys
 from pseudopeople.constants import data_values, paths
 from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, DatasetNames
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
-from pseudopeople.noise_scaling import load_nicknames_data
+from pseudopeople.noise_scaling import (
+    load_incorrect_select_options,
+    load_nicknames_data,
+)
 from pseudopeople.utilities import (
     get_index_to_noise,
     load_ocr_errors_dict,
     load_phonetic_errors_dict,
+    load_qwerty_errors_data,
     two_d_array_choice,
     vectorized_choice,
 )
@@ -66,15 +70,21 @@ def _get_census_omission_noise_levels(
         .astype(str)
         .map(data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_RACE)
     )
+    ages = pd.Series(np.arange(population["age"].max() + 1))
     for sex in ["Female", "Male"]:
-        sex_mask = population["sex"] == sex
-        age_bins = pd.cut(
-            x=population[sex_mask]["age"],
-            bins=data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_SEX_AGE[sex].index,
+        effect_by_age_bin = data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_SEX_AGE[sex]
+        # NOTE: calling pd.cut on a large array with an IntervalIndex is slow,
+        # see https://github.com/pandas-dev/pandas/issues/47614
+        # Instead, we only pd.cut the unique ages, then do a simpler `.map` on the age column
+        age_bins = pd.cut(ages, bins=effect_by_age_bin.index)
+        effect_by_age = pd.Series(
+            age_bins.map(effect_by_age_bin),
+            index=ages,
         )
-        probabilities[sex_mask] += age_bins.map(
-            data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_SEX_AGE[sex]
-        ).astype(float)
+        sex_mask = population["sex"] == sex
+        probabilities[sex_mask] += (
+            population[sex_mask]["age"].map(effect_by_age).astype(float)
+        )
     probabilities[probabilities < 0.0] = 0.0
     probabilities[probabilities > 1.0] = 1.0
     return probabilities
@@ -165,7 +175,7 @@ def choose_wrong_options(
         "mailing_address_state": "state",
     }.get(str(column_name), column_name)
 
-    selection_options = pd.read_csv(paths.INCORRECT_SELECT_NOISE_OPTIONS_DATA)
+    selection_options = load_incorrect_select_options()
 
     # Get possible noise values
     # todo: Update with exclusive resampling when vectorized_choice is improved
@@ -275,7 +285,7 @@ def write_wrong_zipcode_digits(
     shape = (len(column), 5)
 
     # todo: Update when vectorized choice is improved
-    possible_replacements = list("0123456789")
+    possible_replacements = np.array(list("0123456789"))
     # Scale up noise levels to adjust for inclusive sampling with all numbers
     scaleup_factor = 1 / (1 - (1 / len(possible_replacements)))
     # Get configuration values for each piece of 5 digit zipcode
@@ -283,15 +293,19 @@ def write_wrong_zipcode_digits(
         configuration[Keys.ZIPCODE_DIGIT_PROBABILITIES]
     )
     replace = rng.random(shape) < digit_probabilities
-    random_digits = rng.choice(possible_replacements, shape)
-    digits = []
-    for i in range(5):
-        digit = np.where(replace[:, i], random_digits[:, i], column.str[i])
-        digit = pd.Series(digit, index=column.index, name=column.name)
-        digits.append(digit)
+    num_to_replace = replace.sum()
+    random_digits = rng.choice(possible_replacements, num_to_replace)
 
-    new_zipcodes = digits[0] + digits[1] + digits[2] + digits[3] + digits[4]
-    return new_zipcodes
+    # https://stackoverflow.com/a/9493192/
+    # Changing this to a U5 numpy string type means that each string will have exactly 5 characters.
+    # view("U1") then reinterprets this memory as an array of individual (Unicode) characters.
+    same_len_col_exploded = column.values.astype("U5").view("U1").reshape(shape)
+    same_len_col_exploded[replace] = random_digits
+    return pd.Series(
+        same_len_col_exploded.view("U5").reshape(len(column)),
+        index=column.index,
+        name=column.name,
+    )
 
 
 def misreport_ages(
@@ -354,25 +368,34 @@ def write_wrong_digits(
     rng = np.random.default_rng(get_hash(f"{randomness_stream.seed}_write_wrong_digits"))
     column = column.astype(str)
     max_str_length = column.str.len().max()
-    same_len_col = column.str.pad(max_str_length, side="right")
-    is_number = pd.concat(
-        [same_len_col.str[i].str.isdigit() for i in range(max_str_length)], axis=1
+
+    possible_replacements = np.array(list("0123456789"))
+
+    # https://stackoverflow.com/a/9493192/
+    # Changing this to a numpy (not Python) string type means that it will have a fixed
+    # number of characters, equal to the longest string in the array.
+    # view("U1") then reinterprets this memory as an array of individual (Unicode) characters.
+    same_len_col_exploded = (
+        column.values.astype(str).view("U1").reshape((len(column), max_str_length))
+    )
+    # Surprisingly, Numpy does not provide a computationally efficient way to do
+    # this check for which characters are eligible.
+    # A head-to-head comparison found np.isin to be orders of magnitude slower than using Pandas here.
+    # Also, np.isin fails silently with sets (see https://numpy.org/doc/stable/reference/generated/numpy.isin.html)
+    # so be careful if testing that in the future!
+    is_number = (
+        pd.DataFrame(same_len_col_exploded).isin(set(possible_replacements)).to_numpy()
     )
 
-    replace = (rng.random(is_number.shape) < token_noise_level) & is_number
-    random_digits = rng.choice(list("0123456789"), is_number.shape)
+    replace = np.zeros_like(is_number, dtype=bool)
+    replace[is_number] = rng.random(is_number.sum()) < token_noise_level
+    num_to_replace = replace.sum()
+    random_digits = rng.choice(possible_replacements, num_to_replace)
 
-    # Choose and replace values for a noised series
-    noised_column = pd.Series("", index=column.index, name=column.name)
-    digits = []
-    for i in range(len(is_number.columns)):
-        digit = np.where(replace.iloc[:, i], random_digits[:, i], same_len_col.str[i])
-        digit = pd.Series(digit, index=column.index, name=column.name)
-        digits.append(digit)
-        noised_column = noised_column + digits[i]
-    noised_column = noised_column.str.strip()
+    same_len_col_exploded[replace] = random_digits
+    noised_column = same_len_col_exploded.view(f"U{max_str_length}").reshape(len(column))
 
-    return noised_column
+    return pd.Series(noised_column, index=column.index, name=column.name)
 
 
 def use_nicknames(
@@ -392,8 +415,9 @@ def use_nicknames(
     :return: pd.Series of nicknames replacing original names
     """
     nicknames = load_nicknames_data()
+    nickname_eligible_names = set(nicknames.index)
     column = data[column_name]
-    have_nickname_idx = column.index[column.isin(nicknames.index)]
+    have_nickname_idx = column.index[column.isin(nickname_eligible_names)]
     noised = two_d_array_choice(
         column.loc[have_nickname_idx], nicknames, randomness_stream, column_name
     )
@@ -475,6 +499,7 @@ def make_phonetic_errors(
                         err += rng.choice(phonetic_error_dict[token])
                         i += token_length
                         error_introduced = True
+                        break
             if not error_introduced:
                 err += truth[i : (i + 1)]
                 i += 1
@@ -484,16 +509,11 @@ def make_phonetic_errors(
     rng = np.random.default_rng(
         seed=get_hash(f"{randomness_stream.seed}_make_phonetic_errors")
     )
-    column = data[column_name]
-    column = column.astype(str)
-    for idx in column.index:
-        noised_value = phonetic_corrupt(
-            column[idx],
-            token_noise_level,
-            rng,
-        )
-        column[idx] = noised_value
-    return column
+    return (
+        data[column_name]
+        .astype(str)
+        .apply(phonetic_corrupt, corrupted_pr=token_noise_level, rng=rng)
+    )
 
 
 def leave_blanks(
@@ -530,9 +550,10 @@ def make_typos(
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :returns: pd.Series of column with noised data
     """
-    with open(paths.QWERTY_ERRORS) as f:
-        qwerty_errors = yaml.safe_load(f)
-    qwerty_errors = pd.DataFrame.from_dict(qwerty_errors, orient="index")
+
+    qwerty_errors = load_qwerty_errors_data()
+    qwerty_errors_eligible_chars = set(qwerty_errors.index)
+
     column = data[column_name]
     if column.empty:
         return column
@@ -542,37 +563,59 @@ def make_typos(
     include_token_probability_level = 0.1
     rng = np.random.default_rng(seed=get_hash(f"{randomness_stream.seed}_make_typos"))
 
-    # Make all strings the same length by padding with spaces
-    max_str_length = column.str.len().max()
-    same_len_col = column.str.pad(max_str_length, side="right")
-
-    is_typo_option = pd.concat(
-        [same_len_col.str[i].isin(qwerty_errors.index) for i in range(max_str_length)], axis=1
+    same_len_col_exploded = (
+        # Somewhat counterintuitively, .astype(str) turns the column into a numpy,
+        # fixed-length string type, U#, where # is the length of the longest string.
+        column.values.astype(str)
+        # Split into individual characters
+        .view("U1").reshape((len(column), -1))
+        # https://stackoverflow.com/a/9493192/
+        # NOTE: Surprisingly, casting this to "object" (Python string type) seems to make
+        # the rest of this method faster. Without this cast, you have to use np.char.add to concatenate,
+        # which seems very slow for some reason?
+        .astype("object")
     )
-    replace = is_typo_option & (rng.random(is_typo_option.shape) < token_noise_level)
-    keep_original = replace & (
-        rng.random(is_typo_option.shape) < include_token_probability_level
-    )
 
-    # Loop through each column of string elements and apply noising
-    noised_column = pd.Series("", index=column.index, name=column.name)
-    for i in range(max_str_length):
-        orig = same_len_col.str[i]
-        replace_mask = replace.iloc[:, i]
-        keep_original_mask = keep_original.iloc[:, i]
-        typos = two_d_array_choice(
-            data=orig[replace_mask],
-            options=qwerty_errors,
-            randomness_stream=randomness_stream,
-            additional_key=f"{column_name}_{i}",
+    # Surprisingly, Numpy does not provide a computationally efficient way to do
+    # this check for which characters are eligible.
+    # A head-to-head comparison found np.isin to be orders of magnitude slower than using Pandas here.
+    # Also, np.isin fails silently with sets (see https://numpy.org/doc/stable/reference/generated/numpy.isin.html)
+    # so be careful if testing that in the future!
+    is_typo_option = (
+        pd.DataFrame(same_len_col_exploded).isin(qwerty_errors_eligible_chars).to_numpy()
+    )
+    replace = np.zeros_like(is_typo_option)
+    replace[is_typo_option] = rng.random(is_typo_option.sum()) < token_noise_level
+    keep_original = np.zeros_like(replace)
+    keep_original[replace] = rng.random(replace.sum()) < include_token_probability_level
+
+    # Apply noising
+    to_replace = same_len_col_exploded[replace]
+    replace_random = rng.random(replace.sum())
+    number_of_options = qwerty_errors.count(axis=1)
+    replace_option_index = np.floor(
+        replace_random * number_of_options.loc[to_replace].to_numpy()
+    )
+    originals_to_keep = same_len_col_exploded[keep_original]
+    # Numpy does not have an efficient way to do this merge operation
+    same_len_col_exploded[replace] = (
+        pd.DataFrame({"to_replace": to_replace, "replace_option_index": replace_option_index})
+        .reset_index()
+        .merge(
+            qwerty_errors.stack().rename("replacement"),
+            left_on=["to_replace", "replace_option_index"],
+            right_index=True,
         )
-        characters = orig.copy()
-        characters[replace_mask] = typos
-        characters[keep_original_mask] = characters + orig
-        noised_column = noised_column + characters
-    noised_column = noised_column.str.strip()
+        # Merge does not return the results in order
+        .sort_values("index")
+        .replacement.to_numpy()
+    )
 
-    return noised_column
+    same_len_col_exploded[keep_original] += originals_to_keep
+
+    noised_column = np.sum(same_len_col_exploded, axis=1)
+
+    return pd.Series(noised_column, index=column.index, name=column.name)
 
 
 def make_ocr_errors(
@@ -614,14 +657,9 @@ def make_ocr_errors(
     # Apply keyboard corrupt for OCR to column
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
     rng = np.random.default_rng(seed=get_hash(f"{randomness_stream.seed}_make_ocr_errors"))
-    column = data[column_name]
-    column = column.astype(str)
-    for idx in column.index:
-        noised_value = ocr_corrupt(
-            column.loc[idx],
-            token_noise_level,
-            rng,
-        )
-        column[idx] = noised_value
 
-    return column
+    return (
+        data[column_name]
+        .astype(str)
+        .apply(ocr_corrupt, corrupted_pr=token_noise_level, rng=rng)
+    )

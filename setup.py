@@ -1,19 +1,23 @@
 import sys
 from pathlib import Path
 
+from packaging.version import parse
 from setuptools import find_packages, setup
 
-min_version, max_version = ((3, 9), "3.9"), ((3, 11), "3.11")
+min_version, max_version = ("3.9", "3.11")
 
-if not (min_version[0] <= sys.version_info[:2] <= max_version[0]):
+min_version = parse(min_version)
+max_version = parse(max_version)
+
+if not (
+    min_version <= parse(".".join([str(v) for v in sys.version_info[:2]])) <= max_version
+):
     # Python 3.5 does not support f-strings
     py_version = ".".join([str(v) for v in sys.version_info[:3]])
     error = (
         "\n----------------------------------------\n"
-        "Error: Pseudopeople runs under python {min_version}-{max_version}.\n"
-        "You are running python {py_version}".format(
-            min_version=min_version[1], max_version=max_version[1], py_version=py_version
-        )
+        f"Error: Pseudopeople runs under python {min_version.base_version}-{max_version.base_version}.\n"
+        f"You are running python {py_version}"
     )
     print(error, file=sys.stderr)
     sys.exit(1)
@@ -38,6 +42,8 @@ if __name__ == "__main__":
         "tqdm",
     ]
 
+    setup_requires = ["setuptools_scm"]
+
     interactive_requirements = [
         "IPython",
         "ipywidgets",
@@ -61,7 +67,6 @@ if __name__ == "__main__":
 
     setup(
         name=about["__title__"],
-        version=about["__version__"],
         description=about["__summary__"],
         long_description=long_description,
         license=about["__license__"],
@@ -107,4 +112,10 @@ if __name__ == "__main__":
         #         simulate=pseudopeople.interface.cli:simulate
         #     """,
         zip_safe=False,
+        use_scm_version={
+            "write_to": "src/pseudopeople/_version.py",
+            "write_to_template": '__version__ = "{version}"\n',
+            "tag_regex": r"^(?P<prefix>v)?(?P<version>[^\+]+)(?P<suffix>.*)?$",
+        },
+        setup_requires=setup_requires,
     )

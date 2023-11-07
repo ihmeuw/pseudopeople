@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import pandas as pd
 from loguru import logger
@@ -51,8 +51,12 @@ class ColumnNoiseType:
     The noise function takes as input a DataFrame, the ConfigTree object for this
     ColumnNoise operation, a RandomnessStream for controlling randomness, and
     a column name, which is the column that will be noised and who's name will be used
-    as the additional key for the RandomnessStream. It applies the noising operation
-    to the Series and returns the modified Series.
+    as the additional key for the RandomnessStream.
+    Optionally, it can take a pre-existing DataFrame indicating where there is missingness
+    in the data (same index and columns as the main DataFrame, all boolean type) --
+    if this is not passed, it calculates it, which can be expensive for large data.
+    It applies the noising operation to the Series and returns both the modified Series
+    and an Index of which items in the Series were selected for noise.
     """
 
     name: str
@@ -69,10 +73,11 @@ class ColumnNoiseType:
         randomness_stream: RandomnessStream,
         dataset_name: str,
         column_name: str,
-    ) -> pd.Series:
+        missingness: Optional[pd.DataFrame] = None,
+    ) -> Tuple[pd.Series, pd.Index]:
         if data[column_name].empty:
-            return data[column_name]
-        data = data.copy()
+            return data[column_name], pd.Index([])
+
         noise_level = configuration[
             Keys.CELL_PROBABILITY
         ] * self.noise_level_scaling_function(data, column_name)
@@ -85,13 +90,14 @@ class ColumnNoiseType:
             randomness_stream,
             f"{self.name}_{column_name}",
             is_column_noise=True,
+            missingness=missingness,
         )
         if to_noise_idx.empty:
             logger.debug(
                 f"No cells chosen to noise for noise function {self.name} on column {column_name}. "
                 "This is likely due to a combination of the configuration noise levels and the simulated population data."
             )
-            return data[column_name]
+            return data[column_name], to_noise_idx
         noised_data = self.noise_function(
             data.loc[to_noise_idx],
             configuration,
@@ -104,6 +110,7 @@ class ColumnNoiseType:
         if noised_data.dtype.name != data[column_name].dtype.name:
             noised_data = noised_data.astype(data[column_name].dtype)
 
-        data.loc[to_noise_idx, column_name] = noised_data
+        result = data[column_name].copy()
+        result.loc[to_noise_idx] = noised_data
 
-        return data[column_name]
+        return result, to_noise_idx

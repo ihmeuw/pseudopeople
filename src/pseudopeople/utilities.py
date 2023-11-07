@@ -1,11 +1,13 @@
 import sys
 from dataclasses import dataclass
-from typing import Any, Callable, Union
+from functools import cache
+from typing import Any, Callable, Optional, Union
 
 import numpy as np
 import pandas as pd
+import yaml
 from loguru import logger
-from vivarium.framework.randomness import RandomnessStream
+from vivarium.framework.randomness import RandomnessStream, get_hash
 from vivarium.framework.randomness.index_map import IndexMap
 
 from pseudopeople.constants import metadata, paths
@@ -40,30 +42,32 @@ def vectorized_choice(
 
     returns: ndarray
     """
-    if weights is None:
-        n = len(options)
-        weights = np.ones(n) / n
-    if isinstance(weights, list):
-        weights = np.array(weights)
     # for each of n_to_choose, sample uniformly between 0 and 1
     index = pd.Index(np.arange(n_to_choose))
     probs = randomness_stream.get_draw(index, additional_key=additional_key)
 
-    # build cdf based on weights
-    pmf = weights / weights.sum()
-    cdf = np.cumsum(pmf)
+    if weights is None:
+        chosen_indices = np.floor(probs * len(options)).astype(int)
+    else:
+        if isinstance(weights, list):
+            weights = np.array(weights)
+        # build cdf based on weights
+        pmf = weights / weights.sum()
+        cdf = np.cumsum(pmf)
 
-    # for each p_i in probs, count how many elements of cdf for which p_i >= cdf_i
-    chosen_indices = np.searchsorted(cdf, probs, side="right")
+        # for each p_i in probs, count how many elements of cdf for which p_i >= cdf_i
+        chosen_indices = np.searchsorted(cdf, probs, side="right")
+
     return np.take(options, chosen_indices, axis=0)
 
 
 def get_index_to_noise(
     data: pd.DataFrame,
-    noise_level: float,
+    noise_level: Union[float, pd.Series],
     randomness_stream: RandomnessStream,
     additional_key: Any,
     is_column_noise: bool = False,
+    missingness: Optional[pd.DataFrame] = None,
 ) -> pd.Index:
     """
     Function that takes a series and returns a pd.Index that chosen by Vivarium Common Random Number to be noised.
@@ -71,16 +75,30 @@ def get_index_to_noise(
 
     # Get rows to noise
     if is_column_noise:
-        missing_idx = data.index[(data.isna().any(axis=1)) | (data.isin([""]).any(axis=1))]
-        eligible_for_noise_idx = data.index.difference(missing_idx)
+        if missingness is None:
+            missingness = data.isna() | (data == "")
+        missing = missingness.any(axis=1)
+        eligible_for_noise_idx = data.index[~missing]
     else:
         # Any index can be noised for row noise
         eligible_for_noise_idx = data.index
-    to_noise_idx = randomness_stream.filter_for_probability(
-        eligible_for_noise_idx,
-        probability=noise_level,
-        additional_key=additional_key,
-    )
+
+    # As long as noise is relatively rare, it will be faster to randomly select cells to
+    # noise rather than generating a random draw for every item eligible
+    if isinstance(noise_level, float) and noise_level < 0.2:
+        rng = np.random.default_rng(
+            seed=get_hash(f"{randomness_stream.seed}_get_index_to_noise_{additional_key}")
+        )
+        number_to_noise = rng.binomial(len(eligible_for_noise_idx), p=noise_level)
+        to_noise_idx = pd.Index(
+            rng.choice(eligible_for_noise_idx, size=number_to_noise, replace=False)
+        )
+    else:
+        to_noise_idx = randomness_stream.filter_for_probability(
+            eligible_for_noise_idx,
+            probability=noise_level,
+            additional_key=additional_key,
+        )
 
     return to_noise_idx
 
@@ -225,6 +243,7 @@ except ImportError:
 ##########################
 
 
+@cache
 def load_ocr_errors_dict():
     ocr_errors = pd.read_csv(
         paths.OCR_ERRORS_DATA, skiprows=[0, 1], header=None, names=["ocr_true", "ocr_err"]
@@ -237,6 +256,7 @@ def load_ocr_errors_dict():
     return ocr_error_dict
 
 
+@cache
 def load_phonetic_errors_dict():
     phonetic_errors = pd.read_csv(
         paths.PHONETIC_ERRORS_DATA,
@@ -244,7 +264,15 @@ def load_phonetic_errors_dict():
         header=None,
         names=["where", "orig", "new", "pre", "post", "pattern", "start"],
     )
-    phonetic_error_dict = phonetic_errors.groupby("orig")["new"].apply(
+    phonetic_error_series = phonetic_errors.groupby("orig")["new"].apply(
         lambda x: list(x.str.replace("@", ""))
     )
-    return phonetic_error_dict
+    return phonetic_error_series.to_dict()
+
+
+@cache
+def load_qwerty_errors_data() -> pd.DataFrame:
+    with open(paths.QWERTY_ERRORS) as f:
+        qwerty_errors = yaml.safe_load(f)
+
+    return pd.DataFrame.from_dict(qwerty_errors, orient="index")

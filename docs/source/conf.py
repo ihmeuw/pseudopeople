@@ -36,10 +36,8 @@ project = about["__title__"]
 copyright = f'2023, {about["__author__"]}'
 author = about["__author__"]
 
-# The short X.Y version.
-version = about["__version__"]
-# The full version, including alpha/beta/rc tags.
-release = about["__version__"]
+version = pseudopeople.__version__
+release = pseudopeople.__version__
 
 
 # -- General configuration ------------------------------------------------
