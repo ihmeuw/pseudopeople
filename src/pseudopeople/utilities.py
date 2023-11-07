@@ -1,4 +1,5 @@
 import sys
+from functools import cache
 from typing import Any, Union
 
 import numpy as np
@@ -179,7 +180,8 @@ def cleanse_integer_columns(column: pd.Series) -> pd.Series:
 ##########################
 
 
-def load_ocr_errors_dict():
+@cache
+def load_ocr_errors():
     ocr_errors = pd.read_csv(
         paths.OCR_ERRORS_DATA, skiprows=[0, 1], header=None, names=["ocr_true", "ocr_err"]
     )
@@ -187,18 +189,32 @@ def load_ocr_errors_dict():
     ocr_error_dict = (
         ocr_errors.groupby("ocr_true")["ocr_err"].apply(lambda x: list(x)).to_dict()
     )
+    ocr_errors = pd.DataFrame.from_dict(ocr_error_dict, orient="index")
 
-    return ocr_error_dict
+    return ocr_errors
 
 
-def load_phonetic_errors_dict():
+@cache
+def load_phonetic_errors():
     phonetic_errors = pd.read_csv(
         paths.PHONETIC_ERRORS_DATA,
         skiprows=[0, 1],
         header=None,
         names=["where", "orig", "new", "pre", "post", "pattern", "start"],
     )
-    phonetic_error_dict = phonetic_errors.groupby("orig")["new"].apply(
-        lambda x: list(x.str.replace("@", ""))
+    phonetic_error_dict = (
+        phonetic_errors.groupby("orig")["new"]
+        .apply(lambda x: list(x.str.replace("@", "")))
+        .to_dict()
     )
-    return phonetic_error_dict
+    phonetic_errors = pd.DataFrame.from_dict(phonetic_error_dict, orient="index")
+
+    return phonetic_errors
+
+
+@cache
+def load_qwerty_errors_data() -> pd.DataFrame:
+    with open(paths.QWERTY_ERRORS) as f:
+        qwerty_errors = yaml.safe_load(f)
+
+    return pd.DataFrame.from_dict(qwerty_errors, orient="index")

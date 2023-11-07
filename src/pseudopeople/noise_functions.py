@@ -13,8 +13,8 @@ from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_scaling import load_nicknames_data
 from pseudopeople.utilities import (
     get_index_to_noise,
-    load_ocr_errors_dict,
-    load_phonetic_errors_dict,
+    load_ocr_errors,
+    load_phonetic_errors,
     two_d_array_choice,
     vectorized_choice,
 )
@@ -478,39 +478,17 @@ def make_phonetic_errors(
     :return: pd.Series of noised data
     """
 
-    phonetic_error_dict = load_phonetic_errors_dict()
+    # Load phonetic errors
+    phonetic_errors = load_phonetic_errors()
 
-    def phonetic_corrupt(truth, corrupted_pr, rng):
-        err = ""
-        i = 0
-        while i < len(truth):
-            error_introduced = False
-            for token_length in [7, 6, 5, 4, 3, 2, 1]:
-                token = truth[i : (i + token_length)]
-                if token in phonetic_error_dict and not error_introduced:
-                    if rng.uniform() < corrupted_pr:
-                        err += rng.choice(phonetic_error_dict[token])
-                        i += token_length
-                        error_introduced = True
-            if not error_introduced:
-                err += truth[i : (i + 1)]
-                i += 1
-        return err
-
-    token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
-    rng = np.random.default_rng(
-        seed=get_hash(f"{randomness_stream.seed}_make_phonetic_errors")
+    return _corrupt_tokens(
+        phonetic_errors,
+        data,
+        configuration,
+        randomness_stream,
+        column_name,
+        addl_key="make_phonetic_errors",
     )
-    column = data[column_name]
-    column = column.astype(str)
-    for idx in column.index:
-        noised_value = phonetic_corrupt(
-            column[idx],
-            token_noise_level,
-            rng,
-        )
-        column[idx] = noised_value
-    return column
 
 
 def leave_blanks(
@@ -608,37 +586,102 @@ def make_ocr_errors(
     """
 
     # Load OCR error dict
-    ocr_error_dict = load_ocr_errors_dict()
+    ocr_errors = load_ocr_errors()
 
-    def ocr_corrupt(truth, corrupted_pr, rng):
-        err = ""
-        i = 0
-        while i < len(truth):
-            error_introduced = False
-            for token_length in [3, 2, 1]:
-                token = truth[i : (i + token_length)]
-                if token in ocr_error_dict and not error_introduced:
-                    if rng.uniform() < corrupted_pr:
-                        err += rng.choice(ocr_error_dict[token])
-                        i += token_length
-                        error_introduced = True
-                        break
-            if not error_introduced:
-                err += truth[i : (i + 1)]
-                i += 1
-        return err
+    return _corrupt_tokens(
+        ocr_errors,
+        data,
+        configuration,
+        randomness_stream,
+        column_name,
+        addl_key="make_ocr_errors",
+    )
 
-    # Apply keyboard corrupt for OCR to column
+
+def _corrupt_tokens(
+    errors, data, configuration, randomness_stream, column_name, addl_key
+) -> pd.Series:
+    max_token_length = errors.index.str.len().max()
+    errors_eligible_tokens = (
+        pd.Series(errors.index).groupby(errors.index.str.len()).apply(set).to_dict()
+    )
+    number_of_options = errors.count(axis=1)
+    errors_stacked = errors.stack()
+
+    column = data[column_name].astype(str)
+
+    lengths = column.str.len().values
+
+    same_len_col_exploded = (
+        column
+        # Convert to numpy string dtype
+        .values.astype(str)
+        .view("U1")
+        .reshape((len(data), lengths.max()))
+    )
+
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
-    rng = np.random.default_rng(seed=get_hash(f"{randomness_stream.seed}_make_ocr_errors"))
-    column = data[column_name]
-    column = column.astype(str)
-    for idx in column.index:
-        noised_value = ocr_corrupt(
-            column.loc[idx],
-            token_noise_level,
-            rng,
-        )
-        column[idx] = noised_value
+    rng = np.random.default_rng(seed=get_hash(f"{randomness_stream.seed}_{addl_key}"))
 
-    return column
+    result = np.empty(same_len_col_exploded.shape, dtype=str).astype("object")
+    next_due = np.zeros(len(data))
+    for i in range(same_len_col_exploded.shape[1]):
+        error_introduced = np.zeros(len(data), dtype=bool)
+        for token_length in range(max_token_length, 0, -1):
+            if i + token_length > same_len_col_exploded.shape[1]:
+                continue
+
+            due = ~error_introduced & (next_due <= i)
+
+            long_enough = np.zeros(len(data), dtype=bool)
+            long_enough[due] = i + token_length <= lengths[due]
+            if long_enough.sum() == 0:
+                continue
+
+            tokens = np.empty(len(data), dtype=f"U{token_length}")
+            tokens[long_enough] = (
+                same_len_col_exploded[long_enough, i : (i + token_length)]
+                .view(f"U{token_length}")
+                .reshape(long_enough.sum())
+            )
+
+            eligible = np.zeros(len(data), dtype=bool)
+            eligible[long_enough] = (
+                pd.Series(tokens[long_enough])
+                .isin(errors_eligible_tokens[token_length])
+                .values
+            )
+            if eligible.sum() == 0:
+                continue
+
+            corrupted = np.zeros(len(data), dtype=bool)
+            corrupted[eligible] = rng.random(eligible.sum()) < token_noise_level
+            if corrupted.sum() == 0:
+                continue
+
+            to_corrupt = tokens[corrupted]
+            corrupted_token_index = np.floor(
+                rng.random(corrupted.sum()) * number_of_options.loc[to_corrupt].to_numpy()
+            )
+            # Numpy does not have an efficient way to do this merge operation
+            result[corrupted, i] = (
+                pd.DataFrame(
+                    {"to_corrupt": to_corrupt, "corrupted_token_index": corrupted_token_index}
+                )
+                .reset_index()
+                .merge(
+                    errors_stacked.rename("corruption"),
+                    left_on=["to_corrupt", "corrupted_token_index"],
+                    right_index=True,
+                )
+                # Merge does not return the results in order
+                .sort_values("index")
+                .corruption.to_numpy()
+            )
+            next_due[corrupted] += token_length
+            error_introduced[corrupted] = True
+
+        use_original_char = ~error_introduced & (next_due <= i)
+        result[use_original_char, i] = same_len_col_exploded[use_original_char, i]
+
+    return pd.Series(result.sum(axis=1), index=data.index)
