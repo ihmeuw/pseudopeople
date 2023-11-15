@@ -149,8 +149,12 @@ def _generate_dataset(
                 data._query_compiler._modin_frame.apply_full_axis(
                     axis=1,
                     enumerate_partitions=True,
-                    func=lambda df, partition_idx: _prep_and_noise_dataset(
-                        df, dataset, configuration_tree, seed=f"{seed}_{partition_idx}"
+                    func=lambda df, partition_idx: _coerce_dtypes(
+                        _prep_and_noise_dataset(
+                            df, dataset, configuration_tree, seed=f"{seed}_{partition_idx}"
+                        ),
+                        dataset,
+                        cleanse_int_cols=True,
                     ),
                 )
             )
