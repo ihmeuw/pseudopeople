@@ -1,14 +1,16 @@
-from typing import Callable, Dict, List, Union
+from typing import Callable, Dict, List, Tuple, Union
 
 import numpy as np
+import pandas as pd
 from loguru import logger
 from vivarium.config_tree import ConfigTree, ConfigurationKeyError
 
 from pseudopeople.configuration import Keys
-from pseudopeople.constants import metadata
+from pseudopeople.constants import metadata, paths
 from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.noise_scaling import get_options_for_column
+from pseudopeople.schema_entities import Dataset
 
 
 def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
@@ -270,6 +272,64 @@ def _validate_choose_wrong_option_probability(
             f"can only choose the wrong option with a maximum of {maximum_noise_probability:.5f} probability. "
             f"This maximum will be used instead of the configured value."
         )
+
+
+def validate_noise_level_proportions(
+    configuration_tree: ConfigTree, dataset: Dataset, user_filters: List[Tuple]
+) -> None:
+    """
+    Validates that the noise levels provided do not exceed the allowable proportions from the
+    metadata proportions file. If the provided noise levels are higher than the allowable proportions
+    then throw a warning to the user and adjust the noise level to the allowable proportion.
+    """
+
+    metadata_proportions = pd.read_csv(paths.METADATA_PROPORTIONS)
+
+    # Set default values for state and year
+    if dataset.name == metadata.DatasetNames.SSA:
+        state = "USA"
+    else:
+        if len(metadata_proportions["state"].unique()) == 1:
+            state = metadata_proportions["state"].unique()[0]
+        else:
+            state = "USA"
+    year = metadata.YEAR_AGGREGATION_VALUE
+    for i in range(len(user_filters)):
+        if user_filters[i][0] == dataset.state_column_name:
+            state = user_filters[i][2]
+            break
+    for i in range(len(user_filters)):
+        if user_filters[i][0] == dataset.date_column_name:
+            if isinstance(user_filters[i][2], pd.Timestamp):
+                year = user_filters[i][2].year
+            else:
+                year = user_filters[i][2]
+            break
+
+    # TODO: weight SSA proportions
+    dataset_noise_proportions = metadata_proportions.loc[
+        (metadata_proportions["dataset"] == dataset.name)
+        & (metadata_proportions["state"] == state)
+        & (metadata_proportions["year"] == year)
+    ]
+    l = len(dataset_noise_proportions)
+    # Go through each row in the queried dataset noise proportions to validate the noise levels
+    for i in range(len(l)):
+        row = dataset_noise_proportions.iloc[i]
+        max_noise_level = row["proportion"]
+        config_noise_level = configuration_tree[row["dataset"]][Keys.COLUMN_NOISE][
+            row["column"]
+        ][row["noise_type"]]
+        if config_noise_level > max_noise_level:
+            logger.warning(
+                f"The configured '{row['noise_type']}' noise level for column '{row['column']}' is {config_noise_level}, "
+                f"but the maximum allowable noise level is {max_noise_level}. "
+                f"The maximum allowable noise level will be used instead of the configured value. "
+                f"This value is based on the provided data for '{row['dataset']}'. "
+            )
+            configuration_tree[row["dataset"]][Keys.COLUMN_NOISE][row["column"]][
+                row["noise_type"]
+            ] = max_noise_level
 
 
 DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP = {

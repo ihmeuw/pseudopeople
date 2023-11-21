@@ -9,6 +9,7 @@ from tqdm import tqdm
 
 from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
+from pseudopeople.configuration.validator import validate_noise_level_proportions
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import (
     COPY_HOUSEHOLD_MEMBER_COLS,
@@ -54,7 +55,10 @@ def _generate_dataset(
     """
     configure_logging_to_terminal(verbose)
     configuration_tree = get_configuration(config)
+    breakpoint()
 
+    # Validate confgiuration noise levels with possible metadata noise level proportions
+    # configuration_tree = validate_noise_level_proportions(configuration_tree, dataset, user_filters)
     if source is None:
         source = paths.SAMPLE_DATA_ROOT
     else:
