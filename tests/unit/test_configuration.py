@@ -32,7 +32,7 @@ def test_get_default_configuration(mocker):
     """Tests that the default configuration can be retrieved."""
     mock = mocker.patch("pseudopeople.configuration.generator.ConfigTree")
     _ = get_configuration()
-    mock.assert_called_once_with(layers=["baseline", "default", "user"])
+    mock.assert_called_once_with(layers=["baseline", "default", "user", "max_noise_level"])
 
 
 def test_default_configuration_structure():
@@ -126,7 +126,7 @@ def test_get_configuration_with_user_override(mocker):
         }
     }
     _ = get_configuration(config)
-    mock.assert_called_once_with(layers=["baseline", "default", "user"])
+    mock.assert_called_once_with(layers=["baseline", "default", "user", "max_noise_level"])
     update_calls = [
         call
         for call in mock.mock_calls

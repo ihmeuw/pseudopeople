@@ -53,7 +53,10 @@ def _generate_dataset(
     configuration_tree = get_configuration(config, dataset, user_filters)
 
     # Validate confgiuration noise levels with possible metadata noise level proportions
-    # configuration_tree = validate_noise_level_proportions(configuration_tree, dataset, user_filters)
+    configuration_tree = validate_noise_level_proportions(
+        configuration_tree, dataset, user_filters
+    )
+
     if source is None:
         source = paths.SAMPLE_DATA_ROOT
     else:
