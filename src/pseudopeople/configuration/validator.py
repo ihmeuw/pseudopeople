@@ -90,9 +90,10 @@ def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
                     default_column_config, noise_type, "noise type", dataset, column
                 )
                 parameter_config_validator_map = {
-                    NOISE_TYPES.use_nickname.name: {
-                        Keys.CELL_PROBABILITY: _validate_nickname_probability
-                    },
+                    # Do we want to also override these values or handle them differently?
+                    # NOISE_TYPES.use_nickname.name: {
+                    #     Keys.CELL_PROBABILITY: _validate_nickname_probability
+                    # },
                     NOISE_TYPES.choose_wrong_option.name: {
                         Keys.CELL_PROBABILITY: lambda *args, **kwargs: _validate_choose_wrong_option_probability(
                             *args, **kwargs, column=column
@@ -284,13 +285,15 @@ def validate_noise_level_proportions(
     """
 
     metadata_proportions = pd.read_csv(paths.METADATA_PROPORTIONS)
-
+    dataset_proportions = metadata_proportions.loc[
+        metadata_proportions["dataset"] == dataset.name
+    ]
     # Set default values for state and year
     if dataset.name == metadata.DatasetNames.SSA:
         state = "USA"
     else:
-        if len(metadata_proportions["state"].unique()) == 1:
-            state = metadata_proportions["state"].unique()[0]
+        if len(dataset_proportions["state"].unique()) == 1:
+            state = dataset_proportions["state"].unique()[0]
         else:
             state = "USA"
     year = metadata.YEAR_AGGREGATION_VALUE
@@ -307,29 +310,59 @@ def validate_noise_level_proportions(
             break
 
     # TODO: weight SSA proportions
-    dataset_noise_proportions = metadata_proportions.loc[
-        (metadata_proportions["dataset"] == dataset.name)
-        & (metadata_proportions["state"] == state)
-        & (metadata_proportions["year"] == year)
-    ]
-    l = len(dataset_noise_proportions)
-    # Go through each row in the queried dataset noise proportions to validate the noise levels
-    for i in range(len(l)):
-        row = dataset_noise_proportions.iloc[i]
-        max_noise_level = row["proportion"]
-        config_noise_level = configuration_tree[row["dataset"]][Keys.COLUMN_NOISE][
-            row["column"]
-        ][row["noise_type"]]
-        if config_noise_level > max_noise_level:
-            logger.warning(
-                f"The configured '{row['noise_type']}' noise level for column '{row['column']}' is {config_noise_level}, "
-                f"but the maximum allowable noise level is {max_noise_level}. "
-                f"The maximum allowable noise level will be used instead of the configured value. "
-                f"This value is based on the provided data for '{row['dataset']}'. "
-            )
-            configuration_tree[row["dataset"]][Keys.COLUMN_NOISE][row["column"]][
-                row["noise_type"]
-            ] = max_noise_level
+    if dataset.name == metadata.DatasetNames.SSA:
+        dataset_noise_proportions = dataset_proportions.loc[
+            (dataset_proportions["state"] == state) & (dataset_proportions["year"] <= year)
+        ]
+        dataset_noise_proportions = dataset_proportions.groupby(
+            ["column", "noise_type"]
+        ).apply(lambda x: ((x.proportion * x.number_of_rows).sum()) / x.number_of_rows.sum())
+        dataset_noise_proportions = dataset_noise_proportions.rename(
+            "proportion"
+        ).reset_index()
+        dataset_noise_proportions["dataset"] = metadata.DatasetNames.SSA
+    else:
+        dataset_noise_proportions = dataset_proportions.loc[
+            (dataset_proportions["state"] == state) & (dataset_proportions["year"] == year)
+        ]
+
+    # If there is no data for a queried dataset, we want the user's to hit the correct error that there
+    # is no data available so we do not throw an error here.
+    if dataset_noise_proportions.empty:
+        return configuration_tree
+    else:
+        # Go through each row in the queried dataset noise proportions to validate the noise levels
+        for i in range(len(dataset_noise_proportions)):
+            row = dataset_noise_proportions.iloc[i]
+            if row["column"] not in [col.name for col in dataset.columns]:
+                continue
+            max_noise_level = row["proportion"]
+            config_noise_level = configuration_tree[row["dataset"]][Keys.COLUMN_NOISE][
+                row["column"]
+            ][row["noise_type"]][Keys.CELL_PROBABILITY]
+            if config_noise_level > max_noise_level:
+                logger.warning(
+                    f"The configured '{row['noise_type']}' noise level for column '{row['column']}' is {config_noise_level}, "
+                    f"but the maximum allowable noise level is {max_noise_level}. "
+                    f"The maximum allowable noise level will be used instead of the configured value. "
+                    f"This value is based on the provided data for '{row['dataset']}'. "
+                )
+                # Should we update here in validator or pass values back to interface?
+                configuration_tree.update(
+                    {
+                        row["dataset"]: {
+                            Keys.COLUMN_NOISE: {
+                                row["column"]: {
+                                    row["noise_type"]: {
+                                        Keys.CELL_PROBABILITY: max_noise_level
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    layer="max_noise_level",
+                )
+        return configuration_tree
 
 
 DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP = {

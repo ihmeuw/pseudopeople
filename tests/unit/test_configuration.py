@@ -1,12 +1,16 @@
 import itertools
 
+import pandas as pd
 import pytest
 import yaml
 
 from pseudopeople.configuration import NO_NOISE, Keys, get_configuration
 from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
 from pseudopeople.configuration.interface import get_config
-from pseudopeople.configuration.validator import ConfigurationError
+from pseudopeople.configuration.validator import (
+    ConfigurationError,
+    validate_noise_level_proportions,
+)
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
@@ -28,7 +32,7 @@ def test_get_default_configuration(mocker):
     """Tests that the default configuration can be retrieved."""
     mock = mocker.patch("pseudopeople.configuration.generator.ConfigTree")
     _ = get_configuration()
-    mock.assert_called_once_with(layers=["baseline", "default", "user"])
+    mock.assert_called_once_with(layers=["baseline", "default", "user", "max_noise_level"])
 
 
 def test_default_configuration_structure():
@@ -122,7 +126,7 @@ def test_get_configuration_with_user_override(mocker):
         }
     }
     _ = get_configuration(config)
-    mock.assert_called_once_with(layers=["baseline", "default", "user"])
+    mock.assert_called_once_with(layers=["baseline", "default", "user", "max_noise_level"])
     update_calls = [
         call
         for call in mock.mock_calls
@@ -544,3 +548,43 @@ def test_no_noise():
             column_noise_dict = dataset_column_dict[column]
             for column_noise_type in column_noise_dict.keys():
                 assert column_noise_dict[column_noise_type][Keys.CELL_PROBABILITY] == 0.0
+
+
+def test_get_configuration_with_max_level_overrides(mocker):
+    """Tests that the default configuration get updated when a user provides a value
+    for specific noise types and we update with the maximum allowable value in the
+    max level override layer."""
+    mock = mocker.patch("pseudopeople.configuration.generator.ConfigTree")
+    config = {
+        DATASETS.acs.name: {
+            Keys.COLUMN_NOISE: {
+                "first_name": {NOISE_TYPES.use_nickname.name: {Keys.CELL_PROBABILITY: 0.95}}
+            },
+        }
+    }
+    user_filters = [
+        (
+            DATASETS.acs.date_column_name,
+            ">=",
+            pd.Timestamp(year=2020, month=1, day=1),
+        ),
+        (
+            DATASETS.acs.date_column_name,
+            "<=",
+            pd.Timestamp(year=2020, month=12, day=31),
+        ),
+        (DATASETS.acs.state_column_name, "==", "WA"),
+    ]
+    # TODO: need to get full configuratio nand pass it instead
+    _ = validate_noise_level_proportions(config, DATASETS.acs, user_filters)
+    mock.assert_called_once_with(layers=["baseline", "default", "user", "max_noise_level"])
+    update_calls = [
+        call
+        for call in mock.mock_calls
+        if ".update({" in str(call) and "layer='max_noise_level'" in str(call)
+    ]
+    assert len(update_calls) == 1
+
+
+# TODO: add test that logger warning is thrown if user provides a value that is too high
+# and it gets adjusted to max level
