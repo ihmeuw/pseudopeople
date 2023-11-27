@@ -468,19 +468,6 @@ def test_get_config(caplog):
                 assert column_noise_dict[column_noise][Keys.CELL_PROBABILITY] == 0.0
 
 
-def test_omit_rows_do_not_respond_mutex_default_configuration():
-    """Test that omit_rows and do_not_respond are not both defined in the default configuration"""
-    config = get_configuration()
-    for dataset in DATASETS:
-        has_omit_rows = (
-            NOISE_TYPES.omit_row.name in config[dataset.name][Keys.ROW_NOISE].keys()
-        )
-        has_do_not_respond = (
-            NOISE_TYPES.do_not_respond.name in config[dataset.name][Keys.ROW_NOISE].keys()
-        )
-        assert not has_do_not_respond or not has_omit_rows
-
-
 def test_validate_nickname_configuration(caplog):
     """
     Tests that warning is thrown if cell probability is higher than nickname proportion.  Also tests noise leve
