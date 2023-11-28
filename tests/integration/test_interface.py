@@ -271,7 +271,7 @@ def test_row_noising_omit_row_or_do_not_respond(dataset_name: str, config, reque
         n for n in config if n in [NOISE_TYPES.omit_row.name, NOISE_TYPES.do_not_respond.name]
     ]
     if dataset_name in [DATASETS.census.name, DATASETS.acs.name, DATASETS.cps.name]:
-        # Census and household surveys has no do_not_respond and omit_row.
+        # Census and household surveys have do_not_respond and omit_row.
         # For all other datasets they are mutually exclusive
         assert len(noise_type) == 2
     else:
