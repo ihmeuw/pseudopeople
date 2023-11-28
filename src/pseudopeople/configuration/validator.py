@@ -90,10 +90,6 @@ def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
                     default_column_config, noise_type, "noise type", dataset, column
                 )
                 parameter_config_validator_map = {
-                    # Do we want to also override these values or handle them differently?
-                    # NOISE_TYPES.use_nickname.name: {
-                    #     Keys.CELL_PROBABILITY: _validate_nickname_probability
-                    # },
                     NOISE_TYPES.choose_wrong_option.name: {
                         Keys.CELL_PROBABILITY: lambda *args, **kwargs: _validate_choose_wrong_option_probability(
                             *args, **kwargs, column=column
@@ -244,19 +240,6 @@ def _validate_probability(
         )
 
 
-def _validate_nickname_probability(
-    noise_type_config: Union[int, float], parameter: str, base_error_message: str
-) -> None:
-    _validate_probability(noise_type_config, parameter, base_error_message)
-    if noise_type_config > metadata.NICKNAMES_PROPORTION:
-        logger.warning(
-            base_error_message
-            + f"The configured '{parameter}' is {noise_type_config}, but only approximately "
-            f"{metadata.NICKNAMES_PROPORTION:.2%} of names have a nickname. "
-            f"Replacing as many names with nicknames as possible."
-        )
-
-
 def _validate_choose_wrong_option_probability(
     noise_type_config: Union[int, float], parameter: str, base_error_message: str, column: str
 ):
@@ -309,7 +292,7 @@ def validate_noise_level_proportions(
                 year = user_filters[i][2]
             break
 
-    # TODO: weight SSA proportions
+    # Weight SSA since year filter is queried and all proceeding years
     if dataset.name == metadata.DatasetNames.SSA:
         dataset_noise_proportions = dataset_proportions.loc[
             (dataset_proportions["state"] == state) & (dataset_proportions["year"] <= year)
@@ -343,26 +326,9 @@ def validate_noise_level_proportions(
             if config_noise_level > max_noise_level:
                 logger.warning(
                     f"The configured '{row['noise_type']}' noise level for column '{row['column']}' is {config_noise_level}, "
-                    f"but the maximum allowable noise level is {max_noise_level}. "
-                    f"The maximum allowable noise level will be used instead of the configured value. "
-                    f"This value is based on the provided data for '{row['dataset']}'. "
+                    f"which is higher than the maximum possible value based on the provided data for '{row['dataset']}'. "
+                    "Noising as many rows as possible. "
                 )
-                # Should we update here in validator or pass values back to interface?
-                configuration_tree.update(
-                    {
-                        row["dataset"]: {
-                            Keys.COLUMN_NOISE: {
-                                row["column"]: {
-                                    row["noise_type"]: {
-                                        Keys.CELL_PROBABILITY: max_noise_level
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    layer="max_noise_level",
-                )
-        return configuration_tree
 
 
 DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP = {
