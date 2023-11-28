@@ -266,7 +266,7 @@ def validate_noise_level_proportions(
     metadata proportions file. If the provided noise levels are higher than the allowable proportions
     then throw a warning to the user and adjust the noise level to the allowable proportion.
     """
-
+    # TODO: update file and filepath
     metadata_proportions = pd.read_csv(paths.METADATA_PROPORTIONS)
     dataset_proportions = metadata_proportions.loc[
         metadata_proportions["dataset"] == dataset.name
