@@ -47,7 +47,9 @@ def test__get_data_changelog_version(simulated_data_changelog_path):
 
 
 def mock_data_version(version, mocker):
-    mocker.patch("pseudopeople.interface._get_data_version", return_value=parse(version))
+    mocker.patch(
+        "pseudopeople.interface._get_data_changelog_version", return_value=parse(version)
+    )
 
 
 def test_validate_source_compatibility_passes(simulated_data_changelog_path):
@@ -66,9 +68,9 @@ def test_validate_source_compatibility_no_metadata_error(simulated_data_changelo
 @pytest.mark.parametrize(
     "version, match",
     [
-        ("1.4.1", "Current data version is."),
-        ("2.1.0", "A newer version of simulated population data has been provided."),
-        ("2.4.12", "A newer version of simulated population data has been provided."),
+        ("1.4.1", "The simulated population data has been corrupted."),
+        ("1.4.3", "A newer version of simulated population data has been provided."),
+        ("1.4.12", "A newer version of simulated population data has been provided."),
     ],
 )
 def test_validate_source_compatibility_bad_version_errors(
