@@ -113,7 +113,6 @@ def _generate_configuration(is_no_noise: bool) -> ConfigTree:
         "baseline",
         "default",
         "user",
-        "max_noise_level",
     ]
     noising_configuration = ConfigTree(layers=default_config_layers)
     # Instantiate the configuration file with baseline values
