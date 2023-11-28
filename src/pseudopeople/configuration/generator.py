@@ -55,6 +55,13 @@ DEFAULT_NOISE_VALUES = {
             },
         },
     },
+    DATASETS.wic.name: {
+        Keys.ROW_NOISE: {
+            NOISE_TYPES.omit_row.name: {
+                Keys.ROW_PROBABILITY: 0.005,
+            },
+        },
+    },
     # No noise of any kind for SSN in the SSA observer
     DATASETS.ssa.name: {
         Keys.COLUMN_NOISE: {
