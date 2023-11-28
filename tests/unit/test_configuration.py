@@ -523,45 +523,46 @@ def test_no_noise():
                 assert column_noise_dict[column_noise_type][Keys.CELL_PROBABILITY] == 0.0
 
 
-def test_validate_noise_level_proportions(caplog):
+@pytest.mark.parametrize(
+    "column, noise_type, noise_level",
+    [
+        ("age", "copy_from_household_member", 0.2),
+        ("age", "copy_from_household_member", 0.95),
+        ("first_name", "use_nickname", 0.05),
+        ("first_name", "use_nickname", 0.85),
+        ("date_of_birth", "copy_from_household_member", 0.15),
+        ("date_of_birth", "copy_from_household_member", 0.90),
+    ],
+)
+def test_validate_noise_level_proportions(caplog, column, noise_type, noise_level):
     """
     Tests that a warning is thrown when a user provides configuration overrides that are higher
     than the calculated metadata proportions for that column noise type pairing.
     """
-    configs = (
-        ["age", "copy_from_household_member", 0.2],
-        ["age", "copy_from_household_member", 0.95],
-        ["first_name", "use_nickname", 0.05],
-        ["first_name", "use_nickname", 0.85],
-        ["date_of_birth", "copy_from_household_member", 0.15],
-        ["date_of_birth", "copy_from_household_member", 0.90],
-    )
+
+    caplog.clear()
     census = DATASETS.get_dataset("decennial_census")
     user_filters = [
         (census.date_column_name, "==", 2020),
         (census.state_column_name, "==", "WA"),
     ]
 
-    for config in configs:
-        caplog.clear()
-        get_configuration(
-            {
-                DATASETS.census.name: {
-                    Keys.COLUMN_NOISE: {
-                        config[0]: {
-                            config[1]: {
-                                Keys.CELL_PROBABILITY: config[2],
-                            },
+    get_configuration(
+        {
+            DATASETS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    column: {
+                        noise_type: {
+                            Keys.CELL_PROBABILITY: noise_level,
                         },
                     },
                 },
             },
-            census,
-            user_filters,
-        )
-        # Validate caplog has usuer warnings for noise levels above max threshold
-        # For the sake of the test's readability the configured values are extremems
-        if config[2] < 0.5:
-            assert not caplog.records
-        else:
-            assert "Noising as many rows as possible" in caplog.text
+        },
+        census,
+        user_filters,
+    )
+    if noise_level < 0.5:
+        assert not caplog.records
+    else:
+        assert "Noising as many rows as possible" in caplog.text

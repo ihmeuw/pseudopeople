@@ -280,6 +280,7 @@ def validate_noise_level_proportions(
         else:
             state = "USA"
     year = metadata.YEAR_AGGREGATION_VALUE
+    # Get the state and year from the user filters
     for i in range(len(user_filters)):
         if user_filters[i][0] == dataset.state_column_name:
             state = user_filters[i][2]
