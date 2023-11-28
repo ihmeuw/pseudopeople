@@ -611,6 +611,7 @@ class __Datasets(NamedTuple):
         state_column_name=COLUMNS.state.name,
         row_noise_types=(
             NOISE_TYPES.do_not_respond,
+            NOISE_TYPES.omit_row,
             # NOISE_TYPES.duplication,
         ),
         date_format=DATEFORMATS.MM_DD_YYYY,
@@ -641,6 +642,7 @@ class __Datasets(NamedTuple):
         state_column_name=COLUMNS.state.name,
         row_noise_types=(
             NOISE_TYPES.do_not_respond,
+            NOISE_TYPES.omit_row,
             # NOISE_TYPES.duplication,
         ),
         date_format=DATEFORMATS.MM_DD_YYYY,
@@ -669,6 +671,7 @@ class __Datasets(NamedTuple):
         state_column_name=COLUMNS.state.name,
         row_noise_types=(
             NOISE_TYPES.do_not_respond,
+            NOISE_TYPES.omit_row,
             # NOISE_TYPES.duplication,
         ),
         date_format=DATEFORMATS.MM_DD_YYYY,
