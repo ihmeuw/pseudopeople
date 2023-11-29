@@ -275,6 +275,10 @@ def validate_noise_level_proportions(
     if dataset.name == metadata.DatasetNames.SSA:
         state = "USA"
     else:
+        # Note: This is a shortcoming of our current approach to user warnings and will be fixed
+        # with a future release/our next data upload. We do not have a way to get state in a
+        # case where the user is not filtering on state because they either are using the sample
+        # data or state (Rhode Island) data.
         if len(dataset_proportions["state"].unique()) == 1:
             state = dataset_proportions["state"].unique()[0]
         else:
