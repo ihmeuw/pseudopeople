@@ -1,15 +1,14 @@
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
+import numpy as np
 import pandas as pd
-import yaml
 from loguru import logger
 from packaging.version import parse
 from tqdm import tqdm
 
 from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
-from pseudopeople.configuration.validator import validate_noise_level_proportions
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, INT_COLUMNS
 from pseudopeople.exceptions import DataSourceError
@@ -96,7 +95,11 @@ def _generate_dataset(
 
     # Known pandas bug: pd.concat does not preserve category dtypes so we coerce
     # again after concat (https://github.com/pandas-dev/pandas/issues/51362)
-    noised_dataset = _coerce_dtypes(noised_dataset, dataset, cleanse_int_cols=True)
+    noised_dataset = _coerce_dtypes(
+        noised_dataset,
+        dataset,
+        cleanse_int_cols=True,
+    )
 
     logger.debug("*** Finished ***")
 
@@ -136,13 +139,18 @@ def _get_data_changelog_version(changelog):
 
 
 def _coerce_dtypes(
-    data: pd.DataFrame, dataset: Dataset, cleanse_int_cols: bool = False
+    data: pd.DataFrame,
+    dataset: Dataset,
+    cleanse_int_cols: bool = False,
 ) -> pd.DataFrame:
     # Coerce dtypes prior to noising to catch issues early as well as
     # get most columns away from dtype 'category' and into 'object' (strings)
     for col in dataset.columns:
         if cleanse_int_cols and col.name in INT_COLUMNS:
             data[col.name] = cleanse_integer_columns(data[col.name])
+        # Coerce empty strings to nans
+        if cleanse_int_cols and col.name not in INT_COLUMNS:
+            data[col.name] = data[col.name].replace("", np.nan)
         if col.dtype_name != data[col.name].dtype.name:
             data[col.name] = data[col.name].astype(col.dtype_name)
 
