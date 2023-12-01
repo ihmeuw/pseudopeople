@@ -539,7 +539,6 @@ def test_validate_noise_level_proportions(caplog, column, noise_type, noise_leve
     Tests that a warning is thrown when a user provides configuration overrides that are higher
     than the calculated metadata proportions for that column noise type pairing.
     """
-
     census = DATASETS.get_dataset("decennial_census")
     user_filters = [
         (census.date_column_name, "==", 2020),
