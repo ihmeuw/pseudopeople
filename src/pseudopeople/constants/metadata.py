@@ -98,4 +98,4 @@ COPY_HOUSEHOLD_MEMBER_COLS = {
 
 INT_COLUMNS = ["age", "wages", "mailing_address_po_box"]
 
-DATA_VERSION = "2.0.0"
+YEAR_AGGREGATION_VALUE = 3000  # value for all years in a dataset for metadata proportions

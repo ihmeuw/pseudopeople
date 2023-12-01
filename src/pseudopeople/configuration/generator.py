@@ -1,15 +1,19 @@
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
+import pandas as pd
 import yaml
 from vivarium.config_tree import ConfigTree
 
 from pseudopeople.configuration import NO_NOISE, Keys
-from pseudopeople.configuration.validator import validate_overrides
+from pseudopeople.configuration.validator import (
+    validate_noise_level_proportions,
+    validate_overrides,
+)
 from pseudopeople.constants.data_values import DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY
 from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import COLUMNS, DATASETS
+from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
 
 # Define non-baseline default items
 # NOTE: default values are defined in entity_types.RowNoiseType and entity_types.ColumnNoiseType
@@ -76,7 +80,11 @@ DEFAULT_NOISE_VALUES = {
 }
 
 
-def get_configuration(overrides: Optional[Union[Path, str, Dict]] = None) -> ConfigTree:
+def get_configuration(
+    overrides: Optional[Union[Path, str, Dict]] = None,
+    dataset: Dataset = None,
+    user_filters: List[Tuple[Union[str, int, pd.Timestamp]]] = None,
+) -> ConfigTree:
     """
     Gets a noising configuration ConfigTree, optionally overridden by a user-provided YAML.
 
@@ -95,7 +103,7 @@ def get_configuration(overrides: Optional[Union[Path, str, Dict]] = None) -> Con
         is_no_noise = False
     noising_configuration = _generate_configuration(is_no_noise)
     if overrides is not None:
-        add_overrides(noising_configuration, overrides)
+        add_overrides(noising_configuration, overrides, dataset, user_filters)
 
     return noising_configuration
 
@@ -164,10 +172,21 @@ def _generate_configuration(is_no_noise: bool) -> ConfigTree:
     return noising_configuration
 
 
-def add_overrides(noising_configuration: ConfigTree, overrides: Dict) -> None:
+def add_overrides(
+    noising_configuration: ConfigTree,
+    overrides: Dict,
+    dataset: Dataset = None,
+    user_filters: List[Tuple[Union[str, int, pd.Timestamp]]] = None,
+) -> None:
     validate_overrides(overrides, noising_configuration)
     overrides = _format_overrides(noising_configuration, overrides)
     noising_configuration.update(overrides, layer="user")
+    # Note: dataset and user_filters should both be None when using the get_config wrapper
+    # or both be inputs from generate_XXX functions.
+    if (dataset is not None) and (user_filters is not None):
+        # TODO: refactor validate_noise_level_proportions to take overrides as arg and live in validate overrides
+        # Note: validate_noise_level_proportions must happen after user layer configuration update
+        validate_noise_level_proportions(noising_configuration, dataset, user_filters)
 
 
 def _format_overrides(default_config: ConfigTree, user_dict: Dict) -> Dict:
