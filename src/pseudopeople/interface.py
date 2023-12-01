@@ -148,7 +148,7 @@ def _coerce_dtypes(
     for col in dataset.columns:
         if cleanse_int_cols and col.name in INT_COLUMNS:
             data[col.name] = cleanse_integer_columns(data[col.name])
-        # Coerce emtpy strings to NaNs for mailing address columns that have PO boxes
+        # Coerce empty strings to nans
         if cleanse_int_cols and col.name not in INT_COLUMNS:
             data[col.name] = data[col.name].replace("", np.nan)
         if col.dtype_name != data[col.name].dtype.name:
