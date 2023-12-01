@@ -1,12 +1,16 @@
 import itertools
 
+import pandas as pd
 import pytest
 import yaml
 
 from pseudopeople.configuration import NO_NOISE, Keys, get_configuration
 from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
 from pseudopeople.configuration.interface import get_config
-from pseudopeople.configuration.validator import ConfigurationError
+from pseudopeople.configuration.validator import (
+    ConfigurationError,
+    validate_noise_level_proportions,
+)
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
@@ -468,33 +472,6 @@ def test_get_config(caplog):
                 assert column_noise_dict[column_noise][Keys.CELL_PROBABILITY] == 0.0
 
 
-def test_validate_nickname_configuration(caplog):
-    """
-    Tests that warning is thrown if cell probability is higher than nickname proportion.  Also tests noise leve
-    is appropriately adjust if this is the case.
-    """
-    config_values = [0.45, 0.65]
-    for config_value in config_values:
-        caplog.clear()
-        get_configuration(
-            {
-                DATASETS.census.name: {
-                    Keys.COLUMN_NOISE: {
-                        COLUMNS.first_name.name: {
-                            NOISE_TYPES.use_nickname.name: {
-                                Keys.CELL_PROBABILITY: config_value,
-                            },
-                        },
-                    },
-                },
-            },
-        )
-        if config_value == 0.45:
-            assert not caplog.records
-        else:
-            assert "Replacing as many names with nicknames as possible" in caplog.text
-
-
 def test_validate_choose_wrong_option_configuration(caplog):
     """
     Tests that warning is thrown if cell probability is higher than possible given the
@@ -544,3 +521,47 @@ def test_no_noise():
             column_noise_dict = dataset_column_dict[column]
             for column_noise_type in column_noise_dict.keys():
                 assert column_noise_dict[column_noise_type][Keys.CELL_PROBABILITY] == 0.0
+
+
+@pytest.mark.parametrize(
+    "column, noise_type, noise_level",
+    [
+        ("age", "copy_from_household_member", 0.2),
+        ("age", "copy_from_household_member", 0.95),
+        ("first_name", "use_nickname", 0.05),
+        ("first_name", "use_nickname", 0.85),
+        ("date_of_birth", "copy_from_household_member", 0.15),
+        ("date_of_birth", "copy_from_household_member", 0.90),
+    ],
+)
+def test_validate_noise_level_proportions(caplog, column, noise_type, noise_level):
+    """
+    Tests that a warning is thrown when a user provides configuration overrides that are higher
+    than the calculated metadata proportions for that column noise type pairing.
+    """
+
+    census = DATASETS.get_dataset("decennial_census")
+    user_filters = [
+        (census.date_column_name, "==", 2020),
+        (census.state_column_name, "==", "WA"),
+    ]
+
+    get_configuration(
+        {
+            DATASETS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    column: {
+                        noise_type: {
+                            Keys.CELL_PROBABILITY: noise_level,
+                        },
+                    },
+                },
+            },
+        },
+        census,
+        user_filters,
+    )
+    if noise_level < 0.5:
+        assert not caplog.records
+    else:
+        assert "Noising as many rows as possible" in caplog.text
