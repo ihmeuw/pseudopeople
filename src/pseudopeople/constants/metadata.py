@@ -97,10 +97,5 @@ COPY_HOUSEHOLD_MEMBER_COLS = {
 
 
 INT_COLUMNS = ["age", "wages", "mailing_address_po_box"]
-MAILING_ADDRESS_STREET_COLUMNS = [
-    "mailing_address_street_name",
-    "mailing_address_street_number",
-    "mailing_address_unit_number",
-]
 
 YEAR_AGGREGATION_VALUE = 3000  # value for all years in a dataset for metadata proportions

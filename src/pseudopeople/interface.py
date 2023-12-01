@@ -10,11 +10,7 @@ from tqdm import tqdm
 from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
-from pseudopeople.constants.metadata import (
-    COPY_HOUSEHOLD_MEMBER_COLS,
-    INT_COLUMNS,
-    MAILING_ADDRESS_STREET_COLUMNS,
-)
+from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, INT_COLUMNS
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.loader import load_standard_dataset_file
 from pseudopeople.noise import noise_dataset
@@ -103,7 +99,6 @@ def _generate_dataset(
         noised_dataset,
         dataset,
         cleanse_int_cols=True,
-        cleanse_address_cols=True,
     )
 
     logger.debug("*** Finished ***")
@@ -147,7 +142,6 @@ def _coerce_dtypes(
     data: pd.DataFrame,
     dataset: Dataset,
     cleanse_int_cols: bool = False,
-    cleanse_address_cols: bool = False,
 ) -> pd.DataFrame:
     # Coerce dtypes prior to noising to catch issues early as well as
     # get most columns away from dtype 'category' and into 'object' (strings)
@@ -155,7 +149,7 @@ def _coerce_dtypes(
         if cleanse_int_cols and col.name in INT_COLUMNS:
             data[col.name] = cleanse_integer_columns(data[col.name])
         # Coerce emtpy strings to NaNs for mailing address columns that have PO boxes
-        if cleanse_address_cols and col.name in MAILING_ADDRESS_STREET_COLUMNS:
+        if cleanse_int_cols and col.name not in INT_COLUMNS:
             data[col.name] = data[col.name].replace("", np.nan)
         if col.dtype_name != data[col.name].dtype.name:
             data[col.name] = data[col.name].astype(col.dtype_name)
