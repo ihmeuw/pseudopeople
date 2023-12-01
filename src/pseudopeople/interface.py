@@ -55,9 +55,6 @@ def _generate_dataset(
     configure_logging_to_terminal(verbose)
     configuration_tree = get_configuration(config, dataset, user_filters)
 
-    # Validate confgiuration noise levels with possible metadata noise level proportions
-    validate_noise_level_proportions(configuration_tree, dataset, user_filters)
-
     if source is None:
         source = paths.SAMPLE_DATA_ROOT
     else:
@@ -103,7 +100,10 @@ def _generate_dataset(
     # Known pandas bug: pd.concat does not preserve category dtypes so we coerce
     # again after concat (https://github.com/pandas-dev/pandas/issues/51362)
     noised_dataset = _coerce_dtypes(
-        noised_dataset, dataset, cleanse_int_cols=True, cleanse_address_cols=True
+        noised_dataset,
+        dataset,
+        cleanse_int_cols=True,
+        cleanse_address_cols=True,
     )
 
     logger.debug("*** Finished ***")
