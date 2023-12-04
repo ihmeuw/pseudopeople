@@ -564,3 +564,43 @@ def test_validate_noise_level_proportions(caplog, column, noise_type, noise_leve
         assert not caplog.records
     else:
         assert "Noising as many rows as possible" in caplog.text
+
+
+@pytest.mark.parametrize(
+    "value_1, value_2, value_3",
+    [
+        (0.1, 0.1, 0.1),
+        (0.0, 0.2, 0.5),
+        (0.5, 0.5, 0.5),
+    ],
+)
+def test_duplicate_with_guardian_configuration(value_1, value_2, value_3):
+    """
+    Tests that a warning is thrown when a user provides configuration overrides that are higher
+    than the calculated metadata proportions for that column noise type pairing.
+    """
+
+    config = get_config(
+        {
+            DATASETS.census.name: {
+                Keys.ROW_NOISE: {
+                    NOISE_TYPES.duplicate_with_guardian.name: {
+                        {
+                            Keys.ROW_PROBABILITY: {
+                                Keys.UNDER_18_IN_HOUSEHOLDS: value_1,
+                                Keys.IN_HOUSEHOLDS_18_TO_23: value_2,
+                                Keys.UNDER_24_IN_GROUP_QUARTERS: value_3,
+                            },
+                        }
+                    },
+                },
+            },
+        }
+    )
+
+    row_noise_dict = config[DATASETS.census.name][Keys.ROW_NOISE][
+        NOISE_TYPES.duplicate_with_guardian.name
+    ][Keys.ROW_PROBABILITY]
+    assert row_noise_dict[Keys.UNDER_18_IN_HOUSEHOLDS] == value_1
+    assert row_noise_dict[Keys.IN_HOUSEHOLDS_18_TO_23] == value_2
+    assert row_noise_dict[Keys.UNDER_24_IN_GROUP_QUARTERS] == value_3

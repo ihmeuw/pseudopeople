@@ -130,6 +130,7 @@ def _generate_configuration(is_no_noise: bool) -> ConfigTree:
                 if is_no_noise:
                     noise_level = 0.0
                 else:
+                    # This can be a dict or float.
                     noise_level = row_noise.row_probability
                 row_noise_type_dict[Keys.ROW_PROBABILITY] = noise_level
             if row_noise_type_dict:

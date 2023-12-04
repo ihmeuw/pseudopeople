@@ -26,7 +26,7 @@ class RowNoiseType:
 
     name: str
     noise_function: Callable[[str, pd.DataFrame, ConfigTree, RandomnessStream], pd.DataFrame]
-    row_probability: float = 0.0
+    row_probability: [Dict[str, float], float] = 0.0
 
     def __call__(
         self,
@@ -36,7 +36,10 @@ class RowNoiseType:
         randomness_stream: RandomnessStream,
     ) -> pd.DataFrame:
         return self.noise_function(
-            dataset_name, dataset_data, configuration, randomness_stream
+            dataset_name,
+            dataset_data,
+            configuration,
+            randomness_stream,
         )
 
 

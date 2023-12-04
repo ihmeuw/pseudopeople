@@ -142,6 +142,22 @@ def apply_do_not_respond(
 #     return dataset_data
 
 
+def duplicate_with_guardian(
+    dataset_data: pd.DataFrame,
+    configuration: ConfigTree,
+    randomness_stream: RandomnessStream,
+) -> pd.DataFrame:
+    """
+
+    :param dataset_data:
+    :param configuration:
+    :param randomness_stream:
+    :return:
+    """
+    # todo actually duplicate rows
+    return dataset_data
+
+
 def choose_wrong_options(
     data: pd.DataFrame,
     _: ConfigTree,
