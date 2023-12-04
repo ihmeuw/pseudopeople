@@ -316,9 +316,7 @@ def validate_noise_level_proportions(
 
     # If there is no data for a queried dataset, we want the user's to hit the correct error that there
     # is no data available so we do not throw an error here.
-    if dataset_noise_proportions.empty:
-        return configuration_tree
-    else:
+    if not dataset_noise_proportions.empty:
         # Go through each row in the queried dataset noise proportions to validate the noise levels
         for i in range(len(dataset_noise_proportions)):
             row = dataset_noise_proportions.iloc[i]
