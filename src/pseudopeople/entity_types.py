@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import pandas as pd
 from loguru import logger
@@ -26,7 +26,7 @@ class RowNoiseType:
 
     name: str
     noise_function: Callable[[str, pd.DataFrame, ConfigTree, RandomnessStream], pd.DataFrame]
-    row_probability: [Dict[str, float], float] = 0.0
+    row_probability: Union[Dict[str, float], float, int] = 0.0
 
     def __call__(
         self,

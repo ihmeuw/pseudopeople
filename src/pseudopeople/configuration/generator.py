@@ -11,7 +11,6 @@ from pseudopeople.configuration.validator import (
     validate_overrides,
 )
 from pseudopeople.constants.data_values import DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY
-from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
 
@@ -126,13 +125,19 @@ def _generate_configuration(is_no_noise: bool) -> ConfigTree:
         # Loop through row noise types
         for row_noise in dataset.row_noise_types:
             row_noise_type_dict = {}
-            if row_noise.row_probability is not None:
+            if isinstance(row_noise.row_probability, (float, int)):
                 if is_no_noise:
                     noise_level = 0.0
                 else:
-                    # This can be a dict or float.
                     noise_level = row_noise.row_probability
                 row_noise_type_dict[Keys.ROW_PROBABILITY] = noise_level
+            else:
+                if is_no_noise:
+                    noise_dict = {key: 0.0 for key in row_noise.row_probability.keys()}
+                else:
+                    noise_dict = row_noise.row_probability
+                row_noise_type_dict[Keys.ROW_PROBABILITY] = noise_dict
+            # Add row noise type to row noise dictionary
             if row_noise_type_dict:
                 row_noise_dict[row_noise.name] = row_noise_type_dict
 

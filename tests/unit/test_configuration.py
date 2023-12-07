@@ -1,4 +1,5 @@
 import itertools
+from typing import Dict
 
 import pandas as pd
 import pytest
@@ -7,19 +8,45 @@ import yaml
 from pseudopeople.configuration import NO_NOISE, Keys, get_configuration
 from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
 from pseudopeople.configuration.interface import get_config
-from pseudopeople.configuration.validator import (
-    ConfigurationError,
-    validate_noise_level_proportions,
-)
+from pseudopeople.configuration.validator import ConfigurationError
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
 
-PROBABILITY_VALUE_LOGS = [
-    ("a", "must be floats or ints"),
-    (-0.01, "must be between 0 and 1"),
-    (1.01, "must be between 0 and 1"),
-]
+PROBABILITY_VALUE_LOGS = {
+    "column_noise": [
+        ("a", "probabilities must be floats or ints"),
+        (-0.01, "must be between 0 and 1"),
+        (1.01, "must be between 0 and 1"),
+    ],
+    "row_noise": [
+        ("a", {False: "probabilities must be floats or ints", True: "must be a Dict"}),
+        (1.01, {False: "must be between 0 and 1", True: "must be a Dict"}),
+        (
+            {"bad_config_key_1": 0.5, "bad_config_key_2": 0.5},
+            {False: "probabilities must be floats or ints", True: "Dict must have 3 keys"},
+        ),
+        (
+            {
+                Keys.IN_HOUSEHOLDS_UNDER_18: 0.5,
+                Keys.IN_HOUSEHOLDS_18_TO_23: 1.5,
+                Keys.IN_GROUP_QUARTERS_UNDER_24: 0.5,
+            },
+            {False: "probabilities must be floats or ints", True: "must be between 0 and 1"},
+        ),
+        (
+            {
+                Keys.IN_HOUSEHOLDS_UNDER_18: 0.5,
+                Keys.IN_HOUSEHOLDS_18_TO_23: 0.5,
+                Keys.IN_GROUP_QUARTERS_UNDER_24: "a",
+            },
+            {
+                False: "probabilities must be floats or ints",
+                True: "probabilities must be floats or ints",
+            },
+        ),
+    ],
+}
 COLUMN_NOISE_TYPES = [
     noise_type for noise_type in NOISE_TYPES if isinstance(noise_type, ColumnNoiseType)
 ]
@@ -46,6 +73,9 @@ def test_default_configuration_structure():
             config_probability = config[dataset.name][Keys.ROW_NOISE][row_noise.name][
                 Keys.ROW_PROBABILITY
             ]
+            if isinstance(row_noise.row_probability, dict):
+                # Make dict for comparison below
+                config_probability = config_probability.to_dict()
             default_probability = (
                 DEFAULT_NOISE_VALUES.get(dataset.name, {})
                 .get(Keys.ROW_NOISE, {})
@@ -304,19 +334,23 @@ def test_overriding_nonexistent_keys_fails(config, match):
         get_configuration(config)
 
 
-def get_noise_type_configs(noise_names: list):
-    configs = list(itertools.product(noise_names, PROBABILITY_VALUE_LOGS))
+def get_noise_type_configs(noise_names: list, noise_type: str):
+    configs = list(itertools.product(noise_names, PROBABILITY_VALUE_LOGS[noise_type]))
     return [(x[0], x[1][0], x[1][1]) for x in configs]
 
 
 @pytest.mark.parametrize(
     "row_noise_type, value, match",
-    get_noise_type_configs(ROW_NOISE_TYPES),
+    get_noise_type_configs(ROW_NOISE_TYPES, "row_noise"),
 )
 def test_validate_standard_parameters_failures_row_noise(row_noise_type, value, match):
     """
     Tests valid configuration values for probability for row noise types.
     """
+    key = False
+    if row_noise_type.name == NOISE_TYPES.duplicate_with_guardian.name:
+        key = True
+    match = match[key]
     dataset_name = [
         dataset for dataset in DATASETS if row_noise_type in dataset.row_noise_types
     ][0].name
@@ -336,7 +370,7 @@ def test_validate_standard_parameters_failures_row_noise(row_noise_type, value, 
 
 @pytest.mark.parametrize(
     "column_noise_type, value, match",
-    get_noise_type_configs(COLUMN_NOISE_TYPES),
+    get_noise_type_configs(COLUMN_NOISE_TYPES, "column_noise"),
 )
 def test_validate_standard_parameters_failures_column_noise(column_noise_type, value, match):
     """Test that a runtime error is thrown if a user provides bad standard
@@ -417,7 +451,7 @@ def test_validate_miswrite_ages_failures(perturbations, match):
     [
         (0.2, "must be a List"),
         ([0.5, 0.5, 0.5, 0.5], "must be a List of 5"),
-        ([0.2, 0.2, "foo", 0.2, 0.2], "must be floats or ints"),
+        ([0.2, 0.2, "foo", 0.2, 0.2], "probabilities must be floats or ints"),
         ([-0.1, 0.2, 0.2, 0.2, 0.2], "must be between 0 and 1"),
         ([1.01, 0.2, 0.2, 0.2, 0.2], "must be between 0 and 1"),
     ],
@@ -442,17 +476,7 @@ def test_validate_miswrite_zipcode_digit_probabilities_failures(probabilities, m
 
 
 def test_get_config(caplog):
-    overrides = {
-        DATASETS.acs.name: {
-            Keys.COLUMN_NOISE: {
-                "zipcode": {
-                    NOISE_TYPES.leave_blank.name: {
-                        Keys.CELL_PROBABILITY: 0.25,
-                    },
-                },
-            },
-        },
-    }
+
     config_1 = get_config()
     assert isinstance(config_1, dict)
     assert not caplog.records
@@ -465,7 +489,11 @@ def test_get_config(caplog):
         row_noise_dict = config_2[dataset][Keys.ROW_NOISE]
         column_dict = config_2[dataset][Keys.COLUMN_NOISE]
         for row_noise in row_noise_dict:
-            assert row_noise_dict[row_noise][Keys.ROW_PROBABILITY] == 0.0
+            if isinstance(row_noise_dict[row_noise][Keys.ROW_PROBABILITY], Dict):
+                for config in row_noise_dict[row_noise][Keys.ROW_PROBABILITY]:
+                    assert row_noise_dict[row_noise][Keys.ROW_PROBABILITY][config] == 0.0
+            else:
+                assert row_noise_dict[row_noise][Keys.ROW_PROBABILITY] == 0.0
         for column in column_dict:
             column_noise_dict = column_dict[column]
             for column_noise in column_noise_dict:
@@ -513,10 +541,17 @@ def test_no_noise():
 
     for dataset in no_noise_config.keys():
         dataset_dict = no_noise_config[dataset]
-        dataset_row_noise_dict = dataset_dict[Keys.ROW_NOISE]
+        dataset_row_noise_dict = dataset_dict[Keys.ROW_NOISE].to_dict()
         dataset_column_dict = dataset_dict[Keys.COLUMN_NOISE]
         for row_noise_type in dataset_row_noise_dict.keys():
-            assert dataset_row_noise_dict[row_noise_type][Keys.ROW_PROBABILITY] == 0.0
+            if isinstance(dataset_row_noise_dict[row_noise_type][Keys.ROW_PROBABILITY], Dict):
+                for config in dataset_row_noise_dict[row_noise_type][Keys.ROW_PROBABILITY]:
+                    assert (
+                        dataset_row_noise_dict[row_noise_type][Keys.ROW_PROBABILITY][config]
+                        == 0.0
+                    )
+            else:
+                assert dataset_row_noise_dict[row_noise_type][Keys.ROW_PROBABILITY] == 0.0
         for column in dataset_column_dict.keys():
             column_noise_dict = dataset_column_dict[column]
             for column_noise_type in column_noise_dict.keys():
@@ -585,13 +620,11 @@ def test_duplicate_with_guardian_configuration(value_1, value_2, value_3):
             DATASETS.census.name: {
                 Keys.ROW_NOISE: {
                     NOISE_TYPES.duplicate_with_guardian.name: {
-                        {
-                            Keys.ROW_PROBABILITY: {
-                                Keys.UNDER_18_IN_HOUSEHOLDS: value_1,
-                                Keys.IN_HOUSEHOLDS_18_TO_23: value_2,
-                                Keys.UNDER_24_IN_GROUP_QUARTERS: value_3,
-                            },
-                        }
+                        Keys.ROW_PROBABILITY: {
+                            Keys.IN_HOUSEHOLDS_UNDER_18: value_1,
+                            Keys.IN_HOUSEHOLDS_18_TO_23: value_2,
+                            Keys.IN_GROUP_QUARTERS_UNDER_24: value_3,
+                        },
                     },
                 },
             },
@@ -601,6 +634,49 @@ def test_duplicate_with_guardian_configuration(value_1, value_2, value_3):
     row_noise_dict = config[DATASETS.census.name][Keys.ROW_NOISE][
         NOISE_TYPES.duplicate_with_guardian.name
     ][Keys.ROW_PROBABILITY]
-    assert row_noise_dict[Keys.UNDER_18_IN_HOUSEHOLDS] == value_1
+    assert row_noise_dict[Keys.IN_HOUSEHOLDS_UNDER_18] == value_1
     assert row_noise_dict[Keys.IN_HOUSEHOLDS_18_TO_23] == value_2
-    assert row_noise_dict[Keys.UNDER_24_IN_GROUP_QUARTERS] == value_3
+    assert row_noise_dict[Keys.IN_GROUP_QUARTERS_UNDER_24] == value_3
+
+
+@pytest.mark.parametrize(
+    "overrides, match",
+    [
+        ("bad_config", "must be a Dict"),
+        (0.5, "must be a Dict"),
+        (
+            {
+                Keys.IN_HOUSEHOLDS_UNDER_18: 0.5,
+                Keys.IN_HOUSEHOLDS_18_TO_23: 0.5,
+                Keys.IN_GROUP_QUARTERS_UNDER_24: "one",
+            },
+            "probabilities must be floats or ints",
+        ),
+        (
+            {
+                Keys.IN_HOUSEHOLDS_UNDER_18: 1.5,
+                Keys.IN_HOUSEHOLDS_18_TO_23: 0.5,
+                Keys.IN_GROUP_QUARTERS_UNDER_24: 0.0,
+            },
+            "must be between 0 and 1",
+        ),
+    ],
+)
+def test_validate_bad_guardian_duplication_config(overrides, match):
+    """
+    Tests that a ConfigurationError is thrown when a user provides an invalidate configuration
+    for guardian based duplication.
+    """
+
+    with pytest.raises(ConfigurationError, match=match):
+        get_config(
+            {
+                DATASETS.census.name: {
+                    Keys.ROW_NOISE: {
+                        NOISE_TYPES.duplicate_with_guardian.name: {
+                            Keys.ROW_PROBABILITY: overrides,
+                        },
+                    },
+                },
+            },
+        )

@@ -122,12 +122,16 @@ def config():
     # Increase row noise probabilities to 5% and column cell_probabilities to 25%
     for dataset_name in config:
         dataset = DATASETS.get_dataset(dataset_name)
-        config[dataset.name][Keys.ROW_NOISE] = {
-            noise_type.name: {
-                Keys.ROW_PROBABILITY: ROW_PROBABILITY,
-            }
-            for noise_type in dataset.row_noise_types
-        }
+        for row_noise in dataset.row_noise_types:
+            if isinstance(row_noise.row_probability, float):
+                config[dataset_name][Keys.ROW_NOISE][row_noise.name][
+                    Keys.ROW_PROBABILITY
+                ] = ROW_PROBABILITY
+            else:
+                config[dataset_name][Keys.ROW_NOISE][row_noise.name][Keys.ROW_PROBABILITY] = {
+                    key: ROW_PROBABILITY for key in row_noise.row_probability
+                }
+
         for col in [c for c in dataset.columns if c.noise_types]:
             config[dataset_name][Keys.COLUMN_NOISE][col.name] = {
                 noise_type.name: {
