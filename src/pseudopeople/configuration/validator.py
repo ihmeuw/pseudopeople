@@ -54,20 +54,12 @@ def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
             default_noise_type_config = _get_default_config_node(
                 default_row_noise_config, noise_type, "noise type", dataset
             )
-            parameter_config_validator_map = {
-                NOISE_TYPES.duplicate_with_guardian.name: {
-                    Keys.ROW_PROBABILITY: lambda *args, **kwargs: _validate_row_noise_configuration(
-                        *args,
-                        **kwargs,
-                    )
-                },
-            }.get(noise_type, DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP)
             _validate_noise_type_config(
                 noise_type_config,
                 default_noise_type_config,
                 dataset,
                 noise_type,
-                parameter_config_validator_map,
+                DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP,
             )
 
         column_noise_config = dataset_config.get(Keys.COLUMN_NOISE, {})
@@ -349,7 +341,7 @@ def _validate_row_noise_configuration(
     parameter: str,
     base_error_message: str,
 ) -> None:
-    # breakpoint()
+
     noise_type = base_error_message.split(" ")[-2][1:-2]
     if noise_type != NOISE_TYPES.duplicate_with_guardian.name:
         _validate_probability(noise_type_config, parameter, base_error_message)
@@ -358,12 +350,6 @@ def _validate_row_noise_configuration(
             raise ConfigurationError(
                 base_error_message + f"'{parameter}' must be a Dict. "
                 f"Provided {noise_type_config} of type {type(noise_type_config)}."
-            )
-        if len(noise_type_config) != 3:
-            raise ConfigurationError(
-                base_error_message + f"'{noise_type}' Dict must have 3 keys. "
-                f"Keys must be {Keys.IN_HOUSEHOLDS_UNDER_18}, {Keys.IN_HOUSEHOLDS_18_TO_23}, and {Keys.IN_GROUP_QUARTERS_UNDER_24}. "
-                f"Provided {noise_type_config}."
             )
         if set(
             [

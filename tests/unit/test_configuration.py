@@ -24,7 +24,7 @@ PROBABILITY_VALUE_LOGS = {
         (1.01, {False: "must be between 0 and 1", True: "must be a Dict"}),
         (
             {"bad_config_key_1": 0.5, "bad_config_key_2": 0.5},
-            {False: "probabilities must be floats or ints", True: "Dict must have 3 keys"},
+            {False: "probabilities must be floats or ints", True: "must have keys"},
         ),
         (
             {
@@ -611,8 +611,7 @@ def test_validate_noise_level_proportions(caplog, column, noise_type, noise_leve
 )
 def test_duplicate_with_guardian_configuration(value_1, value_2, value_3):
     """
-    Tests that a warning is thrown when a user provides configuration overrides that are higher
-    than the calculated metadata proportions for that column noise type pairing.
+    Tests config is set correctly for each group in guardian duplication.
     """
 
     config = get_config(
