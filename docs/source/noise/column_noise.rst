@@ -173,7 +173,7 @@ The "Use a fake name" noise type in pseudopeople simulates these kinds of respon
 Instead of the person's real name, pseudopeople records a randomly selected value from the
 "List of First Names Considered Fake or Incomplete" (for first names) or the "List of Last Names Considered Fake or Incomplete" (for last names)
 found in the
-`NORC assessment of the Census Bureau's Person Identification Validation System <https://www.norc.org/content/dam/norc-org/pdfs/PVS%20Assessment%20Report%20FINAL%20JULY%202011.pdf>`_.
+`NORC assessment of the Census Bureau's Person Identification Validation System <https://web.archive.org/web/20230705005935/https://www.norc.org/content/dam/norc-org/pdfs/PVS%20Assessment%20Report%20FINAL%20JULY%202011.pdf>`_.
 
 This noise type is called :code:`use_fake_name` in the configuration. It takes one parameter:
 
