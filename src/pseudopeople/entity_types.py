@@ -44,7 +44,7 @@ class RowNoiseType(NoiseType):
 =======
     name: str
     noise_function: Callable[[str, pd.DataFrame, ConfigTree, RandomnessStream], pd.DataFrame]
-    row_probability: Optional[float] = (0.0,)
+    row_probability: Optional[float] = 0.0
     additional_parameters: Dict[str, Any] = None
 >>>>>>> 2cef36c (Implement additional parameters for row noise types)
 
