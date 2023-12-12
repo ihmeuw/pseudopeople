@@ -37,9 +37,16 @@ class RowNoiseType(NoiseType):
     returns the modified DataFrame.
     """
 
+<<<<<<< HEAD
     @property
     def probability_key(self) -> str:
         return Keys.ROW_PROBABILITY
+=======
+    name: str
+    noise_function: Callable[[str, pd.DataFrame, ConfigTree, RandomnessStream], pd.DataFrame]
+    row_probability: Optional[float] = (0.0,)
+    additional_parameters: Dict[str, Any] = None
+>>>>>>> 2cef36c (Implement additional parameters for row noise types)
 
     def __call__(
         self,
