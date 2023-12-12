@@ -26,7 +26,8 @@ class RowNoiseType:
 
     name: str
     noise_function: Callable[[str, pd.DataFrame, ConfigTree, RandomnessStream], pd.DataFrame]
-    row_probability: float = 0.0
+    row_probability: Optional[float] = (0.0,)
+    additional_parameters: Dict[str, Any] = None
 
     def __call__(
         self,

@@ -132,6 +132,13 @@ def _generate_configuration(is_no_noise: bool) -> ConfigTree:
                 else:
                     noise_level = row_noise.row_probability
                 row_noise_type_dict[Keys.ROW_PROBABILITY] = noise_level
+            if row_noise.additional_parameters is not None:
+                for key, value in row_noise.additional_parameters.items():
+                    if is_no_noise:
+                        noise_level = 0.0
+                    else:
+                        noise_level = value
+                    row_noise_type_dict[key] = noise_level
             if row_noise_type_dict:
                 row_noise_dict[row_noise.name] = row_noise_type_dict
 

@@ -87,10 +87,17 @@ def get_dummy_config_noise_numbers(dataset):
                     },
                 },
                 Keys.ROW_NOISE: {
-                    noise_type.name: {
+                    NOISE_TYPES.do_not_respond.name: {
                         Keys.ROW_PROBABILITY: 0.01,
-                    }
-                    for noise_type in dataset.row_noise_types
+                    },
+                    NOISE_TYPES.omit_row.name: {
+                        Keys.ROW_PROBABILITY: 0.01,
+                    },
+                    NOISE_TYPES.duplicate_with_guardian.name: {
+                        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0.05,
+                        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_18_TO_23: 0.05,
+                        Keys.ROW_PROBABILITY_IN_GROUP_QUARTERS_UNDER_24: 0.05,
+                    },
                 },
             },
         }
@@ -119,7 +126,12 @@ def test_noise_order(mocker, dummy_data, dataset):
         mock_return = (
             dummy_data[["event_type"]]
             if field
-            in [NOISE_TYPES.do_not_respond.name, NOISE_TYPES.omit_row.name, "duplicate_row"]
+            in [
+                NOISE_TYPES.do_not_respond.name,
+                NOISE_TYPES.omit_row.name,
+                "duplicate_row",
+                NOISE_TYPES.duplicate_with_guardian.name,
+            ]
             else dummy_data["event_type"]
         )
         mock.attach_mock(
@@ -133,6 +145,7 @@ def test_noise_order(mocker, dummy_data, dataset):
             NOISE_TYPES.do_not_respond.name,
             NOISE_TYPES.omit_row.name,
             "duplicate_row",
+            NOISE_TYPES.duplicate_with_guardian.name,
         ]:
             mock.attach_mock(
                 mocker.patch(
@@ -160,7 +173,17 @@ def test_noise_order(mocker, dummy_data, dataset):
     # function is called. Here we grab the string of the noise type for one mock method
     # call and not the second method.
     call_order = [x[0] for x in mock.mock_calls if type(x[1][0]) == str]
-    row_order = [row_noise_type.name for row_noise_type in dataset.row_noise_types]
+    row_order = [
+        noise_type
+        for noise_type in NOISE_TYPES._fields
+        if noise_type
+        in [
+            NOISE_TYPES.do_not_respond.name,
+            NOISE_TYPES.omit_row.name,
+            "duplicate_row",
+            NOISE_TYPES.duplicate_with_guardian.name,
+        ]
+    ]
     column_order = [
         NOISE_TYPES.leave_blank.name,
         NOISE_TYPES.choose_wrong_option.name,
