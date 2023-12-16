@@ -85,5 +85,12 @@ US_STATE_ABBRV_MAP = {
 
 YEAR_AGGREGATION_VALUE = 3000  # value for all years in a dataset for metadata proportions
 GUARDIAN_DUPLICATION_ADDRESS_COLUMNS = [
-    "street_number", "street_name", "unit_number", "city", "state", "zipcode", "housing_type"
+    "street_number",
+    "street_name",
+    "unit_number",
+    "city",
+    "state",
+    "zipcode",
+    "housing_type",
+    "household_id",
 ]
