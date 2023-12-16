@@ -22,7 +22,10 @@ def test_unnoised_id_cols(dataset_name: str, request):
     """
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
-    unnoised_id_cols = [COLUMNS.simulant_id.name]
+    if dataset_name == DATASETS.census.name:
+        unnoised_id_cols = []
+    else:
+        unnoised_id_cols = [COLUMNS.simulant_id.name]
     if dataset_name != DATASETS.ssa.name:
         unnoised_id_cols.append(COLUMNS.household_id.name)
     data = _load_sample_data(dataset_name, request)

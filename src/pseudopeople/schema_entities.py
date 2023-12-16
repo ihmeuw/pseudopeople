@@ -263,8 +263,11 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_typos,
         ),
     )
-    guardian_id: Column = Column(
-        "guardian_id",
+    guardian_id_1: Column = Column(
+        "guardian_1",
+    )
+    guardian_id_2: Column = Column(
+        "guardian_2",
     )
     household_id: Column = Column(
         "household_id",

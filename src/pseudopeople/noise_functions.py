@@ -8,7 +8,11 @@ from vivarium.framework.randomness import RandomnessStream, get_hash
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import data_values, paths
-from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, DatasetNames, GUARDIAN_DUPLICATION_ADDRESS_COLUMNS
+from pseudopeople.constants.metadata import (
+    COPY_HOUSEHOLD_MEMBER_COLS,
+    GUARDIAN_DUPLICATION_ADDRESS_COLUMNS,
+    DatasetNames,
+)
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_scaling import load_nicknames_data
 from pseudopeople.utilities import (
@@ -184,50 +188,52 @@ def duplicate_with_guardian(
 
     # Helper function to format group dataframe and merging with their dependentss
     def _merge_depdents_and_guardians(
-        depdents_df: pd.DataFrame, full_data: pd.DataFrame
+        dependents_df: pd.DataFrame, full_data: pd.DataFrame
     ) -> pd.DataFrame:
         # Merge dependents with their guardians. We have to merge twice to check
         # if either guardian is living at a separate location from the dependent.
-        possible_guardian_1 = full_data.loc[
-            full_data.index.difference(depdents_df.index)
+        guardian_1s = full_data.loc[
+            full_data["simulant_id"].isin(full_data["guardian_1"])
         ].add_prefix("guardian_1_")
-        possible_guardian_2 = full_data.loc[
-            full_data.index.difference(depdents_df.index)
+        guardian_2s = full_data.loc[
+            full_data["simulant_id"].isin(full_data["guardian_2"])
         ].add_prefix("guardian_2_")
-        dependents_and_guardians_df = depdents_df.merge(
-            possible_guardian_1,
+        dependents_and_guardians_df = dependents_df.merge(
+            guardian_1s,
             how="left",
-            left_on="guardian_1",
-            right_on="guardian_1_simulant_id",
+            left_on=["guardian_1", "year"],
+            right_on=["guardian_1_simulant_id", "guardian_1_year"],
         )
         dependents_and_guardians_df = dependents_and_guardians_df.merge(
-            possible_guardian_2,
+            guardian_2s,
             how="left",
-            left_on="guardian_2",
-            right_on="guardian_2_simulant_id",
+            left_on=["guardian_2", "year"],
+            right_on=["guardian_2_simulant_id", "guardian_2_year"],
         )
         return dependents_and_guardians_df
 
     # Merge depedents with their guardians
-    formatted_group_data[Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18] = _merge_depdents_and_guardians(
-        in_households_under_18, dataset_data
-    )
-    formatted_group_data[Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_18_TO_23] = _merge_depdents_and_guardians(
-        in_households_18_to_23, dataset_data
-    )
-    formatted_group_data[Keys.ROW_PROBABILITY_IN_GROUP_QUARTERS_UNDER_24] = _merge_depdents_and_guardians(
-        in_group_quarters_under_24, dataset_data
-    )
-    # Note: We have two dicts (configuration and formatted_group_data) at this point that have 
-    # the key for the group and then a dataframe for that group or the group and the configured 
+    formatted_group_data[
+        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18
+    ] = _merge_depdents_and_guardians(in_households_under_18, dataset_data)
+    formatted_group_data[
+        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_18_TO_23
+    ] = _merge_depdents_and_guardians(in_households_18_to_23, dataset_data)
+    formatted_group_data[
+        Keys.ROW_PROBABILITY_IN_GROUP_QUARTERS_UNDER_24
+    ] = _merge_depdents_and_guardians(in_group_quarters_under_24, dataset_data)
+    # Note: We have two dicts (configuration and formatted_group_data) at this point that have
+    # the key for the group and then a dataframe for that group or the group and the configured
     # noise level
 
     noised_data = []
     for group, group_df in formatted_group_data.items():
         # Get index groups that can be noised based on dependent and guardian(s) addresses
         both_different_index = group_df.index[
-            (group_df["household_id"] != group_df["guardian_1_household_id"]) & 
-            (group_df["household_id"] != group_df["guardian_2_household_id"])
+            (group_df["household_id"] != group_df["guardian_1_household_id"])
+            & (group_df["guardian_1_household_id"].notna())
+            & (group_df["household_id"] != group_df["guardian_2_household_id"])
+            & (group_df["guardian_2_household_id"].notna())
         ]
         # Choose which guardian to copy when dependent lives in different address from both guardains
         choices = randomness_stream.choice(
@@ -236,22 +242,21 @@ def duplicate_with_guardian(
             additional_key=f"{dataset_name}_duplicate_with_guardian_{group}_guardian_choice",
         )
         group_df.loc[both_different_index, "copy_guardian"] = choices
-
+        # Get remaining dependents that live in different address from one of their guardians
         guardian_1_different_index = group_df.index[
-            group_df["household_id"] != group_df["guardian_1_household_id"]
+            (group_df["household_id"] != group_df["guardian_1_household_id"])
+            & (group_df["guardian_1_household_id"].notna())
         ].difference(choices.index)
-        group_df.loc[both_different_index, "copy_guardian"] = "guardian_1"
+        group_df.loc[guardian_1_different_index, "copy_guardian"] = "guardian_1"
         guardian_2_different_index = group_df.index[
-            group_df["household_id"] != group_df["guardian_2_household_id"]
+            (group_df["household_id"] != group_df["guardian_2_household_id"])
+            & (group_df["guardian_2_household_id"].notna())
         ].difference(choices.index)
-        group_df.loc[both_different_index, "copy_guardian"] = "guardian_2"
-        # Combine index to noise
-        can_be_noised_index = both_different_index.union(guardian_1_different_index).union(
-            guardian_2_different_index
-        )
-        
+        group_df.loc[guardian_2_different_index, "copy_guardian"] = "guardian_2"
+
+        # Noise data
         to_noise_index = get_index_to_noise(
-            group_df.loc[can_be_noised_index],
+            group_df,
             configuration[group],
             randomness_stream,
             f"{dataset_name}_duplicate_with_guardian_{group}",
@@ -261,11 +266,13 @@ def duplicate_with_guardian(
             index_to_copy = to_noise_index.intersection(
                 group_df.index[group_df["copy_guardian"] == guardian]
             )
-            noised_group_df = group_df.loc[
-                index_to_copy, GUARDIAN_DUPLICATION_ADDRESS_COLUMNS
-            ] = group_df.loc[
-                to_noise_index,
-                [guardian + "_" + column for column in GUARDIAN_DUPLICATION_ADDRESS_COLUMNS],
+            # Don't try to copy if there are no rows to copy
+            if index_to_copy.empty:
+                continue
+            noised_group_df = group_df.loc[index_to_copy]
+            noised_group_df[GUARDIAN_DUPLICATION_ADDRESS_COLUMNS] = group_df.loc[
+                index_to_copy,
+                [f"{guardian}_" + column for column in GUARDIAN_DUPLICATION_ADDRESS_COLUMNS],
             ]
             noised_data.append(noised_group_df)
 
