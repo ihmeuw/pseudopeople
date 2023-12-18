@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional
 
@@ -11,7 +12,19 @@ from pseudopeople.utilities import get_index_to_noise
 
 
 @dataclass
-class RowNoiseType:
+class NoiseType(ABC):
+    name: str
+    noise_function: Callable[[pd.DataFrame, ConfigTree, RandomnessStream], pd.DataFrame]
+    probability: Optional[float] = 0.0
+    additional_parameters: Dict[str, Any] = None
+
+    @abstractmethod
+    def probability_key(self) -> str:
+        pass
+
+
+@dataclass
+class RowNoiseType(NoiseType):
     """
     Defines a type of noise that can be applied to a row.
 
@@ -24,10 +37,9 @@ class RowNoiseType:
     returns the modified DataFrame.
     """
 
-    name: str
-    noise_function: Callable[[str, pd.DataFrame, ConfigTree, RandomnessStream], pd.DataFrame]
-    row_probability: Optional[float] = 0.0
-    additional_parameters: Dict[str, Any] = None
+    @property
+    def probability_key(self) -> str:
+        return Keys.ROW_PROBABILITY
 
     def __call__(
         self,
@@ -42,7 +54,7 @@ class RowNoiseType:
 
 
 @dataclass
-class ColumnNoiseType:
+class ColumnNoiseType(NoiseType):
     """
     Defines a type of noise that can be applied to a column.
 
@@ -56,12 +68,13 @@ class ColumnNoiseType:
     to the Series and returns the modified Series.
     """
 
-    name: str
-    noise_function: Callable[[pd.Series, ConfigTree, RandomnessStream, Any], pd.Series]
-    cell_probability: Optional[float] = 0.01
+    probability: Optional[float] = 0.01
     noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0
-    additional_parameters: Dict[str, Any] = None
     additional_column_getter: Callable[[str], List[str]] = lambda column_name: []
+
+    @property
+    def probability_key(self) -> str:
+        return Keys.CELL_PROBABILITY
 
     def __call__(
         self,
