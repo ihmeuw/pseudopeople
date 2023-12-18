@@ -127,17 +127,14 @@ def _generate_configuration(is_no_noise: bool) -> ConfigTree:
         for row_noise in dataset.row_noise_types:
             row_noise_type_dict = {}
             if row_noise.row_probability is not None:
-                if is_no_noise:
-                    noise_level = 0.0
-                else:
-                    noise_level = row_noise.row_probability
+                noise_level = 0.0 if is_no_noise else row_noise.row_probability
                 row_noise_type_dict[Keys.ROW_PROBABILITY] = noise_level
             if row_noise.additional_parameters is not None:
+                # FIXME: This makes a big assumption that the additional parameters are all floats
+                # If we were to add a noise type or additional parameter key that was a list or dict
+                # like we have in some column noise types this would not work.
                 for key, value in row_noise.additional_parameters.items():
-                    if is_no_noise:
-                        noise_level = 0.0
-                    else:
-                        noise_level = value
+                    noise_level = 0.0 if is_no_noise else value
                     row_noise_type_dict[key] = noise_level
             if row_noise_type_dict:
                 row_noise_dict[row_noise.name] = row_noise_type_dict
