@@ -23,7 +23,7 @@ class __NoiseTypes(NamedTuple):
     duplicate_with_guardian: RowNoiseType = RowNoiseType(
         "duplicate_with_guardian",
         noise_function=noise_functions.duplicate_with_guardian,
-        row_probability=None,
+        probability=None,
         additional_parameters={
             Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0.05,
             Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_18_TO_23: 0.05,
