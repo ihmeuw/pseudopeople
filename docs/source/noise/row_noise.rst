@@ -76,7 +76,7 @@ This noise type is called :code:`omit_row` in the configuration. It takes one
 parameter:
 
 .. list-table:: Parameters to the omit_row noise type
-  :widths: 1 5 1
+  :widths: 1 5 3
   :header-rows: 1
 
   * - Parameter
