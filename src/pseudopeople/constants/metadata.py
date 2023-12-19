@@ -108,4 +108,5 @@ GUARDIAN_DUPLICATION_ADDRESS_COLUMNS = [
     "zipcode",
     "housing_type",
     "household_id",
+    "year",
 ]

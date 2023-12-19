@@ -219,7 +219,7 @@ def test_guardian_duplication():
     #  - Simulant ids 0-5 will all be duplicated
     #  - Simulant ids 5-9 are guardians. The only overlap is simulant id 5,
     #    who is both a dependent and a guardian
-    #  - Simulant id 0and 4 have two guardians, 8 and 9
+    #  - Simulant id 0 and 4 have two guardians, 8 and 9
 
     # Check that the correct rows were duplicated. Duplicated returns all instances of True after
     # the first instance
