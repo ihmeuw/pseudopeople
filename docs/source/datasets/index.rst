@@ -426,7 +426,7 @@ The following columns are included in this dataset:
 Tax forms: W-2 & 1099
 ---------------------
 Administrative data reported in annual tax forms, such as W-2s and 1099s, can also be simulated by Pseudopeople. 1099 forms are used for independent
-contractors or self-employed individuals, while a W-2 form is used for employees (whose employer withholds payroll taxes from their earnings).
+contractors or self-employed individuals, while a W-2 form is submitted by an employer for their employee (as the employer withholds payroll taxes from employee earnings).
 
 pseudopeople can generate a simulated version of the data collected by W-2 and 1099 forms.
 This is a yearly dataset, where the user-specified year is the **tax year** of the data.
@@ -522,7 +522,8 @@ The following columns are included in these datasets:
 Tax form: 1040
 --------------
 As with data collected from W-2 and 1099 forms, pseudopeople enables the simulation of administrative records from 1040 forms, which are
-also reported to the IRS on an annual basis. To find out more about the 1040 tax form, visit the `IRS information page <https://www.irs.gov/instructions/i1040gi>`_.
+also reported to the IRS on an annual basis. While W-2 forms are submitted by an employer to the IRS, 1040 forms are submitted by the 
+employee. To find out more about the 1040 tax form, visit the `IRS information page <https://www.irs.gov/instructions/i1040gi>`_.
 
 A single row in a pseudopeople-generated 1040 dataset may contain information about several
 simulants: the primary filer, the primary filer's joint filer (spouse) if they are married filing
