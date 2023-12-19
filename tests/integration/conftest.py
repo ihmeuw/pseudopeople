@@ -270,11 +270,9 @@ def _get_common_datasets(dataset_name, data, noised_data):
     dataset = DATASETS.get_dataset(dataset_name)
     check_original = _reformat_dates_for_noising(data, dataset).set_index(idx_cols)
     check_noised = noised_data.set_index(idx_cols)
-    # FIXME: The following is no longer true with guardian duplication. What do we want
-    # to do about this?
     # Ensure the idx_cols are unique
-    # assert check_original.index.duplicated().sum() == 0
-    # assert check_noised.index.duplicated().sum() == 0
+    assert check_original.index.duplicated().sum() == 0
+    assert check_noised.index.duplicated().sum() == 0
     shared_idx = pd.Index(set(check_original.index).intersection(set(check_noised.index)))
     check_original = check_original.loc[shared_idx]
     check_noised = check_noised.loc[shared_idx]
