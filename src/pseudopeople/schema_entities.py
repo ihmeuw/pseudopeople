@@ -612,6 +612,7 @@ class __Datasets(NamedTuple):
         row_noise_types=(
             NOISE_TYPES.do_not_respond,
             NOISE_TYPES.omit_row,
+            NOISE_TYPES.duplicate_with_guardian,
             # NOISE_TYPES.duplication,
         ),
         date_format=DATEFORMATS.MM_DD_YYYY,

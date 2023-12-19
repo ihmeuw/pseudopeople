@@ -50,7 +50,6 @@ def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
                     f"Row noise type '{noise_type}' of dataset '{dataset}' must be a Dict. "
                     f"Provided {noise_type_config} of type {type(noise_type_config)}."
                 )
-
             default_noise_type_config = _get_default_config_node(
                 default_row_noise_config, noise_type, "noise type", dataset
             )
