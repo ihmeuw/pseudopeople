@@ -11,7 +11,7 @@ from pseudopeople.configuration.validator import (
     validate_overrides,
 )
 from pseudopeople.constants.data_values import DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY
-from pseudopeople.exceptions import ConfigurationError
+from pseudopeople.entity_types import RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
 
@@ -168,9 +168,7 @@ def get_noise_type_dict(noise_type, is_no_noise: bool) -> Dict:
             # If we were to add a noise type or additional parameter key that was a list or dict
             # like we have in some column noise types this would not work.
             noise_level = (
-                0.0
-                if is_no_noise and noise_type.probability_key == Keys.ROW_PROBABILITY
-                else value
+                0.0 if is_no_noise and isinstance(noise_type, RowNoiseType) else value
             )
             noise_type_dict[key] = noise_level
     return noise_type_dict
