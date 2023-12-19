@@ -76,7 +76,7 @@ This noise type is called :code:`omit_row` in the configuration. It takes one
 parameter:
 
 .. list-table:: Parameters to the omit_row noise type
-  :widths: 1 5 1
+  :widths: 1 5 3
   :header-rows: 1
 
   * - Parameter
@@ -84,7 +84,8 @@ parameter:
     - Default
   * - :code:`row_probability`
     - The probability that a row is missing from the dataset.
-    - 0.01 (1%)
+    - * 0.005 (0.5%) for WIC and tax forms W2 and 1099
+      * 0.0 (0%) for other datasets
 
 When applying :code:`omit_row` noise, each row of data is selected for omission
 independently with probability :code:`row_probability`.
