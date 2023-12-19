@@ -20,6 +20,16 @@ class __NoiseTypes(NamedTuple):
         "do_not_respond", noise_functions.apply_do_not_respond
     )
     omit_row: RowNoiseType = RowNoiseType("omit_row", noise_functions.omit_rows)
+    duplicate_with_guardian: RowNoiseType = RowNoiseType(
+        "duplicate_with_guardian",
+        noise_function=noise_functions.duplicate_with_guardian,
+        probability=None,
+        additional_parameters={
+            Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0.05,
+            Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_18_TO_23: 0.05,
+            Keys.ROW_PROBABILITY_IN_GROUP_QUARTERS_UNDER_24: 0.05,
+        },
+    )
     # duplicate_row: RowNoiseType = RowNoiseType("duplicate_row", noise_functions.duplicate_rows)
     leave_blank: ColumnNoiseType = ColumnNoiseType(
         "leave_blank",
