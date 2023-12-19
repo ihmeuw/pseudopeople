@@ -17,6 +17,7 @@ from pseudopeople.interface import (
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
+from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
 
 ROW_PROBABILITY = 0.05
@@ -127,6 +128,7 @@ def config():
                 Keys.ROW_PROBABILITY: ROW_PROBABILITY,
             }
             for noise_type in dataset.row_noise_types
+            if noise_type != NOISE_TYPES.duplicate_with_guardian
         }
         for col in [c for c in dataset.columns if c.noise_types]:
             config[dataset_name][Keys.COLUMN_NOISE][col.name] = {
