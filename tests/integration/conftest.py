@@ -138,6 +138,16 @@ def config():
                 for noise_type in col.noise_types
             }
 
+    # FIXME: Remove when record_id is added as the truth deck for datasets.
+    # For integration tests, we will NOT duplicate rows with guardian duplication.
+    # This is because we want to be able to compare the noised and unnoised data
+    # and a big assumption we make is that simulant_id and household_id are the
+    # truth decks in our datasets.
+    config[DATASETS.census.name][Keys.ROW_NOISE][NOISE_TYPES.duplicate_with_guardian.name] = {
+        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0.0,
+        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_18_TO_23: 0.0,
+        Keys.ROW_PROBABILITY_IN_GROUP_QUARTERS_UNDER_24: 0.0,
+    }
     # Update SSA dataset to noise 'ssn' but NOT noise 'ssa_event_type' since that
     # will be used as an identifier along with simulant_id
     # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
@@ -261,11 +271,9 @@ def _get_common_datasets(dataset_name, data, noised_data):
     dataset = DATASETS.get_dataset(dataset_name)
     check_original = _reformat_dates_for_noising(data, dataset).set_index(idx_cols)
     check_noised = noised_data.set_index(idx_cols)
-    # FIXME: The following is no longer true with guardian duplication. What do we want
-    # to do about this?
     # Ensure the idx_cols are unique
-    # assert check_original.index.duplicated().sum() == 0
-    # assert check_noised.index.duplicated().sum() == 0
+    assert check_original.index.duplicated().sum() == 0
+    assert check_noised.index.duplicated().sum() == 0
     shared_idx = pd.Index(set(check_original.index).intersection(set(check_noised.index)))
     check_original = check_original.loc[shared_idx]
     check_noised = check_noised.loc[shared_idx]

@@ -195,21 +195,23 @@ def duplicate_with_guardian(
         guardian_1s = full_data.loc[
             full_data["simulant_id"].isin(full_data["guardian_1"])
         ].add_prefix("guardian_1_")
-        guardian_2s = full_data.loc[
-            full_data["simulant_id"].isin(full_data["guardian_2"])
-        ].add_prefix("guardian_2_")
         dependents_and_guardians_df = dependents_df.merge(
             guardian_1s,
             how="left",
             left_on=["guardian_1", "year"],
             right_on=["guardian_1_simulant_id", "guardian_1_year"],
         )
+        del guardian_1s
+        guardian_2s = full_data.loc[
+            full_data["simulant_id"].isin(full_data["guardian_2"])
+        ].add_prefix("guardian_2_")
         dependents_and_guardians_df = dependents_and_guardians_df.merge(
             guardian_2s,
             how="left",
             left_on=["guardian_2", "year"],
             right_on=["guardian_2_simulant_id", "guardian_2_year"],
         )
+        del guardian_2s
         return dependents_and_guardians_df
 
     # Merge depedents with their guardians
@@ -277,14 +279,17 @@ def duplicate_with_guardian(
             noised_data.append(noised_group_df)
 
     # Combine all noised dataframes
-    noised_data = pd.concat(noised_data)
-    noised_data["relationship_to_reference_person"] = "Other relative"
-    # Clense columns
-    noised_data = noised_data.drop(
-        [column for column in noised_data.columns if column not in dataset_data.columns],
-        axis=1,
-    )
-    dataset_data = pd.concat([dataset_data, noised_data]).reset_index()
+    if not noised_data:
+        return dataset_data
+    else:
+        noised_data = pd.concat(noised_data)
+        noised_data["relationship_to_reference_person"] = "Other relative"
+        # Clense columns
+        noised_data = noised_data.drop(
+            [column for column in noised_data.columns if column not in dataset_data.columns],
+            axis=1,
+        )
+        dataset_data = pd.concat([dataset_data, noised_data]).reset_index()
 
     return dataset_data
 
