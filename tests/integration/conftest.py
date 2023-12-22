@@ -145,8 +145,7 @@ def config():
     # truth decks in our datasets.
     config[DATASETS.census.name][Keys.ROW_NOISE][NOISE_TYPES.duplicate_with_guardian.name] = {
         Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0.0,
-        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_18_TO_23: 0.0,
-        Keys.ROW_PROBABILITY_IN_GROUP_QUARTERS_UNDER_24: 0.0,
+        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: 0.0,
     }
     # Update SSA dataset to noise 'ssn' but NOT noise 'ssa_event_type' since that
     # will be used as an identifier along with simulant_id

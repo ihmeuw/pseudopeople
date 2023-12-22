@@ -122,26 +122,26 @@ def test_guardian_duplication():
     dummy_data = pd.DataFrame(
         {
             "simulant_id": [str(i) for i in list(range(10))],
-            "household_id": [0, 0, 0, 1, 1, 2, 3, 3, 4, 5],
+            "household_id": [0, 0, 0, 1, 2, 3, 4, 4, 5, 6],
             "housing_type": [
                 "Household",
                 "Household",
                 "Household",
                 "College",
-                "College",
+                "Military",
                 "Household",
                 "Household",
                 "Household",
                 "Household",
                 "Household",
             ],
-            "age": [10, 10, 10, 20, 20, 20, 50, 50, 50, 50],
+            "age": [10, 10, 10, 10, 10, 17, 50, 50, 50, 50],
             "guardian_1": ["8", "7", "5", "9", "7", "6", np.nan, np.nan, np.nan, np.nan],
             "guardian_2": [
                 "9",
                 np.nan,
-                np.nan,
                 "8",
+                np.nan,
                 np.nan,
                 np.nan,
                 np.nan,
@@ -216,17 +216,17 @@ def test_guardian_duplication():
     )
 
     # We know the following since every dependent is duplicated:
-    #  - Simulant ids 0-5 will all be duplicated
+    #  - Simulant ids 0, 1, 2, 3, and-5 will all be duplicated
     #  - Simulant ids 5-9 are guardians. The only overlap is simulant id 5,
     #    who is both a dependent and a guardian
-    #  - Simulant id 0 and 4 have two guardians, 8 and 9
+    #  - Simulant id 0 and 3 have two guardians, 8 and 9.
 
     # Check that the correct rows were duplicated. Duplicated returns all instances of True after
     # the first instance
     duplicated = noised.loc[noised["simulant_id"].duplicated()]
     guardians = dummy_data.loc[dummy_data["simulant_id"].isin(dummy_data["guardian_1"])]
     assert len(noised) == len(dummy_data) + len(duplicated)
-    assert set(duplicated["simulant_id"].tolist()) == set(["0", "1", "2", "3", "4", "5"])
+    assert set(duplicated["simulant_id"].tolist()) == set(["0", "1", "2", "3", "5"])
     # Only duplicate a depedent one time
     assert noised["simulant_id"].value_counts().max() == 2
 

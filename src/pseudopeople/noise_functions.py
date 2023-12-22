@@ -205,15 +205,9 @@ def duplicate_with_guardian(
         & (dataset_data["housing_type"] == "Household")
         & (dataset_data["guardian_1"].notna())
     ]
-    in_households_18_to_23 = dataset_data.loc[
-        (dataset_data["age"] >= 18)
-        & (dataset_data["age"] < 24)
-        & (dataset_data["housing_type"] == "Household")
-        & (dataset_data["guardian_1"].notna())
-    ]
-    in_group_quarters_under_24 = dataset_data.loc[
+    in_college_under_24 = dataset_data.loc[
         (dataset_data["age"] < 24)
-        & (dataset_data["housing_type"] != "Household")
+        & (dataset_data["housing_type"] == "College")
         & (dataset_data["guardian_1"].notna())
     ]
 
@@ -222,11 +216,8 @@ def duplicate_with_guardian(
         Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18
     ] = _merge_dependents_and_guardians(in_households_under_18, dataset_data)
     formatted_group_data[
-        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_18_TO_23
-    ] = _merge_dependents_and_guardians(in_households_18_to_23, dataset_data)
-    formatted_group_data[
-        Keys.ROW_PROBABILITY_IN_GROUP_QUARTERS_UNDER_24
-    ] = _merge_dependents_and_guardians(in_group_quarters_under_24, dataset_data)
+        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24
+    ] = _merge_dependents_and_guardians(in_college_under_24, dataset_data)
     # Note: We have two dicts (configuration and formatted_group_data) at this point that have
     # the key for the group and then a dataframe for that group or the group and the configured
     # noise level

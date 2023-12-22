@@ -563,14 +563,14 @@ def test_validate_noise_level_proportions(caplog, column, noise_type, noise_leve
 
 
 @pytest.mark.parametrize(
-    "value_1, value_2, value_3",
+    "value_1, value_2",
     [
-        (0.1, 0.1, 0.1),
-        (0.0, 0.2, 0.5),
-        (0.5, 0.5, 0.5),
+        (0.0, 0.1),
+        (0.2, 0.5),
+        (0.5, 0.8),
     ],
 )
-def test_duplicate_with_guardian_configuration(value_1, value_2, value_3):
+def test_duplicate_with_guardian_configuration(value_1, value_2):
     """
     Tests config is set correctly for each group in guardian duplication.
     """
@@ -581,8 +581,7 @@ def test_duplicate_with_guardian_configuration(value_1, value_2, value_3):
                 Keys.ROW_NOISE: {
                     NOISE_TYPES.duplicate_with_guardian.name: {
                         Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: value_1,
-                        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_18_TO_23: value_2,
-                        Keys.ROW_PROBABILITY_IN_GROUP_QUARTERS_UNDER_24: value_3,
+                        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: value_2,
                     },
                 },
             },
@@ -593,8 +592,7 @@ def test_duplicate_with_guardian_configuration(value_1, value_2, value_3):
         NOISE_TYPES.duplicate_with_guardian.name
     ]
     assert row_noise_dict[Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18] == value_1
-    assert row_noise_dict[Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_18_TO_23] == value_2
-    assert row_noise_dict[Keys.ROW_PROBABILITY_IN_GROUP_QUARTERS_UNDER_24] == value_3
+    assert row_noise_dict[Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24] == value_2
 
 
 @pytest.mark.parametrize(
