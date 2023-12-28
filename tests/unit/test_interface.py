@@ -4,11 +4,15 @@ import pytest
 import yaml
 from packaging.version import parse
 
+from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.interface import (
     _get_data_changelog_version,
     validate_source_compatibility,
 )
+from pseudopeople.schema_entities import DATASETS
+
+CENSUS = DATASETS.get_dataset(DatasetNames.CENSUS)
 
 
 # TODO [MIC-4546]: stop hardcoding the data version number
@@ -35,6 +39,8 @@ def simulated_data_changelog_path(tmpdir_factory):
 
     # Create a dir with no changelog
     tmpdir_factory.mktemp("no_changelog_dir")
+    # Make fake data directory for census
+    tmpdir_factory.mktemp(tmp_path + "/" + CENSUS.name)
 
     return Path(tmp_path)
 
@@ -54,7 +60,7 @@ def mock_data_version(version, mocker):
 
 def test_validate_source_compatibility_passes(simulated_data_changelog_path):
     """Baseline test for validate_source_compatibility function"""
-    validate_source_compatibility(simulated_data_changelog_path)
+    validate_source_compatibility(simulated_data_changelog_path, CENSUS)
 
 
 def test_validate_source_compatibility_no_metadata_error(simulated_data_changelog_path):
@@ -62,7 +68,7 @@ def test_validate_source_compatibility_no_metadata_error(simulated_data_changelo
         DataSourceError,
         match="An older version of simulated population data has been provided.",
     ):
-        validate_source_compatibility(simulated_data_changelog_path / "no_metadata")
+        validate_source_compatibility(simulated_data_changelog_path / "no_metadata", CENSUS)
 
 
 @pytest.mark.parametrize(
@@ -78,4 +84,4 @@ def test_validate_source_compatibility_bad_version_errors(
 ):
     mock_data_version(version, mocker)
     with pytest.raises(DataSourceError, match=match):
-        validate_source_compatibility(simulated_data_changelog_path)
+        validate_source_compatibility(simulated_data_changelog_path, CENSUS)
