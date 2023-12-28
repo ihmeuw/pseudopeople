@@ -302,7 +302,7 @@ def validate_noise_level_proportions(
             (dataset_proportions["state"] == state) & (dataset_proportions["year"] <= year)
         ]
         dataset_noise_proportions = dataset_proportions.groupby(
-            ["column", "noise_type"]
+            ["schema_entity", "noise_entity"]
         ).apply(lambda x: ((x.proportion * x.number_of_rows).sum()) / x.number_of_rows.sum())
         dataset_noise_proportions = dataset_noise_proportions.rename(
             "proportion"
@@ -319,15 +319,15 @@ def validate_noise_level_proportions(
         # Go through each row in the queried dataset noise proportions to validate the noise levels
         for i in range(len(dataset_noise_proportions)):
             row = dataset_noise_proportions.iloc[i]
-            if row["column"] not in [col.name for col in dataset.columns]:
+            if row["schema_entity"] not in [col.name for col in dataset.columns]:
                 continue
             max_noise_level = row["proportion"]
             config_noise_level = configuration_tree[row["dataset"]][Keys.COLUMN_NOISE][
-                row["column"]
-            ][row["noise_type"]][Keys.CELL_PROBABILITY]
+                row["schema_entity"]
+            ][row["noise_entity"]][Keys.CELL_PROBABILITY]
             if config_noise_level > max_noise_level:
                 logger.warning(
-                    f"The configured '{row['noise_type']}' noise level for column '{row['column']}' is {config_noise_level}, "
+                    f"The configured '{row['noise_entity']}' noise level for column '{row['schema_entity']}' is {config_noise_level}, "
                     f"which is higher than the maximum possible value based on the provided data for '{row['dataset']}'. "
                     "Noising as many rows as possible. "
                 )
