@@ -37,12 +37,8 @@ def simulated_data_changelog_path(tmp_path_factory):
     with open(filepath, "w") as file:
         file.write(changelog_content)
 
-    # Create a dir with no changelog
-    tmp_path_factory.mktemp("no_changelog_dir/decennial_census")
     # Make fake data directory for census
     tmp_path_factory.mktemp(CENSUS.name, numbered=False)
-    # Create a dir that does not contain the census data
-    tmp_path_factory.mktemp("wrong_data_path")
 
     return Path(tmp_path)
 
@@ -65,12 +61,15 @@ def test_validate_source_compatibility_passes(simulated_data_changelog_path):
     validate_source_compatibility(simulated_data_changelog_path, CENSUS)
 
 
-def test_validate_source_compatibility_no_metadata_error(simulated_data_changelog_path):
+def test_validate_source_compatibility_no_changelog_error(tmpdir):
+    no_changelog_dir = tmpdir.mkdir("no_changelog")
+    # No changelog is made
+    no_changelog_dir.mkdir(CENSUS.name)
     with pytest.raises(
         DataSourceError,
         match="An older version of simulated population data has been provided.",
     ):
-        validate_source_compatibility(simulated_data_changelog_path / "no_changelog_dir", CENSUS)
+        validate_source_compatibility(Path(no_changelog_dir), CENSUS)
 
 
 @pytest.mark.parametrize(
@@ -89,7 +88,8 @@ def test_validate_source_compatibility_bad_version_errors(
         validate_source_compatibility(simulated_data_changelog_path, CENSUS)
 
 
-def test_validate_source_compatibility_wrong_directory(simulated_data_changelog_path):
-    with pytest.raises(FileNotFoundError, 
-                       match="Could not find 'decennial_census' in 'wrong_data_path'"):
-        validate_source_compatibility(simulated_data_changelog_path / "wrong_data_path", CENSUS)
+def test_validate_source_compatibility_wrong_directory(tmp_path):
+    bad_path = tmp_path / "wrong_directory"
+    bad_path.mkdir()
+    with pytest.raises(FileNotFoundError, match="Could not find 'decennial_census' in"):
+        validate_source_compatibility(bad_path, CENSUS)
