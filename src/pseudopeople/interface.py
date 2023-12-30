@@ -59,7 +59,7 @@ def _generate_dataset(
         source = paths.SAMPLE_DATA_ROOT
     else:
         source = Path(source)
-        validate_source_compatibility(source)
+        validate_source_compatibility(source, dataset)
 
     data_paths = fetch_filepaths(dataset, source)
     if not data_paths:
@@ -110,8 +110,15 @@ def _generate_dataset(
     return noised_dataset
 
 
-def validate_source_compatibility(source: Path):
+def validate_source_compatibility(source: Path, dataset: Dataset):
     # TODO [MIC-4546]: Clean this up w/ metadata and update test_interface.py tests to be generic
+    directories = [x.name for x in source.iterdir() if x.is_dir()]
+    if dataset.name not in directories:
+        raise FileNotFoundError(
+            f"Could not find '{dataset.name}' in '{source}'. Please check that the provided source "
+            "directory is correct. If using the sample data, no source is required. If providing a source, "
+            f"a directory should provided that has a subdirectory for '{dataset.name}'. "
+        )
     changelog = source / "CHANGELOG.rst"
     if changelog.exists():
         version = _get_data_changelog_version(changelog)
