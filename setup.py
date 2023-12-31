@@ -63,6 +63,8 @@ if __name__ == "__main__":
         "matplotlib",
     ]
 
+    modin_requirements = ["modin"]
+
     setup(
         name=about["__title__"],
         description=about["__summary__"],
@@ -99,7 +101,11 @@ if __name__ == "__main__":
             "docs": doc_requirements,
             "test": test_requirements,
             "interactive": interactive_requirements,
-            "dev": doc_requirements + test_requirements + interactive_requirements,
+            "dev": doc_requirements
+            + test_requirements
+            + interactive_requirements
+            + modin_requirements,
+            "modin": modin_requirements,
         },
         # entry_points="""
         #         [console_scripts]
