@@ -296,22 +296,10 @@ def validate_noise_level_proportions(
                 year = user_filters[i][2]
             break
 
-    # Weight SSA since year filter is queried and all proceeding years
-    if dataset.name == metadata.DatasetNames.SSA:
-        dataset_noise_proportions = dataset_proportions.loc[
-            (dataset_proportions["state"] == state) & (dataset_proportions["year"] <= year)
-        ]
-        dataset_noise_proportions = dataset_proportions.groupby(
-            ["schema_entity", "noise_entity"]
-        ).apply(lambda x: ((x.proportion * x.number_of_rows).sum()) / x.number_of_rows.sum())
-        dataset_noise_proportions = dataset_noise_proportions.rename(
-            "proportion"
-        ).reset_index()
-        dataset_noise_proportions["dataset"] = metadata.DatasetNames.SSA
-    else:
-        dataset_noise_proportions = dataset_proportions.loc[
-            (dataset_proportions["state"] == state) & (dataset_proportions["year"] == year)
-        ]
+    # Subset the metadata proportions to the state and year that the user is querying
+    dataset_noise_proportions = dataset_proportions.loc[
+        (dataset_proportions["state"] == state) & (dataset_proportions["year"] == year)
+    ]
 
     # If there is no data for a queried dataset, we want the user's to hit the correct error that there
     # is no data available so we do not throw an error here.
