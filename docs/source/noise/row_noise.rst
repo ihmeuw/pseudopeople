@@ -132,7 +132,7 @@ It takes two parameters:
     - Default
   * - :code:`row_probability_in_households_under_18`
     - The probability that a simulant under 18 in a household is recorded twice.
-    - * 0.05 (5%)
+    - 0.05 (5%)
   * - :code:`row_probability_in_college_group_quarters_under_24`
     - The probability that a simulant under 24 in college GQ is recorded twice.
-    - * 0.05 (5%)
+    - 0.05 (5%)
