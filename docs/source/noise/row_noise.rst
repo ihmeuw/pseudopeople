@@ -89,3 +89,50 @@ parameter:
 
 When applying :code:`omit_row` noise, each row of data is selected for omission
 independently with probability :code:`row_probability`.
+
+Duplicate with guardian
+-----------------------
+
+A known entity resolution challenge is children being reported multiple
+times at different addresses. This can occur when family structures are
+complex and children might spend time at multiple households. A related
+challenge occurs with college students, who often are counted both at their
+university and at their guardian’s home address.
+
+To facilitate this type of error, we have simulants assigned to guardians
+within the simulation. Sometimes, those guardians may move and live at
+different addresses than their dependents. In this case, there is an
+opportunity for duplication. Since this mechanism occurs within the
+simulation, there is a natural maximum that we will impose in the
+noise function.
+
+Guardian-based duplication is applied to two mutually exclusive categories of
+simulants based on age and GQ status: Simulants younger than 18  (<18) and not
+in GQ and simulants under 24 (<24) and in college GQ.
+
+For each of the two categories of simulants, the maximum duplication rate will
+be calculated based on those who have a guardian living at a different address
+in the sim. Note that all simulants in *college* GQ are initialized with a
+guardian living at a different address, but this is not true for simulants in
+other types of GQ, so both maximum duplication rates will be less than
+100%. If you as the user select a duplication rate that is higher than the 
+calculated maximum rate in the sim, a warning will be issued explaining that 
+the selected rate is greater than the maximum available, and the actual rate of 
+duplication should be set to the maximum for the specified simulant category.
+
+This noise type is called :code:`duplicate_with_guardian` in the configuration. 
+It takes two parameters:
+
+.. list-table:: Parameters to the duplicate_with_guardian noise type
+  :widths: 1 5 3
+  :header-rows: 1
+
+  * - Parameter
+    - Description
+    - Default
+  * - :code:`row_probability_in_households_under_18`
+    - The probability that a simulant under 18 in a household is recorded twice.
+    - * 0.05 (5%)
+  * - :code:`row_probability_in_college_group_quarters_under_24`
+    - The probability that a simulant under 24 in college GQ is recorded twice.
+    - * 0.05 (5%)
