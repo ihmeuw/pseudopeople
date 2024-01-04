@@ -103,8 +103,8 @@ To facilitate this type of error, we have simulants assigned to guardians
 within the simulation. Sometimes, those guardians may live at
 different addresses than their dependents. In this case, there is an
 opportunity for duplication. Since this mechanism occurs within the
-simulation, there is a natural maximum that we will impose in the
-noise function.
+simulation, there is a natural maximum on how many simulants can be duplicated
+in this way.
 
 Guardian-based duplication is applied to two mutually exclusive categories of
 simulants based on age and GQ status: Simulants younger than 18 (<18) and not
