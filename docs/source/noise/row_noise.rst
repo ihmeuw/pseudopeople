@@ -100,7 +100,7 @@ challenge occurs with college students, who are sometimes counted both at their
 university and at their guardian’s home address.
 
 To facilitate this type of error, we have simulants assigned to guardians
-within the simulation. Sometimes, those guardians may move and live at
+within the simulation. Sometimes, those guardians may live at
 different addresses than their dependents. In this case, there is an
 opportunity for duplication. Since this mechanism occurs within the
 simulation, there is a natural maximum that we will impose in the
