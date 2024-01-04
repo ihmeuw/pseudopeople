@@ -112,10 +112,9 @@ in GQ and simulants under 24 (<24) and in college GQ.
 
 For each of the two categories of simulants, the maximum duplication rate will
 be calculated based on those who have a guardian living at a different address
-in the sim. Note that all simulants in *college* GQ are initialized with a
-guardian living at a different address, but this is not true for simulants in
-other types of GQ, so both maximum duplication rates will be less than
-100%. If you as the user select a duplication rate that is higher than the 
+in the sim. Most simulants in college GQ will have a guardian at a
+different address, but most simulants younger than 18 will not.
+If you as the user select a duplication rate that is higher than the 
 calculated maximum rate in the sim, a warning will be issued explaining that 
 the selected rate is greater than the maximum available, and the actual rate of 
 duplication should be set to the maximum for the specified simulant category.
