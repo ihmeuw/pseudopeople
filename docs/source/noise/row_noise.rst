@@ -93,7 +93,7 @@ independently with probability :code:`row_probability`.
 Duplicate with guardian
 -----------------------
 
-A known entity resolution challenge is children being reported multiple
+A known challenge in entity resolution is children being reported multiple
 times at different addresses. This can occur when family structures are
 complex and children might spend time at multiple households. A related
 challenge occurs with college students, who often are counted both at their
