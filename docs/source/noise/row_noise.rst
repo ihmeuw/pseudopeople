@@ -96,7 +96,7 @@ Duplicate with guardian
 A known challenge in entity resolution is children being reported multiple
 times at different addresses. This can occur when family structures are
 complex and children spend time at multiple households. A related
-challenge occurs with college students, who often are counted both at their
+challenge occurs with college students, who are sometimes counted both at their
 university and at their guardian’s home address.
 
 To facilitate this type of error, we have simulants assigned to guardians
