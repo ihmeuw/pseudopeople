@@ -14,6 +14,9 @@ from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS
 from pseudopeople.utilities import load_ocr_errors_dict, load_phonetic_errors_dict
 
+from tests.conftest import FuzzyChecker
+
+
 RANDOMNESS0 = RandomnessStream(
     key="test_column_noise",
     clock=lambda: pd.Timestamp("2020-09-01"),
@@ -132,7 +135,7 @@ def string_series():
     )
 
 
-def test_leave_blank(dummy_dataset, fuzzy_checker):
+def test_leave_blank(dummy_dataset, fuzzy_checker: FuzzyChecker):
     config = get_configuration(
         {
             DATASETS.census.name: {
