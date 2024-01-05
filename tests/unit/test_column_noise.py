@@ -132,11 +132,8 @@ def string_series():
     )
 
 
-def test_leave_blank(dummy_dataset):
-    config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE]["zipcode"][
-        NOISE_TYPES.leave_blank.name
-    ]
-    config.update(
+def test_leave_blank(dummy_dataset, fuzzy_checker):
+    config = get_configuration(
         {
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -148,7 +145,8 @@ def test_leave_blank(dummy_dataset):
                 },
             },
         }
-    )
+    )[DATASETS.census.name][Keys.COLUMN_NOISE]["zipcode"][NOISE_TYPES.leave_blank.name]
+
     data = dummy_dataset[["numbers"]]
     noised_data = NOISE_TYPES.leave_blank(data, config, RANDOMNESS0, "dataset", "numbers")
 
@@ -161,8 +159,12 @@ def test_leave_blank(dummy_dataset):
 
     # Check for expected noise level
     expected_noise = config[Keys.CELL_PROBABILITY]
-    actual_noise = len(newly_missing_idx) / len(orig_non_missing_idx)
-    is_close_wrapper(actual_noise, expected_noise, 0.02)
+    fuzzy_checker.fuzzy_assert_proportion(
+        name="leave_blank",
+        observed_numerator=len(newly_missing_idx),
+        observed_denominator=len(orig_non_missing_idx),
+        target_proportion=expected_noise,
+    )
 
     # Check that un-noised values are unchanged
     not_noised_idx = noised_data.index[noised_data.notna()]
