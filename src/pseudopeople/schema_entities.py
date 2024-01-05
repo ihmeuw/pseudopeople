@@ -177,6 +177,18 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_typos,
         ),
     )
+    dependent_1_copy_ssn: Column = Column(
+        "dependent_1_copy_ssn",
+    )
+    dependent_2_copy_ssn: Column = Column(
+        "dependent_2_copy_ssn",
+    )
+    dependent_3_copy_ssn: Column = Column(
+        "dependent_3_copy_ssn",
+    )
+    dependent_4_copy_ssn: Column = Column(
+        "dependent_4_copy_ssn",
+    )
     dob: Column = Column(
         "date_of_birth",
         (

@@ -8,10 +8,10 @@ from vivarium.framework.randomness import RandomnessStream, get_hash
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import data_values, paths
-from pseudopeople.constants.metadata import (
+from pseudopeople.constants.metadata import DatasetNames
+from pseudopeople.constants.noise_type_metadata import (
     COPY_HOUSEHOLD_MEMBER_COLS,
     GUARDIAN_DUPLICATION_ADDRESS_COLUMNS,
-    DatasetNames,
 )
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_scaling import load_nicknames_data

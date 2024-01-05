@@ -306,16 +306,28 @@ def validate_noise_level_proportions(
     if not dataset_noise_proportions.empty:
         # Go through each row in the queried dataset noise proportions to validate the noise levels
         for i in range(len(dataset_noise_proportions)):
-            row = dataset_noise_proportions.iloc[i]
-            if row["schema_entity"] not in [col.name for col in dataset.columns]:
+            row = dataset_noise_proportions.iloc[i].copy()
+            if row["column"] not in [col.name for col in dataset.columns] and not np.isnan(
+                row["column"]
+            ):
                 continue
+            # Get the maximum noise level and the configured noise level
             max_noise_level = row["proportion"]
-            config_noise_level = configuration_tree[row["dataset"]][Keys.COLUMN_NOISE][
-                row["schema_entity"]
-            ][row["noise_entity"]][Keys.CELL_PROBABILITY]
+            if np.isnan(row["column"]):
+                # Config level for guardian duplication group
+                config_noise_level = configuration_tree[row["dataset"]][Keys.ROW_NOISE][
+                    NOISE_TYPES.duplicate_with_guardian.name
+                ][row["noise_type"]]
+                entity_type = Keys.ROW_NOISE
+            else:
+                # Config level for each column noise type
+                config_noise_level = configuration_tree[row["dataset"]][Keys.COLUMN_NOISE][
+                    row["column"]
+                ][row["noise_type"]][Keys.CELL_PROBABILITY]
+                entity_type = Keys.COLUMN_NOISE
             if config_noise_level > max_noise_level:
                 logger.warning(
-                    f"The configured '{row['noise_entity']}' noise level for column '{row['schema_entity']}' is {config_noise_level}, "
+                    f"The configured '{row['noise_type']}' noise level for {entity_type} '{row['column']}' is {config_noise_level}, "
                     f"which is higher than the maximum possible value based on the provided data for '{row['dataset']}'. "
                     "Noising as many rows as possible. "
                 )
