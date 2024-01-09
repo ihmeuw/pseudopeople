@@ -99,7 +99,10 @@ if __name__ == "__main__":
             "docs": doc_requirements,
             "test": test_requirements,
             "interactive": interactive_requirements,
-            "dev": doc_requirements + test_requirements + interactive_requirements,
+            "dev": doc_requirements
+            + test_requirements
+            + interactive_requirements
+            + ["black==22.3.0", "isort"],
         },
         # entry_points="""
         #         [console_scripts]
