@@ -104,7 +104,8 @@ if __name__ == "__main__":
             "dev": doc_requirements
             + test_requirements
             + interactive_requirements
-            + modin_requirements,
+            + modin_requirements
+            + ["ray", "dask"],
             "modin": modin_requirements,
         },
         # entry_points="""
