@@ -446,7 +446,6 @@ def test_validate_miswrite_zipcode_digit_probabilities_failures(probabilities, m
 
 
 def test_get_config(caplog):
-
     config_1 = get_config()
     assert isinstance(config_1, dict)
     assert not caplog.records
@@ -540,10 +539,16 @@ def test_validate_noise_level_proportions(caplog, column, noise_type, noise_leve
         (census.date_column_name, "==", 2020),
         (census.state_column_name, "==", "WA"),
     ]
-
+    # Making guardian duplication 0.0 so that we can test the other noise types only
     get_configuration(
         {
             DATASETS.census.name: {
+                Keys.ROW_NOISE: {
+                    NOISE_TYPES.duplicate_with_guardian.name: {
+                        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0.0,
+                        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: 0.0,
+                    },
+                },
                 Keys.COLUMN_NOISE: {
                     column: {
                         noise_type: {

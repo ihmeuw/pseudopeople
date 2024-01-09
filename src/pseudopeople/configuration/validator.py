@@ -307,24 +307,30 @@ def validate_noise_level_proportions(
         # Go through each row in the queried dataset noise proportions to validate the noise levels
         for i in range(len(dataset_noise_proportions)):
             row = dataset_noise_proportions.iloc[i].copy()
-            if row["column"] not in [col.name for col in dataset.columns] and not np.isnan(
+            if row["column"] not in [col.name for col in dataset.columns] and not pd.isnull(
                 row["column"]
             ):
                 continue
             # Get the maximum noise level and the configured noise level
-            max_noise_level = row["proportion"]
-            if np.isnan(row["column"]):
-                # Config level for guardian duplication group
-                config_noise_level = configuration_tree[row["dataset"]][Keys.ROW_NOISE][
-                    NOISE_TYPES.duplicate_with_guardian.name
-                ][row["noise_type"]]
-                entity_type = Keys.ROW_NOISE
+            if pd.isnull(row["column"]):
+                # Note: Using pd.isnull here and above because np.isnan does not work on strings
+                if NOISE_TYPES.duplicate_with_guardian in dataset.row_noise_types:
+                    # Config level for guardian duplication group
+                    config_noise_level = configuration_tree[row["dataset"]][Keys.ROW_NOISE][
+                        NOISE_TYPES.duplicate_with_guardian.name
+                    ][row["noise_type"]]
+                    entity_type = Keys.ROW_NOISE
+                else:
+                    # I have preloaded the metadata for ACS and CPS to have the duplicate with
+                    # guardian metadata but we are not using it right now.
+                    continue
             else:
                 # Config level for each column noise type
                 config_noise_level = configuration_tree[row["dataset"]][Keys.COLUMN_NOISE][
                     row["column"]
                 ][row["noise_type"]][Keys.CELL_PROBABILITY]
                 entity_type = Keys.COLUMN_NOISE
+            max_noise_level = row["proportion"]
             if config_noise_level > max_noise_level:
                 logger.warning(
                     f"The configured '{row['noise_type']}' noise level for {entity_type} '{row['column']}' is {config_noise_level}, "

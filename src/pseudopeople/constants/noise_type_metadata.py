@@ -1,28 +1,29 @@
-from pseudopeople.schema_entities import COLUMNS
+# Metadata container for noise types and column groupings
+# Note we cannot import COLUMNS from schema entities because it creates a circular import
 
 GUARDIAN_DUPLICATION_ADDRESS_COLUMNS = [
-    COLUMNS.street_number.name,
-    COLUMNS.street_name.name,
-    COLUMNS.unit_number.name,
-    COLUMNS.city.name,
-    COLUMNS.state.name,
-    COLUMNS.zipcode.name,
-    COLUMNS.housing_type.name,
-    COLUMNS.household_id.name,
-    COLUMNS.year.name,
+    "street_number",
+    "street_name",
+    "unit_number",
+    "city",
+    "state",
+    "zipcode",
+    "housing_type",
+    "household_id",
+    "year",
 ]
 
 
 COPY_HOUSEHOLD_MEMBER_COLS = {
-    COLUMNS.age.name: COLUMNS.copy_age.name,
-    COLUMNS.dob.name: COLUMNS.copy_date_of_birth.name,
-    COLUMNS.ssn.name: COLUMNS.copy_ssn.name,
-    COLUMNS.spouse_ssn.name: COLUMNS.spouse_copy_ssn.name,
-    COLUMNS.dependent_1_ssn.name: COLUMNS.dependent_1_copy_ssn.name,
-    COLUMNS.dependent_2_ssn.name: COLUMNS.dependent_2_copy_ssn.name,
-    COLUMNS.dependent_3_ssn.name: COLUMNS.dependent_3_copy_ssn.name,
-    COLUMNS.dependent_4_ssn.name: COLUMNS.dependent_4_copy_ssn.name,
+    "age": "copy_age",
+    "date_of_birth": "copy_date_of_birth",
+    "ssn": "copy_ssn",
+    "spouse_ssn": "spouse_copy_ssn",
+    "dependent_1_ssn": "dependent_1_copy_ssn",
+    "dependent_2_ssn": "dependent_2_copy_ssn",
+    "dependent_3_ssn": "dependent_3_copy_ssn",
+    "dependent_4_ssn": "dependent_4_copy_ssn",
 }
 
 
-INT_COLUMNS = [COLUMNS.age.name, COLUMNS.wages.name, COLUMNS.mailing_po_box.name]
+INT_COLUMNS = ["age", "wages", "mailing_po_box"]
