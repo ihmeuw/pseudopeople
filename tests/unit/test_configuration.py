@@ -543,12 +543,6 @@ def test_validate_noise_level_proportions(caplog, column, noise_type, noise_leve
     get_configuration(
         {
             DATASETS.census.name: {
-                Keys.ROW_NOISE: {
-                    NOISE_TYPES.duplicate_with_guardian.name: {
-                        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0.0,
-                        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: 0.0,
-                    },
-                },
                 Keys.COLUMN_NOISE: {
                     column: {
                         noise_type: {
