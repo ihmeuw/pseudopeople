@@ -483,10 +483,9 @@ def make_phonetic_errors(
 
     return _corrupt_tokens(
         phonetic_errors,
-        data,
-        configuration,
+        data[column_name].astype(str),
+        configuration[Keys.TOKEN_PROBABILITY],
         randomness_stream,
-        column_name,
         addl_key="make_phonetic_errors",
     )
 
@@ -590,25 +589,43 @@ def make_ocr_errors(
 
     return _corrupt_tokens(
         ocr_errors,
-        data,
-        configuration,
+        data[column_name].astype(str),
+        configuration[Keys.TOKEN_PROBABILITY],
         randomness_stream,
-        column_name,
         addl_key="make_ocr_errors",
     )
 
 
 def _corrupt_tokens(
-    errors, data, configuration, randomness_stream, column_name, addl_key
+    errors: pd.DataFrame,
+    column: pd.DataFrame,
+    token_probability: float,
+    randomness_stream: RandomnessStream,
+    addl_key: str,
 ) -> pd.Series:
+    """
+    Performs token-level corruption on a string Series when the tokens to corrupt
+    (and the tokens they get corrupted to) can be more than one character long.
+    A token does not need to be the same length as a token it gets corrupted to.
+    When both kinds of tokens are always one character, things are simpler,
+    and a faster algorithm can be used; see typographic noise for an example of this.
+
+    `errors` is a pandas DataFrame where the index contains tokens that are eligible to
+    be corrupted, and the columns contain the corruptions that are possible.
+    The column names do not matter.
+    """
+    # NOTE: This first section depends only on `errors` and could be cached -- we might
+    # consider moving it into the load_* functions.
+    # However, the amount of work here scales only with the size of `errors` and not
+    # with the data.
+    # It isn't possible to just make this a cached helper since `errors` is a DataFrame,
+    # which is unhashable.
     max_token_length = errors.index.str.len().max()
     errors_eligible_tokens = (
         pd.Series(errors.index).groupby(errors.index.str.len()).apply(set).to_dict()
     )
     number_of_options = errors.count(axis=1)
     errors_stacked = errors.stack()
-
-    column = data[column_name].astype(str)
 
     lengths = column.str.len().values
 
@@ -617,35 +634,46 @@ def _corrupt_tokens(
         # Convert to numpy string dtype
         .values.astype(str)
         .view("U1")
-        .reshape((len(data), lengths.max()))
+        .reshape((len(column), lengths.max()))
     )
 
-    token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
     rng = np.random.default_rng(seed=get_hash(f"{randomness_stream.seed}_{addl_key}"))
 
+    # NOTE: Somewhat surprisingly, this seemed to perform better using Python string types than NumPy types.
+    # Perhaps worth more investigation in the future.
+    # Note that each item in result can be up to the number of characters of the *longest* corrupted token.
     result = np.empty(same_len_col_exploded.shape, dtype=str).astype("object")
-    next_due = np.zeros(len(data))
+    # Tracks the next character index where we have to pay attention to a given string.
+    # When we corrupt a token, we never corrupt again within that same source token, so we
+    # don't have to consider that string again until we get to the end of it.
+    next_due = np.zeros(len(column))
+    # We proceed by character through all the strings at once
     for i in range(same_len_col_exploded.shape[1]):
-        error_introduced = np.zeros(len(data), dtype=bool)
+        error_introduced = np.zeros(len(column), dtype=bool)
+        # Longer tokens to-be-corrupted take precedence over shorter ones
         for token_length in range(max_token_length, 0, -1):
             if i + token_length > same_len_col_exploded.shape[1]:
                 continue
 
             due = ~error_introduced & (next_due <= i)
 
-            long_enough = np.zeros(len(data), dtype=bool)
+            # Is the string already over at this index?
+            # If so, we can ignore it.
+            long_enough = np.zeros(len(column), dtype=bool)
             long_enough[due] = i + token_length <= lengths[due]
             if long_enough.sum() == 0:
                 continue
 
-            tokens = np.empty(len(data), dtype=f"U{token_length}")
+            # Collect the tokens of the given length that start at this index.
+            tokens = np.empty(len(column), dtype=f"U{token_length}")
             tokens[long_enough] = (
                 same_len_col_exploded[long_enough, i : (i + token_length)]
                 .view(f"U{token_length}")
                 .reshape(long_enough.sum())
             )
 
-            eligible = np.zeros(len(data), dtype=bool)
+            # Are these tokens that have corruptions?
+            eligible = np.zeros(len(column), dtype=bool)
             eligible[long_enough] = (
                 pd.Series(tokens[long_enough])
                 .isin(errors_eligible_tokens[token_length])
@@ -654,15 +682,18 @@ def _corrupt_tokens(
             if eligible.sum() == 0:
                 continue
 
-            corrupted = np.zeros(len(data), dtype=bool)
-            corrupted[eligible] = rng.random(eligible.sum()) < token_noise_level
+            # If so, should we corrupt them?
+            corrupted = np.zeros(len(column), dtype=bool)
+            corrupted[eligible] = rng.random(eligible.sum()) < token_probability
             if corrupted.sum() == 0:
                 continue
 
+            # If so, which corruption should we choose?
             to_corrupt = tokens[corrupted]
             corrupted_token_index = np.floor(
                 rng.random(corrupted.sum()) * number_of_options.loc[to_corrupt].to_numpy()
             )
+            # Get the actual string corresponding to the corrupted token chosen.
             # Numpy does not have an efficient way to do this merge operation
             result[corrupted, i] = (
                 pd.DataFrame(
@@ -678,10 +709,16 @@ def _corrupt_tokens(
                 .sort_values("index")
                 .corruption.to_numpy()
             )
+            # Will not be due again until we reach the end of this token
             next_due[corrupted] += token_length
             error_introduced[corrupted] = True
 
+        # Strings that are not "due" -- that is, we already corrupted a source
+        # token that included the current character index -- do not even need
+        # the original character to be added to the result (it was *replaced*
+        # by the corrupted token).
         use_original_char = ~error_introduced & (next_due <= i)
         result[use_original_char, i] = same_len_col_exploded[use_original_char, i]
 
-    return pd.Series(result.sum(axis=1), index=data.index)
+    # "Un-explode" (re-concatenate) each string from its pieces.
+    return pd.Series(result.sum(axis=1), index=column.index)
