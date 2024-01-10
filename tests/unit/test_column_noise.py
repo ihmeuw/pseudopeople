@@ -12,7 +12,7 @@ from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COL
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS
-from pseudopeople.utilities import load_ocr_errors_dict, load_phonetic_errors_dict
+from pseudopeople.utilities import load_ocr_errors, load_phonetic_errors
 from tests.conftest import FuzzyChecker
 
 RANDOMNESS0 = RandomnessStream(
@@ -770,8 +770,8 @@ def test_generate_phonetic_errors(dummy_dataset, column):
 
 
 def test_phonetic_error_values():
-    phonetic_errors_dict = load_phonetic_errors_dict()
-    data = pd.Series(list(phonetic_errors_dict.keys()) * 100, name="street_name")
+    phonetic_errors = load_phonetic_errors()
+    data = pd.Series(list(phonetic_errors.index) * 100, name="street_name")
     config = get_configuration()
     config.update(
         {
@@ -795,10 +795,10 @@ def test_phonetic_error_values():
         df, config, RANDOMNESS0, "dataset", "street_name"
     )
 
-    for key in phonetic_errors_dict.keys():
+    for key in phonetic_errors.index:
         key_idx = data.index[data == key]
         noised_values = set(noised_data.loc[key_idx])
-        pho_error_values = set(phonetic_errors_dict[key])
+        pho_error_values = set(phonetic_errors.loc[key]) - set([None])
         assert noised_values == pho_error_values
 
     assert (data != noised_data).all()
@@ -862,9 +862,9 @@ def test_generate_ocr_errors(dummy_dataset, column):
 def test_ocr_replacement_values():
     # Test that OCR noising replaces truth value with correct error values
     # Load OCR errors dict
-    ocr_errors_dict = load_ocr_errors_dict()
-    # Make series of OCR error dict keys - is there an intelligent numberto pick besides 10?
-    data = pd.Series(list(ocr_errors_dict.keys()) * 10, name="employer_name")
+    ocr_errors = load_ocr_errors()
+    # Is there an intelligent numberto pick besides 10?
+    data = pd.Series(list(ocr_errors.index) * 10, name="employer_name")
     df = pd.DataFrame({"employer_name": data})
     config = get_configuration()
     config.update(
@@ -888,10 +888,10 @@ def test_ocr_replacement_values():
         df, config, RANDOMNESS0, "dataset", "employer_name"
     )
 
-    for key in ocr_errors_dict.keys():
+    for key in ocr_errors.index:
         key_idx = data.index[data == key]
         noised_values = set(noised_data.loc[key_idx])
-        ocr_error_values = set(ocr_errors_dict[key])
+        ocr_error_values = set(ocr_errors.loc[key]) - set([None])
         assert noised_values == ocr_error_values
 
     assert (data != noised_data).all()
