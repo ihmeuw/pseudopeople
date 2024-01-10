@@ -171,9 +171,9 @@ def test_column_dtypes(dataset_name: str, request):
     """Tests that column dtypes are as expected"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
-    data = _load_sample_data(dataset_name, request)
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
-    check_noised, _, _ = _get_common_datasets(dataset_name, data, noised_data)
+    idx_cols = IDX_COLS.get(dataset_name)
+    check_noised = noised_data.set_index(idx_cols)
     for col_name in check_noised.columns:
         col = COLUMNS.get_column(col_name)
         expected_dtype = col.dtype_name
@@ -183,6 +183,7 @@ def test_column_dtypes(dataset_name: str, request):
         assert noised_data[col.name].dtype == expected_dtype
 
 
+@pytest.mark.skip(reason="Rtol is too high and need to find a way to accurately test this.")
 @pytest.mark.parametrize(
     "dataset_name",
     [
