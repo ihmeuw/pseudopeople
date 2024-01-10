@@ -625,7 +625,13 @@ def _corrupt_tokens(
         pd.Series(errors.index).groupby(errors.index.str.len()).apply(set).to_dict()
     )
     number_of_options = errors.count(axis=1)
-    errors_stacked = errors.stack()
+    # Convert to 1D array for easy indexing
+    errors_array = errors.values.reshape(-1)
+    # Keep track of where in that 1D array the corruption options for each corruptable
+    # token start
+    errors_array_index_by_string = pd.Series(
+        len(errors.columns) * np.array(range(len(errors))), index=errors.index
+    )
 
     lengths = column.str.len().values
 
@@ -644,8 +650,8 @@ def _corrupt_tokens(
     # Note that each item in result can be up to the number of characters of the *longest* corrupted token.
     result = np.empty(same_len_col_exploded.shape, dtype=str).astype("object")
     # Tracks the next character index where we have to pay attention to a given string.
-    # When we corrupt a token, we never corrupt again within that same source token, so we
-    # don't have to consider that string again until we get to the end of it.
+    # When we corrupt a token, we skip to the end of that corrupted token before corrupting anything new,
+    # so we don't have to consider that string again until we get to the end of it.
     next_due = np.zeros(len(column))
     # We proceed by character through all the strings at once
     for i in range(same_len_col_exploded.shape[1]):
@@ -659,10 +665,15 @@ def _corrupt_tokens(
 
             # Is the string already over at this index?
             # If so, we can ignore it.
+            # NOTE: From here on, all the boolean arrays are implicitly
+            # cumulative; that is, "long_enough" really means that is
+            # both due *and* long enough. This allows us to short-circuit,
+            # e.g. only check the length of strings that are due, and so on.
             long_enough = np.zeros(len(column), dtype=bool)
             long_enough[due] = i + token_length <= lengths[due]
             if long_enough.sum() == 0:
                 continue
+            del due
 
             # Collect the tokens of the given length that start at this index.
             tokens = np.empty(len(column), dtype=f"U{token_length}")
@@ -681,34 +692,35 @@ def _corrupt_tokens(
             )
             if eligible.sum() == 0:
                 continue
+            del long_enough
 
             # If so, should we corrupt them?
             corrupted = np.zeros(len(column), dtype=bool)
             corrupted[eligible] = rng.random(eligible.sum()) < token_probability
             if corrupted.sum() == 0:
                 continue
+            del eligible
 
             # If so, which corruption should we choose?
+            # There is only a meaningful decision to make here when there are multiple
+            # options for a given token, so we avoid drawing randomness when there is
+            # only one.
             to_corrupt = tokens[corrupted]
-            corrupted_token_index = np.floor(
-                rng.random(corrupted.sum()) * number_of_options.loc[to_corrupt].to_numpy()
+            corrupted_token_index = np.zeros(len(to_corrupt), dtype=int)
+            num_options = number_of_options.loc[to_corrupt].to_numpy()
+            multiple_options = num_options > 1
+            corrupted_token_index[multiple_options] = np.floor(
+                rng.random(multiple_options.sum()) * num_options[multiple_options]
             )
             # Get the actual string corresponding to the corrupted token chosen.
-            # Numpy does not have an efficient way to do this merge operation
-            result[corrupted, i] = (
-                pd.DataFrame(
-                    {"to_corrupt": to_corrupt, "corrupted_token_index": corrupted_token_index}
-                )
-                .reset_index()
-                .merge(
-                    errors_stacked.rename("corruption"),
-                    left_on=["to_corrupt", "corrupted_token_index"],
-                    right_index=True,
-                )
-                # Merge does not return the results in order
-                .sort_values("index")
-                .corruption.to_numpy()
+            # First, find the index in the errors array corresponding to the first corruption
+            # of the token to be corrupted.
+            # Then, add the offset of the corrupted token index.
+            errors_array_indices = (
+                errors_array_index_by_string.loc[to_corrupt].to_numpy()
+                + corrupted_token_index
             )
+            result[corrupted, i] = errors_array[errors_array_indices]
             # Will not be due again until we reach the end of this token
             next_due[corrupted] += token_length
             error_introduced[corrupted] = True
