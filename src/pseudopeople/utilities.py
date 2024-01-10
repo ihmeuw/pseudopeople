@@ -210,11 +210,3 @@ def load_phonetic_errors():
     phonetic_errors = pd.DataFrame.from_dict(phonetic_error_dict, orient="index")
 
     return phonetic_errors
-
-
-@cache
-def load_qwerty_errors_data() -> pd.DataFrame:
-    with open(paths.QWERTY_ERRORS) as f:
-        qwerty_errors = yaml.safe_load(f)
-
-    return pd.DataFrame.from_dict(qwerty_errors, orient="index")
