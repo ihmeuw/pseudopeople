@@ -88,7 +88,6 @@ def test_generate_dataset_from_sample_and_source(
     shared_idx_dataset = pd.Index(
         set(check_noised_dataset.index).intersection(set(check_original.index))
     )
-
     for col in check_noised_dataset.columns:
         original_missing_idx = check_original.index[check_original[col].isna()]
         both_missing_sample_idx = check_noised_sample.index[
