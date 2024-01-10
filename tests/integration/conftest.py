@@ -138,6 +138,15 @@ def config():
                 for noise_type in col.noise_types
             }
 
+    # FIXME: Remove when record_id is added as the truth deck for datasets.
+    # For integration tests, we will NOT duplicate rows with guardian duplication.
+    # This is because we want to be able to compare the noised and unnoised data
+    # and a big assumption we make is that simulant_id and household_id are the
+    # truth decks in our datasets.
+    config[DATASETS.census.name][Keys.ROW_NOISE][NOISE_TYPES.duplicate_with_guardian.name] = {
+        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0.0,
+        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: 0.0,
+    }
     # Update SSA dataset to noise 'ssn' but NOT noise 'ssa_event_type' since that
     # will be used as an identifier along with simulant_id
     # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)

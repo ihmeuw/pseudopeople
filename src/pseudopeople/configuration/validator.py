@@ -296,38 +296,44 @@ def validate_noise_level_proportions(
                 year = user_filters[i][2]
             break
 
-    # Weight SSA since year filter is queried and all proceeding years
-    if dataset.name == metadata.DatasetNames.SSA:
-        dataset_noise_proportions = dataset_proportions.loc[
-            (dataset_proportions["state"] == state) & (dataset_proportions["year"] <= year)
-        ]
-        dataset_noise_proportions = dataset_proportions.groupby(
-            ["column", "noise_type"]
-        ).apply(lambda x: ((x.proportion * x.number_of_rows).sum()) / x.number_of_rows.sum())
-        dataset_noise_proportions = dataset_noise_proportions.rename(
-            "proportion"
-        ).reset_index()
-        dataset_noise_proportions["dataset"] = metadata.DatasetNames.SSA
-    else:
-        dataset_noise_proportions = dataset_proportions.loc[
-            (dataset_proportions["state"] == state) & (dataset_proportions["year"] == year)
-        ]
+    # Subset the metadata proportions to the state and year that the user is querying
+    dataset_noise_proportions = dataset_proportions.loc[
+        (dataset_proportions["state"] == state) & (dataset_proportions["year"] == year)
+    ]
 
     # If there is no data for a queried dataset, we want the user's to hit the correct error that there
     # is no data available so we do not throw an error here.
     if not dataset_noise_proportions.empty:
         # Go through each row in the queried dataset noise proportions to validate the noise levels
         for i in range(len(dataset_noise_proportions)):
-            row = dataset_noise_proportions.iloc[i]
-            if row["column"] not in [col.name for col in dataset.columns]:
-                continue
-            max_noise_level = row["proportion"]
-            config_noise_level = configuration_tree[row["dataset"]][Keys.COLUMN_NOISE][
+            row = dataset_noise_proportions.iloc[i].copy()
+            if row["column"] not in [col.name for col in dataset.columns] and not pd.isnull(
                 row["column"]
-            ][row["noise_type"]][Keys.CELL_PROBABILITY]
+            ):
+                continue
+            # Get the maximum noise level and the configured noise level
+            if pd.isnull(row["column"]):
+                # Note: Using pd.isnull here and above because np.isnan does not work on strings
+                if NOISE_TYPES.duplicate_with_guardian in dataset.row_noise_types:
+                    # Config level for guardian duplication group
+                    config_noise_level = configuration_tree[row["dataset"]][Keys.ROW_NOISE][
+                        NOISE_TYPES.duplicate_with_guardian.name
+                    ][row["noise_type"]]
+                    entity_type = Keys.ROW_NOISE
+                else:
+                    # I have preloaded the metadata for ACS and CPS to have the duplicate with
+                    # guardian metadata but we are not using it right now.
+                    continue
+            else:
+                # Config level for each column noise type
+                config_noise_level = configuration_tree[row["dataset"]][Keys.COLUMN_NOISE][
+                    row["column"]
+                ][row["noise_type"]][Keys.CELL_PROBABILITY]
+                entity_type = Keys.COLUMN_NOISE
+            max_noise_level = row["proportion"]
             if config_noise_level > max_noise_level:
                 logger.warning(
-                    f"The configured '{row['noise_type']}' noise level for column '{row['column']}' is {config_noise_level}, "
+                    f"The configured '{row['noise_type']}' noise level for {entity_type} '{row['column']}' is {config_noise_level}, "
                     f"which is higher than the maximum possible value based on the provided data for '{row['dataset']}'. "
                     "Noising as many rows as possible. "
                 )
