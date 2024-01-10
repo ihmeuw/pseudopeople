@@ -437,7 +437,6 @@ class __Columns(NamedTuple):
         "spouse_last_name",
         (
             NOISE_TYPES.leave_blank,
-            NOISE_TYPES.use_nickname,
             NOISE_TYPES.use_fake_name,
             NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
