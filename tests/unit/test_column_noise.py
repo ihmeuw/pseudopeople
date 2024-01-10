@@ -13,9 +13,7 @@ from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS
 from pseudopeople.utilities import load_ocr_errors_dict, load_phonetic_errors_dict
-
 from tests.conftest import FuzzyChecker
-
 
 RANDOMNESS0 = RandomnessStream(
     key="test_column_noise",
