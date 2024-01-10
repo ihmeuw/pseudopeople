@@ -3,7 +3,8 @@ from functools import cache
 import numpy as np
 import pandas as pd
 
-from pseudopeople.constants import metadata, paths
+from pseudopeople.constants import paths
+from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COLS
 
 
 def scale_choose_wrong_option(data: pd.DataFrame, column_name: str) -> float:
@@ -35,7 +36,7 @@ def scale_nicknames(data: pd.DataFrame, column_name: str) -> float:
 
 def scale_copy_from_household_member(data: pd.DataFrame, column_name: str) -> float:
     original_column = data[column_name]
-    copy_column = data[metadata.COPY_HOUSEHOLD_MEMBER_COLS[column_name]]
+    copy_column = data[COPY_HOUSEHOLD_MEMBER_COLS[column_name]]
     original_column_not_missing = (original_column != "") & (original_column.notna())
     eligible = (copy_column != "") & (copy_column.notna()) & original_column_not_missing
     proportion_eligible = eligible.sum() / original_column_not_missing.sum()
