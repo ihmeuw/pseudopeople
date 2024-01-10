@@ -10,7 +10,10 @@ from tqdm import tqdm
 from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
-from pseudopeople.constants.metadata import COPY_HOUSEHOLD_MEMBER_COLS, INT_COLUMNS
+from pseudopeople.constants.noise_type_metadata import (
+    COPY_HOUSEHOLD_MEMBER_COLS,
+    INT_COLUMNS,
+)
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.loader import load_standard_dataset_file
 from pseudopeople.noise import noise_dataset
