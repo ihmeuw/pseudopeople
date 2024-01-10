@@ -598,7 +598,7 @@ def make_ocr_errors(
 
 def _corrupt_tokens(
     errors: pd.DataFrame,
-    column: pd.DataFrame,
+    column: pd.Series,
     token_probability: float,
     randomness_stream: RandomnessStream,
     addl_key: str,
