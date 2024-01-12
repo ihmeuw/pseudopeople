@@ -100,7 +100,7 @@ challenge occurs with college students, who are sometimes counted both at their
 university and at their guardian’s home address.
 
 
-Guardian-based duplication is applied to two mutually exclusive categories of
+To simulate such challenges, pseudopeople can apply this type of duplication to two mutually exclusive categories of
 simulants based on age and GQ status: Simulants younger than 18 (<18) and not
 in GQ and simulants under 24 (<24) and in college GQ.
 
