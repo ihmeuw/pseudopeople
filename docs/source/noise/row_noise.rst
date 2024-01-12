@@ -104,9 +104,9 @@ To simulate such challenges, pseudopeople can apply this type of duplication to 
 simulants based on age and GQ status: Simulants younger than 18 and not
 in GQ and simulants under 24 and in college GQ.
 
-For each of the two categories of simulants, the maximum duplication rate will
-be calculated based on those who have a guardian living at a different address
-in the sim. Most simulants in college GQ will have a guardian at a
+For each of the two categories of simulants, a maximum duplication rate will
+be calculated based on those who have a guardian living at a different address.
+Most simulants in college GQ will have a guardian at a
 different address, but most simulants younger than 18 will not.
 If you as the user select a duplication rate that is higher than the 
 calculated maximum rate in the sim, you will see a warning that 
