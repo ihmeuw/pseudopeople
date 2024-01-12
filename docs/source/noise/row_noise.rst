@@ -109,7 +109,7 @@ be calculated based on those who have a guardian living at a different address.
 Most simulants in college GQ will have a guardian at a
 different address, but most simulants younger than 18 will not.
 If you as the user select a duplication rate that is higher than the 
-calculated maximum rate in the sim, you will see a warning that 
+calculated maximum rate, you will see a warning that 
 the requested rate is greater than the maximum possible.
 
 This noise type is called :code:`duplicate_with_guardian` in the configuration. 
