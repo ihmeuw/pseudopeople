@@ -309,7 +309,6 @@ def test_two_noise_functions_are_independent(mocker, fuzzy_checker: FuzzyChecker
     col2_expected_123_proportion = (
         config_tree.decennial_census.column_noise.fake_column_two.beta[Keys.CELL_PROBABILITY]
     )
-
     fuzzy_checker.fuzzy_assert_proportion(
         name="fake_column_one_abc_proportion",
         observed_numerator=noised_data["fake_column_one"].str.contains("abc").sum(),

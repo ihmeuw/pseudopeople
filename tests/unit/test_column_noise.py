@@ -275,7 +275,6 @@ def test_swap_months_and_days(dummy_dataset, fuzzy_checker: FuzzyChecker):
             target_proportion=expected_noise,
         )
 
-
 def test_write_wrong_zipcode_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
     dummy_digit_probabilities = [0.3, 0.3, 0.4, 0.5, 0.5]
     config = get_configuration()
@@ -649,7 +648,6 @@ def test_write_wrong_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
     ]
     expected_cell_noise = config[Keys.CELL_PROBABILITY]
     expected_token_noise = config[Keys.TOKEN_PROBABILITY]
-
     data = dummy_dataset[["street_number"]]
     # Note: I changed this column from string_series to street number. It has several string formats
     # containing both numeric and alphabetically string characters.
@@ -921,7 +919,7 @@ def test_phonetic_error_values():
 )
 def test_generate_ocr_errors(dummy_dataset, column, fuzzy_checker: FuzzyChecker):
     config = get_configuration()
-    config.update(
+    config.update(  
         {
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -940,6 +938,7 @@ def test_generate_ocr_errors(dummy_dataset, column, fuzzy_checker: FuzzyChecker)
         NOISE_TYPES.make_ocr_errors.name
     ]
     data = dummy_dataset[[column]]
+    breakpoint()
     noised_data = NOISE_TYPES.make_ocr_errors(data, config, RANDOMNESS0, "dataset", column)
     data = data.squeeze()
 
@@ -1170,7 +1169,6 @@ def test_age_write_wrong_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
     ]
     data = dummy_dataset[["age"]]
     noised_data = NOISE_TYPES.write_wrong_digits(data, config, RANDOMNESS0, "dataset", "age")
-
     # Calculate expected noise level
     data = data.squeeze()
     missing_mask = data == ""
