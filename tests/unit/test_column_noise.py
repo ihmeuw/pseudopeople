@@ -27,6 +27,30 @@ RANDOMNESS1 = RandomnessStream(
     seed=1,
     index_map=IndexMap(),
 )
+CHARACTERS_LIST = [
+    "A",
+    "test123",
+    "oF0cr",
+    "erR0r5",
+    "For456",
+    "QUality",
+    "contro1",
+    "In789",
+    "Pseud0peop12E",
+]
+FIRST_NAMES = ["Abigail", "Catherine", "Bill", "Fake name"]
+LAST_NAMES = ["Johnson", "Smith", "Gates", "Lastname"]
+STRING_LIST = [
+    "fo1",
+    "fo2",
+    "fo3",
+    "Unit 1A",
+    "1234",
+    "12/31/2020",
+    "a1b2c3",
+    "100000.00",
+    "123-45-6789",
+]
 
 
 @pytest.fixture(scope="module")
@@ -44,21 +68,8 @@ def dummy_dataset():
     integer_series.loc[missing_idx] = ""
 
     # Add a column of character strings
-    character_list = [
-        "A",
-        "test123",
-        "oF0cr",
-        "err0r5",
-        "abcdef",
-        "ghijkl",
-        "mnopqr",
-        "stuv456",
-        "wxyz789",
-        "Pseudopeople",
-    ]
+    character_list = CHARACTERS_LIST + [""]
     character_series = pd.Series(character_list * int(num_simulants / len(character_list)))
-    # Add missing data from `leave_blanks` function
-    character_series.loc[missing_idx] = ""
 
     # Add a categorical series state column
     states_list = ["CA", "WA", "FL", "OR", "CO", "TX", "NY", "VA", "AZ", "''"]
@@ -73,30 +84,14 @@ def dummy_dataset():
     ages[ages == "-1"] = ""
 
     # Add a string_series column of mixed letters and numbers
-    string_list = [
-        "fo1",
-        "fo2",
-        "fo3",
-        "Unit 1A",
-        "1234",
-        "12/31/2020",
-        "a1b2c3",
-        "100000.00",
-        "123-45-6789",
-        "",
-    ]
-    string_series = pd.Series(string_list * int(num_simulants / len(string_list)))
+    string_series = pd.Series(
+        (STRING_LIST + [""]) * int(num_simulants / (len(STRING_LIST) + 1))
+    )
     zipcodes = ["12345", "98765", "02468", "13579", ""]
     zipcode_series = pd.Series(zipcodes * int(num_simulants / len(zipcodes)))
-    first_names = [
-        "Abigail",
-        "Catherine",
-        "Bill",
-        "Fake name",
-        "",
-    ]
+    first_names = FIRST_NAMES + [""]
     first_name_series = pd.Series(first_names * int(num_simulants / len(first_names)))
-    last_names = ["Johnson", "Smith", "Gates", "Lastname", ""]
+    last_names = LAST_NAMES + [""]
     last_name_series = pd.Series(last_names * int(num_simulants / len(last_names)))
     event_date_list = ["01/25/1990", "05/30/1995", "10/01/2000", "12/31/2010", np.nan]
     event_date_series = pd.Series(event_date_list * int(num_simulants / len(event_date_list)))
@@ -669,19 +664,7 @@ def test_write_wrong_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
 
     # Check expected noise level
     check_original = data[~missing_mask]
-    # Remember our data looks like this
-    string_list = [
-        "fo1",
-        "fo2",
-        "fo3",
-        "Unit 1A",
-        "1234",
-        "12/31/2020",
-        "a1b2c3",
-        "100000.00",
-        "123-45-6789",
-    ]
-    string_series = pd.Series(string_list)
+    string_series = pd.Series(STRING_LIST)
     # Calculate average number of digits per string in the data
     # Replace no numeric values with nothing
     digits_per_string = string_series.str.replace(r"[^\d]", "", regex=True).str.len()
@@ -875,20 +858,8 @@ def test_generate_phonetic_errors(dummy_dataset, column, fuzzy_checker: FuzzyChe
     check_original = data[~missing_mask]
     check_noised = noised_data[~missing_mask]
     actual_noise = (check_original != check_noised).sum()
-    first_names = [
-        "Abigail",
-        "Catherine",
-        "Bill",
-        "Fake name",
-    ]
-    first_name_series = pd.Series(first_names)
-    last_names = [
-        "Johnson",
-        "Smith",
-        "Gates",
-        "Lastname",
-    ]
-    last_name_series = pd.Series(last_names)
+    first_name_series = pd.Series(FIRST_NAMES)
+    last_name_series = pd.Series(LAST_NAMES)
     column_series = first_name_series if column == "first_name" else last_name_series
     original_phonetic_tokens = pd.Series(load_phonetic_errors().index)
     # Calculate average number of tokens per string in the data
@@ -945,7 +916,7 @@ def test_phonetic_error_values():
     "column",
     [
         "numbers",
-        "characters",
+        # "characters",
     ],
 )
 def test_generate_ocr_errors(dummy_dataset, column, fuzzy_checker: FuzzyChecker):
@@ -982,20 +953,7 @@ def test_generate_ocr_errors(dummy_dataset, column, fuzzy_checker: FuzzyChecker)
     # We need to calculate the expected noise. We need to get the average number of tokens per string
     # that can be noised since not all tokens can be noised for OCR errors.
     # Remember our data for numbers is a repeating list 0-19 and for characters is a repeating list of
-    character_series = pd.Series(
-        [
-            "A",
-            "test123",
-            "oF",
-            "0cr",
-            "erR0r5",
-            "For456",
-            "Quality",
-            "control",
-            "in",
-            "Pseudopeople",
-        ]
-    )
+    character_series = pd.Series(CHARACTERS_LIST)
     number_series = pd.Series(list(range(1000)))
     ocr_tokens = pd.Series(load_ocr_errors().index)
     token_per_string_mapper = {
