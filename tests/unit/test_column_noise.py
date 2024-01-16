@@ -748,7 +748,7 @@ def test_use_nickname(dummy_dataset, fuzzy_checker: FuzzyChecker):
                     observed_numerator=chosen_nickname_counts.loc[nickname],
                     observed_denominator=chosen_nickname_counts.sum(),
                     target_proportion=expected_name_proportion,
-                    name_additional=" for nickname: " + nickname,
+                    name_additional=f"for nickname: {nickname} of real name: {real_name}",
                 )
 
 
@@ -831,6 +831,7 @@ def test_use_fake_name(dummy_dataset, fuzzy_checker: FuzzyChecker):
 
 
 @pytest.mark.xfail
+# This is xfail due to a known bug in _corrupt_tokens function
 @pytest.mark.parametrize(
     "column",
     [
@@ -888,8 +889,7 @@ def test_generate_phonetic_errors(dummy_dataset, column, fuzzy_checker: FuzzyChe
         "Lastname",
     ]
     last_name_series = pd.Series(last_names)
-    column_series_mapper = {"first_name": first_name_series, "last_name": last_name_series}
-    column_series = column_series_mapper[column]
+    column_series = first_name_series if column == "first_name" else last_name_series
     original_phonetic_tokens = pd.Series(load_phonetic_errors().index)
     # Calculate average number of tokens per string in the data
     tokens_per_string = number_of_tokens_per_string(original_phonetic_tokens, column_series)
@@ -897,7 +897,7 @@ def test_generate_phonetic_errors(dummy_dataset, column, fuzzy_checker: FuzzyChe
         1 - (1 - token_probability) ** tokens_per_string
     ).mean()
     fuzzy_checker.fuzzy_assert_proportion(
-        name="generate_phoentic_errors",
+        name="generate_phonetic_errors",
         observed_numerator=actual_noise,
         observed_denominator=len(check_original),
         target_proportion=cell_probability * avg_probability_any_token_noised,
@@ -940,6 +940,7 @@ def test_phonetic_error_values():
 
 
 @pytest.mark.xfail
+# This is xfail due to a known bug in _corrupt_tokens function
 @pytest.mark.parametrize(
     "column",
     [
