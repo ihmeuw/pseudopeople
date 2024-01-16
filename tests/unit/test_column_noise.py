@@ -275,6 +275,7 @@ def test_swap_months_and_days(dummy_dataset, fuzzy_checker: FuzzyChecker):
             target_proportion=expected_noise,
         )
 
+
 def test_write_wrong_zipcode_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
     dummy_digit_probabilities = [0.3, 0.3, 0.4, 0.5, 0.5]
     config = get_configuration()
@@ -919,7 +920,7 @@ def test_phonetic_error_values():
 )
 def test_generate_ocr_errors(dummy_dataset, column, fuzzy_checker: FuzzyChecker):
     config = get_configuration()
-    config.update(  
+    config.update(
         {
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -938,7 +939,6 @@ def test_generate_ocr_errors(dummy_dataset, column, fuzzy_checker: FuzzyChecker)
         NOISE_TYPES.make_ocr_errors.name
     ]
     data = dummy_dataset[[column]]
-    breakpoint()
     noised_data = NOISE_TYPES.make_ocr_errors(data, config, RANDOMNESS0, "dataset", column)
     data = data.squeeze()
 
