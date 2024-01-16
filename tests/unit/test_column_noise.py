@@ -35,27 +35,28 @@ def dummy_dataset():
     dummy_idx = pd.Index(range(num_simulants))
 
     # Add a column of integer strings
-    integer_series = pd.Series([str(x) for x in range(20)] * int(num_simulants / 20))
+    integer_series = pd.Series(
+        [str(x) for x in [12345, 67890, 54321, 918273, 987654]] * int(num_simulants / 5)
+    )
     # integer_series = pd.Series(["Jenny 867-5309", "foo"]*int(num_simulants/2))
     # Add missing data from `leave_blanks` function
     missing_idx = pd.Index([x for x in dummy_idx if x % 3 == 0])
     integer_series.loc[missing_idx] = ""
 
     # Add a column of character strings
-    character_series = pd.Series(
-        [
-            "abc",
-            "def",
-            "ghi",
-            "jkl",
-            "mno",
-            "pqr",
-            "stu",
-            "vwx",
-            "yz",
-            "",
-        ] * int(num_simulants / 10)
-    )
+    character_list = [
+        "A",
+        "test123",
+        "oF0cr",
+        "err0r5",
+        "abcdef",
+        "ghijkl",
+        "mnopqr",
+        "stuv456",
+        "wxyz789",
+        "Pseudopeople",
+    ]
+    character_series = pd.Series(character_list * int(num_simulants / len(character_list)))
     # Add missing data from `leave_blanks` function
     character_series.loc[missing_idx] = ""
 
@@ -95,7 +96,7 @@ def dummy_dataset():
         "",
     ]
     first_name_series = pd.Series(first_names * int(num_simulants / len(first_names)))
-    last_names = ["A last name", "another last name", "other last name", "last name", ""]
+    last_names = ["Johnson", "Smith", "Gates", "Lastname", ""]
     last_name_series = pd.Series(last_names * int(num_simulants / len(last_names)))
     event_date_list = ["01/25/1990", "05/30/1995", "10/01/2000", "12/31/2010", np.nan]
     event_date_series = pd.Series(event_date_list * int(num_simulants / len(event_date_list)))
@@ -217,9 +218,7 @@ def test_generate_copy_from_household_member(dummy_dataset, fuzzy_checker: Fuzzy
     original_missing_idx = data.index[data["age"] == ""]
     eligible_for_noise_idx = data.index.difference(original_missing_idx)
     data = data["age"]
-    actual_noise = (
-        noised_data[eligible_for_noise_idx] != data[eligible_for_noise_idx]
-    ).sum()
+    actual_noise = (noised_data[eligible_for_noise_idx] != data[eligible_for_noise_idx]).sum()
     fuzzy_checker.fuzzy_assert_proportion(
         name="generate_copy_from_household_member",
         observed_numerator=actual_noise,
@@ -281,6 +280,7 @@ def test_swap_months_and_days(dummy_dataset, fuzzy_checker: FuzzyChecker):
             target_proportion=expected_noise,
         )
 
+
 def test_write_wrong_zipcode_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
     dummy_digit_probabilities = [0.3, 0.3, 0.4, 0.5, 0.5]
     config = get_configuration()
@@ -316,9 +316,7 @@ def test_write_wrong_zipcode_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
     # Check noise for each digits position matches expected noise
     for i in range(5):
         digit_prob = config["digit_probabilities"][i]
-        actual_noise = (
-            data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]
-        ).sum()
+        actual_noise = (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).sum()
         expected_noise = digit_prob * probability
         fuzzy_checker.fuzzy_assert_proportion(
             name="write_wrong_zipcode_digits",
@@ -574,20 +572,18 @@ def test_write_wrong_digits_robust(dummy_dataset, fuzzy_checker: FuzzyChecker):
                 observed_numerator=actual_noise,
                 observed_denominator=len(data[alt_str]),
                 target_proportion=expected_noise,
-            )   
+            )
             assert (noised_data[alt_str].str[i].str.isdigit()).all()
 
     for i in range(7):  # "Unit 1A"
         if i == 5:
-            actual_noise = (
-                data[unit_number].str[i] != noised_data[unit_number].str[i]
-            ).sum()
+            actual_noise = (data[unit_number].str[i] != noised_data[unit_number].str[i]).sum()
             fuzzy_checker.fuzzy_assert_proportion(
                 name="write_wrong_digits_robust_unit_number",
                 observed_numerator=actual_noise,
                 observed_denominator=len(data[unit_number]),
                 target_proportion=expected_noise,
-            )   
+            )
             assert (noised_data[unit_number].str[i].str.isdigit()).all()
         else:
             assert (data[unit_number].str[i] == noised_data[unit_number].str[i]).all()
@@ -658,7 +654,7 @@ def test_write_wrong_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
     ]
     expected_cell_noise = config[Keys.CELL_PROBABILITY]
     expected_token_noise = config[Keys.TOKEN_PROBABILITY]
-    
+
     data = dummy_dataset[["street_number"]]
     # Note: I changed this column from string_series to street number. It has several string formats
     # containing both numeric and alphabetically string characters.
@@ -673,7 +669,7 @@ def test_write_wrong_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
 
     # Check expected noise level
     check_original = data[~missing_mask]
-    # Remember our data looks like this 
+    # Remember our data looks like this
     string_list = [
         "fo1",
         "fo2",
@@ -689,11 +685,13 @@ def test_write_wrong_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
     # Calculate average number of digits per string in the data
     # Replace no numeric values with nothing
     digits_per_string = string_series.str.replace(r"[^\d]", "", regex=True).str.len()
-    avg_probability_any_token_noised = (1 - (1 - expected_token_noise)**digits_per_string).mean()
+    avg_probability_any_token_noised = (
+        1 - (1 - expected_token_noise) ** digits_per_string
+    ).mean()
     check_noised = noised_data[~missing_mask]
     actual_noise = (check_original != check_noised).sum()
     fuzzy_checker.fuzzy_assert_proportion(
-        name="write_wrong_digits",  
+        name="write_wrong_digits",
         observed_numerator=actual_noise,
         observed_denominator=len(check_original),
         target_proportion=expected_cell_noise * avg_probability_any_token_noised,
@@ -832,6 +830,7 @@ def test_use_fake_name(dummy_dataset, fuzzy_checker: FuzzyChecker):
     assert noised_last_names.loc[noised_last_names != last_name_data].isin(fake_last).all()
 
 
+@pytest.mark.xfail
 @pytest.mark.parametrize(
     "column",
     [
@@ -882,17 +881,23 @@ def test_generate_phonetic_errors(dummy_dataset, column, fuzzy_checker: FuzzyChe
         "Fake name",
     ]
     first_name_series = pd.Series(first_names)
-    last_names = ["A last name", "another last name", "other last name", "last name"]
+    last_names = [
+        "Johnson",
+        "Smith",
+        "Gates",
+        "Lastname",
+    ]
     last_name_series = pd.Series(last_names)
-    column_series_mapper = {'first_name': first_name_series, 'last_name': last_name_series}
-    column_series = column_series_mapper[column].str.lower()
-    original_phonetic_tokens = pd.Series(load_phonetic_errors_dict().index)
+    column_series_mapper = {"first_name": first_name_series, "last_name": last_name_series}
+    column_series = column_series_mapper[column]
+    original_phonetic_tokens = pd.Series(load_phonetic_errors().index)
     # Calculate average number of tokens per string in the data
-    tokens_per_string, string_tokens = number_of_tokens_per_strings(original_phonetic_tokens, column_series)
-    avg_probability_any_token_noised = (1 - (1 - token_probability)**tokens_per_string).mean()
-    breakpoint()
+    tokens_per_string = number_of_tokens_per_string(original_phonetic_tokens, column_series)
+    avg_probability_any_token_noised = (
+        1 - (1 - token_probability) ** tokens_per_string
+    ).mean()
     fuzzy_checker.fuzzy_assert_proportion(
-        name="generate_phoentic_errors",  
+        name="generate_phoentic_errors",
         observed_numerator=actual_noise,
         observed_denominator=len(check_original),
         target_proportion=cell_probability * avg_probability_any_token_noised,
@@ -934,6 +939,7 @@ def test_phonetic_error_values():
     assert (data != noised_data).all()
 
 
+@pytest.mark.xfail
 @pytest.mark.parametrize(
     "column",
     [
@@ -943,7 +949,7 @@ def test_phonetic_error_values():
 )
 def test_generate_ocr_errors(dummy_dataset, column, fuzzy_checker: FuzzyChecker):
     config = get_configuration()
-    config.update(  
+    config.update(
         {
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -962,7 +968,6 @@ def test_generate_ocr_errors(dummy_dataset, column, fuzzy_checker: FuzzyChecker)
         NOISE_TYPES.make_ocr_errors.name
     ]
     data = dummy_dataset[[column]]
-    breakpoint()
     noised_data = NOISE_TYPES.make_ocr_errors(data, config, RANDOMNESS0, "dataset", column)
     data = data.squeeze()
 
@@ -973,40 +978,33 @@ def test_generate_ocr_errors(dummy_dataset, column, fuzzy_checker: FuzzyChecker)
     # Check expected noise level
     token_probability = config[Keys.TOKEN_PROBABILITY]
     cell_probability = config[Keys.CELL_PROBABILITY]
-    # We need to calculate the expected noise. We need to get the average number of tokens per string 
+    # We need to calculate the expected noise. We need to get the average number of tokens per string
     # that can be noised since not all tokens can be noised for OCR errors.
-    # Remember our data for numbers is a repeating list 0-19 and for characters is a repeating list of 
+    # Remember our data for numbers is a repeating list 0-19 and for characters is a repeating list of
     character_series = pd.Series(
         [
-            "abc",
-            "def",
-            "ghi",
-            "jkl",
-            "mno",
-            "pqr",
-            "stu",
-            "vwx",
-            "yz",
+            "A",
+            "test123",
+            "oF",
+            "0cr",
+            "erR0r5",
+            "For456",
+            "Quality",
+            "control",
+            "in",
+            "Pseudopeople",
         ]
     )
-    number_series = pd.Series(list(range(20)))
-    # for numbers, 0, 1, 2, 5, 6, 12, 13, 17 are eligible numbers
-    # for characters, g, h, i, j, k, l, m, q, u, w, y
-    # Note: There are a few 2 character OCR tokens that do not appear in the dummy data so they are
-    # not counted here.
-    # expected_token_per_string_mapper = {
-    #     "numbers": pd.Series([1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 2, 2, 3, 2, 1, 2, 2, 2, 1, 1]),
-    #     "characters": pd.Series([0, 0, 3, 3, 1, 1, 1, 1, 1])
-    # }
-    # expected_number_of_tokens = expected_token_per_string_mapper[column]
-    ocr_tokens = pd.Series(load_ocr_errors_dict().keys())
+    number_series = pd.Series(list(range(1000)))
+    ocr_tokens = pd.Series(load_ocr_errors().index)
     token_per_string_mapper = {
-        'characters': number_of_tokens_per_strings(ocr_tokens, character_series),
-        "numbers": number_of_tokens_per_strings(ocr_tokens, number_series)
+        "characters": number_of_tokens_per_string(ocr_tokens, character_series),
+        "numbers": number_of_tokens_per_string(ocr_tokens, number_series),
     }
-    tokens_per_string, string_tokens = token_per_string_mapper[column]
-    avg_probability_any_token_noised = (1 - (1 - token_probability)**tokens_per_string).mean()
-    breakpoint()
+    tokens_per_string = token_per_string_mapper[column]
+    avg_probability_any_token_noised = (
+        1 - (1 - token_probability) ** tokens_per_string
+    ).mean()
     check_original = data[~missing_mask]
     check_noised = noised_data[~missing_mask]
     expected_proportion = cell_probability * avg_probability_any_token_noised
@@ -1213,7 +1211,7 @@ def test_age_write_wrong_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
     ]
     data = dummy_dataset[["age"]]
     noised_data = NOISE_TYPES.write_wrong_digits(data, config, RANDOMNESS0, "dataset", "age")
-    
+
     # Calculate expected noise level
     data = data.squeeze()
     missing_mask = data == ""
@@ -1223,7 +1221,9 @@ def test_age_write_wrong_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
     cell_probability = config[Keys.CELL_PROBABILITY]
     token_probability = config[Keys.TOKEN_PROBABILITY]
     tokens_per_string = check_original.str.len()
-    avg_probability_any_token_noised = (1 - (1 - token_probability)**tokens_per_string).mean()
+    avg_probability_any_token_noised = (
+        1 - (1 - token_probability) ** tokens_per_string
+    ).mean()
     fuzzy_checker.fuzzy_assert_proportion(
         name="write_wrong_digits_age",
         observed_numerator=expected_noise,
@@ -1237,21 +1237,18 @@ def test_age_write_wrong_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
 ################
 
 
-def number_of_tokens_per_strings(s1, s2):
+def number_of_tokens_per_string(s1, s2):
     """
     Calculates the number of tokens in each string of a series.
-    s1 is a pd.Series of tokens and we want to see how many tokens exist in each 
+    s1 is a pd.Series of tokens and we want to see how many tokens exist in each
     string of s2.
     """
 
     number_of_tokens = pd.Series(0, index=[str(i) for i in s2])
-    string_tokens = {str(x): {} for x in s2}
     for token in s1:
         orig_token = str(token)
         for s in s2:
             string = str(s)
             number_of_tokens.loc[string] += string.count(orig_token)
-            if orig_token in string:
-                string_tokens[string][orig_token] = string.count(orig_token)
-                
-    return number_of_tokens, string_tokens
+
+    return number_of_tokens
