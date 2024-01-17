@@ -178,10 +178,10 @@ def test_noise_order(mocker, dummy_data, dataset):
         for noise_type in NOISE_TYPES._fields
         if noise_type
         in [
+            NOISE_TYPES.duplicate_with_guardian.name,
             NOISE_TYPES.do_not_respond.name,
             NOISE_TYPES.omit_row.name,
             "duplicate_row",
-            NOISE_TYPES.duplicate_with_guardian.name,
         ]
     ]
     column_order = [
