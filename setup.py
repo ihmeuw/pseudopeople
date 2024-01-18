@@ -55,6 +55,11 @@ if __name__ == "__main__":
         "pytest-mock",
     ]
 
+    lint_requirements = [
+        "black==22.3.0",
+        "isort",
+    ]
+
     doc_requirements = [
         "sphinx>=4.0",
         "sphinx-rtd-theme",
@@ -102,7 +107,7 @@ if __name__ == "__main__":
             "dev": doc_requirements
             + test_requirements
             + interactive_requirements
-            + ["black==22.3.0", "isort"],
+            + lint_requirements,
         },
         # entry_points="""
         #         [console_scripts]
