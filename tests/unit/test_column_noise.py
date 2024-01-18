@@ -38,6 +38,143 @@ CHARACTERS_LIST = [
     "In789",
     "Pseud0peop12E",
 ]
+PHONETIC_STRESS_TEST_LIST = [
+    "~",  # No tokens -- note that the tilde character is never noised (from or to) by OCR or phonetic
+    "oo",  # Single token
+    "~~oo~~",  # Single token, with buffer
+    "oooo",  # Only overlapping tokens
+    "~~~oooo~~ooo~~~",  # Only overlapping tokens, with buffer
+    "ach",  # Overlapping tokens whose corruptions overlap with themselves
+    "~~~ach~ach~~~",  # Overlapping tokens whose corruptions overlap with themselves, with buffer
+]
+PHONETIC_STRESS_TEST_PATHWAYS = {
+    # Tuples of (token noised, token not noised)
+    "~": {"~": (0, 0)},
+    "oo": {
+        "oo": (0, 1),
+        "u": (1, 0),
+    },
+    "~~oo~~": {
+        "~~oo~~": (0, 1),
+        "~~u~~": (1, 0),
+    },
+    "oooo": {
+        "oooo": (0, 3),  # Nothing noised
+        "uoo": (1, 1),  # Only first noised
+        "ouo": (1, 1),  # Only second noised
+        "oou": (1, 2),  # Only third noised
+        "uu": (2, 0),  # First and third noised
+    },
+    "~~~oooo~~ooo~~~": {
+        # In each of these additions, the first number represents the number
+        # in the first set of o's and the second number represents the number
+        # in the second set.
+        "~~~oooo~~ooo~~~": (0 + 0, 3 + 2),  # Nothing noised; nothing noised
+        "~~~uoo~~ooo~~~": (1 + 0, 1 + 2),  # Only first noised; nothing noised
+        "~~~ouo~~ooo~~~": (1 + 0, 1 + 2),  # Only second noised; nothing noised
+        "~~~oou~~ooo~~~": (1 + 0, 2 + 2),  # Only third noised; nothing noised
+        "~~~uu~~ooo~~~": (2 + 0, 0 + 2),  # First and third noised; nothing noised
+        "~~~oooo~~uo~~~": (0 + 1, 3 + 0),  # Nothing noised; only first noised
+        "~~~uoo~~uo~~~": (1 + 1, 1 + 0),  # Only first noised; only first noised
+        "~~~ouo~~uo~~~": (1 + 1, 1 + 0),  # Only second noised; only first noised
+        "~~~oou~~uo~~~": (1 + 1, 2 + 0),  # Only third noised; only first noised
+        "~~~uu~~uo~~~": (2 + 1, 0 + 0),  # First and third noised; only first noised
+        "~~~oooo~~ou~~~": (0 + 1, 3 + 1),  # Nothing noised; only second noised
+        "~~~uoo~~ou~~~": (1 + 1, 1 + 1),  # Only first noised; only second noised
+        "~~~ouo~~ou~~~": (1 + 1, 1 + 1),  # Only second noised; only second noised
+        "~~~oou~~ou~~~": (1 + 1, 2 + 1),  # Only third noised; only second noised
+        "~~~uu~~ou~~~": (2 + 1, 0 + 1),  # First and third noised; only second noised
+    },
+    # Only enumerate pathways for non-buffer version
+    "ach": {
+        "ach": (0, 4),  # ach, ch, c, h
+        "k": (1, 0),
+        "ax": (1, 1),
+        "akh": (1, 3),
+        "ac": (1, 3),
+        "ak": (2, 2),
+    },
+}
+OCR_STRESS_TEST_LIST = [
+    "~",  # No tokens
+    "YDUu",  # Single-character tokens
+    "~~~YD~Uu~~~",  # Single-character tokens, with buffer
+    "LII-IIJ",  # Non-overlapping multi-character tokens
+    "~~~LI~~I-I~IJ~~~",  # Non-overlapping multi-character tokens, with buffer
+    "LI-I",  # Overlapping tokens
+    "~~~LI-I~LI-I~~~",  # Overlapping tokens, with buffer
+]
+OCR_STRESS_TEST_PATHWAYS = {
+    # Tuples of (token noised, token not noised)
+    "~": {"~": (0, 0)},
+    "YDUu": {
+        "YDUu": (0, 4),
+        "VDUu": (1, 3),
+        "YOUu": (1, 3),
+        "YDVu": (1, 3),
+        "YDUv": (1, 3),
+        "VOUu": (2, 2),
+        "VDVu": (2, 2),
+        "VDUv": (2, 2),
+        "VOUu": (2, 2),
+        "YOVu": (2, 2),
+        "YOUv": (2, 2),
+        "VDVu": (2, 2),
+        "YOVu": (2, 2),
+        "YDVv": (2, 2),
+        "VDUv": (2, 2),
+        "YOUv": (2, 2),
+        "YDVv": (2, 2),
+        "YOVv": (3, 1),
+        "VDVv": (3, 1),
+        "VOUv": (3, 1),
+        "VOVu": (3, 1),
+        "VOVv": (4, 0),
+    },
+    "~~~YD~Uu~~~": {
+        "~~~YD~Uu~~~": (0, 4),
+        "~~~VD~Uu~~~": (1, 3),
+        "~~~YO~Uu~~~": (1, 3),
+        "~~~YD~Vu~~~": (1, 3),
+        "~~~YD~Uv~~~": (1, 3),
+        "~~~VO~Uu~~~": (2, 2),
+        "~~~VD~Vu~~~": (2, 2),
+        "~~~VD~Uv~~~": (2, 2),
+        "~~~VO~Uu~~~": (2, 2),
+        "~~~YO~Vu~~~": (2, 2),
+        "~~~YO~Uv~~~": (2, 2),
+        "~~~VD~Vu~~~": (2, 2),
+        "~~~YO~Vu~~~": (2, 2),
+        "~~~YD~Vv~~~": (2, 2),
+        "~~~VD~Uv~~~": (2, 2),
+        "~~~YO~Uv~~~": (2, 2),
+        "~~~YD~Vv~~~": (2, 2),
+        "~~~YO~Vv~~~": (3, 1),
+        "~~~VD~Vv~~~": (3, 1),
+        "~~~VO~Uv~~~": (3, 1),
+        "~~~VO~Vu~~~": (3, 1),
+        "~~~VO~Vv~~~": (4, 0),
+    },
+    "LII-IIJ": {
+        "LII-IIJ": (0, 3),  # LI, I-I, IJ
+        "UI-IIJ": (1, 2),
+        "LIHIJ": (1, 2),
+        "LII-IU": (1, 2),
+        "UHIJ": (2, 1),
+        "UI-IU": (2, 1),
+        "UHIJ": (2, 1),
+        "LIHU": (2, 1),
+        "UI-IU": (2, 1),
+        "LIHU": (2, 1),
+        "UHU": (3, 0),
+    },
+    "LI-I": {
+        "LI-I": (0, 2),  # LI, I-I
+        "U-I": (1, 0),
+        "LH": (1, 1),
+    },
+}
+INTEGERS_LIST = [12345, 67890, 54321, 918273, 987654]
 FIRST_NAMES = ["Abigail", "Catherine", "Bill", "Fake name"]
 LAST_NAMES = ["Johnson", "Smith", "Gates", "Lastname"]
 STRING_LIST = [
@@ -60,7 +197,7 @@ def dummy_dataset():
 
     # Add a column of integer strings
     integer_series = pd.Series(
-        [str(x) for x in [12345, 67890, 54321, 918273, 987654]] * int(num_simulants / 5)
+        [str(x) for x in INTEGERS_LIST] * int(num_simulants / len(INTEGERS_LIST))
     )
     # integer_series = pd.Series(["Jenny 867-5309", "foo"]*int(num_simulants/2))
     # Add missing data from `leave_blanks` function
@@ -102,6 +239,14 @@ def dummy_dataset():
     copy_age_list = ["10", "20", "30", "40", "50", "60", "70", "80", "", "100"]
     copy_age_series = pd.Series(copy_age_list * int(num_simulants / len(copy_age_list)))
 
+    phonetic_stress_test_series = pd.Series(
+        (PHONETIC_STRESS_TEST_LIST + [""])
+        * int(num_simulants / (len(PHONETIC_STRESS_TEST_LIST) + 1))
+    )
+    ocr_stress_test_series = pd.Series(
+        (OCR_STRESS_TEST_LIST + [""]) * int(num_simulants / (len(OCR_STRESS_TEST_LIST) + 1))
+    )
+
     return pd.DataFrame(
         {
             "numbers": integer_series,
@@ -115,6 +260,8 @@ def dummy_dataset():
             "event_date": event_date_series,
             "date_of_birth": date_of_birth_series,
             "copy_age": copy_age_series,
+            "phonetic_stress_test": phonetic_stress_test_series,
+            "ocr_stress_test": ocr_stress_test_series,
         }
     )
 
@@ -812,19 +959,21 @@ def test_use_fake_name(dummy_dataset, fuzzy_checker: FuzzyChecker):
     assert noised_last_names.loc[noised_last_names != last_name_data].isin(fake_last).all()
 
 
-@pytest.mark.xfail
-# This is xfail due to a known bug in _corrupt_tokens function
 @pytest.mark.parametrize(
     "column",
     [
         "first_name",
         "last_name",
+        "numbers",
+        "characters",
+        "phonetic_stress_test",
     ],
 )
 def test_generate_phonetic_errors(dummy_dataset, column, fuzzy_checker: FuzzyChecker):
     data = dummy_dataset[[column]]
 
-    config = get_configuration(
+    config = get_configuration()
+    config.update(
         {
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -857,12 +1006,23 @@ def test_generate_phonetic_errors(dummy_dataset, column, fuzzy_checker: FuzzyChe
     check_original = data[~missing_mask]
     check_noised = noised_data[~missing_mask]
     actual_noise = (check_original != check_noised).sum()
-    first_name_series = pd.Series(FIRST_NAMES)
-    last_name_series = pd.Series(LAST_NAMES)
-    column_series = first_name_series if column == "first_name" else last_name_series
+
+    if column == "first_name":
+        equally_likely_values = pd.Series(FIRST_NAMES)
+    elif column == "last_name":
+        equally_likely_values = pd.Series(LAST_NAMES)
+    elif column == "characters":
+        equally_likely_values = pd.Series(CHARACTERS_LIST)
+    elif column == "numbers":
+        equally_likely_values = pd.Series(INTEGERS_LIST).astype(str)
+    elif column == "phonetic_stress_test":
+        equally_likely_values = pd.Series(PHONETIC_STRESS_TEST_LIST)
+
     original_phonetic_tokens = pd.Series(load_phonetic_errors().index)
     # Calculate average number of tokens per string in the data
-    tokens_per_string = number_of_tokens_per_string(original_phonetic_tokens, column_series)
+    tokens_per_string = number_of_tokens_per_string(
+        original_phonetic_tokens, equally_likely_values
+    )
     avg_probability_any_token_noised = (
         1 - (1 - token_probability) ** tokens_per_string
     ).mean()
@@ -874,48 +1034,54 @@ def test_generate_phonetic_errors(dummy_dataset, column, fuzzy_checker: FuzzyChe
     )
 
 
-def test_phonetic_error_values():
-    phonetic_errors = load_phonetic_errors()
-    data = pd.Series(list(phonetic_errors.index) * 100, name="street_name")
-    config = get_configuration()
-    config.update(
-        {
-            DATASETS.census.name: {
-                Keys.COLUMN_NOISE: {
-                    "street_name": {
-                        NOISE_TYPES.make_phonetic_errors.name: {
-                            Keys.CELL_PROBABILITY: 1.0,
-                            Keys.TOKEN_PROBABILITY: 1.0,
-                        },
-                    },
-                },
-            },
-        }
-    )
-    config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["street_name"][
-        NOISE_TYPES.make_phonetic_errors.name
-    ]
-    df = pd.DataFrame({"street_name": data})
+@pytest.mark.parametrize(
+    "pair",
+    PHONETIC_STRESS_TEST_PATHWAYS.items(),
+)
+def test_phonetic_error_values(pair, fuzzy_checker: FuzzyChecker):
+    string, pathways = pair
+
+    data = pd.Series([string] * 100_000, name="column")
+    cell_probability = 0.9
+    token_probability = 0.3
+    config = {
+        Keys.CELL_PROBABILITY: cell_probability,
+        Keys.TOKEN_PROBABILITY: token_probability,
+    }
+    df = pd.DataFrame({"column": data})
     noised_data = NOISE_TYPES.make_phonetic_errors(
-        df, config, RANDOMNESS0, "dataset", "street_name"
+        df, config, RANDOMNESS0, "dataset", "column"
     )
 
-    for key in phonetic_errors.index:
-        key_idx = data.index[data == key]
-        noised_values = set(noised_data.loc[key_idx])
-        pho_error_values = set(phonetic_errors.loc[key]) - set([None])
-        assert noised_values == pho_error_values
+    assert noised_data.isin(
+        pathways.keys()
+    ).all(), f"Unexpected results for {string}: {set(noised_data) - set(pathways.keys())}"
+    for result, (num_noised, num_not_noised) in pathways.items():
+        pathway_probability = (
+            token_probability**num_noised * (1 - token_probability) ** num_not_noised
+        )
+        probability = pathway_probability * cell_probability
+        if result == string:
+            # If cell is not selected, we end up with this result
+            probability += 1 - cell_probability
 
-    assert (data != noised_data).all()
+        fuzzy_checker.fuzzy_assert_proportion(
+            name="test_phonetic_error_values",
+            observed_numerator=(noised_data == result).sum(),
+            observed_denominator=len(data),
+            target_proportion=probability,
+            name_additional=f"result {result} from string {string}",
+        )
 
 
-@pytest.mark.xfail
-# This is xfail due to a known bug in _corrupt_tokens function
 @pytest.mark.parametrize(
     "column",
     [
         "numbers",
-        # "characters",
+        "characters",
+        "first_name",
+        "last_name",
+        "ocr_stress_test",
     ],
 )
 def test_generate_ocr_errors(dummy_dataset, column, fuzzy_checker: FuzzyChecker):
@@ -951,15 +1117,19 @@ def test_generate_ocr_errors(dummy_dataset, column, fuzzy_checker: FuzzyChecker)
     cell_probability = config[Keys.CELL_PROBABILITY]
     # We need to calculate the expected noise. We need to get the average number of tokens per string
     # that can be noised since not all tokens can be noised for OCR errors.
-    # Remember our data for numbers is a repeating list 0-19 and for characters is a repeating list of
-    character_series = pd.Series(CHARACTERS_LIST)
-    number_series = pd.Series(list(range(1000)))
+    if column == "first_name":
+        equally_likely_values = pd.Series(FIRST_NAMES)
+    elif column == "last_name":
+        equally_likely_values = pd.Series(LAST_NAMES)
+    elif column == "characters":
+        equally_likely_values = pd.Series(CHARACTERS_LIST)
+    elif column == "numbers":
+        equally_likely_values = pd.Series(INTEGERS_LIST).astype(str)
+    elif column == "ocr_stress_test":
+        equally_likely_values = pd.Series(OCR_STRESS_TEST_LIST)
+
     ocr_tokens = pd.Series(load_ocr_errors().index)
-    token_per_string_mapper = {
-        "characters": number_of_tokens_per_string(ocr_tokens, character_series),
-        "numbers": number_of_tokens_per_string(ocr_tokens, number_series),
-    }
-    tokens_per_string = token_per_string_mapper[column]
+    tokens_per_string = number_of_tokens_per_string(ocr_tokens, equally_likely_values)
     avg_probability_any_token_noised = (
         1 - (1 - token_probability) ** tokens_per_string
     ).mean()
@@ -975,42 +1145,42 @@ def test_generate_ocr_errors(dummy_dataset, column, fuzzy_checker: FuzzyChecker)
     )
 
 
-def test_ocr_replacement_values():
-    # Test that OCR noising replaces truth value with correct error values
-    # Load OCR errors dict
-    ocr_errors = load_ocr_errors()
-    # Is there an intelligent numberto pick besides 10?
-    data = pd.Series(list(ocr_errors.index) * 10, name="employer_name")
-    df = pd.DataFrame({"employer_name": data})
-    config = get_configuration()
-    config.update(
-        {
-            DATASETS.census.name: {
-                Keys.COLUMN_NOISE: {
-                    "employer_name": {
-                        NOISE_TYPES.make_ocr_errors.name: {
-                            Keys.CELL_PROBABILITY: 1.0,
-                            Keys.TOKEN_PROBABILITY: 1.0,
-                        },
-                    },
-                },
-            },
-        }
-    )
-    config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["employer_name"][
-        NOISE_TYPES.make_ocr_errors.name
-    ]
-    noised_data = NOISE_TYPES.make_ocr_errors(
-        df, config, RANDOMNESS0, "dataset", "employer_name"
-    )
+@pytest.mark.parametrize(
+    "pair",
+    OCR_STRESS_TEST_PATHWAYS.items(),
+)
+def test_ocr_replacement_values(pair, fuzzy_checker: FuzzyChecker):
+    string, pathways = pair
 
-    for key in ocr_errors.index:
-        key_idx = data.index[data == key]
-        noised_values = set(noised_data.loc[key_idx])
-        ocr_error_values = set(ocr_errors.loc[key]) - set([None])
-        assert noised_values == ocr_error_values
+    data = pd.Series([string] * 100_000, name="column")
+    cell_probability = 0.9
+    token_probability = 0.3
+    config = {
+        Keys.CELL_PROBABILITY: cell_probability,
+        Keys.TOKEN_PROBABILITY: token_probability,
+    }
+    df = pd.DataFrame({"column": data})
+    noised_data = NOISE_TYPES.make_ocr_errors(df, config, RANDOMNESS0, "dataset", "column")
 
-    assert (data != noised_data).all()
+    assert noised_data.isin(
+        pathways.keys()
+    ).all(), f"Unexpected results for {string}: {set(noised_data) - set(pathways.keys())}"
+    for result, (num_noised, num_not_noised) in pathways.items():
+        pathway_probability = (
+            token_probability**num_noised * (1 - token_probability) ** num_not_noised
+        )
+        probability = pathway_probability * cell_probability
+        if result == string:
+            # If cell is not selected, we end up with this result
+            probability += 1 - cell_probability
+
+        fuzzy_checker.fuzzy_assert_proportion(
+            name="test_ocr_replacement_values",
+            observed_numerator=(noised_data == result).sum(),
+            observed_denominator=len(data),
+            target_proportion=probability,
+            name_additional=f"result {result} from string {string}",
+        )
 
 
 @pytest.mark.parametrize(
@@ -1206,6 +1376,17 @@ def number_of_tokens_per_string(s1, s2):
         orig_token = str(token)
         for s in s2:
             string = str(s)
-            number_of_tokens.loc[string] += string.count(orig_token)
+            number_of_tokens.loc[string] += occurrences(string, orig_token)
 
     return number_of_tokens
+
+
+# https://stackoverflow.com/a/2970542/
+def occurrences(string, sub):
+    count = start = 0
+    while True:
+        start = string.find(sub, start) + 1
+        if start > 0:
+            count += 1
+        else:
+            return count
