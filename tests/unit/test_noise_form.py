@@ -178,10 +178,10 @@ def test_noise_order(mocker, dummy_data, dataset):
         for noise_type in NOISE_TYPES._fields
         if noise_type
         in [
+            NOISE_TYPES.duplicate_with_guardian.name,
             NOISE_TYPES.do_not_respond.name,
             NOISE_TYPES.omit_row.name,
             "duplicate_row",
-            NOISE_TYPES.duplicate_with_guardian.name,
         ]
     ]
     column_order = [
@@ -315,7 +315,6 @@ def test_two_noise_functions_are_independent(mocker, fuzzy_checker: FuzzyChecker
     col2_expected_123_proportion = (
         config_tree.decennial_census.column_noise.fake_column_two.beta[Keys.CELL_PROBABILITY]
     )
-
     fuzzy_checker.fuzzy_assert_proportion(
         name="fake_column_one_abc_proportion",
         observed_numerator=noised_data["fake_column_one"].str.contains("abc").sum(),

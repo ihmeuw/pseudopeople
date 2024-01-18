@@ -16,10 +16,6 @@ class __NoiseTypes(NamedTuple):
     in the "baseline" ConfigTree layer.
     """
 
-    do_not_respond: RowNoiseType = RowNoiseType(
-        "do_not_respond", noise_functions.apply_do_not_respond
-    )
-    omit_row: RowNoiseType = RowNoiseType("omit_row", noise_functions.omit_rows)
     duplicate_with_guardian: RowNoiseType = RowNoiseType(
         "duplicate_with_guardian",
         noise_function=noise_functions.duplicate_with_guardian,
@@ -29,6 +25,10 @@ class __NoiseTypes(NamedTuple):
             Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: 0.05,
         },
     )
+    do_not_respond: RowNoiseType = RowNoiseType(
+        "do_not_respond", noise_functions.apply_do_not_respond
+    )
+    omit_row: RowNoiseType = RowNoiseType("omit_row", noise_functions.omit_rows)
     # duplicate_row: RowNoiseType = RowNoiseType("duplicate_row", noise_functions.duplicate_rows)
     leave_blank: ColumnNoiseType = ColumnNoiseType(
         "leave_blank",
