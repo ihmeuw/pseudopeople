@@ -649,7 +649,6 @@ def test_write_wrong_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
     ]
     expected_cell_noise = config[Keys.CELL_PROBABILITY]
     expected_token_noise = config[Keys.TOKEN_PROBABILITY]
-
     data = dummy_dataset[["street_number"]]
     # Note: I changed this column from string_series to street number. It has several string formats
     # containing both numeric and alphabetically string characters.
@@ -1170,7 +1169,6 @@ def test_age_write_wrong_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
     ]
     data = dummy_dataset[["age"]]
     noised_data = NOISE_TYPES.write_wrong_digits(data, config, RANDOMNESS0, "dataset", "age")
-
     # Calculate expected noise level
     data = data.squeeze()
     missing_mask = data == ""
