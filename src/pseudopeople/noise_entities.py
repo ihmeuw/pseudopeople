@@ -21,7 +21,7 @@ class __NoiseTypes(NamedTuple):
         noise_function=noise_functions.duplicate_with_guardian,
         probability=None,
         additional_parameters={
-            Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0.05,
+            Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0.02,
             Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: 0.05,
         },
     )
