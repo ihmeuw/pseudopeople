@@ -50,10 +50,14 @@ if __name__ == "__main__":
         "jupyter",
     ]
 
+    modin_requirements = ["modin"]
+
+    modin_test_engines_requirements = ["ray", "dask"]
+
     test_requirements = [
         "pytest",
         "pytest-mock",
-    ]
+    ] + modin_test_engines_requirements
 
     doc_requirements = [
         "sphinx>=4.0",
@@ -62,8 +66,6 @@ if __name__ == "__main__":
         "IPython",
         "matplotlib",
     ]
-
-    modin_requirements = ["modin"]
 
     setup(
         name=about["__title__"],
