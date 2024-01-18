@@ -829,24 +829,27 @@ def _corrupt_tokens(
     # We proceed by character through all the strings at once
     for i in range(same_len_col_exploded.shape[1]):
         error_introduced = np.zeros(len(column), dtype=bool)
+        assert np.all(next_due >= i)
+        due = next_due == i
+
         # Longer tokens to-be-corrupted take precedence over shorter ones
         for token_length in range(max_token_length, 0, -1):
             if i + token_length > same_len_col_exploded.shape[1]:
                 continue
 
-            due = ~error_introduced & (next_due <= i)
+            can_be_corrupted = ~error_introduced & due
 
             # Is the string already over at this index?
             # If so, we can ignore it.
             # NOTE: From here on, all the boolean arrays are implicitly
-            # cumulative; that is, "long_enough" really means that is
-            # both due *and* long enough. This allows us to short-circuit,
+            # cumulative; that is, "long_enough" really means that it
+            # is due, not already corrupted, *and* long enough. This allows us to short-circuit,
             # e.g. only check the length of strings that are due, and so on.
             long_enough = np.zeros(len(column), dtype=bool)
-            long_enough[due] = i + token_length <= lengths[due]
+            long_enough[can_be_corrupted] = i + token_length <= lengths[can_be_corrupted]
             if long_enough.sum() == 0:
                 continue
-            del due
+            del can_be_corrupted
 
             # Collect the tokens of the given length that start at this index.
             tokens = np.empty(len(column), dtype=f"U{token_length}")
@@ -895,15 +898,16 @@ def _corrupt_tokens(
             )
             result[corrupted, i] = errors_array[errors_array_indices]
             # Will not be due again until we reach the end of this token
-            next_due[corrupted] += token_length
+            next_due[corrupted] = i + token_length
             error_introduced[corrupted] = True
 
         # Strings that are not "due" -- that is, we already corrupted a source
         # token that included the current character index -- do not even need
         # the original character to be added to the result (it was *replaced*
         # by the corrupted token).
-        use_original_char = ~error_introduced & (next_due <= i)
+        use_original_char = ~error_introduced & due
         result[use_original_char, i] = same_len_col_exploded[use_original_char, i]
+        next_due[use_original_char] = i + 1
 
     # "Un-explode" (re-concatenate) each string from its pieces.
     return pd.Series(result.sum(axis=1), index=column.index)
