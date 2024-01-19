@@ -290,7 +290,10 @@ def duplicate_with_guardian(
         noised_data["relationship_to_reference_person"] = "Other relative"
         # Clean columns
         noised_data = noised_data[dataset_data.columns]
-        dataset_data = pd.concat([dataset_data, noised_data]).reset_index()
+        # Fix to help keep optimization code for noise.py
+        index_start_value = dataset_data.index.max() + 1
+        noised_data.index = range(index_start_value, index_start_value + len(noised_data))
+        dataset_data = pd.concat([dataset_data, noised_data])
 
     return dataset_data
 
