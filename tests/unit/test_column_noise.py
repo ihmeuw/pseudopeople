@@ -1048,7 +1048,7 @@ def test_phonetic_error_values(pair, fuzzy_checker: FuzzyChecker):
         Keys.TOKEN_PROBABILITY: token_probability,
     }
     df = pd.DataFrame({"column": data})
-    noised_data = NOISE_TYPES.make_phonetic_errors(
+    noised_data, _ = NOISE_TYPES.make_phonetic_errors(
         df, config, RANDOMNESS0, "dataset", "column"
     )
 
@@ -1159,7 +1159,7 @@ def test_ocr_replacement_values(pair, fuzzy_checker: FuzzyChecker):
         Keys.TOKEN_PROBABILITY: token_probability,
     }
     df = pd.DataFrame({"column": data})
-    noised_data = NOISE_TYPES.make_ocr_errors(df, config, RANDOMNESS0, "dataset", "column")
+    noised_data, _ = NOISE_TYPES.make_ocr_errors(df, config, RANDOMNESS0, "dataset", "column")
 
     assert noised_data.isin(
         pathways.keys()
@@ -1337,7 +1337,7 @@ def test_age_write_wrong_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
         NOISE_TYPES.write_wrong_digits.name
     ]
     data = dummy_dataset[["age"]]
-    noised_data = NOISE_TYPES.write_wrong_digits(data, config, RANDOMNESS0, "dataset", "age")
+    noised_data, _ = NOISE_TYPES.write_wrong_digits(data, config, RANDOMNESS0, "dataset", "age")
     # Calculate expected noise level
     data = data.squeeze()
     missing_mask = data == ""
