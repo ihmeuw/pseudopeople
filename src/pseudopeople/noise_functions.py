@@ -20,9 +20,9 @@ from pseudopeople.noise_scaling import (
 )
 from pseudopeople.utilities import (
     get_index_to_noise,
-    load_qwerty_errors_data,
     load_ocr_errors,
     load_phonetic_errors,
+    load_qwerty_errors_data,
     two_d_array_choice,
     vectorized_choice,
 )

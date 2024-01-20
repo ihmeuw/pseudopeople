@@ -1337,7 +1337,9 @@ def test_age_write_wrong_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
         NOISE_TYPES.write_wrong_digits.name
     ]
     data = dummy_dataset[["age"]]
-    noised_data, _ = NOISE_TYPES.write_wrong_digits(data, config, RANDOMNESS0, "dataset", "age")
+    noised_data, _ = NOISE_TYPES.write_wrong_digits(
+        data, config, RANDOMNESS0, "dataset", "age"
+    )
     # Calculate expected noise level
     data = data.squeeze()
     missing_mask = data == ""
