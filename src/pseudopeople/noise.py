@@ -70,10 +70,14 @@ def noise_dataset(
                     noise_configuration[Keys.ROW_NOISE][noise_type.name],
                     randomness,
                 )
-                missingness = missingness.loc[dataset_data.index.intersection(original_index)].copy()
+                missingness = missingness.loc[
+                    dataset_data.index.intersection(original_index)
+                ].copy()
                 # Check for duplicated rows
                 new_indices = dataset_data.index.difference(original_index)
-                new_missingness = dataset_data.loc[new_indices].isna() | (dataset_data.loc[new_indices] == "")
+                new_missingness = dataset_data.loc[new_indices].isna() | (
+                    dataset_data.loc[new_indices] == ""
+                )
                 missingness = pd.concat([missingness, new_missingness])
 
         elif isinstance(noise_type, ColumnNoiseType):
