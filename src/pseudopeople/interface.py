@@ -298,7 +298,10 @@ def generate_decennial_census(
         user_filters.append(
             (DATASETS.census.state_column_name, "==", get_state_abbreviation(state))
         )
-    return _generate_dataset(DATASETS.census, source, seed, config, user_filters, verbose)
+    # Sort by year and household_id to ensure that the same household's simulants are grouped together.
+    return _generate_dataset(
+        DATASETS.census, source, seed, config, user_filters, verbose
+    ).sort_values(by=[DATASETS.census.date_column_name, COLUMNS.household_id.name])
 
 
 def generate_american_community_survey(
