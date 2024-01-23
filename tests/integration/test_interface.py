@@ -24,10 +24,10 @@ from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Column
 from pseudopeople.utilities import (
     cleanse_integer_columns,
+    count_number_of_tokens_per_string,
     load_ocr_errors,
     load_phonetic_errors,
     load_qwerty_errors_data,
-    number_of_tokens_per_string,
 )
 from tests.conftest import FuzzyChecker
 from tests.integration.conftest import (
@@ -51,17 +51,17 @@ DATASET_GENERATION_FUNCS = {
 
 TOKENS_PER_STRING_MAPPER = {
     NOISE_TYPES.make_ocr_errors.name: partial(
-        number_of_tokens_per_string, pd.Series(load_ocr_errors().index)
+        count_number_of_tokens_per_string, pd.Series(load_ocr_errors().index)
     ),
     NOISE_TYPES.make_phonetic_errors.name: partial(
-        number_of_tokens_per_string,
+        count_number_of_tokens_per_string,
         pd.Series(load_phonetic_errors().index),
     ),
     NOISE_TYPES.write_wrong_digits.name: lambda x: x.astype(str)
     .str.replace(r"[^\d]", "", regex=True)
     .str.len(),
     NOISE_TYPES.make_typos.name: partial(
-        number_of_tokens_per_string, pd.Series(load_qwerty_errors_data().index)
+        count_number_of_tokens_per_string, pd.Series(load_qwerty_errors_data().index)
     ),
 }
 

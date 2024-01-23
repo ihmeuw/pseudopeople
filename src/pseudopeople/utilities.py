@@ -192,17 +192,20 @@ def cleanse_integer_columns(column: pd.Series) -> pd.Series:
     return column
 
 
-def number_of_tokens_per_string(s1, s2):
+def count_number_of_tokens_per_string(s1: pd.Series, s2: pd.Series) -> pd.Series:
     """
     Calculates the number of tokens in each string of a series.
-    s1 is a pd.Series of tokens and we want to see how many tokens exist in each
-    string of s2.
+    s1 is a pd.Series of tokens and we want to count how many tokens exist in each
+    string of s2. That is if s1 were a series of length 2 and s2 were a series of
+    length 1, we would return a series that is length 1 with the total count of
+    s1[0] in s2 and s1[1] in s2.
     """
 
     s2 = s2.astype(str)
     strings = s2.unique()
     tokens_per_string = pd.Series(
-        (sum(occurrences(s, str(token)) for token in s1) for s in strings), index=strings
+        (sum(count_occurrences(s, str(token)) for token in s1) for s in strings),
+        index=strings,
     )
 
     number_of_tokens = s2.map(tokens_per_string)
@@ -211,7 +214,7 @@ def number_of_tokens_per_string(s1, s2):
 
 
 # https://stackoverflow.com/a/2970542/
-def occurrences(string, sub):
+def count_occurrences(string, sub):
     count = start = 0
     while True:
         start = string.find(sub, start) + 1
