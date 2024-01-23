@@ -1,12 +1,16 @@
+import math
 import warnings
+from functools import partial
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import pytest
 from pandas.api.types import is_datetime64_any_dtype as is_datetime
+from vivarium.config_tree import ConfigTree
 
 from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.constants.noise_type_metadata import INT_COLUMNS
 from pseudopeople.interface import (
     generate_american_community_survey,
     generate_current_population_survey,
@@ -17,7 +21,15 @@ from pseudopeople.interface import (
     generate_women_infants_and_children,
 )
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import COLUMNS, DATASETS
+from pseudopeople.schema_entities import COLUMNS, DATASETS, Column
+from pseudopeople.utilities import (
+    cleanse_integer_columns,
+    load_ocr_errors,
+    load_phonetic_errors,
+    load_qwerty_errors_data,
+    number_of_tokens_per_string,
+)
+from tests.conftest import FuzzyChecker
 from tests.integration.conftest import (
     CELL_PROBABILITY,
     IDX_COLS,
@@ -37,6 +49,22 @@ DATASET_GENERATION_FUNCS = {
     DATASETS.tax_1040.name: generate_taxes_1040,
 }
 
+TOKENS_PER_STRING_MAPPER = {
+    NOISE_TYPES.make_ocr_errors.name: partial(
+        number_of_tokens_per_string, pd.Series(load_ocr_errors().index)
+    ),
+    NOISE_TYPES.make_phonetic_errors.name: partial(
+        number_of_tokens_per_string,
+        pd.Series(load_phonetic_errors().index),
+    ),
+    NOISE_TYPES.write_wrong_digits.name: lambda x: x.astype(str)
+    .str.replace(r"[^\d]", "", regex=True)
+    .str.len(),
+    NOISE_TYPES.make_typos.name: partial(
+        number_of_tokens_per_string, pd.Series(load_qwerty_errors_data().index)
+    ),
+}
+
 
 @pytest.mark.parametrize(
     "dataset_name",
@@ -51,7 +79,12 @@ DATASET_GENERATION_FUNCS = {
     ],
 )
 def test_generate_dataset_from_sample_and_source(
-    dataset_name: str, config, request, split_sample_data_dir, mocker
+    dataset_name: str,
+    config,
+    request,
+    split_sample_data_dir,
+    mocker,
+    fuzzy_checker: FuzzyChecker,
 ):
     """Tests that the amount of noising is approximately the same whether we
     noise a single sample dataset or we concatenate and noise multiple datasets
@@ -78,53 +111,71 @@ def test_generate_dataset_from_sample_and_source(
     assert noised_dataset.columns.equals(noised_sample.columns)
 
     # Check that each columns level of noising are similar
-    idx_cols = IDX_COLS.get(dataset_name)
-    check_original = data.set_index(idx_cols)
-    check_noised_sample = noised_sample.set_index(idx_cols)
-    check_noised_dataset = noised_dataset.set_index(idx_cols)
-    shared_idx_sample = pd.Index(
-        set(check_noised_sample.index).intersection(set(check_original.index))
+    check_noised_sample, check_original_sample, shared_sample_idx = _get_common_datasets(
+        dataset_name, data, noised_sample
     )
-    shared_idx_dataset = pd.Index(
-        set(check_noised_dataset.index).intersection(set(check_original.index))
+    check_noised_dataset, check_original_dataset, shared_dataset_idx = _get_common_datasets(
+        dataset_name, data, noised_dataset
     )
-    for col in check_noised_dataset.columns:
-        original_missing_idx = check_original.index[check_original[col].isna()]
-        both_missing_sample_idx = check_noised_sample.index[
-            check_noised_sample[col].isna()
-        ].intersection(original_missing_idx)
-        both_missing_dataset_idx = check_noised_dataset.index[
-            check_noised_dataset[col].isna()
-        ].intersection(original_missing_idx)
-        compare_sample_idx = shared_idx_sample.difference(both_missing_sample_idx)
-        compare_dataset_idx = shared_idx_dataset.difference(both_missing_dataset_idx)
-        noise_level_single_dataset = (
-            check_original.loc[compare_sample_idx, col].values
-            != check_noised_sample.loc[compare_sample_idx, col].values
-        ).mean()
-        noise_level_full_dataset = (
-            check_original.loc[compare_dataset_idx, col].values
-            != check_noised_dataset.loc[compare_dataset_idx, col].values
-        ).mean()
-        # If the dataset is very small and/or missingness is very high, we can't
-        # meaningfully compare because the stochastic variation is so great
-        # As of 8/31/2023, this only skips unit_number (very missing) in the
-        # ACS and CPS datasets (very small)
-        if len(compare_sample_idx) < 30 or len(compare_dataset_idx) < 30:
-            warnings.warn(
-                f"Noise levels in {col} of {dataset_name} were not compared because the numbers of rows eligible "
-                f"for noise were only {len(compare_sample_idx)} and {len(compare_dataset_idx)}"
+
+    config = get_configuration(config)
+    for col_name in check_noised_sample.columns:
+        col = COLUMNS.get_column(col_name)
+
+        # Check that originally missing data remained missing
+        originally_missing_sample_idx = check_original_sample.index[
+            check_original_sample[col.name].isna()
+        ]
+        originally_missing_dataset_idx = check_original_dataset.index[
+            check_original_dataset[col.name].isna()
+        ]
+        assert check_noised_sample.loc[originally_missing_sample_idx, col.name].isna().all()
+        assert check_noised_dataset.loc[originally_missing_dataset_idx, col.name].isna().all()
+
+        # Check for noising where applicable
+        to_compare_sample_idx = shared_sample_idx.difference(originally_missing_sample_idx)
+        to_compare_dataset_idx = shared_dataset_idx.difference(originally_missing_dataset_idx)
+        if col.noise_types:
+            # Note: Coercing check_original to string. This seems like it should not
+            # have passed before but our rtol was 0.7
+            if col.name in INT_COLUMNS:
+                check_original_sample[col.name] = cleanse_integer_columns(
+                    check_original_sample[col.name]
+                )
+                check_original_dataset[col.name] = cleanse_integer_columns(
+                    check_original_dataset[col.name]
+                )
+
+            noise_level_sample = (
+                check_original_sample.loc[to_compare_sample_idx, col.name].values
+                != check_noised_sample.loc[to_compare_sample_idx, col.name].values
+            ).sum()
+            noise_level_dataset = (
+                check_original_dataset.loc[to_compare_dataset_idx, col.name].values
+                != check_noised_dataset.loc[to_compare_dataset_idx, col.name].values
+            ).sum()
+
+            # Validate column noise level
+            _validate_column_noise_level(
+                dataset_name=dataset_name,
+                check_data=check_original_sample,
+                check_idx=to_compare_sample_idx,
+                noise_level=noise_level_sample,
+                col=col,
+                config=config,
+                fuzzy_name="test_generate_dataset_from_sample_and_source_sample",
+                validator=fuzzy_checker,
             )
-            continue
-        if dataset_name == DATASETS.acs.name or dataset_name == DATASETS.cps.name:
-            # Smaller datasets
-            rtol = 0.25
-        # 1040 has several columns that will have a high percentage of nans
-        elif dataset_name == DATASETS.tax_1040.name:
-            rtol = 0.35
-        else:
-            rtol = 0.15
-        assert np.isclose(noise_level_full_dataset, noise_level_single_dataset, rtol=rtol)
+            _validate_column_noise_level(
+                dataset_name=dataset_name,
+                check_data=check_original_dataset,
+                check_idx=to_compare_dataset_idx,
+                noise_level=noise_level_dataset,
+                col=col,
+                config=config,
+                fuzzy_name="test_generate_dataset_from_sample_and_source_split_dataset",
+                validator=fuzzy_checker,
+            )
 
 
 @pytest.mark.parametrize(
@@ -183,7 +234,6 @@ def test_column_dtypes(dataset_name: str, request):
         assert noised_data[col.name].dtype == expected_dtype
 
 
-@pytest.mark.skip(reason="Rtol is too high and need to find a way to accurately test this.")
 @pytest.mark.parametrize(
     "dataset_name",
     [
@@ -196,7 +246,7 @@ def test_column_dtypes(dataset_name: str, request):
         DATASETS.tax_1040.name,
     ],
 )
-def test_column_noising(dataset_name: str, config, request):
+def test_column_noising(dataset_name: str, config, request, fuzzy_checker: FuzzyChecker):
     """Tests that columns are noised as expected"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -205,6 +255,7 @@ def test_column_noising(dataset_name: str, config, request):
     check_noised, check_original, shared_idx = _get_common_datasets(
         dataset_name, data, noised_data
     )
+
     config = get_configuration(config)
     for col_name in check_noised.columns:
         col = COLUMNS.get_column(col_name)
@@ -216,6 +267,10 @@ def test_column_noising(dataset_name: str, config, request):
         # Check for noising where applicable
         to_compare_idx = shared_idx.difference(originally_missing_idx)
         if col.noise_types:
+            # Note: Coercing check_original to string. This seems like it should not
+            # have passed before but our rtol was 0.7
+            if col.name in INT_COLUMNS:
+                check_original[col.name] = cleanse_integer_columns(check_original[col.name])
             assert (
                 check_original.loc[to_compare_idx, col.name].values
                 != check_noised.loc[to_compare_idx, col.name].values
@@ -224,20 +279,19 @@ def test_column_noising(dataset_name: str, config, request):
             noise_level = (
                 check_original.loc[to_compare_idx, col.name].values
                 != check_noised.loc[to_compare_idx, col.name].values
-            ).mean()
+            ).sum()
 
-            # Check that the amount of noising seems reasonable
-            tmp_config = config[dataset_name][Keys.COLUMN_NOISE][col.name]
-            includes_token_noising = [
-                c for c in tmp_config if Keys.TOKEN_PROBABILITY in tmp_config[c].keys()
-            ]
-            # TODO [MIC-4052]: Come up with a more accurate values. There are token probabilities
-            # and additional parameters to consider as well as the rtol when the
-            # number of compared is small.
-            expected_noise = 1 - (1 - CELL_PROBABILITY) ** len(col.noise_types)
-            # Setting rtol as 0.25 as upper limit
-            rtol = 0.70 if includes_token_noising else 0.30
-            assert np.isclose(noise_level, expected_noise, rtol=rtol)
+            # Validate column noise level
+            _validate_column_noise_level(
+                dataset_name=dataset_name,
+                check_data=check_original,
+                check_idx=to_compare_idx,
+                noise_level=noise_level,
+                col=col,
+                config=config,
+                fuzzy_name="test_column_noising",
+                validator=fuzzy_checker,
+            )
         else:  # No noising - should be identical
             assert (
                 check_original.loc[to_compare_idx, col.name].values
@@ -586,3 +640,65 @@ def _mock_noise_dataset(
 ):
     """Mock noise_dataset that just returns unnoised data"""
     return dataset_data
+
+
+def _validate_column_noise_level(
+    dataset_name: str,
+    check_data: pd.DataFrame,
+    check_idx: pd.Index,
+    noise_level: float,
+    col: Column,
+    config: ConfigTree,
+    fuzzy_name: str,
+    validator: FuzzyChecker,
+):
+    # Check that the amount of noising seems reasonable
+    tmp_config = config[dataset_name][Keys.COLUMN_NOISE][col.name]
+    includes_token_noising = [
+        c
+        for c in tmp_config
+        for k in [Keys.TOKEN_PROBABILITY, Keys.ZIPCODE_DIGIT_PROBABILITIES]
+        if k in tmp_config[c].keys()
+    ]
+
+    # Calculate expected noise (target proportion for fuzzy checker)
+    not_noised = 1
+    for col_noise_type in col.noise_types:
+        if col_noise_type.name not in includes_token_noising:
+            not_noised = not_noised * (1 - CELL_PROBABILITY)
+        else:
+            token_probability_key = {
+                NOISE_TYPES.write_wrong_zipcode_digits.name: Keys.ZIPCODE_DIGIT_PROBABILITIES,
+            }.get(col_noise_type.name, Keys.TOKEN_PROBABILITY)
+            token_probability = tmp_config[col_noise_type.name][token_probability_key]
+            # Get number of tokens per string to calculate expected proportion
+            tokens_per_string_getter = TOKENS_PER_STRING_MAPPER.get(
+                col_noise_type.name, lambda x: x.astype(str).str.len()
+            )
+            tokens_per_string = tokens_per_string_getter(check_data.loc[check_idx, col.name])
+
+            # Calculate probability no token is noised
+            if col_noise_type.name == NOISE_TYPES.write_wrong_zipcode_digits.name:
+                # Calculate write wrong zipcode average digits probability any token is noise
+                avg_probability_any_token_noised = 1 - math.prod(
+                    [1 - p for p in token_probability]
+                )
+            else:
+                avg_probability_any_token_noised = (
+                    1 - (1 - token_probability) ** tokens_per_string
+                ).mean()
+
+            # This is accumulating not_noised over all noise types
+            not_noised = not_noised * (
+                1 - avg_probability_any_token_noised * CELL_PROBABILITY
+            )
+
+    expected_noise = 1 - not_noised
+    # Fuzzy checker
+    validator.fuzzy_assert_proportion(
+        name=fuzzy_name,
+        observed_numerator=noise_level,
+        observed_denominator=len(check_data.loc[check_idx, col.name]),
+        target_proportion=expected_noise,
+        name_additional=f"{dataset_name}_{col.name}_{col_noise_type.name}",
+    )
