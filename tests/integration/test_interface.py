@@ -654,7 +654,7 @@ def _validate_column_noise_level(
 ):
     """
     This helper function iterates through all column noise types for a particular column
-    and calculates the expected noise level for each. It then accumulates the expected 
+    and calculates the expected noise level for each. It then accumulates the expected
     noise level as we layer more noise types on top of each other.
     """
     tmp_config = config[dataset_name][Keys.COLUMN_NOISE][col.name]
