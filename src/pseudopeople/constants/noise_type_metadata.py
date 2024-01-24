@@ -27,3 +27,14 @@ COPY_HOUSEHOLD_MEMBER_COLS = {
 
 
 INT_COLUMNS = ["age", "wages", "mailing_address_po_box"]
+
+
+HOUSING_TYPE_GUARDIAN_DUPLICATION_RELATONSHIP_MAP = {
+    "Carceral": "Institutionalized group quarters population",
+    "Nursing home": "Institutionalized group quarters population",
+    "Other institutional": "Institutionalized group quarters population",
+    "College": "Noninstitutionalized group quarters population",
+    "Military": "Noninstitutionalized group quarters population",
+    "Other noninstitutional": "Noninstitutionalized group quarters population",
+    "Household": "Other relative",
+}
