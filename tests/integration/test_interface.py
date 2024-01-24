@@ -136,6 +136,28 @@ def test_generate_dataset_from_sample_and_source(
                 common_idx=shared_dataset_idx,
             )
 
+            # Validate noise for each data object
+            _validate_column_noise_level(
+                dataset_name=dataset_name,
+                check_data=check_original_sample,
+                check_idx=to_compare_sample_idx,
+                noise_level=noise_level_sample,
+                col=col,
+                config=config,
+                fuzzy_name="test_generate_dataset_from_sample_and_source_sample",
+                validator=fuzzy_checker,
+            )
+            _validate_column_noise_level(
+                dataset_name=dataset_name,
+                check_data=check_original_dataset,
+                check_idx=to_compare_dataset_idx,
+                noise_level=noise_level_dataset,
+                col=col,
+                config=config,
+                fuzzy_name="test_generate_dataset_from_sample_and_source_dataset",
+                validator=fuzzy_checker,
+            )
+
             expected_noise_level_sample = noise_level_sample / len(to_compare_sample_idx)
             fuzzy_checker.fuzzy_assert_proportion(
                 name="test_generate_dataset_from_sample_and_source_sample",
