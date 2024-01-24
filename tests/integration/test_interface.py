@@ -2,6 +2,7 @@ import math
 import warnings
 from functools import partial
 from pathlib import Path
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -121,60 +122,27 @@ def test_generate_dataset_from_sample_and_source(
     config = get_configuration(config)
     for col_name in check_noised_sample.columns:
         col = COLUMNS.get_column(col_name)
-
-        # Check that originally missing data remained missing
-        originally_missing_sample_idx = check_original_sample.index[
-            check_original_sample[col.name].isna()
-        ]
-        originally_missing_dataset_idx = check_original_dataset.index[
-            check_original_dataset[col.name].isna()
-        ]
-        assert check_noised_sample.loc[originally_missing_sample_idx, col.name].isna().all()
-        assert check_noised_dataset.loc[originally_missing_dataset_idx, col.name].isna().all()
-
-        # Check for noising where applicable
-        to_compare_sample_idx = shared_sample_idx.difference(originally_missing_sample_idx)
-        to_compare_dataset_idx = shared_dataset_idx.difference(originally_missing_dataset_idx)
         if col.noise_types:
-            # Note: Coercing check_original to string. This seems like it should not
-            # have passed before but our rtol was 0.7
-            if col.name in INT_COLUMNS:
-                check_original_sample[col.name] = cleanse_integer_columns(
-                    check_original_sample[col.name]
-                )
-                check_original_dataset[col.name] = cleanse_integer_columns(
-                    check_original_dataset[col.name]
-                )
-
-            noise_level_sample = (
-                check_original_sample.loc[to_compare_sample_idx, col.name].values
-                != check_noised_sample.loc[to_compare_sample_idx, col.name].values
-            ).sum()
-            noise_level_dataset = (
-                check_original_dataset.loc[to_compare_dataset_idx, col.name].values
-                != check_noised_dataset.loc[to_compare_dataset_idx, col.name].values
-            ).sum()
-
-            # Validate column noise level
-            _validate_column_noise_level(
-                dataset_name=dataset_name,
-                check_data=check_original_sample,
-                check_idx=to_compare_sample_idx,
-                noise_level=noise_level_sample,
-                col=col,
-                config=config,
-                fuzzy_name="test_generate_dataset_from_sample_and_source_sample",
-                validator=fuzzy_checker,
+            noise_level_sample, to_compare_sample_idx = _get_column_noise_level(
+                column=col,
+                noised_data=check_noised_sample,
+                unnoised_data=check_original_sample,
+                common_idx=shared_sample_idx,
             )
-            _validate_column_noise_level(
-                dataset_name=dataset_name,
-                check_data=check_original_dataset,
-                check_idx=to_compare_dataset_idx,
-                noise_level=noise_level_dataset,
-                col=col,
-                config=config,
-                fuzzy_name="test_generate_dataset_from_sample_and_source_split_dataset",
-                validator=fuzzy_checker,
+            noise_level_dataset, to_compare_dataset_idx = _get_column_noise_level(
+                column=col,
+                noised_data=check_noised_dataset,
+                unnoised_data=check_original_dataset,
+                common_idx=shared_dataset_idx,
+            )
+
+            expected_noise_level_sample = noise_level_sample / len(to_compare_sample_idx)
+            fuzzy_checker.fuzzy_assert_proportion(
+                name="test_generate_dataset_from_sample_and_source_sample",
+                observed_numerator=noise_level_dataset,
+                observed_denominator=len(to_compare_dataset_idx),
+                target_proportion=expected_noise_level_sample,
+                name_additional=f"{dataset_name}_{col_name}",
             )
 
 
@@ -706,3 +674,30 @@ def _validate_column_noise_level(
         target_proportion=expected_noise,
         name_additional=f"{dataset_name}_{col.name}_{col_noise_type.name}",
     )
+
+
+def _get_column_noise_level(
+    column: Column,
+    noised_data: pd.DataFrame,
+    unnoised_data: pd.DataFrame,
+    common_idx: pd.Index,
+) -> Tuple[float, pd.Index]:
+
+    # Check that originally missing data remained missing
+    originally_missing_sample_idx = unnoised_data.index[unnoised_data[column.name].isna()]
+
+    assert noised_data.loc[originally_missing_sample_idx, column.name].isna().all()
+
+    # Check for noising where applicable
+    to_compare_sample_idx = common_idx.difference(originally_missing_sample_idx)
+    # Note: Coercing check_original to string. This seems like it should not
+    # have passed before but our rtol was 0.7
+    if column.name in INT_COLUMNS:
+        unnoised_data[column.name] = cleanse_integer_columns(unnoised_data[column.name])
+
+    noise_level = (
+        unnoised_data.loc[to_compare_sample_idx, column.name].values
+        != noised_data.loc[to_compare_sample_idx, column.name].values
+    ).sum()
+
+    return noise_level, to_compare_sample_idx
