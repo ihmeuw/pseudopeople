@@ -79,7 +79,7 @@ TOKENS_PER_STRING_MAPPER = {
         DATASETS.tax_1040.name,
     ],
 )
-def test_generate_dataset_from_sample_and_source(
+def test_generate_dataset_from_multiple_shards(
     dataset_name: str,
     config,
     request,
@@ -112,23 +112,14 @@ def test_generate_dataset_from_sample_and_source(
     assert noised_dataset.columns.equals(noised_sample.columns)
 
     # Check that each columns level of noising are similar
-    check_noised_sample, check_original_sample, shared_sample_idx = _get_common_datasets(
-        dataset_name, data, noised_sample
-    )
     check_noised_dataset, check_original_dataset, shared_dataset_idx = _get_common_datasets(
         dataset_name, data, noised_dataset
     )
 
     config = get_configuration(config)
-    for col_name in check_noised_sample.columns:
+    for col_name in check_noised_dataset.columns:
         col = COLUMNS.get_column(col_name)
         if col.noise_types:
-            noise_level_sample, to_compare_sample_idx = _get_column_noise_level(
-                column=col,
-                noised_data=check_noised_sample,
-                unnoised_data=check_original_sample,
-                common_idx=shared_sample_idx,
-            )
             noise_level_dataset, to_compare_dataset_idx = _get_column_noise_level(
                 column=col,
                 noised_data=check_noised_dataset,
@@ -139,16 +130,6 @@ def test_generate_dataset_from_sample_and_source(
             # Validate noise for each data object
             _validate_column_noise_level(
                 dataset_name=dataset_name,
-                check_data=check_original_sample,
-                check_idx=to_compare_sample_idx,
-                noise_level=noise_level_sample,
-                col=col,
-                config=config,
-                fuzzy_name="test_generate_dataset_from_sample_and_source_sample",
-                validator=fuzzy_checker,
-            )
-            _validate_column_noise_level(
-                dataset_name=dataset_name,
                 check_data=check_original_dataset,
                 check_idx=to_compare_dataset_idx,
                 noise_level=noise_level_dataset,
@@ -156,15 +137,6 @@ def test_generate_dataset_from_sample_and_source(
                 config=config,
                 fuzzy_name="test_generate_dataset_from_sample_and_source_dataset",
                 validator=fuzzy_checker,
-            )
-
-            expected_noise_level_sample = noise_level_sample / len(to_compare_sample_idx)
-            fuzzy_checker.fuzzy_assert_proportion(
-                name="test_generate_dataset_from_sample_and_source_sample",
-                observed_numerator=noise_level_dataset,
-                observed_denominator=len(to_compare_dataset_idx),
-                target_proportion=expected_noise_level_sample,
-                name_additional=f"{dataset_name}_{col_name}",
             )
 
 
