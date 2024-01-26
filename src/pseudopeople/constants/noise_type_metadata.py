@@ -26,4 +26,4 @@ COPY_HOUSEHOLD_MEMBER_COLS = {
 }
 
 
-INT_COLUMNS = ["age", "wages", "mailing_po_box"]
+INT_COLUMNS = ["age", "wages", "mailing_address_po_box"]
