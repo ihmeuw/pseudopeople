@@ -11,7 +11,11 @@ from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COL
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS
-from pseudopeople.utilities import load_ocr_errors, load_phonetic_errors
+from pseudopeople.utilities import (
+    load_ocr_errors,
+    load_phonetic_errors,
+    load_qwerty_errors_data,
+)
 from tests.conftest import FuzzyChecker
 
 RANDOMNESS0 = RandomnessStream(
@@ -1234,11 +1238,15 @@ def test_make_typos(dummy_dataset, column, fuzzy_checker: FuzzyChecker):
     # Check for expected noise level
     cell_probability = config[Keys.CELL_PROBABILITY]
     token_probability = config[Keys.TOKEN_PROBABILITY]
-    str_lengths = check_original.str.len()  # pd.Series
-    p_token_not_noised = 1 - token_probability
-    p_strings_not_noised = p_token_not_noised**str_lengths  # pd.Series
-    avg_probability_strings_noised = (1 - p_strings_not_noised).mean()
-    expected_noise = cell_probability * avg_probability_strings_noised
+    qwerty_tokens = pd.Series(load_qwerty_errors_data().index)
+    data_series = (
+        pd.Series(INTEGERS_LIST) if column == "numbers" else pd.Series(CHARACTERS_LIST)
+    )
+    tokens_per_string = number_of_tokens_per_string(qwerty_tokens, data_series)
+    avg_probability_any_token_noised = (
+        1 - (1 - token_probability) ** tokens_per_string
+    ).mean()
+    expected_noise = cell_probability * avg_probability_any_token_noised
     actual_noise = (check_noised != check_original).sum()
     fuzzy_checker.fuzzy_assert_proportion(
         name="make_typos",
@@ -1253,7 +1261,7 @@ def test_make_typos(dummy_dataset, column, fuzzy_checker: FuzzyChecker):
     p_include_original_token = 0.1
     p_token_does_not_increase_string_length = 1 - token_probability * p_include_original_token
     p_strings_do_not_increase_length = (
-        p_token_does_not_increase_string_length**str_lengths
+        p_token_does_not_increase_string_length**tokens_per_string
     )  # pd.Series
     p_strings_increase_length = (1 - p_strings_do_not_increase_length).mean()
     expected_changed_length = cell_probability * p_strings_increase_length
