@@ -298,7 +298,6 @@ def generate_decennial_census(
         user_filters.append(
             (DATASETS.census.state_column_name, "==", get_state_abbreviation(state))
         )
-    # Sort by year and household_id to ensure that the same household's simulants are grouped together.
     return _generate_dataset(DATASETS.census, source, seed, config, user_filters, verbose)
 
 
