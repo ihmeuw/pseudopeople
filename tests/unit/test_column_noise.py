@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -442,7 +444,8 @@ def test_write_wrong_zipcode_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
     ]
 
     # Get configuration values for each piece of 5 digit zipcode
-    probability = config[Keys.CELL_PROBABILITY]
+    cell_probability = config[Keys.CELL_PROBABILITY]
+    token_probability = config[Keys.ZIPCODE_DIGIT_PROBABILITIES]
     data = dummy_dataset[["zipcode"]]
     noised_data, _ = NOISE_TYPES.write_wrong_zipcode_digits(
         data, config, RANDOMNESS0, "dataset", "zipcode"
@@ -456,13 +459,25 @@ def test_write_wrong_zipcode_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
     for i in range(5):
         digit_prob = config["digit_probabilities"][i]
         actual_noise = (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).sum()
-        expected_noise = digit_prob * probability
+        expected_noise = digit_prob * cell_probability
         fuzzy_checker.fuzzy_assert_proportion(
             name="write_wrong_zipcode_digits",
             observed_numerator=actual_noise,
             observed_denominator=len(data[~orig_missing]),
             target_proportion=expected_noise,
         )
+
+    # Validate whole column at once
+    actual_noise = (data[~orig_missing] != noised_data[~orig_missing]).sum()
+    avg_probability_any_token_noised = 1 - math.prod([1 - p for p in token_probability])
+    probability_not_noised = 1 - avg_probability_any_token_noised * cell_probability
+    exepected_noised = 1 - probability_not_noised
+    fuzzy_checker.fuzzy_assert_proportion(
+        name="write_wrong_zipcode_digits_series",
+        observed_numerator=actual_noise,
+        observed_denominator=len(data[~orig_missing]),
+        target_proportion=exepected_noised,
+    )
 
 
 def test_miswrite_ages_default_config(dummy_dataset, fuzzy_checker: FuzzyChecker):
