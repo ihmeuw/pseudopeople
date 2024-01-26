@@ -11,6 +11,7 @@ from pseudopeople.constants.noise_type_metadata import (
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.noise_functions import _get_census_omission_noise_levels
 from pseudopeople.schema_entities import DATASETS
+from tests.conftest import FuzzyChecker
 
 RANDOMNESS = RandomnessStream(
     key="test_row_noise",
@@ -39,7 +40,7 @@ def dummy_data():
     )
 
 
-def test_omit_row(dummy_data):
+def test_omit_row(dummy_data, fuzzy_checker: FuzzyChecker):
     config = get_configuration()[DATASETS.tax_w2_1099.name][Keys.ROW_NOISE][
         NOISE_TYPES.omit_row.name
     ]
@@ -47,12 +48,17 @@ def test_omit_row(dummy_data):
     noised_data1 = NOISE_TYPES.omit_row(dataset_name_1, dummy_data, config, RANDOMNESS)
 
     expected_noise_1 = config[Keys.ROW_PROBABILITY]
-    assert np.isclose(1 - len(noised_data1) / len(dummy_data), expected_noise_1, rtol=0.02)
+    fuzzy_checker.fuzzy_assert_proportion(
+        name="test_omit_row",
+        observed_numerator=len(noised_data1),
+        observed_denominator=len(dummy_data),
+        target_proportion=1 - expected_noise_1,
+    )
     assert set(noised_data1.columns) == set(dummy_data.columns)
     assert (noised_data1.dtypes == dummy_data.dtypes).all()
 
 
-def test_do_not_respond(mocker, dummy_data):
+def test_do_not_respond(mocker, dummy_data, fuzzy_checker: FuzzyChecker):
     config = get_configuration()[DATASETS.census.name][Keys.ROW_NOISE][
         NOISE_TYPES.do_not_respond.name
     ]
@@ -74,15 +80,25 @@ def test_do_not_respond(mocker, dummy_data):
     )
 
     # Test that noising affects expected proportion with expected types
-    assert np.isclose(
-        1 - len(noised_data1) / len(my_dummy_data), config[Keys.ROW_PROBABILITY], rtol=0.02
+    fuzzy_checker.fuzzy_assert_proportion(
+        name="test_do_not_respond",
+        observed_numerator=len(my_dummy_data) - len(noised_data1),
+        observed_denominator=len(my_dummy_data),
+        target_proportion=config[Keys.ROW_PROBABILITY],
+        name_additional=f"noised_data1",
     )
     assert set(noised_data1.columns) == set(my_dummy_data.columns)
     assert (noised_data1.dtypes == my_dummy_data.dtypes).all()
 
     # Check ACS data is scaled properly due to oversampling
     expected_noise = 0.5 + config[Keys.ROW_PROBABILITY] / 2
-    assert np.isclose(1 - len(noised_data2) / len(my_dummy_data), expected_noise, rtol=0.02)
+    fuzzy_checker.fuzzy_assert_proportion(
+        name="test_do_not_respond",
+        observed_numerator=len(my_dummy_data) - len(noised_data2),
+        observed_denominator=len(my_dummy_data),
+        target_proportion=expected_noise,
+        name_additional=f"noised_data2",
+    )
     assert set(noised_data2.columns) == set(my_dummy_data.columns)
     assert (noised_data2.dtypes == my_dummy_data.dtypes).all()
     assert len(noised_data1) != len(noised_data2)
