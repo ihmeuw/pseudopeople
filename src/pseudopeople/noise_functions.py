@@ -7,11 +7,12 @@ from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream, get_hash
 
 from pseudopeople.configuration import Keys
-from pseudopeople.constants import data_values, paths
+from pseudopeople.constants import data_values
 from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.constants.noise_type_metadata import (
     COPY_HOUSEHOLD_MEMBER_COLS,
     GUARDIAN_DUPLICATION_ADDRESS_COLUMNS,
+    HOUSING_TYPE_GUARDIAN_DUPLICATION_RELATONSHIP_MAP,
 )
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_scaling import (
@@ -292,7 +293,10 @@ def duplicate_with_guardian(
         return dataset_data
     else:
         noised_data = pd.concat(noised_data)
-        noised_data["relationship_to_reference_person"] = "Other relative"
+        # Update relationship to reference person for duplicated simulants based on housing type
+        noised_data["relationship_to_reference_person"] = noised_data["housing_type"].map(
+            HOUSING_TYPE_GUARDIAN_DUPLICATION_RELATONSHIP_MAP
+        )
         # Clean columns
         noised_data = noised_data[dataset_data.columns]
         # Fix to help keep optimization code for noise.py
