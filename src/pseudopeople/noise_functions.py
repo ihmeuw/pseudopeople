@@ -877,7 +877,7 @@ def _corrupt_tokens(
             eligible = np.zeros(len(column), dtype=bool)
             eligible[long_enough] = (
                 pd.Series(tokens[long_enough])
-                .isin(errors_eligible_tokens[token_length])
+                .isin(errors_eligible_tokens.get(token_length, set()))
                 .values
             )
             if eligible.sum() == 0:

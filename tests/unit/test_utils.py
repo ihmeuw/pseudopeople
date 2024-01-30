@@ -23,6 +23,11 @@ RANDOMNESS0 = RandomnessStream(
 CORRUPT_TOKENS_TEST_CASES = {
     # Possible tokens to noise: abc, ab, a, c
     # Tuples of (token noised, token not noised)
+    # Example: "abc" can be noised to "heybsee". This means "a" becomes "hey"
+    # and "c" becomes "see" which means 2 tokens are noised ("a" and "c") and 2
+    # are not ("abc" and "ab").
+    # If a overlapping token is noised, we proceed with assuming the shorter
+    # token didn't exist.
     "abc": {
         "abc": (0, 4),
         "absee": (1, 3),
@@ -125,6 +130,42 @@ def test__corrupt_tokens(pair, fuzzy_checker: FuzzyChecker):
         observed_denominator=len(data),
         target_proportion=any_token_noised,
     )
+
+
+def test__corrupt_tokens_multiple_options(fuzzy_checker: FuzzyChecker):
+    """
+    Tests that multiple options can be chosen for a token
+    """
+    fake_errors = pd.DataFrame(
+        {
+            "option1": ["def"],
+            "option2": ["ghi"],
+            "option3": ["jkl"],
+        },
+        index=["abc"],
+    )
+    data = pd.Series(["abc"] * 100_000, name="column")
+    token_probability = 0.4
+
+    noised = _corrupt_tokens(
+        errors=fake_errors,
+        column=data,
+        token_probability=token_probability,
+        randomness_stream=RANDOMNESS0,
+        addl_key="test__corrupt_tokens",
+    )
+    strings = ["abc", "def", "ghi", "jkl"]
+    assert (noised.isin(strings)).all()
+
+    for string in strings:
+        proportion = 1 - token_probability if string == "abc" else token_probability / 3
+        fuzzy_checker.fuzzy_assert_proportion(
+            name="test_multiple_options__corruprt_tokens",
+            observed_numerator=(noised == string).sum(),
+            observed_denominator=len(data),
+            target_proportion=proportion,
+            name_additional=f"result {string}",
+        )
 
 
 def test_get_index_to_noise(fuzzy_checker: FuzzyChecker):
