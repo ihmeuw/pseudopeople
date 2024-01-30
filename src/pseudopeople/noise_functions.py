@@ -437,7 +437,7 @@ def write_wrong_zipcode_digits(
         )
 
     rng = np.random.default_rng(
-        get_hash(f"{randomness_stream.seed}_write_wrong_zipcode_digits")
+        get_hash(f"{randomness_stream.seed}_{column_name}_write_wrong_zipcode_digits")
     )
     shape = (len(column), 5)
 
@@ -522,7 +522,7 @@ def write_wrong_digits(
         return column
     # This is a fix to not replacing the original token for noise options
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY] / 0.9
-    rng = np.random.default_rng(get_hash(f"{randomness_stream.seed}_write_wrong_digits"))
+    rng = np.random.default_rng(get_hash(f"{randomness_stream.seed}_{column_name}_write_wrong_digits"))
     column = column.astype(str)
     max_str_length = column.str.len().max()
 
