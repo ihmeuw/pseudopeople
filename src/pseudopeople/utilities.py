@@ -28,7 +28,7 @@ def vectorized_choice(
     randomness_stream: RandomnessStream,
     weights: Union[list, pd.Series] = None,
     additional_key: Any = None,
-) -> pd.Series:
+) -> np.ndarray:
     """
     Function that takes a list of options and uses Vivarium common random numbers framework to make a given number
     of random choice selections.
