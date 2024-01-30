@@ -193,7 +193,7 @@ def test_two_d_array_choice(fuzzy_checker: FuzzyChecker):
                 "Steelers",
             ],
             "option3": [
-                "Blazzers",
+                "Trail Blazers",
                 np.nan,
                 "Cougars",
             ],
