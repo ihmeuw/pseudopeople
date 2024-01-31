@@ -36,3 +36,15 @@ def test_unnoised_id_cols(dataset_name: str, request):
         .all()
         .all()
     )
+
+
+def test_census_order(noised_sample_data_decennial_census):
+    """
+    Tests that the census gets ordered by year and household_id. Note this test will need to
+    be updated once we properly move the sorting to the guardian duplication noise function.
+    """
+
+    # TODO: DELTED ME
+    data = noised_sample_data_decennial_census
+    for year, year_df in data.groupby("year"):
+        assert year_df[COLUMNS.household_id.name].is_monotonic_increasing
