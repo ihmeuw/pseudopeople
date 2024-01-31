@@ -301,7 +301,7 @@ def generate_decennial_census(
     return (
         _generate_dataset(DATASETS.census, source, seed, config, user_filters, verbose)
         .sort_values(by=[DATASETS.census.date_column_name, "household_id"])
-        .reset_index()
+        .reset_index(drop=True)
     )
 
 
