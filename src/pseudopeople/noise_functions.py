@@ -283,11 +283,6 @@ def duplicate_with_guardian(
             ]
             noised_data.append(noised_group_df)
 
-    # We need to get the date column below when we sort the noised data
-    from pseudopeople.schema_entities import DATASETS
-
-    dataset = DATASETS.get_dataset(dataset_name)
-
     # Combine all noised dataframes
     if not noised_data:
         return dataset_data
@@ -302,9 +297,7 @@ def duplicate_with_guardian(
         # Fix to help keep optimization code for noise.py
         index_start_value = dataset_data.index.max() + 1
         noised_data.index = range(index_start_value, index_start_value + len(noised_data))
-        dataset_data = pd.concat([dataset_data, noised_data]).sort_values(
-            by=[dataset.date_column_name, "household_id"]
-        )
+        dataset_data = pd.concat([dataset_data, noised_data])
 
     return dataset_data
 
