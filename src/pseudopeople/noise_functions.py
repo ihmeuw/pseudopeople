@@ -437,7 +437,7 @@ def write_wrong_zipcode_digits(
         )
 
     rng = np.random.default_rng(
-        get_hash(f"{randomness_stream.seed}_write_wrong_zipcode_digits")
+        get_hash(f"{randomness_stream.seed}_{column_name}_write_wrong_zipcode_digits")
     )
     shape = (len(column), 5)
 
@@ -522,7 +522,9 @@ def write_wrong_digits(
         return column
     # This is a fix to not replacing the original token for noise options
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY] / 0.9
-    rng = np.random.default_rng(get_hash(f"{randomness_stream.seed}_write_wrong_digits"))
+    rng = np.random.default_rng(
+        get_hash(f"{randomness_stream.seed}_{column_name}_write_wrong_digits")
+    )
     column = column.astype(str)
     max_str_length = column.str.len().max()
 
@@ -576,7 +578,10 @@ def use_nicknames(
     column = data[column_name]
     have_nickname_idx = column.index[column.isin(nickname_eligible_names)]
     noised = two_d_array_choice(
-        column.loc[have_nickname_idx], nicknames, randomness_stream, column_name
+        column.loc[have_nickname_idx],
+        nicknames,
+        randomness_stream,
+        f"{column_name}_use_nicknames",
     )
     column.loc[have_nickname_idx] = noised
     return column
@@ -650,7 +655,7 @@ def make_phonetic_errors(
         data[column_name].astype(str),
         configuration[Keys.TOKEN_PROBABILITY],
         randomness_stream,
-        addl_key="make_phonetic_errors",
+        addl_key=f"{column_name}_make_phonetic_errors",
     )
 
 
@@ -699,7 +704,9 @@ def make_typos(
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
     # TODO: remove this hard-coding
     include_token_probability_level = 0.1
-    rng = np.random.default_rng(seed=get_hash(f"{randomness_stream.seed}_make_typos"))
+    rng = np.random.default_rng(
+        seed=get_hash(f"{randomness_stream.seed}_{column_name}_make_typos")
+    )
 
     same_len_col_exploded = (
         # Somewhat counterintuitively, .astype(str) turns the column into a numpy,
@@ -779,7 +786,7 @@ def make_ocr_errors(
         data[column_name].astype(str),
         configuration[Keys.TOKEN_PROBABILITY],
         randomness_stream,
-        addl_key="make_ocr_errors",
+        addl_key=f"{column_name}_make_ocr_errors",
     )
 
 
