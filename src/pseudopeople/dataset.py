@@ -40,7 +40,6 @@ class Dataset:
 
     def get_non_empty_index(self, required_columns: Optional[List[str]] = None) -> pd.Index:
         """Returns the non-empty data."""
-
         if required_columns is None:
             non_empty_data = self.data.loc[~self.missingness.all(axis=1)]
         else:
