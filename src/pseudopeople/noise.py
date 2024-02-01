@@ -18,15 +18,17 @@ from tqdm import tqdm
 from vivarium import ConfigTree
 
 from pseudopeople.configuration import Keys
+from pseudopeople.dataset import DatasetData
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import COLUMNS, Dataset
+from pseudopeople.schema_entities import Dataset
 from pseudopeople.utilities import get_randomness_stream
 
 
+# todo delete file
 def noise_dataset(
     dataset: Dataset,
-    dataset_data: pd.DataFrame,
+    dataset_data: DatasetData,
     configuration: ConfigTree,
     seed: Any,
 ) -> pd.DataFrame:
