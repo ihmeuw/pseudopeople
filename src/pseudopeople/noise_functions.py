@@ -12,6 +12,7 @@ from pseudopeople.constants.noise_type_metadata import (
     HOUSING_TYPE_GUARDIAN_DUPLICATION_RELATONSHIP_MAP,
 )
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
+from pseudopeople.dataset import DatasetData
 from pseudopeople.noise_scaling import (
     load_incorrect_select_options,
     load_nicknames_data,
