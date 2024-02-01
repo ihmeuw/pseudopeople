@@ -2,19 +2,17 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-import yaml
 from vivarium import ConfigTree
 from vivarium.framework.randomness import RandomnessStream, get_hash
 
 from pseudopeople.configuration import Keys
-from pseudopeople.constants import data_values
-from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.constants.noise_type_metadata import (
     COPY_HOUSEHOLD_MEMBER_COLS,
     GUARDIAN_DUPLICATION_ADDRESS_COLUMNS,
     HOUSING_TYPE_GUARDIAN_DUPLICATION_RELATONSHIP_MAP,
 )
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
+from pseudopeople.dataset import DatasetData
 from pseudopeople.noise_scaling import (
     load_incorrect_select_options,
     load_nicknames_data,
@@ -30,115 +28,45 @@ from pseudopeople.utilities import (
 
 
 def omit_rows(
-    dataset_name: str,
-    dataset_data: pd.DataFrame,
-    configuration: ConfigTree,
-    randomness_stream: RandomnessStream,
-) -> pd.DataFrame:
+    dataset_data: DatasetData, configuration: ConfigTree, to_noise_index: pd.Index
+) -> None:
     """
     Function that omits rows from a dataset and returns only the remaining rows.  Note that for the ACS and CPS datasets
-      we need to account for oversampling in the PRL simulation so a helper function has been hadded here to do so.
-    :param dataset_name: Dataset object being noised
+      we need to account for oversampling in the PRL simulation so a helper function has been added here to do so.
+    #   todo fix docstring
     :param dataset_data:  pd.DataFrame of one of the dataset types used in Pseudopeople
     :param configuration: ConfigTree object containing noise level values
     :param randomness_stream: RandomnessStream object to make random selection for noise
     :return: pd.DataFrame with rows from the original dataframe removed
     """
-
-    noise_level = configuration[Keys.ROW_PROBABILITY]
-    # Omit rows
-    to_noise_index = get_index_to_noise(
-        dataset_data,
-        noise_level,
-        randomness_stream,
-        f"{dataset_name}_omit_choice",
-    )
-    noised_data = dataset_data.loc[dataset_data.index.difference(to_noise_index)]
-
-    return noised_data
-
-
-def _get_census_omission_noise_levels(
-    population: pd.DataFrame,
-    base_probability: float = data_values.DO_NOT_RESPOND_BASE_PROBABILITY,
-) -> pd.Series:
-    """
-    Helper function for do_not_respond noising based on demography of age, race/ethnicity, and sex.
-
-    :param population: a dataset containing records of simulants
-    :param base_probability: base probability for do_not_respond
-    :return: a pd.Series of probabilities
-    """
-    probabilities = pd.Series(base_probability, index=population.index)
-    probabilities += (
-        population["race_ethnicity"]
-        .astype(str)
-        .map(data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_RACE)
-    )
-    ages = pd.Series(np.arange(population["age"].max() + 1))
-    for sex in ["Female", "Male"]:
-        effect_by_age_bin = data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_SEX_AGE[sex]
-        # NOTE: calling pd.cut on a large array with an IntervalIndex is slow,
-        # see https://github.com/pandas-dev/pandas/issues/47614
-        # Instead, we only pd.cut the unique ages, then do a simpler `.map` on the age column
-        age_bins = pd.cut(ages, bins=effect_by_age_bin.index)
-        effect_by_age = pd.Series(
-            age_bins.map(effect_by_age_bin),
-            index=ages,
-        )
-        sex_mask = population["sex"] == sex
-        probabilities[sex_mask] += (
-            population[sex_mask]["age"].map(effect_by_age).astype(float)
-        )
-    probabilities[probabilities < 0.0] = 0.0
-    probabilities[probabilities > 1.0] = 1.0
-    return probabilities
+    dataset_data.data = dataset_data.data.loc[dataset_data.data.index.difference(to_noise_index)]
+    # todo should dataset_data have a function like `make_missing`?
+    dataset_data.missingness.loc[to_noise_index, :] = True
 
 
 def apply_do_not_respond(
-    dataset_name: str,
-    dataset_data: pd.DataFrame,
-    configuration: ConfigTree,
-    randomness_stream: RandomnessStream,
-) -> pd.DataFrame:
+    dataset_data: DatasetData, configuration: ConfigTree, to_noise_index: pd.Index
+) -> None:
     """
     Applies targeted omission based on demographic model for census and surveys.
 
-    :param dataset_name: Dataset object name being noised
     :param dataset_data:  pd.DataFrame of one of the form types used in Pseudopeople
     :param configuration: ConfigTree object containing noise level values
-    :param randomness_stream: RandomnessStream object to make random selection for noise
     :return: pd.DataFrame with rows from the original dataframe removed
     """
+    # todo: this validation should be done much earlier
     required_columns = ("age", "race_ethnicity", "sex")
-    missing_columns = [col for col in required_columns if col not in dataset_data.columns]
+    missing_columns = [col for col in required_columns if col not in dataset_data.data.columns]
     if len(missing_columns):
         raise ValueError(
-            f"Dataset {dataset_name} is missing required columns: {missing_columns}"
+            f"Dataset {dataset_data.dataset.name} is missing required columns: "
+            f"{missing_columns}"
         )
 
-    # do_not_respond noise_levels are based on census
-    noise_levels = _get_census_omission_noise_levels(dataset_data)
-
-    # Apply an overall non-response rate of 27.6% for Current Population Survey (CPS)
-    if dataset_name == DatasetNames.CPS:
-        noise_levels += 0.276
-
-    # Apply user-configured noise level
-    configured_noise_level = configuration[Keys.ROW_PROBABILITY]
-    default_noise_level = data_values.DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY[dataset_name]
-    noise_levels = noise_levels * (configured_noise_level / default_noise_level)
-
-    # Account for ACS and CPS oversampling
-    if dataset_name in [DatasetNames.ACS, DatasetNames.CPS]:
-        noise_levels = 0.5 + noise_levels / 2
-
-    to_noise_idx = get_index_to_noise(
-        dataset_data, noise_levels, randomness_stream, f"do_not_respond_{dataset_name}"
-    )
-    noised_data = dataset_data.loc[dataset_data.index.difference(to_noise_idx)]
-
-    return noised_data
+    dataset_data.data = dataset_data.data.loc[dataset_data.data.index.difference(to_noise_index)]
+    # todo should dataset_data have a function like `make_missing`?
+    dataset_data.missingness.loc[to_noise_index, :] = True
+    # todo should we reset index here to get a RangeIndex?
 
 
 # def duplicate_rows(
@@ -158,26 +86,23 @@ def apply_do_not_respond(
 
 
 def duplicate_with_guardian(
-    dataset_name: str,
-    dataset_data: pd.DataFrame,
+    dataset_data: DatasetData,
     configuration: ConfigTree,
-    randomness_stream: RandomnessStream,
-) -> pd.DataFrame:
+    to_noise_index: pd.Index,
+) -> None:
     """
     Function that duplicates rows of a dataset. Rows that are duplicated fall into one of three groups of
     dependents that are typically duplicated in administrative data where a dependent lives in a different
     location than their guardian and they show up in the data at both locations. For simplicity, rows will
     be only duplicated once for a maximum of two rows per dependent. When a row is duplicated, one row will
     have the dependent's correct address and the other will have the guardian's address.
-    :param dataset_name: Name of the dataset being noised
     :param dataset_data: pd.DataFrame that will be noised
     :param configuration: ConfigTree object containing noise level values. Dict with three key groups for duplication
-    :param randomness_stream: RandomnessStream instance to make random selection for noise
     :return: pd.DataFrame with rows from the original dataframe duplicated along with the original
     dataframe itself.
     """
 
-    # Helper function to format group dataframe and merging with their dependentss
+    # Helper function to format group dataframe and merging with their dependents
     def _merge_dependents_and_guardians(
         dependents_df: pd.DataFrame, full_data: pd.DataFrame
     ) -> pd.DataFrame:
@@ -211,29 +136,29 @@ def duplicate_with_guardian(
     # Get dict of group type and formatted dataframe for that group that should be noised
     formatted_group_data = {}
     # Get dataframe for each dependent group to merge with guardians
-    in_households_under_18 = dataset_data.loc[
-        (dataset_data["age"] < 18)
-        & (dataset_data["housing_type"] == "Household")
-        & (dataset_data["guardian_1"].notna())
+    in_households_under_18 = dataset_data.data.loc[
+        (dataset_data.data["age"] < 18)
+        & (dataset_data.data["housing_type"] == "Household")
+        & (dataset_data.data["guardian_1"].notna())
     ]
-    in_college_under_24 = dataset_data.loc[
-        (dataset_data["age"] < 24)
-        & (dataset_data["housing_type"] == "College")
-        & (dataset_data["guardian_1"].notna())
+    in_college_under_24 = dataset_data.data.loc[
+        (dataset_data.data["age"] < 24)
+        & (dataset_data.data["housing_type"] == "College")
+        & (dataset_data.data["guardian_1"].notna())
     ]
 
-    # Merge depedents with their guardians
+    # Merge dependents with their guardians
     formatted_group_data[
         Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18
-    ] = _merge_dependents_and_guardians(in_households_under_18, dataset_data)
+    ] = _merge_dependents_and_guardians(in_households_under_18, dataset_data.data)
     formatted_group_data[
         Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24
-    ] = _merge_dependents_and_guardians(in_college_under_24, dataset_data)
+    ] = _merge_dependents_and_guardians(in_college_under_24, dataset_data.data)
     # Note: We have two dicts (configuration and formatted_group_data) at this point that have
     # the key for the group and then a dataframe for that group or the group and the configured
     # noise level
 
-    noised_data = []
+    duplicated_rows = []
     for group, group_df in formatted_group_data.items():
         # Get index groups that can be noised based on dependent and guardian(s) addresses
         both_different_index = group_df.index[
@@ -242,11 +167,11 @@ def duplicate_with_guardian(
             & (group_df["household_id"] != group_df["guardian_2_household_id"])
             & (group_df["guardian_2_household_id"].notna())
         ]
-        # Choose which guardian to copy when dependent lives in different address from both guardains
-        choices = randomness_stream.choice(
+        # Choose which guardian to copy when dependent lives in different address from both guardians
+        choices = dataset_data.randomness.choice(
             both_different_index,
             choices=["guardian_1", "guardian_2"],
-            additional_key=f"{dataset_name}_duplicate_with_guardian_{group}_guardian_choice",
+            additional_key=f"duplicate_with_guardian_{group}_guardian_choice",
         )
         group_df.loc[both_different_index, "copy_guardian"] = choices
         # Get remaining dependents that live in different address from one of their guardians
@@ -262,12 +187,14 @@ def duplicate_with_guardian(
         group_df.loc[guardian_2_different_index, "copy_guardian"] = "guardian_2"
 
         # Noise data
+        # todo can we optimize and only choose against the truly eligible rows
+        # This is selecting rows to noise on the whole data-set, and then
+        # intersecting with the eligible rows. This will be correct because they
+        # are independent, but it is not efficient.
         to_noise_index = get_index_to_noise(
-            group_df,
-            configuration[group],
-            randomness_stream,
-            f"{dataset_name}_duplicate_with_guardian_{group}",
-        )
+            dataset_data, configuration[group], f"duplicate_with_guardian_{group}"
+        ).intersection(group_df.index)
+
         # Copy over address information from guardian to dependent
         for guardian in ["guardian_1", "guardian_2"]:
             index_to_copy = to_noise_index.intersection(
@@ -281,34 +208,42 @@ def duplicate_with_guardian(
                 index_to_copy,
                 [f"{guardian}_" + column for column in GUARDIAN_DUPLICATION_ADDRESS_COLUMNS],
             ]
-            noised_data.append(noised_group_df)
+            duplicated_rows.append(noised_group_df)
 
-    # Combine all noised dataframes
-    if not noised_data:
-        return dataset_data
-    else:
-        noised_data = pd.concat(noised_data)
+
+    if duplicated_rows:
+        duplicated_rows = pd.concat(duplicated_rows)
         # Update relationship to reference person for duplicated simulants based on housing type
-        noised_data["relationship_to_reference_person"] = noised_data["housing_type"].map(
+        duplicated_rows["relationship_to_reference_person"] = duplicated_rows["housing_type"].map(
             HOUSING_TYPE_GUARDIAN_DUPLICATION_RELATONSHIP_MAP
         )
         # Clean columns
-        noised_data = noised_data[dataset_data.columns]
-        # Fix to help keep optimization code for noise.py
-        index_start_value = dataset_data.index.max() + 1
-        noised_data.index = range(index_start_value, index_start_value + len(noised_data))
-        dataset_data = pd.concat([dataset_data, noised_data])
+        duplicated_rows = duplicated_rows[dataset_data.dataset.columns]
 
-    return dataset_data
+        # Add duplicated rows to the original data and make sure that households
+        # are grouped together by sorting by date and household_id
+        # todo if this index is a RangeIndex, we can do concat with ignore_index=True
+        index_start_value = dataset_data.data.index.max() + 1
+        duplicated_rows.index = range(index_start_value, index_start_value + len(duplicated_rows))
+        data_with_duplicates = pd.concat([dataset_data.data, duplicated_rows]).sort_values(
+            by=[dataset_data.dataset.date_column_name, "household_id"]
+        )
+
+        duplicated_rows_missing = dataset_data.is_missing(duplicated_rows)
+        missingess_with_duplicates = pd.concat(
+            [dataset_data.missingness, duplicated_rows_missing]
+        ).reindex(dataset_data.data.index)
+
+        dataset_data.data = data_with_duplicates.reset_index(drop=True)
+        dataset_data.missingness = missingess_with_duplicates.reset_index(drop=True)
 
 
 def choose_wrong_options(
-    data: pd.DataFrame,
+    dataset_data: DatasetData,
     _: ConfigTree,
-    randomness_stream: RandomnessStream,
-    dataset_name: str,
+    to_noise_index: pd.Index,
     column_name: str,
-) -> pd.Series:
+) -> None:
     """
     Function that takes a categorical series and applies noise so some values has been replace with other options from
     a list.
@@ -332,21 +267,22 @@ def choose_wrong_options(
     options = selection_options.loc[selection_options[selection_type].notna(), selection_type]
     new_values = vectorized_choice(
         options=options,
-        n_to_choose=len(data),
-        randomness_stream=randomness_stream,
+        n_to_choose=len(to_noise_index),
+        randomness_stream=dataset_data.randomness,
         additional_key=f"{column_name}_incorrect_select_choice",
-    ).to_numpy()
+    )
 
-    return pd.Series(new_values, index=data.index, name=column_name)
+    dataset_data.data.loc[to_noise_index, column_name] = pd.Series(
+        new_values, index=to_noise_index
+    )
 
 
 def copy_from_household_member(
-    data: pd.DataFrame,
+    dataset_data: DatasetData,
     configuration: ConfigTree,
-    randomness_stream: RandomnessStream,
-    dataset_name: str,
+    to_noise_index: pd.Index,
     column_name: str,
-) -> pd.Series:
+) -> None:
     """
 
     :param data:  A pandas dataframe containing necessary columns for column noise
@@ -356,9 +292,8 @@ def copy_from_household_member(
     :returns: pd.Series where data has been noised with other values from a list of possibilities
     """
 
-    copy_values = data[COPY_HOUSEHOLD_MEMBER_COLS[column_name]]
-    column = pd.Series(copy_values, index=data.index, name=column_name)
-    return column
+    copy_values = dataset_data.data.loc[to_noise_index, COPY_HOUSEHOLD_MEMBER_COLS[column_name]]
+    dataset_data.data.loc[to_noise_index, column_name] = pd.Series(copy_values, index=to_noise_index)
 
 
 def swap_months_and_days(
