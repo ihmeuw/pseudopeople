@@ -7,8 +7,8 @@ from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.entities import NO_NOISE
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import DatasetNames
+from pseudopeople.dataset import DatasetData
 from pseudopeople.interface import (
-    _reformat_dates_for_noising,
     generate_american_community_survey,
     generate_current_population_survey,
     generate_decennial_census,

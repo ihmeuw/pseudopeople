@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 import numpy as np
 import pandas as pd
 from vivarium import ConfigTree
@@ -5,7 +7,9 @@ from vivarium import ConfigTree
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import data_values
 from pseudopeople.constants.metadata import DatasetNames
-from pseudopeople.dataset import DatasetData
+
+if TYPE_CHECKING:
+    from pseudopeople.dataset import DatasetData
 
 
 def _get_census_omission_noise_levels(
@@ -45,7 +49,9 @@ def _get_census_omission_noise_levels(
     return probabilities
 
 
-def get_apply_do_not_respond_noise_level(dataset_data: DatasetData, configuration: ConfigTree) -> float:
+def get_apply_do_not_respond_noise_level(
+    dataset_data: "DatasetData", configuration: ConfigTree
+) -> float:
     dataset_name = dataset_data.dataset.name
     noise_levels = _get_census_omission_noise_levels(dataset_data.data)
 

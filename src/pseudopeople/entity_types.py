@@ -1,20 +1,22 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 import pandas as pd
 from loguru import logger
 from vivarium import ConfigTree
 
 from pseudopeople.configuration import Keys
-from pseudopeople.dataset import DatasetData
 from pseudopeople.utilities import get_index_to_noise
+
+if TYPE_CHECKING:
+    from pseudopeople.dataset import DatasetData
 
 
 @dataclass
 class NoiseType(ABC):
     name: str
-    noise_function: Callable[[DatasetData, ConfigTree, pd.Index], None]
+    noise_function: Callable[["DatasetData", ConfigTree, pd.Index], None]
     probability: Optional[float] = 0.0
     additional_parameters: Dict[str, Any] = None
 
@@ -37,15 +39,17 @@ class RowNoiseType(NoiseType):
     returns the modified DataFrame.
     """
 
-    get_noise_level: Callable[[DatasetData, ConfigTree], float] = lambda _, config: config[Keys.ROW_PROBABILITY]
+    get_noise_level: Callable[["DatasetData", ConfigTree], float] = lambda _, config: config[
+        Keys.ROW_PROBABILITY
+    ]
 
     @property
     def probability_key(self) -> str:
         return Keys.ROW_PROBABILITY
 
-    def __call__(self, dataset_data: DatasetData, configuration: ConfigTree) -> None:
+    def __call__(self, dataset_data: "DatasetData", configuration: ConfigTree) -> None:
         noise_level = self.get_noise_level(dataset_data, configuration)
-        to_noise_idx = get_index_to_noise(dataset_data.data, noise_level, self.name)
+        to_noise_idx = get_index_to_noise(dataset_data, noise_level, self.name)
         self.noise_function(dataset_data, configuration, to_noise_idx)
 
 
@@ -68,7 +72,7 @@ class ColumnNoiseType(NoiseType):
     and an Index of which items in the Series were selected for noise.
     """
 
-    noise_function: Callable[[DatasetData, ConfigTree, pd.Index, Optional[str]], None]
+    noise_function: Callable[["DatasetData", ConfigTree, pd.Index, Optional[str]], None]
     probability: Optional[float] = 0.01
     noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0
     additional_column_getter: Callable[[str], List[str]] = lambda column_name: []
@@ -79,7 +83,7 @@ class ColumnNoiseType(NoiseType):
 
     def __call__(
         self,
-        dataset_data: DatasetData,
+        dataset_data: "DatasetData",
         configuration: ConfigTree,
         column_name: str,
     ) -> None:
@@ -95,7 +99,7 @@ class ColumnNoiseType(NoiseType):
         # probabilities
         noise_level = min(noise_level, 1.0)
         to_noise_idx = get_index_to_noise(
-            dataset_data.data,
+            dataset_data,
             noise_level,
             f"{self.name}_{column_name}",
             [column_name] + self.additional_column_getter(column_name),
@@ -103,7 +107,8 @@ class ColumnNoiseType(NoiseType):
         if to_noise_idx.empty:
             logger.debug(
                 f"No cells chosen to noise for noise function {self.name} on "
-                f"column {column_name}. " "This is likely due to a combination "
+                f"column {column_name}. "
+                "This is likely due to a combination "
                 "of the configuration noise levels and the simulated population "
                 "data."
             )
@@ -120,4 +125,6 @@ class ColumnNoiseType(NoiseType):
         # todo investigate this and also move the logic inside DatasetData
         # Coerce noised column dtype back to original column's if it has changed
         if dataset_data.data[column_name].dtype.name != original_dtype_name:
-            dataset_data = dataset_data.data[column_name].astype(dataset_data.data[column_name][column_name].dtype)
+            dataset_data = dataset_data.data[column_name].astype(
+                dataset_data.data[column_name][column_name].dtype
+            )
