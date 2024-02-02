@@ -12,6 +12,7 @@ from pseudopeople.constants import paths
 from pseudopeople.dataset import DatasetData
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.loader import load_standard_dataset_file
+from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS, Dataset
 from pseudopeople.utilities import (
     coerce_dtypes,
@@ -71,12 +72,15 @@ def _generate_dataset(
 
     for data_path_index, data_path in enumerate(iterator):
         logger.debug(f"Loading data from {data_path}.")
-        dataset_data = DatasetData(dataset, data_path, user_filters, f"{seed}_{data_path_index}")
+        dataset_data = DatasetData(
+            dataset, data_path, user_filters, f"{seed}_{data_path_index}"
+        )
 
         if not dataset_data:
             continue
 
-        noised_data = dataset_data.get_noised_data(configuration_tree)
+        noised_data = dataset_data.get_noised_data(configuration_tree, NOISE_TYPES)
+        breakpoint()
         noised_dataset.append(noised_data)
 
     # Check if all shards for the dataset are empty

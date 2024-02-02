@@ -1,4 +1,4 @@
-from typing import Any
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -12,7 +12,6 @@ from pseudopeople.constants.noise_type_metadata import (
     HOUSING_TYPE_GUARDIAN_DUPLICATION_RELATONSHIP_MAP,
 )
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
-from pseudopeople.dataset import DatasetData
 from pseudopeople.noise_scaling import (
     load_incorrect_select_options,
     load_nicknames_data,
@@ -26,9 +25,12 @@ from pseudopeople.utilities import (
     vectorized_choice,
 )
 
+if TYPE_CHECKING:
+    from pseudopeople.dataset import DatasetData
+
 
 def omit_rows(
-    dataset_data: DatasetData, configuration: ConfigTree, to_noise_index: pd.Index
+    dataset_data: "DatasetData", configuration: ConfigTree, to_noise_index: pd.Index
 ) -> None:
     """
     Function that omits rows from a dataset and returns only the remaining rows.  Note that for the ACS and CPS datasets
@@ -39,13 +41,15 @@ def omit_rows(
     :param randomness_stream: RandomnessStream object to make random selection for noise
     :return: pd.DataFrame with rows from the original dataframe removed
     """
-    dataset_data.data = dataset_data.data.loc[dataset_data.data.index.difference(to_noise_index)]
+    dataset_data.data = dataset_data.data.loc[
+        dataset_data.data.index.difference(to_noise_index)
+    ]
     # todo should dataset_data have a function like `make_missing`?
     dataset_data.missingness.loc[to_noise_index, :] = True
 
 
 def apply_do_not_respond(
-    dataset_data: DatasetData, configuration: ConfigTree, to_noise_index: pd.Index
+    dataset_data: "DatasetData", configuration: ConfigTree, to_noise_index: pd.Index
 ) -> None:
     """
     Applies targeted omission based on demographic model for census and surveys.
@@ -56,14 +60,18 @@ def apply_do_not_respond(
     """
     # todo: this validation should be done much earlier
     required_columns = ("age", "race_ethnicity", "sex")
-    missing_columns = [col for col in required_columns if col not in dataset_data.data.columns]
+    missing_columns = [
+        col for col in required_columns if col not in dataset_data.data.columns
+    ]
     if len(missing_columns):
         raise ValueError(
             f"Dataset {dataset_data.dataset.name} is missing required columns: "
             f"{missing_columns}"
         )
 
-    dataset_data.data = dataset_data.data.loc[dataset_data.data.index.difference(to_noise_index)]
+    dataset_data.data = dataset_data.data.loc[
+        dataset_data.data.index.difference(to_noise_index)
+    ]
     # todo should dataset_data have a function like `make_missing`?
     dataset_data.missingness.loc[to_noise_index, :] = True
     # todo should we reset index here to get a RangeIndex?
@@ -86,7 +94,7 @@ def apply_do_not_respond(
 
 
 def duplicate_with_guardian(
-    dataset_data: DatasetData,
+    dataset_data: "DatasetData",
     configuration: ConfigTree,
     to_noise_index: pd.Index,
 ) -> None:
@@ -210,21 +218,23 @@ def duplicate_with_guardian(
             ]
             duplicated_rows.append(noised_group_df)
 
-
     if duplicated_rows:
         duplicated_rows = pd.concat(duplicated_rows)
         # Update relationship to reference person for duplicated simulants based on housing type
-        duplicated_rows["relationship_to_reference_person"] = duplicated_rows["housing_type"].map(
-            HOUSING_TYPE_GUARDIAN_DUPLICATION_RELATONSHIP_MAP
-        )
+        duplicated_rows["relationship_to_reference_person"] = duplicated_rows[
+            "housing_type"
+        ].map(HOUSING_TYPE_GUARDIAN_DUPLICATION_RELATONSHIP_MAP)
+
         # Clean columns
-        duplicated_rows = duplicated_rows[dataset_data.dataset.columns]
+        duplicated_rows = duplicated_rows[[col.name for col in dataset_data.dataset.columns]]
 
         # Add duplicated rows to the original data and make sure that households
         # are grouped together by sorting by date and household_id
         # todo if this index is a RangeIndex, we can do concat with ignore_index=True
         index_start_value = dataset_data.data.index.max() + 1
-        duplicated_rows.index = range(index_start_value, index_start_value + len(duplicated_rows))
+        duplicated_rows.index = range(
+            index_start_value, index_start_value + len(duplicated_rows)
+        )
         data_with_duplicates = pd.concat([dataset_data.data, duplicated_rows]).sort_values(
             by=[dataset_data.dataset.date_column_name, "household_id"]
         )
@@ -232,14 +242,14 @@ def duplicate_with_guardian(
         duplicated_rows_missing = dataset_data.is_missing(duplicated_rows)
         missingess_with_duplicates = pd.concat(
             [dataset_data.missingness, duplicated_rows_missing]
-        ).reindex(dataset_data.data.index)
-
+        ).reindex(data_with_duplicates.index)
+        # Update
         dataset_data.data = data_with_duplicates.reset_index(drop=True)
         dataset_data.missingness = missingess_with_duplicates.reset_index(drop=True)
 
 
 def choose_wrong_options(
-    dataset_data: DatasetData,
+    dataset_data: "DatasetData",
     _: ConfigTree,
     to_noise_index: pd.Index,
     column_name: str,
@@ -271,14 +281,13 @@ def choose_wrong_options(
         randomness_stream=dataset_data.randomness,
         additional_key=f"{column_name}_incorrect_select_choice",
     )
-
     dataset_data.data.loc[to_noise_index, column_name] = pd.Series(
-        new_values, index=to_noise_index
+        new_values.values, index=to_noise_index
     )
 
 
 def copy_from_household_member(
-    dataset_data: DatasetData,
+    dataset_data: "DatasetData",
     configuration: ConfigTree,
     to_noise_index: pd.Index,
     column_name: str,
@@ -292,17 +301,20 @@ def copy_from_household_member(
     :returns: pd.Series where data has been noised with other values from a list of possibilities
     """
 
-    copy_values = dataset_data.data.loc[to_noise_index, COPY_HOUSEHOLD_MEMBER_COLS[column_name]]
-    dataset_data.data.loc[to_noise_index, column_name] = pd.Series(copy_values, index=to_noise_index)
+    copy_values = dataset_data.data.loc[
+        to_noise_index, COPY_HOUSEHOLD_MEMBER_COLS[column_name]
+    ]
+    dataset_data.data.loc[to_noise_index, column_name] = pd.Series(
+        copy_values, index=to_noise_index
+    )
 
 
 def swap_months_and_days(
-    data: pd.DataFrame,
+    dataset_data: "DatasetData",
     _: ConfigTree,
-    randomness_stream: RandomnessStream,
-    dataset_name: str,
+    to_noise_index: pd.Index,
     column_name: str,
-) -> pd.Series:
+) -> None:
     """
     Function that swaps month and day of dates.
 
@@ -314,37 +326,36 @@ def swap_months_and_days(
     """
     from pseudopeople.schema_entities import DATASETS, DATEFORMATS
 
-    date_format = DATASETS.get_dataset(dataset_name).date_format
+    date_format = dataset_data.dataset.date_format
 
-    column = data[column_name]
+    to_swap_values = dataset_data.data.loc[to_noise_index, column_name]
     if date_format == DATEFORMATS.YYYYMMDD:  # YYYYMMDD
-        year = column.str[:4]
-        month = column.str[4:6]
-        day = column.str[6:]
+        year = to_swap_values.str[:4]
+        month = to_swap_values.str[4:6]
+        day = to_swap_values.str[6:]
         noised = year + day + month
     elif date_format == DATEFORMATS.MM_DD_YYYY:  # MM/DD/YYYY
-        year = column.str[6:]
-        month = column.str[:3]
-        day = column.str[3:6]
+        year = to_swap_values.str[6:]
+        month = to_swap_values.str[:3]
+        day = to_swap_values.str[3:6]
         noised = day + month + year
     elif date_format == DATEFORMATS.MMDDYYYY:  # MMDDYYYY
-        year = column.str[4:]
-        month = column.str[:2]
-        day = column.str[2:4]
+        year = to_swap_values.str[4:]
+        month = to_swap_values.str[:2]
+        day = to_swap_values.str[2:4]
         noised = day + month + year
     else:
-        raise ValueError(f"Invalid date format in {dataset_name}.")
+        raise ValueError(f"Invalid date format in {dataset_data.dataset.name}.")
 
-    return noised
+    dataset_data.data.loc[to_noise_index, column_name] = noised
 
 
 def write_wrong_zipcode_digits(
-    data: pd.DataFrame,
+    dataset_data: "DatasetData",
     configuration: ConfigTree,
-    randomness_stream: RandomnessStream,
-    dataset_name: str,
+    to_noise_index: pd.Index,
     column_name: str,
-) -> pd.Series:
+) -> None:
     """
     Function that noises a 5 digit zipcode
 
@@ -355,8 +366,8 @@ def write_wrong_zipcode_digits(
     :return: pd.Series of noised zipcodes
     """
 
-    column = data[column_name]
-    str_len = column.str.len()
+    to_noise_zipcodes = dataset_data.data.loc[to_noise_index, column_name]
+    str_len = to_noise_zipcodes.str.len()
     if (str_len != 5).sum() > 0:
         # TODO: This is a BAD error message. It should never appear and if it
         #   does, the user shouldn't be checking the simulated population data.
@@ -365,9 +376,9 @@ def write_wrong_zipcode_digits(
         )
 
     rng = np.random.default_rng(
-        get_hash(f"{randomness_stream.seed}_{column_name}_write_wrong_zipcode_digits")
+        get_hash(f"{dataset_data.randomness.seed}_{column_name}_write_wrong_zipcode_digits")
     )
-    shape = (len(column), 5)
+    shape = (len(to_noise_zipcodes), 5)
 
     # todo: Update when vectorized choice is improved
     possible_replacements = np.array(list("0123456789"))
@@ -384,22 +395,21 @@ def write_wrong_zipcode_digits(
     # https://stackoverflow.com/a/9493192/
     # Changing this to a U5 numpy string type means that each string will have exactly 5 characters.
     # view("U1") then reinterprets this memory as an array of individual (Unicode) characters.
-    same_len_col_exploded = column.values.astype("U5").view("U1").reshape(shape)
+    same_len_col_exploded = to_noise_zipcodes.values.astype("U5").view("U1").reshape(shape)
     same_len_col_exploded[replace] = random_digits
-    return pd.Series(
-        same_len_col_exploded.view("U5").reshape(len(column)),
-        index=column.index,
-        name=column.name,
+    noised_zipcodes = pd.Series(
+        same_len_col_exploded.view("U5").reshape(len(to_noise_zipcodes)),
+        index=to_noise_index,
     )
+    dataset_data.data.loc[to_noise_index, column_name] = noised_zipcodes
 
 
 def misreport_ages(
-    data: pd.DataFrame,
+    dataset_data: "DatasetData",
     configuration: ConfigTree,
-    randomness_stream: RandomnessStream,
-    dataset_name: str,
+    to_noise_index: pd.Index,
     column_name: str,
-) -> pd.Series:
+) -> None:
     """Function to mis-write ages based on perturbation parameters included in
     the config file.
 
@@ -410,13 +420,13 @@ def misreport_ages(
     :return: pd.Series with some values noised from the original
     """
 
-    column = data[column_name]
+    column = dataset_data.data.loc[to_noise_index, column_name]
     possible_perturbations = configuration[Keys.POSSIBLE_AGE_DIFFERENCES].to_dict()
     perturbations = vectorized_choice(
         options=list(possible_perturbations.keys()),
         weights=list(possible_perturbations.values()),
-        n_to_choose=len(column),
-        randomness_stream=randomness_stream,
+        n_to_choose=len(to_noise_index),
+        randomness_stream=dataset_data.randomness,
         additional_key=f"{column_name}_{column.name}_miswrite_ages",
     )
     new_values = column.astype(int) + perturbations
@@ -425,16 +435,15 @@ def misreport_ages(
     # If new age == original age, subtract 1
     new_values[new_values == column.astype(int)] -= 1
 
-    return new_values
+    dataset_data.data.loc[to_noise_index, column_name] = new_values
 
 
 def write_wrong_digits(
-    data: pd.DataFrame,
+    dataset_data: "DatasetData",
     configuration: ConfigTree,
-    randomness_stream: RandomnessStream,
-    dataset_name: str,
+    to_noise_index: str,
     column_name: str,
-) -> pd.Series:
+) -> None:
     """
     Function that noises numeric characters in a series.
 
@@ -445,13 +454,11 @@ def write_wrong_digits(
 
     returns: pd.Series with some numeric values experiencing noise.
     """
-    column = data[column_name]
-    if column.empty:
-        return column
+    column = dataset_data.data.loc[to_noise_index, column_name]
     # This is a fix to not replacing the original token for noise options
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY] / 0.9
     rng = np.random.default_rng(
-        get_hash(f"{randomness_stream.seed}_{column_name}_write_wrong_digits")
+        get_hash(f"{dataset_data.randomness.seed}_{column_name}_write_wrong_digits")
     )
     column = column.astype(str)
     max_str_length = column.str.len().max()
@@ -482,16 +489,17 @@ def write_wrong_digits(
     same_len_col_exploded[replace] = random_digits
     noised_column = same_len_col_exploded.view(f"U{max_str_length}").reshape(len(column))
 
-    return pd.Series(noised_column, index=column.index, name=column.name)
+    dataset_data.data.loc[to_noise_index, column_name] = pd.Series(
+        noised_column, index=to_noise_index
+    )
 
 
 def use_nicknames(
-    data: pd.DataFrame,
+    dataset_data: "DatasetData",
     _: ConfigTree,
-    randomness_stream: RandomnessStream,
-    dataset_name: str,
+    to_noise_index: pd.Index,
     column_name: str,
-) -> pd.Series:
+) -> None:
     """
     Function that replaces a name with a choice of potential nicknames.
 
@@ -503,25 +511,23 @@ def use_nicknames(
     """
     nicknames = load_nicknames_data()
     nickname_eligible_names = set(nicknames.index)
-    column = data[column_name]
+    column = dataset_data.data.loc[to_noise_index, column_name]
+    # TODO: This is just like guardian duplication, can we move finding an eligible index
+    # outside of the noise function?
     have_nickname_idx = column.index[column.isin(nickname_eligible_names)]
     noised = two_d_array_choice(
-        column.loc[have_nickname_idx],
-        nicknames,
-        randomness_stream,
-        f"{column_name}_use_nicknames",
+        column.loc[have_nickname_idx], nicknames, dataset_data.randomness, column_name
     )
     column.loc[have_nickname_idx] = noised
-    return column
+    dataset_data.data.loc[to_noise_index, column_name] = column
 
 
 def use_fake_names(
-    data: pd.DataFrame,
+    dataset_data: "DatasetData",
     _: ConfigTree,
-    randomness_stream: RandomnessStream,
-    dataset_name: str,
+    to_noise_index: pd.Index,
     column_name: str,
-) -> pd.Series:
+) -> None:
     """
 
     :param data:  A pandas dataframe containing necessary columns for column noise
@@ -530,7 +536,7 @@ def use_fake_names(
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return:
     """
-    column = data[column_name]
+    column = dataset_data.data.loc[to_noise_index, column_name]
     fake_first = fake_first_names
     fake_last = fake_last_names
     fake_names = {
@@ -553,19 +559,20 @@ def use_fake_names(
     new_values = vectorized_choice(
         options=options,
         n_to_choose=len(column),
-        randomness_stream=randomness_stream,
+        randomness_stream=dataset_data.randomness,
         additional_key=f"{column_name}_fake_names",
     )
-    return pd.Series(new_values, index=column.index, name=column.name)
+    dataset_data.data.loc[to_noise_index, column_name] = pd.Series(
+        new_values, index=to_noise_index
+    )
 
 
 def make_phonetic_errors(
-    data: pd.Series,
+    dataset_data: "DatasetData",
     configuration: ConfigTree,
-    randomness_stream: RandomnessStream,
-    dataset_name: str,
-    column_name: Any,
-) -> pd.Series:
+    to_noise_index: pd.Index,
+    column_name: str,
+) -> None:
     """
 
     :param data:  A pandas dataframe containing necessary columns for column noise
@@ -578,22 +585,21 @@ def make_phonetic_errors(
     # Load phonetic errors
     phonetic_errors = load_phonetic_errors()
 
-    return _corrupt_tokens(
+    dataset_data.data.loc[to_noise_index, column_name] = _corrupt_tokens(
         phonetic_errors,
-        data[column_name].astype(str),
+        dataset_data.data.loc[to_noise_index, column_name].astype(str),
         configuration[Keys.TOKEN_PROBABILITY],
-        randomness_stream,
-        addl_key=f"{column_name}_make_phonetic_errors",
+        dataset_data.randomness,
+        addl_key="make_phonetic_errors",
     )
 
 
 def leave_blanks(
-    data: pd.DataFrame,
+    dataset_data: "DatasetData",
     configuration: ConfigTree,
-    randomness_stream: RandomnessStream,
-    dataset_name: str,
+    to_noise_idx: pd.Index,
     column_name: str,
-) -> pd.Series:
+) -> None:
     """
     Function that takes a column and blanks out all values.
 
@@ -602,16 +608,16 @@ def leave_blanks(
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     """
-    return pd.Series(np.nan, index=data.index, name=column_name)
+    dataset_data.data.loc[to_noise_idx, column_name] = pd.Series(np.nan, index=to_noise_idx)
+    dataset_data.missingness.loc[to_noise_idx, column_name] = True
 
 
 def make_typos(
-    data: pd.DataFrame,
+    dataset_data: "DatasetData",
     configuration: ConfigTree,
-    randomness_stream: RandomnessStream,
-    dataset_name: str,
+    to_noise_index: pd.Index,
     column_name: str,
-) -> pd.Series:
+) -> None:
     """Function that applies noise to the string values
     representative of keyboard mistyping.
 
@@ -625,15 +631,13 @@ def make_typos(
     qwerty_errors = load_qwerty_errors_data()
     qwerty_errors_eligible_chars = set(qwerty_errors.index)
 
-    column = data[column_name]
-    if column.empty:
-        return column
+    column = dataset_data.data.loc[to_noise_index, column_name]
     column = column.astype(str)
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
     # TODO: remove this hard-coding
     include_token_probability_level = 0.1
     rng = np.random.default_rng(
-        seed=get_hash(f"{randomness_stream.seed}_{column_name}_make_typos")
+        seed=get_hash(f"{dataset_data.randomness.seed}_{column_name}_make_typos")
     )
 
     same_len_col_exploded = (
@@ -685,19 +689,18 @@ def make_typos(
     )
 
     same_len_col_exploded[keep_original] += originals_to_keep
-
     noised_column = np.sum(same_len_col_exploded, axis=1)
-
-    return pd.Series(noised_column, index=column.index, name=column.name)
+    dataset_data.data.loc[to_noise_index, column_name] = pd.Series(
+        noised_column, index=to_noise_index
+    )
 
 
 def make_ocr_errors(
-    data: pd.DataFrame,
+    dataset_data: "DatasetData",
     configuration: ConfigTree,
-    randomness_stream: RandomnessStream,
-    dataset_name: str,
+    to_noise_index: pd.Index,
     column_name: str,
-) -> pd.Series:
+) -> None:
     """
     :param data:  A pandas dataframe containing necessary columns for column noise
     :param configuration: ConfigTree with rate at which to blank the data in column.
@@ -709,12 +712,12 @@ def make_ocr_errors(
     # Load OCR error dict
     ocr_errors = load_ocr_errors()
 
-    return _corrupt_tokens(
+    dataset_data.data.loc[to_noise_index, column_name] = _corrupt_tokens(
         ocr_errors,
-        data[column_name].astype(str),
+        dataset_data.data.loc[to_noise_index, column_name].astype(str),
         configuration[Keys.TOKEN_PROBABILITY],
-        randomness_stream,
-        addl_key=f"{column_name}_make_ocr_errors",
+        dataset_data.randomness,
+        addl_key="make_ocr_errors",
     )
 
 

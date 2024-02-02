@@ -28,8 +28,9 @@ class __NoiseTypes(NamedTuple):
         get_noise_level=lambda _, __: 1.0,
     )
     do_not_respond: RowNoiseType = RowNoiseType(
-        "do_not_respond", noise_functions.apply_do_not_respond,
-        get_noise_level=get_apply_do_not_respond_noise_level
+        "do_not_respond",
+        noise_functions.apply_do_not_respond,
+        get_noise_level=get_apply_do_not_respond_noise_level,
     )
     omit_row: RowNoiseType = RowNoiseType("omit_row", noise_functions.omit_rows)
     # duplicate_row: RowNoiseType = RowNoiseType("duplicate_row", noise_functions.duplicate_rows)

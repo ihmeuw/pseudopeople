@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Tuple, List, Optional
+from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -9,23 +9,23 @@ from vivarium import ConfigTree
 from pseudopeople.configuration import Keys
 from pseudopeople.constants.metadata import DATEFORMATS
 from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COLS
-from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
-from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import Dataset, COLUMNS
-from pseudopeople.utilities import get_randomness_stream, coerce_dtypes
-
+from pseudopeople.entity_types import ColumnNoiseType, NoiseType, RowNoiseType
 from pseudopeople.loader import load_standard_dataset_file
+from pseudopeople.schema_entities import COLUMNS, Dataset
+from pseudopeople.utilities import coerce_dtypes, get_randomness_stream
 
 
 class DatasetData:
-    def __init__(self, dataset: Dataset, data_path: Path, user_filters: List[Tuple], seed: str):
+    def __init__(
+        self, dataset: Dataset, data_path: Path, user_filters: List[Tuple], seed: str
+    ):
         self.dataset = dataset
-        self.randomness = get_randomness_stream(self.dataset.name, seed, self.data.index)
         self.data = load_standard_dataset_file(data_path, user_filters)
+        self.randomness = get_randomness_stream(self.dataset.name, seed, self.data.index)
         self.missingness = self.is_missing(self.data)
 
     def __bool__(self):
-        return self.data.empty
+        return not self.data.empty
 
     def is_empty(self, column_name: str) -> bool:
         """Returns whether the column is empty."""
@@ -33,6 +33,7 @@ class DatasetData:
 
     def get_non_empty_index(self, required_columns: Optional[List[str]] = None) -> pd.Index:
         """Returns the non-empty data."""
+
         if required_columns is None:
             non_empty_data = self.data.loc[~self.missingness.all(axis=1)]
         else:
@@ -40,10 +41,13 @@ class DatasetData:
             non_empty_data = self.data.loc[~missingness_mask, required_columns]
         return non_empty_data.index
 
-    def get_noised_data(self, configuration: ConfigTree) -> pd.DataFrame:
-        """ Returns the noised dataset data. """
+    def get_noised_data(
+        self, configuration: ConfigTree, noise_types: List[NoiseType]
+    ) -> pd.DataFrame:
+        """Returns the noised dataset data."""
         self.format_data()
-        self.noise_dataset(configuration)
+        self.noise_dataset(configuration, noise_types)
+        breakpoint()
         self.drop_extra_columns()
         return self.data
 
@@ -52,7 +56,7 @@ class DatasetData:
         self._reformat_dates_for_noising()
         self.data = coerce_dtypes(self.data, self.dataset)
 
-    def noise_dataset(self, configuration: ConfigTree) -> None:
+    def noise_dataset(self, configuration: ConfigTree, noise_types: List[NoiseType]) -> None:
         """
         Adds noise to the dataset data. Noise functions are executed in the order
         defined by :py:const: `.NOISE_TYPES`. Row noise functions are applied to the
@@ -66,7 +70,7 @@ class DatasetData:
 
         noise_configuration = configuration[self.dataset.name]
 
-        for noise_type in tqdm(NOISE_TYPES, desc="Applying noise", unit="type", leave=False):
+        for noise_type in tqdm(noise_types, desc="Applying noise", unit="type", leave=False):
             if isinstance(noise_type, RowNoiseType):
                 if (
                     Keys.ROW_NOISE in noise_configuration
@@ -140,7 +144,6 @@ class DatasetData:
                     data.loc[~is_na, column] = result
 
         self.data = data
-
 
     def drop_extra_columns(self) -> None:
         """Drops columns that are not in the dataset schema."""

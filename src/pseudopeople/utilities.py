@@ -1,6 +1,6 @@
 import sys
 from functools import cache
-from typing import Any, Optional, Union, List
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -11,8 +11,10 @@ from vivarium.framework.randomness.index_map import IndexMap
 
 from pseudopeople.constants import metadata, paths
 from pseudopeople.constants.noise_type_metadata import INT_COLUMNS
-from pseudopeople.dataset import DatasetData
-from pseudopeople.schema_entities import Dataset
+
+if TYPE_CHECKING:
+    from pseudopeople.dataset import DatasetData
+    from pseudopeople.schema_entities import Dataset
 
 
 def get_randomness_stream(dataset_name: str, seed: Any, index: pd.Index) -> RandomnessStream:
@@ -64,7 +66,7 @@ def vectorized_choice(
 
 
 def get_index_to_noise(
-    dataset_data: DatasetData,
+    dataset_data: "DatasetData",
     noise_level: Union[float, pd.Series],
     additional_key: Any,
     required_columns: Optional[List[str]] = None,
@@ -226,7 +228,7 @@ def count_occurrences(string, sub):
 
 def coerce_dtypes(
     data: pd.DataFrame,
-    dataset: Dataset,
+    dataset: "Dataset",
     cleanse_int_cols: bool = False,
 ) -> pd.DataFrame:
     # Coerce dtypes prior to noising to catch issues early as well as
