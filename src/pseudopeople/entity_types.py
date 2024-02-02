@@ -89,9 +89,9 @@ class ColumnNoiseType(NoiseType):
         column_name: str,
         missingness: Optional[pd.DataFrame] = None,
     ) -> Tuple[pd.Series, pd.Index]:
-        if data[column_name].empty:
+        # Do not noise if the column is empty
+        if (data[column_name].notna() & (data[column_name] != "")).sum() == 0:
             return data[column_name], pd.Index([])
-
         noise_level = configuration[
             Keys.CELL_PROBABILITY
         ] * self.noise_level_scaling_function(data, column_name)
