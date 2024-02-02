@@ -7,7 +7,6 @@ from loguru import logger
 from vivarium import ConfigTree
 
 from pseudopeople.configuration import Keys
-from pseudopeople.dataset import DatasetData
 from pseudopeople.utilities import get_index_to_noise
 
 if TYPE_CHECKING:
