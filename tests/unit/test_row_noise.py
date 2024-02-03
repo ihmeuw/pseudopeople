@@ -9,7 +9,7 @@ from pseudopeople.constants.noise_type_metadata import (
     GUARDIAN_DUPLICATION_ADDRESS_COLUMNS,
 )
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.noise_functions import _get_census_omission_noise_levels
+from pseudopeople.noise_level import _get_census_omission_noise_levels
 from pseudopeople.schema_entities import DATASETS
 from tests.conftest import FuzzyChecker
 

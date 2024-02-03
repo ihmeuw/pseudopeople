@@ -47,7 +47,6 @@ class DatasetData:
         """Returns the noised dataset data."""
         self.format_data()
         self.noise_dataset(configuration, noise_types)
-        breakpoint()
         self.drop_extra_columns()
         return self.data
 

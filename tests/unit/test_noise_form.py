@@ -8,6 +8,7 @@ import pytest
 from vivarium.config_tree import ConfigTree
 
 from pseudopeople.configuration import Keys
+from pseudopeople.dataset import DatasetData
 from pseudopeople.entity_types import ColumnNoiseType
 from pseudopeople.interface import (
     generate_american_community_survey,
@@ -18,7 +19,6 @@ from pseudopeople.interface import (
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
-from pseudopeople.noise import noise_dataset
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS
 from tests.conftest import FuzzyChecker
@@ -165,7 +165,7 @@ def test_noise_order(mocker, dummy_data, dataset):
     # Get config for dataset
     dummy_config = get_dummy_config_noise_numbers(dataset)
     # FIXME: would be better to mock the dataset instead of using census
-    noise_dataset(dataset, dummy_data, dummy_config, 0)
+    DatasetData.noise_dataset(dataset, dummy_data, dummy_config, 0)
 
     # This is getting the string of each noise type. There are two mock calls
     # being made to each noise type with how we are mocking noise type attirbutes
