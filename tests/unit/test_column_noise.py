@@ -8,7 +8,9 @@ from vivarium.framework.randomness.index_map import IndexMap
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COLS
+from pseudopeople.constants.paths import SAMPLE_DATA_ROOT
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
+from pseudopeople.dataset import DatasetData
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS
 from pseudopeople.utilities import (
@@ -272,7 +274,20 @@ def string_series():
     )
 
 
-def test_leave_blank(dummy_dataset, fuzzy_checker: FuzzyChecker):
+@pytest.fixture(scope="module")
+def dataset_data(dummy_dataset):
+    census = DATASETS.get_dataset(DATASETS.census.name)
+    census_path = SAMPLE_DATA_ROOT / DATASETS.census.name / f"{DATASETS.census.name}.parquet"
+    dataset_data = DatasetData(census, census_path, [], 0)
+    # Overwrite the data with the dummy dataset
+    dataset_data.data = dummy_dataset
+    # Add missingness for testing. We need to get the index we will noise which required us
+    # to call a class method where we need missingness
+    dataset_data.missingness = dataset_data.is_missing(dataset_data.data)
+    return dataset_data
+
+
+def test_leave_blank(dataset_data, fuzzy_checker: FuzzyChecker):
     config = get_configuration(
         {
             DATASETS.census.name: {
@@ -287,9 +302,9 @@ def test_leave_blank(dummy_dataset, fuzzy_checker: FuzzyChecker):
         }
     )[DATASETS.census.name][Keys.COLUMN_NOISE]["zipcode"][NOISE_TYPES.leave_blank.name]
 
-    data = dummy_dataset[["numbers"]]
-    noised_data, _ = NOISE_TYPES.leave_blank(data, config, RANDOMNESS0, "dataset", "numbers")
-
+    data = dataset_data.data[["numbers"]]
+    NOISE_TYPES.leave_blank(dataset_data, config, "numbers")
+    noised_data = dataset_data.data["numbers"]
     # Calculate newly missing data, ie data that didn't come in as already missing
     data = data.squeeze()
     orig_non_missing_idx = data.index[(data.notna()) & (data != "")]

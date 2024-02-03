@@ -18,7 +18,9 @@ if TYPE_CHECKING:
 
 
 def get_randomness_stream(dataset_name: str, seed: Any, index: pd.Index) -> RandomnessStream:
-    map_size = max(1_000_000, max(index) * 2)
+    # Avoid error from empty index
+    idx_max = max(index) if not index.empty else 1
+    map_size = max(1_000_000, idx_max * 2)
     return RandomnessStream(
         key=dataset_name,
         clock=lambda: pd.Timestamp("2020-04-01"),

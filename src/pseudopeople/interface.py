@@ -80,7 +80,6 @@ def _generate_dataset(
             continue
 
         noised_data = dataset_data.get_noised_data(configuration_tree, NOISE_TYPES)
-        breakpoint()
         noised_dataset.append(noised_data)
 
     # Check if all shards for the dataset are empty
