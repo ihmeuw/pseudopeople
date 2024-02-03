@@ -8,6 +8,7 @@ from vivarium.framework.randomness.index_map import IndexMap
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COLS
+from pseudopeople.constants.paths import SAMPLE_DATA_ROOT
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.dataset import Dataset
 from pseudopeople.noise_entities import NOISE_TYPES
