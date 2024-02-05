@@ -518,7 +518,7 @@ def test_miswrite_ages_default_config(dataset_data, fuzzy_checker: FuzzyChecker)
     assert noised_data[not_missing_idx].astype(int).min() >= 0
 
 
-def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker):
+def test_miswrite_ages_uniform_probabilities(dataset_data, fuzzy_checker: FuzzyChecker):
     """Test that a list of perturbations passed in results in uniform probabilities"""
     num_rows = 100_000
     original_age = 25
@@ -593,7 +593,7 @@ def test_miswrite_ages_provided_probabilities(dataset_data, fuzzy_checker: Fuzzy
         )
 
 
-def test_miswrite_ages_handles_perturbation_to_same_age():
+def test_miswrite_ages_handles_perturbation_to_same_age(dataset_data):
     """Tests an edge case. It's possible that after an age is perturbed it ends
     up being the original age. In that case, subtract 1. eg, an age of 1 that is
     perturbed -2 becomes -1. But we cannot have negative so we flip the sign to +1.
@@ -627,7 +627,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
     assert (noised_data[noised_mask] == 0).all()
 
 
-def test_miswrite_ages_flips_negative_to_positive():
+def test_miswrite_ages_flips_negative_to_positive(dataset_data):
     """Test that any ages perturbed to <0 are reflected to positive values"""
     num_rows = 100
     age = 3
