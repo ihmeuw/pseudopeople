@@ -1033,7 +1033,7 @@ def test_generate_phonetic_errors(dataset, column, fuzzy_checker: FuzzyChecker):
     "pair",
     PHONETIC_STRESS_TEST_PATHWAYS.items(),
 )
-def test_phonetic_error_values(pair, fuzzy_checker: FuzzyChecker):
+def test_phonetic_error_values(dataset_data, pair, fuzzy_checker: FuzzyChecker):
     string, pathways = pair
 
     data = pd.Series([string] * 100_000, name="column")
@@ -1146,7 +1146,7 @@ def test_generate_ocr_errors(dataset, column, fuzzy_checker: FuzzyChecker):
     "pair",
     OCR_STRESS_TEST_PATHWAYS.items(),
 )
-def test_ocr_replacement_values(pair, fuzzy_checker: FuzzyChecker):
+def test_ocr_replacement_values(dataset_data, pair, fuzzy_checker: FuzzyChecker):
     string, pathways = pair
 
     data = pd.Series([string] * 100_000, name="column")
