@@ -238,7 +238,7 @@ def duplicate_with_guardian(
         # would be sorting at the shard level and not the entire dataset.
         data_with_duplicates = pd.concat([dataset_data.data, duplicated_rows])
 
-        duplicated_rows_missing = dataset_data.is_missing(duplicated_rows)
+        duplicated_rows_missing = dataset_data._is_missing(duplicated_rows)
         missingess_with_duplicates = pd.concat(
             [dataset_data.missingness, duplicated_rows_missing]
         ).reindex(data_with_duplicates.index)
@@ -531,13 +531,13 @@ def use_fake_names(
     column_name: str,
 ) -> None:
     """
-
     :param data:  A pandas dataframe containing necessary columns for column noise
     :param _: ConfigTree with rate at which to blank the data in column.
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return:
     """
+    
     fake_names = {
         "first_name": fake_first_names,
         "middle_name": fake_first_names,

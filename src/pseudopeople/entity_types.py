@@ -87,7 +87,7 @@ class ColumnNoiseType(NoiseType):
         configuration: ConfigTree,
         column_name: str,
     ) -> None:
-        if dataset_data.is_empty(column_name):
+        if dataset_data._is_empty(column_name):
             return
 
         noise_level = configuration[

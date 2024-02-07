@@ -27,16 +27,16 @@ class DatasetData:
         self.dataset = dataset
         self.data = self._load_data(input_data, user_filters)
         self.randomness = get_randomness_stream(self.dataset.name, seed, self.data.index)
-        self.missingness = self.is_missing(self.data)
+        self.missingness = self._is_missing(self.data)
 
     def __bool__(self):
         return not self.data.empty
 
-    def is_empty(self, column_name: str) -> bool:
+    def _is_empty(self, column_name: str) -> bool:
         """Returns whether the column is empty."""
         return self.missingness[column_name].all()
 
-    def get_non_empty_index(self, required_columns: Optional[List[str]] = None) -> pd.Index:
+    def _get_non_empty_index(self, required_columns: Optional[List[str]] = None) -> pd.Index:
         """Returns the non-empty data."""
 
         if required_columns is None:
@@ -46,7 +46,7 @@ class DatasetData:
             non_empty_data = self.data.loc[~missingness_mask, required_columns]
         return non_empty_data.index
 
-    def get_noised_data(
+    def _get_noised_data(
         self, configuration: ConfigTree, noise_types: List[NoiseType]
     ) -> pd.DataFrame:
         """Returns the noised dataset data."""
@@ -142,7 +142,7 @@ class DatasetData:
         self.data = self.data[[c.name for c in self.dataset.columns]]
 
     @staticmethod
-    def is_missing(data: pd.DataFrame) -> pd.DataFrame:
+    def _is_missing(data: pd.DataFrame) -> pd.DataFrame:
         """Returns a boolean dataframe with the same columns, index, and shape of
         the data attribute. Boolean dataframe is True if a cell is missing, False otherwise.
         """
