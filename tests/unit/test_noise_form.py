@@ -122,41 +122,36 @@ def test_noise_order(mocker, dummy_data, dataset):
     mocker.patch(
         "pseudopeople.entity_types.get_index_to_noise", return_value=dummy_data.index
     )
+    row_noises = [
+        NOISE_TYPES.do_not_respond.name,
+        NOISE_TYPES.omit_row.name,
+        "duplicate_row",
+        NOISE_TYPES.duplicate_with_guardian.name,
+    ]
     for field in NOISE_TYPES._fields:
-        mock_return = (
-            dummy_data[["event_type"]]
-            if field
-            in [
-                NOISE_TYPES.do_not_respond.name,
-                NOISE_TYPES.omit_row.name,
-                "duplicate_row",
-                NOISE_TYPES.duplicate_with_guardian.name,
-            ]
-            else dummy_data["event_type"]
-        )
         mock.attach_mock(
-            mocker.patch(
-                f"pseudopeople.noise.NOISE_TYPES.{field}.noise_function",
-                return_value=mock_return,
-            ),
+            mocker.patch(f"pseudopeople.noise_entities.NOISE_TYPES.{field}.noise_function"),
             field,
         )
-        if field not in [
-            NOISE_TYPES.do_not_respond.name,
-            NOISE_TYPES.omit_row.name,
-            "duplicate_row",
-            NOISE_TYPES.duplicate_with_guardian.name,
-        ]:
+        if field not in row_noises:
             mock.attach_mock(
                 mocker.patch(
-                    f"pseudopeople.noise.NOISE_TYPES.{field}.additional_column_getter",
+                    f"pseudopeople.noise_entities.NOISE_TYPES.{field}.additional_column_getter",
                     return_value=[],
                 ),
                 field,
             )
             mock.attach_mock(
                 mocker.patch(
-                    f"pseudopeople.noise.NOISE_TYPES.{field}.noise_level_scaling_function",
+                    f"pseudopeople.noise_entities.NOISE_TYPES.{field}.noise_level_scaling_function",
+                    return_value=1,
+                ),
+                field,
+            )
+        if field == NOISE_TYPES.do_not_respond.name:
+            mock.attach_mock(
+                mocker.patch(
+                    f"pseudopeople.noise_entities.NOISE_TYPES.{field}.get_noise_level",
                     return_value=1,
                 ),
                 field,
@@ -164,15 +159,24 @@ def test_noise_order(mocker, dummy_data, dataset):
 
     # Get config for dataset
     dummy_config = get_dummy_config_noise_numbers(dataset)
-    # FIXME: would be better to mock the dataset instead of using census
-    DatasetData.noise_dataset(dataset, dummy_data, dummy_config, 0)
+    # Create a DatasetData object from the dummy data
+    dataset_data = DatasetData(dataset, dummy_data, [], 0)
+    dataset_data.noise_dataset(dummy_config, NOISE_TYPES)
 
-    # This is getting the string of each noise type. There are two mock calls
-    # being made to each noise type with how we are mocking noise type attirbutes
-    # above causing duplicates in the call list. Call order is each instance a noise
-    # function is called. Here we grab the string of the noise type for one mock method
-    # call and not the second method.
-    call_order = [x[0] for x in mock.mock_calls if type(x[1][0]) == str]
+    # There are multiple calls that are being mocked. This is not precisely identifying the call
+    # to the noise function. Instead, it is identifying mocked calls that have the same argument
+    # types that the noise function should be receiving.
+    call_order = []
+    for mocked_call in mock.mock_calls:
+        mocked_call_arguments = mocked_call[1]
+        if len(mocked_call_arguments) < 3:
+            continue
+        first_arg_correct_type = isinstance(mocked_call_arguments[0], DatasetData)
+        second_arg_correct_type = isinstance(mocked_call_arguments[1], ConfigTree)
+        third_arg_correct_type = isinstance(mocked_call_arguments[2], pd.Index)
+        if first_arg_correct_type and second_arg_correct_type and third_arg_correct_type:
+            call_order.append(mocked_call[0])
+
     row_order = [
         noise_type
         for noise_type in NOISE_TYPES._fields
@@ -219,11 +223,13 @@ def test_columns_noised(dummy_data):
             },
         },
     )
-    noised_data = dummy_data.copy()
-    noised_data = noise_dataset(DATASETS.census, noised_data, config, 0)
+    dataset = DatasetData(DATASETS.census, dummy_data, [], 0)
+    data = dataset.data.copy()
+    dataset.noise_dataset(config, [NOISE_TYPES.leave_blank])
+    noised_data = dataset.data
 
-    assert (dummy_data["event_type"] != noised_data["event_type"]).any()
-    assert (dummy_data["words"] == noised_data["words"]).all()
+    assert (data["event_type"] != noised_data["event_type"]).any()
+    assert (data["words"] == noised_data["words"]).all()
 
 
 @pytest.mark.parametrize(
@@ -257,12 +263,10 @@ def test_two_noise_functions_are_independent(mocker, fuzzy_checker: FuzzyChecker
                     "fake_column_one": {
                         "alpha": {Keys.CELL_PROBABILITY: 0.20},
                         "beta": {Keys.CELL_PROBABILITY: 0.30},
-                        "leave_blank": {Keys.CELL_PROBABILITY: 0},
                     },
                     "fake_column_two": {
                         "alpha": {Keys.CELL_PROBABILITY: 0.40},
                         "beta": {Keys.CELL_PROBABILITY: 0.50},
-                        "leave_blank": {Keys.CELL_PROBABILITY: 0},
                     },
                 },
             }
@@ -270,37 +274,44 @@ def test_two_noise_functions_are_independent(mocker, fuzzy_checker: FuzzyChecker
     )
 
     # Mock objects for testing
+    def alpha_noise_function(
+        dataset: DatasetData, config: ConfigTree, to_noise_idx: pd.Index, column_name: str
+    ):
+        dataset.data.loc[to_noise_idx, column_name] = dataset.data.loc[
+            to_noise_idx, column_name
+        ].str.cat(pd.Series("abc", index=to_noise_idx))
+
+    def beta_noise_function(
+        dataset: DatasetData, config: ConfigTree, to_noise_idx: pd.Index, column_name: str
+    ):
+        dataset.data.loc[to_noise_idx, column_name] = dataset.data.loc[
+            to_noise_idx, column_name
+        ].str.cat(pd.Series("123", index=to_noise_idx))
 
     class MockNoiseTypes(NamedTuple):
         ALPHA: ColumnNoiseType = ColumnNoiseType(
             "alpha",
-            lambda data, *_: data.squeeze().str.cat(pd.Series("abc", index=data.index)),
+            alpha_noise_function,
         )
         BETA: ColumnNoiseType = ColumnNoiseType(
             "beta",
-            lambda data, *_: data.squeeze().str.cat(pd.Series("123", index=data.index)),
-        )
-        leave_blank = ColumnNoiseType(
-            "leave_blank",
-            lambda data, *_: pd.Series(np.nan, index=data.index),
+            beta_noise_function,
         )
 
     mock_noise_types = MockNoiseTypes()
 
-    mocker.patch("pseudopeople.noise.NOISE_TYPES", mock_noise_types)
     dummy_dataset = pd.DataFrame(
         {
             "fake_column_one": ["cat", "dog", "bird", "bunny", "duck"] * 20_000,
             "fake_column_two": ["shoe", "pants", "shirt", "hat", "sunglasses"] * 20_000,
         }
     )
-
-    noised_data = noise_dataset(
-        dataset=DATASETS.census,
-        dataset_data=dummy_dataset,
-        seed=0,
+    dataset = DatasetData(DATASETS.census, dummy_dataset, [], 0)
+    dataset.noise_dataset(
         configuration=config_tree,
+        noise_types=mock_noise_types,
     )
+    noised_data = dataset.data
 
     # Get config values for testing
     col1_expected_abc_proportion = (

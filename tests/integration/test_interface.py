@@ -358,8 +358,7 @@ def test_dataset_filter_by_year(mocker, dataset_name: str):
     # Generate a new (non-fixture) noised dataset for a single year but mocked such
     # that no noise actually happens (otherwise the years would get noised and
     # we couldn't tell if the filter was working properly)
-    original = _initialize_dataset_data_with_sample(dataset_name)
-    mocker.patch("pseudopeople.dataset.DatasetData.noise_dataset", return_value=original.data)
+    mocker.patch("pseudopeople.dataset.DatasetData.noise_dataset")
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
     noised_data = generation_function(year=year)
     dataset = DATASETS.get_dataset(dataset_name)
@@ -382,8 +381,7 @@ def test_dataset_filter_by_year_with_full_dates(mocker, dataset_name: str):
     # Generate a new (non-fixture) noised dataset for a single year but mocked such
     # that no noise actually happens (otherwise the years would get noised and
     # we couldn't tell if the filter was working properly)
-    original = _initialize_dataset_data_with_sample(dataset_name)
-    mocker.patch("pseudopeople.dataset.DatasetData.noise_dataset", return_value=original.data)
+    mocker.patch("pseudopeople.dataset.DatasetData.noise_dataset")
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
     noised_data = generation_function(year=year)
     dataset = DATASETS.get_dataset(dataset_name)
@@ -422,12 +420,9 @@ def test_generate_dataset_with_state_filtered(
     generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
 
     # Skip noising (noising can incorrect select another state)
-    original = _initialize_dataset_data_with_sample(dataset_name)
-    mocker.patch("pseudopeople.dataset.DatasetData.noise_dataset", return_value=original.data)
-
+    mocker.patch("pseudopeople.dataset.DatasetData.noise_dataset")
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
     noised_data = generation_function(source=split_sample_data_dir_state_edit, state=STATE)
-    breakpoint()
     assert (noised_data[dataset.state_column_name] == STATE).all()
 
 
@@ -458,8 +453,7 @@ def test_generate_dataset_with_state_unfiltered(
     dataset = DATASETS.get_dataset(dataset_name)
 
     # Skip noising (noising can incorrect select another state)
-    original = _initialize_dataset_data_with_sample(dataset_name)
-    mocker.patch("pseudopeople.dataset.DatasetData.noise_dataset", return_value=original.data)
+    mocker.patch("pseudopeople.dataset.DatasetData.noise_dataset")
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
 
     noised_data = generation_function(source=split_sample_data_dir_state_edit)
@@ -483,8 +477,7 @@ def test_dataset_filter_by_state_and_year(
         pytest.skip(reason=dataset_name)
     year = 2030  # not default 2020
     mocker.patch("pseudopeople.interface.validate_source_compatibility")
-    original = _initialize_dataset_data_with_sample(dataset_name)
-    mocker.patch("pseudopeople.dataset.DatasetData.noise_dataset", return_value=original.data)
+    mocker.patch("pseudopeople.dataset.DatasetData.noise_dataset")
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
     noised_data = generation_function(
         source=split_sample_data_dir_state_edit,
@@ -506,8 +499,7 @@ def test_dataset_filter_by_state_and_year_with_full_dates(
     """Test that dataset generation works with state and year filters in conjunction"""
     year = 2030  # not default 2020
     mocker.patch("pseudopeople.interface.validate_source_compatibility")
-    original = _initialize_dataset_data_with_sample(dataset_name)
-    mocker.patch("pseudopeople.dataset.DatasetData.noise_dataset", return_value=original.data)
+    mocker.patch("pseudopeople.dataset.DatasetData.noise_dataset")
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
     noised_data = generation_function(
         source=split_sample_data_dir_state_edit,
