@@ -8,7 +8,6 @@ from vivarium.framework.randomness.index_map import IndexMap
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COLS
-from pseudopeople.constants.paths import SAMPLE_DATA_ROOT
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.dataset import Dataset
 from pseudopeople.noise_entities import NOISE_TYPES
@@ -516,7 +515,7 @@ def test_miswrite_ages_default_config(dataset, fuzzy_checker: FuzzyChecker):
     assert noised_data[not_missing_idx].astype(int).min() >= 0
 
 
-def test_miswrite_ages_uniform_probabilities(dataset_data, fuzzy_checker: FuzzyChecker):
+def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker):
     """Test that a list of perturbations passed in results in uniform probabilities"""
     num_rows = 100_000
     original_age = 25
@@ -595,7 +594,7 @@ def test_miswrite_ages_provided_probabilities(dataset, fuzzy_checker: FuzzyCheck
         )
 
 
-def test_miswrite_ages_handles_perturbation_to_same_age(dataset_data):
+def test_miswrite_ages_handles_perturbation_to_same_age():
     """Tests an edge case. It's possible that after an age is perturbed it ends
     up being the original age. In that case, subtract 1. eg, an age of 1 that is
     perturbed -2 becomes -1. But we cannot have negative so we flip the sign to +1.
@@ -631,7 +630,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age(dataset_data):
     assert (noised_data[noised_mask] == 0).all()
 
 
-def test_miswrite_ages_flips_negative_to_positive(dataset_data):
+def test_miswrite_ages_flips_negative_to_positive():
     """Test that any ages perturbed to <0 are reflected to positive values"""
     num_rows = 100
     age = 3
@@ -1033,7 +1032,7 @@ def test_generate_phonetic_errors(dataset, column, fuzzy_checker: FuzzyChecker):
     "pair",
     PHONETIC_STRESS_TEST_PATHWAYS.items(),
 )
-def test_phonetic_error_values(dataset_data, pair, fuzzy_checker: FuzzyChecker):
+def test_phonetic_error_values(pair, fuzzy_checker: FuzzyChecker):
     string, pathways = pair
 
     data = pd.Series([string] * 100_000, name="column")
@@ -1146,7 +1145,7 @@ def test_generate_ocr_errors(dataset, column, fuzzy_checker: FuzzyChecker):
     "pair",
     OCR_STRESS_TEST_PATHWAYS.items(),
 )
-def test_ocr_replacement_values(dataset_data, pair, fuzzy_checker: FuzzyChecker):
+def test_ocr_replacement_values(pair, fuzzy_checker: FuzzyChecker):
     string, pathways = pair
 
     data = pd.Series([string] * 100_000, name="column")
