@@ -72,7 +72,7 @@ class ColumnNoiseType(NoiseType):
     and an Index of which items in the Series were selected for noise.
     """
 
-    noise_function: Callable[["DatasetData", ConfigTree, pd.Index, Optional[str]], None]
+    noise_function: Callable[["DatasetData", ConfigTree, pd.Index, str], None]
     probability: Optional[float] = 0.01
     noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0
     additional_column_getter: Callable[[str], List[str]] = lambda column_name: []
