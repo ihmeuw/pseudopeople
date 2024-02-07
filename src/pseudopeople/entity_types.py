@@ -122,7 +122,7 @@ class ColumnNoiseType(NoiseType):
             column_name,
         )
 
-        # todo investigate this and also move the logic inside DatasetData
+        # TODO: Mic-4874: investigate this and also move the logic inside DatasetData
         # Coerce noised column dtype back to original column's if it has changed
         if dataset_data.data[column_name].dtype.name != original_dtype_name:
             dataset_data = dataset_data.data[column_name].astype(

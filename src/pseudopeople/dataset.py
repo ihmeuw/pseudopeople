@@ -142,7 +142,9 @@ class DatasetData:
 
     @staticmethod
     def is_missing(data: pd.DataFrame) -> pd.DataFrame:
-        """Returns the missingness of the data."""
+        """Returns a boolean dataframe with the same columns, index, and shape of
+        the data attribute. Boolean dataframe is True if a cell is missing, False otherwise.
+        """
         return (data == "") | (data.isna())
 
 
