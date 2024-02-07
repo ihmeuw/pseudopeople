@@ -77,7 +77,7 @@ def get_index_to_noise(
     Function that takes a series and returns a pd.Index that chosen by Vivarium Common Random Number to be noised.
     """
 
-    index_eligible_for_noise = dataset_data.get_non_empty_index(required_columns)
+    index_eligible_for_noise = dataset_data._get_non_empty_index(required_columns)
 
     # As long as noise is relatively rare, it will be faster to randomly select cells to
     # noise rather than generating a random draw for every item eligible
