@@ -44,7 +44,7 @@ def omit_rows(
     dataset_data.data = dataset_data.data.loc[
         dataset_data.data.index.difference(to_noise_index)
     ]
-    # todo should dataset_data have a function like `make_missing`?
+    # TODO: Mic-4875 add update_missingness method to DatasetData
     dataset_data.missingness.loc[to_noise_index, :] = True
 
 
