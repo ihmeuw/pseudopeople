@@ -226,7 +226,7 @@ def duplicate_with_guardian(
         ].map(HOUSING_TYPE_GUARDIAN_DUPLICATION_RELATONSHIP_MAP)
 
         # Clean columns
-        duplicated_rows = duplicated_rows[[col.name for col in dataset_data.dataset.columns]]
+        duplicated_rows = duplicated_rows[dataset_data.data.columns]
 
         # Add duplicated rows to the original data and make sure that households
         # are grouped together by sorting by date and household_id
@@ -536,7 +536,7 @@ def use_fake_names(
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return:
     """
-    column = dataset_data.data.loc[to_noise_index, column_name]
+
     fake_first = fake_first_names
     fake_last = fake_last_names
     fake_names = {
@@ -558,7 +558,7 @@ def use_fake_names(
 
     new_values = vectorized_choice(
         options=options,
-        n_to_choose=len(column),
+        n_to_choose=len(to_noise_index),
         randomness_stream=dataset_data.randomness,
         additional_key=f"{column_name}_fake_names",
     )

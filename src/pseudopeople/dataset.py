@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -10,17 +10,21 @@ from pseudopeople.configuration import Keys
 from pseudopeople.constants.metadata import DATEFORMATS
 from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COLS
 from pseudopeople.entity_types import ColumnNoiseType, NoiseType, RowNoiseType
-from pseudopeople.loader import load_standard_dataset_file
+from pseudopeople.loader import load_data
 from pseudopeople.schema_entities import COLUMNS, Dataset
 from pseudopeople.utilities import coerce_dtypes, get_randomness_stream
 
 
 class DatasetData:
     def __init__(
-        self, dataset: Dataset, data_path: Path, user_filters: List[Tuple], seed: str
+        self,
+        dataset: Dataset,
+        input_data: Union[Path, pd.DataFrame],
+        user_filters: List[Tuple],
+        seed: Any,
     ):
         self.dataset = dataset
-        self.data = load_standard_dataset_file(data_path, user_filters)
+        self.data = load_data(input_data, user_filters)
         self.randomness = get_randomness_stream(self.dataset.name, seed, self.data.index)
         self.missingness = self.is_missing(self.data)
 
@@ -78,14 +82,6 @@ class DatasetData:
                     # Apply row noise
                     noise_type(self, noise_configuration[Keys.ROW_NOISE][noise_type.name])
 
-                    # todo this logic needs to move inside the duplicate row noise function
-                    # Check for duplicated rows
-                    # new_indices = self.data.index.difference(original_index)
-                    # new_missingness = self.data.loc[new_indices].isna() | (
-                    #     self.data.loc[new_indices] == ""
-                    # )
-                    # missingness = pd.concat([missingness, new_missingness])
-
             elif isinstance(noise_type, ColumnNoiseType):
                 if Keys.COLUMN_NOISE in noise_configuration:
                     columns_to_noise = [
@@ -102,10 +98,6 @@ class DatasetData:
                             column,
                         )
 
-                        # todo this logic needs to move inside the leave blank noise function
-                        # if noise_type == NOISE_TYPES.leave_blank:
-                        #     # The only situation in which more missingness is introduced
-                        #     missingness.loc[index_noised, column] = True
             else:
                 raise TypeError(
                     f"Invalid noise type. Allowed types are {RowNoiseType} and "
