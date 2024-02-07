@@ -11,7 +11,6 @@ from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
 from pseudopeople.dataset import DatasetData
 from pseudopeople.exceptions import DataSourceError
-from pseudopeople.loader import load_standard_dataset_file
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS, Dataset
 from pseudopeople.utilities import (
@@ -79,7 +78,7 @@ def _generate_dataset(
         if not dataset_data:
             continue
 
-        noised_data = dataset_data.get_noised_data(configuration_tree, NOISE_TYPES)
+        noised_data = dataset_data._get_noised_data(configuration_tree, NOISE_TYPES)
         noised_dataset.append(noised_data)
 
     # Check if all shards for the dataset are empty
@@ -140,12 +139,6 @@ def _get_data_changelog_version(changelog):
         first_line = file.readline()
     version = parse(first_line.split("**")[1].split("-")[0].strip())
     return version
-
-
-def _load_data_from_path(data_path: Path, user_filters: List[Tuple]) -> pd.DataFrame:
-    """Load data from a data file given a data_path and a year_filter."""
-    data = load_standard_dataset_file(data_path, user_filters)
-    return data
 
 
 def generate_decennial_census(

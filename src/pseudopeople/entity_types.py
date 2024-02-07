@@ -87,7 +87,7 @@ class ColumnNoiseType(NoiseType):
         configuration: ConfigTree,
         column_name: str,
     ) -> None:
-        if dataset_data.is_empty(column_name):
+        if dataset_data._is_empty(column_name):
             return
 
         noise_level = configuration[
@@ -107,10 +107,8 @@ class ColumnNoiseType(NoiseType):
         if to_noise_idx.empty:
             logger.debug(
                 f"No cells chosen to noise for noise function {self.name} on "
-                f"column {column_name}. "
-                "This is likely due to a combination "
-                "of the configuration noise levels and the simulated population "
-                "data."
+                f"column {column_name}. This is likely due to a combination "
+                "of the configuration noise levels and the simulated population data."
             )
             return
 

@@ -3,6 +3,7 @@ from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
+import pyarrow.parquet as pq
 from tqdm import tqdm
 from vivarium import ConfigTree
 
@@ -10,7 +11,7 @@ from pseudopeople.configuration import Keys
 from pseudopeople.constants.metadata import DATEFORMATS
 from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COLS
 from pseudopeople.entity_types import ColumnNoiseType, NoiseType, RowNoiseType
-from pseudopeople.loader import load_data
+from pseudopeople.exceptions import DataSourceError
 from pseudopeople.schema_entities import COLUMNS, Dataset
 from pseudopeople.utilities import coerce_dtypes, get_randomness_stream
 
@@ -24,18 +25,18 @@ class DatasetData:
         seed: Any,
     ):
         self.dataset = dataset
-        self.data = load_data(input_data, user_filters)
+        self.data = self._load_data(input_data, user_filters)
         self.randomness = get_randomness_stream(self.dataset.name, seed, self.data.index)
-        self.missingness = self.is_missing(self.data)
+        self.missingness = self._is_missing(self.data)
 
     def __bool__(self):
         return not self.data.empty
 
-    def is_empty(self, column_name: str) -> bool:
+    def _is_empty(self, column_name: str) -> bool:
         """Returns whether the column is empty."""
         return self.missingness[column_name].all()
 
-    def get_non_empty_index(self, required_columns: Optional[List[str]] = None) -> pd.Index:
+    def _get_non_empty_index(self, required_columns: Optional[List[str]] = None) -> pd.Index:
         """Returns the non-empty data."""
 
         if required_columns is None:
@@ -45,21 +46,21 @@ class DatasetData:
             non_empty_data = self.data.loc[~missingness_mask, required_columns]
         return non_empty_data.index
 
-    def get_noised_data(
+    def _get_noised_data(
         self, configuration: ConfigTree, noise_types: List[NoiseType]
     ) -> pd.DataFrame:
         """Returns the noised dataset data."""
-        self.format_data()
-        self.noise_dataset(configuration, noise_types)
-        self.drop_extra_columns()
+        self._format_data()
+        self._noise_dataset(configuration, noise_types)
+        self._drop_extra_columns()
         return self.data
 
-    def format_data(self) -> None:
+    def _format_data(self) -> None:
         """Formats the data to match the expected format for noising."""
         self._reformat_dates_for_noising()
         self.data = coerce_dtypes(self.data, self.dataset)
 
-    def noise_dataset(self, configuration: ConfigTree, noise_types: List[NoiseType]) -> None:
+    def _noise_dataset(self, configuration: ConfigTree, noise_types: List[NoiseType]) -> None:
         """
         Adds noise to the dataset data. Noise functions are executed in the order
         defined by :py:const: `.NOISE_TYPES`. Row noise functions are applied to the
@@ -136,16 +137,58 @@ class DatasetData:
 
         self.data = data
 
-    def drop_extra_columns(self) -> None:
+    def _drop_extra_columns(self) -> None:
         """Drops columns that are not in the dataset schema."""
         self.data = self.data[[c.name for c in self.dataset.columns]]
 
     @staticmethod
-    def is_missing(data: pd.DataFrame) -> pd.DataFrame:
+    def _is_missing(data: pd.DataFrame) -> pd.DataFrame:
         """Returns a boolean dataframe with the same columns, index, and shape of
         the data attribute. Boolean dataframe is True if a cell is missing, False otherwise.
         """
         return (data == "") | (data.isna())
+
+    def _load_data(
+        self, input_data: Union[Path, pd.DataFrame], user_filters: List[Tuple]
+    ) -> pd.DataFrame:
+        if isinstance(input_data, pd.DataFrame):
+            data = self._filter_data(input_data, user_filters)
+        else:
+            data = self._load_standard_dataset_file(input_data, user_filters)
+
+        return data
+
+    def _filter_data(
+        self, input_data: pd.DataFrame, user_filters: List[Tuple]
+    ) -> pd.DataFrame:
+        if len(user_filters) > 0:
+            for filter in user_filters:
+                column_name = filter[0]
+                compare_operator = filter[1]  # "==" or "<"
+                value = filter[2]
+                input_data = input_data.query(f"{column_name} {compare_operator} '{value}'")
+
+        return input_data
+
+    def _load_standard_dataset_file(
+        self, input_data: Union[Path, pd.DataFrame], user_filters: List[Tuple]
+    ) -> pd.DataFrame:
+        if input_data.suffix == ".parquet":
+            if len(user_filters) == 0:
+                # pyarrow.parquet.read_table doesn't accept an empty list
+                user_filters = None
+            data = pq.read_table(input_data, filters=user_filters).to_pandas()
+        else:
+            raise DataSourceError(
+                f"Source path must be a .parquet file. Provided {input_data.suffix}"
+            )
+        if not isinstance(data, pd.DataFrame):
+            raise DataSourceError(
+                f"File located at {input_data} must contain a pandas DataFrame. "
+                "Please provide the path to the unmodified root data directory."
+            )
+
+        return data
 
 
 def _zfill_fast(col: pd.Series, desired_length: int) -> pd.Series:

@@ -161,7 +161,7 @@ def test_noise_order(mocker, dummy_data, dataset):
     dummy_config = get_dummy_config_noise_numbers(dataset)
     # Create a DatasetData object from the dummy data
     dataset_data = DatasetData(dataset, dummy_data, [], 0)
-    dataset_data.noise_dataset(dummy_config, NOISE_TYPES)
+    dataset_data._noise_dataset(dummy_config, NOISE_TYPES)
 
     # There are multiple calls that are being mocked. This is not precisely identifying the call
     # to the noise function. Instead, it is identifying mocked calls that have the same argument
@@ -225,7 +225,7 @@ def test_columns_noised(dummy_data):
     )
     dataset = DatasetData(DATASETS.census, dummy_data, [], 0)
     data = dataset.data.copy()
-    dataset.noise_dataset(config, [NOISE_TYPES.leave_blank])
+    dataset._noise_dataset(config, [NOISE_TYPES.leave_blank])
     noised_data = dataset.data
 
     assert (data["event_type"] != noised_data["event_type"]).any()
@@ -307,7 +307,7 @@ def test_two_noise_functions_are_independent(mocker, fuzzy_checker: FuzzyChecker
         }
     )
     dataset = DatasetData(DATASETS.census, dummy_dataset, [], 0)
-    dataset.noise_dataset(
+    dataset._noise_dataset(
         configuration=config_tree,
         noise_types=mock_noise_types,
     )

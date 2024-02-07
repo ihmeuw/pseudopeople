@@ -195,10 +195,8 @@ def duplicate_with_guardian(
         group_df.loc[guardian_2_different_index, "copy_guardian"] = "guardian_2"
 
         # Noise data
-        # todo can we optimize and only choose against the truly eligible rows
-        # This is selecting rows to noise on the whole data-set, and then
-        # intersecting with the eligible rows. This will be correct because they
-        # are independent, but it is not efficient.
+        # TODO: Mic-4876 Can we only operate on the index eligible for noise and
+        # not the entire dataset?
         to_noise_index = get_index_to_noise(
             dataset_data, configuration[group], f"duplicate_with_guardian_{group}"
         ).intersection(group_df.index)
@@ -235,11 +233,12 @@ def duplicate_with_guardian(
         duplicated_rows.index = range(
             index_start_value, index_start_value + len(duplicated_rows)
         )
-        data_with_duplicates = pd.concat([dataset_data.data, duplicated_rows]).sort_values(
-            by=[dataset_data.dataset.date_column_name, "household_id"]
-        )
+        # Note: This is where we would sort the data by year and household_id but
+        # we ran into runtime issues. It may be sufficient to do it here since this
+        # would be sorting at the shard level and not the entire dataset.
+        data_with_duplicates = pd.concat([dataset_data.data, duplicated_rows])
 
-        duplicated_rows_missing = dataset_data.is_missing(duplicated_rows)
+        duplicated_rows_missing = dataset_data._is_missing(duplicated_rows)
         missingess_with_duplicates = pd.concat(
             [dataset_data.missingness, duplicated_rows_missing]
         ).reindex(data_with_duplicates.index)
@@ -397,11 +396,11 @@ def write_wrong_zipcode_digits(
     # view("U1") then reinterprets this memory as an array of individual (Unicode) characters.
     same_len_col_exploded = to_noise_zipcodes.values.astype("U5").view("U1").reshape(shape)
     same_len_col_exploded[replace] = random_digits
-    noised_zipcodes = pd.Series(
+
+    dataset_data.data.loc[to_noise_index, column_name] = pd.Series(
         same_len_col_exploded.view("U5").reshape(len(to_noise_zipcodes)),
         index=to_noise_index,
     )
-    dataset_data.data.loc[to_noise_index, column_name] = noised_zipcodes
 
 
 def misreport_ages(
@@ -512,11 +511,14 @@ def use_nicknames(
     nicknames = load_nicknames_data()
     nickname_eligible_names = set(nicknames.index)
     column = dataset_data.data.loc[to_noise_index, column_name]
-    # TODO: This is just like guardian duplication, can we move finding an eligible index
+    # TODO: Mic-4876 This is just like guardian duplication, can we move finding an eligible index
     # outside of the noise function?
     have_nickname_idx = column.index[column.isin(nickname_eligible_names)]
     noised = two_d_array_choice(
-        column.loc[have_nickname_idx], nicknames, dataset_data.randomness, column_name
+        column.loc[have_nickname_idx],
+        nicknames,
+        dataset_data.randomness,
+        f"{column_name}_use_nicknames",
     )
     column.loc[have_nickname_idx] = noised
     dataset_data.data.loc[to_noise_index, column_name] = column
@@ -537,22 +539,22 @@ def use_fake_names(
     :return:
     """
 
-    fake_first = fake_first_names
-    fake_last = fake_last_names
+    # fake_first_names = fake_first_names
+    # fake_last_names = fake_last_names
     fake_names = {
-        "first_name": fake_first,
-        "middle_name": fake_first,
-        "last_name": fake_last,
-        "spouse_first_name": fake_first,
-        "spouse_last_name": fake_last,
-        "dependent_1_first_name": fake_first,
-        "dependent_1_last_name": fake_last,
-        "dependent_2_first_name": fake_first,
-        "dependent_2_last_name": fake_last,
-        "dependent_3_first_name": fake_first,
-        "dependent_3_last_name": fake_last,
-        "dependent_4_first_name": fake_first,
-        "dependent_4_last_name": fake_last,
+        "first_name": fake_first_names,
+        "middle_name": fake_first_names,
+        "last_name": fake_last_names,
+        "spouse_first_name": fake_first_names,
+        "spouse_last_name": fake_last_names,
+        "dependent_1_first_name": fake_first_names,
+        "dependent_1_last_name": fake_last_names,
+        "dependent_2_first_name": fake_first_names,
+        "dependent_2_last_name": fake_last_names,
+        "dependent_3_first_name": fake_first_names,
+        "dependent_3_last_name": fake_last_names,
+        "dependent_4_first_name": fake_first_names,
+        "dependent_4_last_name": fake_last_names,
     }
     options = fake_names[column_name]
 
@@ -590,7 +592,7 @@ def make_phonetic_errors(
         dataset_data.data.loc[to_noise_index, column_name].astype(str),
         configuration[Keys.TOKEN_PROBABILITY],
         dataset_data.randomness,
-        addl_key="make_phonetic_errors",
+        addl_key=f"{column_name}_make_phonetic_errors",
     )
 
 
@@ -717,7 +719,7 @@ def make_ocr_errors(
         dataset_data.data.loc[to_noise_index, column_name].astype(str),
         configuration[Keys.TOKEN_PROBABILITY],
         dataset_data.randomness,
-        addl_key="make_ocr_errors",
+        addl_key=f"{column_name}_make_ocr_errors",
     )
 
 
