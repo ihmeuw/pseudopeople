@@ -7,7 +7,7 @@ from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.entities import NO_NOISE
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import DatasetNames
-from pseudopeople.dataset import DatasetData
+from pseudopeople.dataset import Dataset
 from pseudopeople.interface import (
     generate_american_community_survey,
     generate_current_population_survey,
@@ -200,7 +200,7 @@ def noised_sample_data_taxes_1040(config):
 # Raw sample datasets with half from a specific state, for state filtering
 @pytest.fixture(scope="module")
 def sample_data_decennial_census_state_edit():
-    data = _initialize_dataset_data_with_sample(DATASET_SCHEMAS.census.name)
+    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.census.name)
     # Set half of the entries to the state we'll filter on
     data.loc[
         data.reset_index().index % 2 == 0, DATASET_SCHEMAS.census.state_column_name
@@ -210,7 +210,7 @@ def sample_data_decennial_census_state_edit():
 
 @pytest.fixture(scope="module")
 def sample_data_american_community_survey_state_edit():
-    data = _initialize_dataset_data_with_sample(DATASET_SCHEMAS.acs.name)
+    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.acs.name)
     # Set half of the entries to the state we'll filter on
     data.loc[data.reset_index().index % 2 == 0, DATASET_SCHEMAS.acs.state_column_name] = STATE
     return data
@@ -218,7 +218,7 @@ def sample_data_american_community_survey_state_edit():
 
 @pytest.fixture(scope="module")
 def sample_data_current_population_survey_state_edit():
-    data = _initialize_dataset_data_with_sample(DATASET_SCHEMAS.cps.name)
+    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.cps.name)
     # Set half of the entries to the state we'll filter on
     data.loc[data.reset_index().index % 2 == 0, DATASET_SCHEMAS.cps.state_column_name] = STATE
     return data
@@ -226,7 +226,7 @@ def sample_data_current_population_survey_state_edit():
 
 @pytest.fixture(scope="module")
 def sample_data_women_infants_and_children_state_edit():
-    data = _initialize_dataset_data_with_sample(DATASET_SCHEMAS.wic.name)
+    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.wic.name)
     # Set half of the entries to the state we'll filter on
     data.loc[data.reset_index().index % 2 == 0, DATASET_SCHEMAS.wic.state_column_name] = STATE
     return data
@@ -234,7 +234,7 @@ def sample_data_women_infants_and_children_state_edit():
 
 @pytest.fixture(scope="module")
 def sample_data_taxes_w2_and_1099_state_edit():
-    data = _initialize_dataset_data_with_sample(DATASET_SCHEMAS.tax_w2_1099.name)
+    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.tax_w2_1099.name)
     # Set half of the entries to the state we'll filter on
     data.loc[
         data.reset_index().index % 2 == 0, DATASET_SCHEMAS.tax_w2_1099.state_column_name
@@ -247,22 +247,22 @@ def sample_data_taxes_w2_and_1099_state_edit():
 ####################
 
 
-def _initialize_dataset_data_with_sample(dataset_name) -> DatasetData:
+def _initialize_dataset_with_sample(dataset_name) -> Dataset:
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     data_path = paths.SAMPLE_DATA_ROOT / dataset_name / f"{dataset_name}.parquet"
-    dataset_data = DatasetData(dataset_schema, data_path, [], SEED)
+    dataset = Dataset(dataset_schema, data_path, [], SEED)
 
-    return dataset_data
+    return dataset
 
 
-def _get_common_datasets(unnoised_dataset_data, noised_dataset):
+def _get_common_datasets(unnoised_dataset, noised_dataset):
     """Use unique columns to determine shared non-NA rows between noised and
     unnoised data. Note that we cannot use the original index because that
     gets reset after noising, i.e. the unique columns must NOT be noised.
     """
-    idx_cols = IDX_COLS.get(unnoised_dataset_data.dataset_schema.name)
-    unnoised_dataset_data._reformat_dates_for_noising()
-    check_original = unnoised_dataset_data.data.set_index(idx_cols)
+    idx_cols = IDX_COLS.get(unnoised_dataset.dataset_schema.name)
+    unnoised_dataset._reformat_dates_for_noising()
+    check_original = unnoised_dataset.data.set_index(idx_cols)
     check_noised = noised_dataset.set_index(idx_cols)
     # Ensure the idx_cols are unique
     assert check_original.index.duplicated().sum() == 0

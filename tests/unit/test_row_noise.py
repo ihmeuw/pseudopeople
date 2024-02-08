@@ -8,7 +8,7 @@ from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants.noise_type_metadata import (
     GUARDIAN_DUPLICATION_ADDRESS_COLUMNS,
 )
-from pseudopeople.dataset import DatasetData
+from pseudopeople.dataset import Dataset
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.noise_level import _get_census_omission_noise_levels
 from pseudopeople.schema_entities import DATASET_SCHEMAS
@@ -38,7 +38,7 @@ def test_omit_row(dummy_data, fuzzy_checker: FuzzyChecker):
     config = get_configuration()[DATASET_SCHEMAS.tax_w2_1099.name][Keys.ROW_NOISE][
         NOISE_TYPES.omit_row.name
     ]
-    dataset = DatasetData(DATASET_SCHEMAS.tax_w2_1099, dummy_data, [], 0)
+    dataset = Dataset(DATASET_SCHEMAS.tax_w2_1099, dummy_data, [], 0)
     NOISE_TYPES.omit_row(dataset, config)
     noised_data1 = dataset.data
 
@@ -66,8 +66,8 @@ def test_do_not_respond(mocker, dummy_data, fuzzy_checker: FuzzyChecker):
     my_dummy_data["age"] = 27
     my_dummy_data["sex"] = "Female"
     my_dummy_data["race_ethnicity"] = "Vulcan"
-    census = DatasetData(DATASET_SCHEMAS.census, my_dummy_data, [], 0)
-    acs = DatasetData(DATASET_SCHEMAS.acs, my_dummy_data, [], 0)
+    census = Dataset(DATASET_SCHEMAS.census, my_dummy_data, [], 0)
+    acs = Dataset(DATASET_SCHEMAS.acs, my_dummy_data, [], 0)
     NOISE_TYPES.do_not_respond(census, config)
     NOISE_TYPES.do_not_respond(acs, config)
     noised_census = census.data
@@ -123,7 +123,7 @@ def test_do_not_respond_missing_columns(dummy_data):
     config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
         NOISE_TYPES.do_not_respond.name
     ]
-    census = DatasetData(DATASET_SCHEMAS.census, dummy_data, [], 0)
+    census = Dataset(DATASET_SCHEMAS.census, dummy_data, [], 0)
     with pytest.raises(KeyError, match="race_ethnicity"):
         NOISE_TYPES.do_not_respond(census, config)
 
@@ -223,7 +223,7 @@ def test_guardian_duplication():
             NOISE_TYPES.duplicate_with_guardian.name
         ]
     }
-    census = DatasetData(DATASET_SCHEMAS.census, dummy_data, [], 0)
+    census = Dataset(DATASET_SCHEMAS.census, dummy_data, [], 0)
     NOISE_TYPES.duplicate_with_guardian(census, overrides)
     noised = census.data
     # We know the following since every dependent is duplicated:

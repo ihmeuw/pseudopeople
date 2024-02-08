@@ -9,7 +9,7 @@ from tqdm import tqdm
 from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
-from pseudopeople.dataset import DatasetData
+from pseudopeople.dataset import Dataset
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASET_SCHEMAS, DatasetSchema
@@ -71,14 +71,14 @@ def _generate_dataset(
 
     for data_path_index, data_path in enumerate(iterator):
         logger.debug(f"Loading data from {data_path}.")
-        dataset_data = DatasetData(
+        dataset = Dataset(
             dataset_schema, data_path, user_filters, f"{seed}_{data_path_index}"
         )
 
-        if not dataset_data:
+        if not dataset:
             continue
 
-        noised_data = dataset_data.get_noised_data(configuration_tree, NOISE_TYPES)
+        noised_data = dataset.get_noised_data(configuration_tree, NOISE_TYPES)
         noised_dataset.append(noised_data)
 
     # Check if all shards for the dataset are empty
