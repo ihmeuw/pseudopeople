@@ -18,7 +18,7 @@ from pseudopeople.interface import (
     generate_women_infants_and_children,
 )
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import COLUMNS, DATASETS
+from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
 
 ROW_PROBABILITY = 0.05
 CELL_PROBABILITY = 0.25
@@ -27,17 +27,17 @@ STATE = "RI"
 
 # TODO: Replace this with the record ID column when implemented (MIC-4039)
 IDX_COLS = {
-    DATASETS.census.name: [COLUMNS.simulant_id.name, COLUMNS.year.name],
-    DATASETS.acs.name: [COLUMNS.simulant_id.name, COLUMNS.survey_date.name],
-    DATASETS.cps.name: [COLUMNS.simulant_id.name, COLUMNS.survey_date.name],
-    DATASETS.wic.name: [COLUMNS.simulant_id.name, COLUMNS.year.name],
-    DATASETS.ssa.name: [COLUMNS.simulant_id.name, COLUMNS.ssa_event_type.name],
-    DATASETS.tax_w2_1099.name: [
+    DATASET_SCHEMAS.census.name: [COLUMNS.simulant_id.name, COLUMNS.year.name],
+    DATASET_SCHEMAS.acs.name: [COLUMNS.simulant_id.name, COLUMNS.survey_date.name],
+    DATASET_SCHEMAS.cps.name: [COLUMNS.simulant_id.name, COLUMNS.survey_date.name],
+    DATASET_SCHEMAS.wic.name: [COLUMNS.simulant_id.name, COLUMNS.year.name],
+    DATASET_SCHEMAS.ssa.name: [COLUMNS.simulant_id.name, COLUMNS.ssa_event_type.name],
+    DATASET_SCHEMAS.tax_w2_1099.name: [
         COLUMNS.simulant_id.name,
         COLUMNS.tax_year.name,
         COLUMNS.employer_id.name,
     ],
-    DATASETS.tax_1040.name: [
+    DATASET_SCHEMAS.tax_1040.name: [
         COLUMNS.simulant_id.name,
         COLUMNS.tax_year.name,
     ],
@@ -122,15 +122,15 @@ def config():
 
     # Increase row noise probabilities to 5% and column cell_probabilities to 25%
     for dataset_name in config:
-        dataset = DATASETS.get_dataset(dataset_name)
-        config[dataset.name][Keys.ROW_NOISE] = {
+        dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+        config[dataset_schema.name][Keys.ROW_NOISE] = {
             noise_type.name: {
                 Keys.ROW_PROBABILITY: ROW_PROBABILITY,
             }
-            for noise_type in dataset.row_noise_types
+            for noise_type in dataset_schema.row_noise_types
             if noise_type != NOISE_TYPES.duplicate_with_guardian
         }
-        for col in [c for c in dataset.columns if c.noise_types]:
+        for col in [c for c in dataset_schema.columns if c.noise_types]:
             config[dataset_name][Keys.COLUMN_NOISE][col.name] = {
                 noise_type.name: {
                     Keys.CELL_PROBABILITY: CELL_PROBABILITY,
@@ -143,14 +143,16 @@ def config():
     # This is because we want to be able to compare the noised and unnoised data
     # and a big assumption we make is that simulant_id and household_id are the
     # truth decks in our datasets.
-    config[DATASETS.census.name][Keys.ROW_NOISE][NOISE_TYPES.duplicate_with_guardian.name] = {
+    config[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
+        NOISE_TYPES.duplicate_with_guardian.name
+    ] = {
         Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0.0,
         Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: 0.0,
     }
     # Update SSA dataset to noise 'ssn' but NOT noise 'ssa_event_type' since that
     # will be used as an identifier along with simulant_id
     # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
-    config[DATASETS.ssa.name][Keys.COLUMN_NOISE][COLUMNS.ssa_event_type.name] = {
+    config[DATASET_SCHEMAS.ssa.name][Keys.COLUMN_NOISE][COLUMNS.ssa_event_type.name] = {
         noise_type.name: {
             Keys.CELL_PROBABILITY: 0,
         }
@@ -198,42 +200,44 @@ def noised_sample_data_taxes_1040(config):
 # Raw sample datasets with half from a specific state, for state filtering
 @pytest.fixture(scope="module")
 def sample_data_decennial_census_state_edit():
-    data = _initialize_dataset_data_with_sample(DATASETS.census.name)
+    data = _initialize_dataset_data_with_sample(DATASET_SCHEMAS.census.name)
     # Set half of the entries to the state we'll filter on
-    data.loc[data.reset_index().index % 2 == 0, DATASETS.census.state_column_name] = STATE
+    data.loc[
+        data.reset_index().index % 2 == 0, DATASET_SCHEMAS.census.state_column_name
+    ] = STATE
     return data
 
 
 @pytest.fixture(scope="module")
 def sample_data_american_community_survey_state_edit():
-    data = _initialize_dataset_data_with_sample(DATASETS.acs.name)
+    data = _initialize_dataset_data_with_sample(DATASET_SCHEMAS.acs.name)
     # Set half of the entries to the state we'll filter on
-    data.loc[data.reset_index().index % 2 == 0, DATASETS.acs.state_column_name] = STATE
+    data.loc[data.reset_index().index % 2 == 0, DATASET_SCHEMAS.acs.state_column_name] = STATE
     return data
 
 
 @pytest.fixture(scope="module")
 def sample_data_current_population_survey_state_edit():
-    data = _initialize_dataset_data_with_sample(DATASETS.cps.name)
+    data = _initialize_dataset_data_with_sample(DATASET_SCHEMAS.cps.name)
     # Set half of the entries to the state we'll filter on
-    data.loc[data.reset_index().index % 2 == 0, DATASETS.cps.state_column_name] = STATE
+    data.loc[data.reset_index().index % 2 == 0, DATASET_SCHEMAS.cps.state_column_name] = STATE
     return data
 
 
 @pytest.fixture(scope="module")
 def sample_data_women_infants_and_children_state_edit():
-    data = _initialize_dataset_data_with_sample(DATASETS.wic.name)
+    data = _initialize_dataset_data_with_sample(DATASET_SCHEMAS.wic.name)
     # Set half of the entries to the state we'll filter on
-    data.loc[data.reset_index().index % 2 == 0, DATASETS.wic.state_column_name] = STATE
+    data.loc[data.reset_index().index % 2 == 0, DATASET_SCHEMAS.wic.state_column_name] = STATE
     return data
 
 
 @pytest.fixture(scope="module")
 def sample_data_taxes_w2_and_1099_state_edit():
-    data = _initialize_dataset_data_with_sample(DATASETS.tax_w2_1099.name)
+    data = _initialize_dataset_data_with_sample(DATASET_SCHEMAS.tax_w2_1099.name)
     # Set half of the entries to the state we'll filter on
     data.loc[
-        data.reset_index().index % 2 == 0, DATASETS.tax_w2_1099.state_column_name
+        data.reset_index().index % 2 == 0, DATASET_SCHEMAS.tax_w2_1099.state_column_name
     ] = STATE
     return data
 
@@ -244,9 +248,9 @@ def sample_data_taxes_w2_and_1099_state_edit():
 
 
 def _initialize_dataset_data_with_sample(dataset_name) -> DatasetData:
-    dataset = DATASETS.get_dataset(dataset_name)
+    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     data_path = paths.SAMPLE_DATA_ROOT / dataset_name / f"{dataset_name}.parquet"
-    dataset_data = DatasetData(dataset, data_path, [], SEED)
+    dataset_data = DatasetData(dataset_schema, data_path, [], SEED)
 
     return dataset_data
 
@@ -256,7 +260,7 @@ def _get_common_datasets(unnoised_dataset_data, noised_dataset):
     unnoised data. Note that we cannot use the original index because that
     gets reset after noising, i.e. the unique columns must NOT be noised.
     """
-    idx_cols = IDX_COLS.get(unnoised_dataset_data.dataset.name)
+    idx_cols = IDX_COLS.get(unnoised_dataset_data.dataset_schema.name)
     unnoised_dataset_data._reformat_dates_for_noising()
     check_original = unnoised_dataset_data.data.set_index(idx_cols)
     check_noised = noised_dataset.set_index(idx_cols)

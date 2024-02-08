@@ -20,7 +20,7 @@ from pseudopeople.interface import (
     generate_women_infants_and_children,
 )
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import DATASETS
+from pseudopeople.schema_entities import DATASET_SCHEMAS
 from tests.conftest import FuzzyChecker
 
 
@@ -40,7 +40,7 @@ def dummy_data():
     )
 
 
-def get_dummy_config_noise_numbers(dataset):
+def get_dummy_config_noise_numbers(dataset_schema):
     """Create a dummy configuration that applies all noise functions to a single
     column in the dummy_data fixture. All noise function specs are defined in
     reverse order here compared to how they are to be applied.
@@ -50,7 +50,7 @@ def get_dummy_config_noise_numbers(dataset):
     """
     return ConfigTree(
         {
-            dataset.name: {
+            dataset_schema.name: {
                 Keys.COLUMN_NOISE: {
                     "event_type": {
                         NOISE_TYPES.leave_blank.name: {Keys.CELL_PROBABILITY: 0.01},
@@ -105,10 +105,10 @@ def get_dummy_config_noise_numbers(dataset):
 
 
 @pytest.mark.parametrize(
-    "dataset",
-    list(DATASETS),
+    "dataset_schema",
+    list(DATASET_SCHEMAS),
 )
-def test_noise_order(mocker, dummy_data, dataset):
+def test_noise_order(mocker, dummy_data, dataset_schema):
     """From docs: "Noising should be applied in the following order: omit_row,
     do_not_respond, duplicate_row, leave_blank, choose_wrong_option,
     copy_from_household_member, swap_month_and_day, write_wrong_zipcode_digits,
@@ -158,9 +158,9 @@ def test_noise_order(mocker, dummy_data, dataset):
             )
 
     # Get config for dataset
-    dummy_config = get_dummy_config_noise_numbers(dataset)
+    dummy_config = get_dummy_config_noise_numbers(dataset_schema)
     # Create a DatasetData object from the dummy data
-    dataset_data = DatasetData(dataset, dummy_data, [], 0)
+    dataset_data = DatasetData(dataset_schema, dummy_data, [], 0)
     dataset_data._noise_dataset(dummy_config, NOISE_TYPES)
 
     # There are multiple calls that are being mocked. This is not precisely identifying the call
@@ -214,7 +214,7 @@ def test_columns_noised(dummy_data):
     """
     config = ConfigTree(
         {
-            DATASETS.census.name: {
+            DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "event_type": {
                         NOISE_TYPES.leave_blank.name: {Keys.CELL_PROBABILITY: 0.1},
@@ -223,7 +223,7 @@ def test_columns_noised(dummy_data):
             },
         },
     )
-    dataset = DatasetData(DATASETS.census, dummy_data, [], 0)
+    dataset = DatasetData(DATASET_SCHEMAS.census, dummy_data, [], 0)
     data = dataset.data.copy()
     dataset._noise_dataset(config, [NOISE_TYPES.leave_blank])
     noised_data = dataset.data
@@ -233,32 +233,32 @@ def test_columns_noised(dummy_data):
 
 
 @pytest.mark.parametrize(
-    "func, dataset",
+    "func, dataset_schema",
     [
-        (generate_decennial_census, DATASETS.census),
-        (generate_american_community_survey, DATASETS.acs),
-        (generate_current_population_survey, DATASETS.cps),
-        (generate_women_infants_and_children, DATASETS.wic),
-        (generate_social_security, DATASETS.ssa),
-        (generate_taxes_w2_and_1099, DATASETS.tax_w2_1099),
-        (generate_taxes_1040, DATASETS.tax_1040),
+        (generate_decennial_census, DATASET_SCHEMAS.census),
+        (generate_american_community_survey, DATASET_SCHEMAS.acs),
+        (generate_current_population_survey, DATASET_SCHEMAS.cps),
+        (generate_women_infants_and_children, DATASET_SCHEMAS.wic),
+        (generate_social_security, DATASET_SCHEMAS.ssa),
+        (generate_taxes_w2_and_1099, DATASET_SCHEMAS.tax_w2_1099),
+        (generate_taxes_1040, DATASET_SCHEMAS.tax_1040),
     ],
 )
-def test_correct_datasets_are_used(func, dataset, mocker):
+def test_correct_datasets_are_used(func, dataset_schema, mocker):
     """Test that each interface noise function uses the correct dataset"""
     if func == "todo":
-        pytest.skip(reason=f"TODO: implement function for dataset {dataset}")
+        pytest.skip(reason=f"TODO: implement function for dataset {dataset_schema}")
     mock = mocker.patch("pseudopeople.interface._generate_dataset")
     _ = func()
 
-    assert mock.call_args[0][0] == dataset
+    assert mock.call_args[0][0] == dataset_schema
 
 
 def test_two_noise_functions_are_independent(mocker, fuzzy_checker: FuzzyChecker):
     # Make simple config tree to test 2 noise functions work together
     config_tree = ConfigTree(
         {
-            DATASETS.census.name: {
+            DATASET_SCHEMAS.census.name: {
                 "column_noise": {
                     "fake_column_one": {
                         "alpha": {Keys.CELL_PROBABILITY: 0.20},
@@ -306,7 +306,7 @@ def test_two_noise_functions_are_independent(mocker, fuzzy_checker: FuzzyChecker
             "fake_column_two": ["shoe", "pants", "shirt", "hat", "sunglasses"] * 20_000,
         }
     )
-    dataset = DatasetData(DATASETS.census, dummy_dataset, [], 0)
+    dataset = DatasetData(DATASET_SCHEMAS.census, dummy_dataset, [], 0)
     dataset._noise_dataset(
         configuration=config_tree,
         noise_types=mock_noise_types,

@@ -65,7 +65,7 @@ def apply_do_not_respond(
     ]
     if len(missing_columns):
         raise ValueError(
-            f"Dataset {dataset_data.dataset.name} is missing required columns: "
+            f"Dataset {dataset_data.dataset_schema.name} is missing required columns: "
             f"{missing_columns}"
         )
 
@@ -323,9 +323,9 @@ def swap_months_and_days(
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: Noised pd.Series where some dates have month and day swapped.
     """
-    from pseudopeople.schema_entities import DATASETS, DATEFORMATS
+    from pseudopeople.schema_entities import DATEFORMATS
 
-    date_format = dataset_data.dataset.date_format
+    date_format = dataset_data.dataset_schema.date_format
 
     to_swap_values = dataset_data.data.loc[to_noise_index, column_name]
     if date_format == DATEFORMATS.YYYYMMDD:  # YYYYMMDD
@@ -344,7 +344,7 @@ def swap_months_and_days(
         day = to_swap_values.str[2:4]
         noised = day + month + year
     else:
-        raise ValueError(f"Invalid date format in {dataset_data.dataset.name}.")
+        raise ValueError(f"Invalid date format in {dataset_data.dataset_schema.name}.")
 
     dataset_data.data.loc[to_noise_index, column_name] = noised
 

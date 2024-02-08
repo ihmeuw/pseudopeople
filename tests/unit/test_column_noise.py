@@ -11,7 +11,7 @@ from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COL
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.dataset import DatasetData
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import DATASETS
+from pseudopeople.schema_entities import DATASET_SCHEMAS
 from pseudopeople.utilities import (
     load_ocr_errors,
     load_phonetic_errors,
@@ -266,7 +266,7 @@ def dataset_data(dummy_dataset):
     # We can't have this be a session scope because then we will be operating on the same object
     # across unit tests. We need to be able to modify the original data in each test.
     df = dummy_dataset.copy()
-    census = DATASETS.get_dataset(DATASETS.census.name)
+    census = DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name)
     dataset_data = DatasetData(census, df, [], 0)
 
     return dataset_data
@@ -275,7 +275,7 @@ def dataset_data(dummy_dataset):
 @pytest.fixture()
 def dataset_data_same_seed(dummy_dataset):
     df = dummy_dataset.copy()
-    census = DATASETS.get_dataset(DATASETS.census.name)
+    census = DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name)
     dataset_data = DatasetData(census, df, [], 0)
 
     return dataset_data
@@ -286,7 +286,7 @@ def dataset_data_different_seed(dummy_dataset):
     # We can't have this be a session scope because then we will be operating on the same object
     # across unit tests. We need to be able to modify the original data in each test.
     df = dummy_dataset.copy()
-    census = DATASETS.get_dataset(DATASETS.census.name)
+    census = DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name)
     dataset_data = DatasetData(census, df, [], 1)
 
     return dataset_data
@@ -295,7 +295,7 @@ def dataset_data_different_seed(dummy_dataset):
 def test_leave_blank(dataset_data, fuzzy_checker: FuzzyChecker):
     config = get_configuration(
         {
-            DATASETS.census.name: {
+            DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "zipcode": {
                         NOISE_TYPES.leave_blank.name: {
@@ -305,7 +305,7 @@ def test_leave_blank(dataset_data, fuzzy_checker: FuzzyChecker):
                 },
             },
         }
-    )[DATASETS.census.name][Keys.COLUMN_NOISE]["zipcode"][NOISE_TYPES.leave_blank.name]
+    )[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["zipcode"][NOISE_TYPES.leave_blank.name]
 
     data = dataset_data.data[["numbers"]]
     NOISE_TYPES.leave_blank(dataset_data, config, "numbers")
@@ -332,7 +332,7 @@ def test_leave_blank(dataset_data, fuzzy_checker: FuzzyChecker):
 
 
 def test_choose_wrong_option(dataset_data, fuzzy_checker: FuzzyChecker):
-    config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE]["state"][
+    config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["state"][
         NOISE_TYPES.choose_wrong_option.name
     ]
     data = dataset_data.data["state"].copy()
@@ -356,7 +356,7 @@ def test_choose_wrong_option(dataset_data, fuzzy_checker: FuzzyChecker):
 
 
 def test_generate_copy_from_household_member(dataset_data, fuzzy_checker: FuzzyChecker):
-    config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][
+    config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["age"][
         NOISE_TYPES.copy_from_household_member.name
     ]
     data = dataset_data.data[["age"]]
@@ -392,12 +392,12 @@ def test_swap_months_and_days(dataset_data, fuzzy_checker: FuzzyChecker):
     for col in ["event_date", "date_of_birth"]:
         data = dataset_data.data[col].copy()
         if col == "event_date":
-            config = get_configuration()[DATASETS.ssa.name][Keys.COLUMN_NOISE][col][
+            config = get_configuration()[DATASET_SCHEMAS.ssa.name][Keys.COLUMN_NOISE][col][
                 NOISE_TYPES.swap_month_and_day.name
             ]
             config.update(
                 {
-                    DATASETS.ssa.name: {
+                    DATASET_SCHEMAS.ssa.name: {
                         Keys.COLUMN_NOISE: {
                             col: {
                                 NOISE_TYPES.swap_month_and_day.name: {
@@ -409,7 +409,7 @@ def test_swap_months_and_days(dataset_data, fuzzy_checker: FuzzyChecker):
                 }
             )
         else:
-            config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE][col][
+            config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][col][
                 NOISE_TYPES.swap_month_and_day.name
             ]
         expected_noise = config[Keys.CELL_PROBABILITY]
@@ -434,7 +434,7 @@ def test_write_wrong_zipcode_digits(dataset_data, fuzzy_checker: FuzzyChecker):
     config = get_configuration()
     config.update(
         {
-            DATASETS.census.name: {
+            DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "zipcode": {
                         NOISE_TYPES.write_wrong_zipcode_digits.name: {
@@ -446,7 +446,7 @@ def test_write_wrong_zipcode_digits(dataset_data, fuzzy_checker: FuzzyChecker):
             },
         }
     )
-    config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["zipcode"][
+    config = config[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["zipcode"][
         NOISE_TYPES.write_wrong_zipcode_digits.name
     ]
 
@@ -488,7 +488,7 @@ def test_miswrite_ages_default_config(dataset_data, fuzzy_checker: FuzzyChecker)
     """Test that miswritten ages are appropriately handled, including
     no perturbation probabilities defaults to uniform distribution,
     perturbation probabilities"""
-    config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][
+    config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["age"][
         NOISE_TYPES.misreport_age.name
     ]
     data = dataset_data.data["age"].copy()
@@ -525,7 +525,7 @@ def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker):
 
     config = get_configuration(
         {
-            DATASETS.census.name: {
+            DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "age": {
                         NOISE_TYPES.misreport_age.name: {
@@ -536,11 +536,13 @@ def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker):
                 },
             },
         },
-    )[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.misreport_age.name]
+    )[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.misreport_age.name]
 
     data = pd.Series([str(original_age)] * num_rows, name="age")
     df = pd.DataFrame({"age": data})
-    dataset_data = DatasetData(DATASETS.get_dataset(DATASETS.census.name), df, [], 0)
+    dataset_data = DatasetData(
+        DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, [], 0
+    )
     NOISE_TYPES.misreport_age(dataset_data, config, "age")
     noised_data = dataset_data.data["age"]
     expected_noise = (1 / len(perturbations)) * config[Keys.CELL_PROBABILITY]
@@ -563,7 +565,7 @@ def test_miswrite_ages_provided_probabilities(dataset_data, fuzzy_checker: Fuzzy
 
     config = get_configuration(
         {
-            DATASETS.census.name: {
+            DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "age": {
                         NOISE_TYPES.misreport_age.name: {
@@ -574,11 +576,13 @@ def test_miswrite_ages_provided_probabilities(dataset_data, fuzzy_checker: Fuzzy
                 },
             },
         },
-    )[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.misreport_age.name]
+    )[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.misreport_age.name]
 
     data = pd.Series([str(original_age)] * num_rows, name="age")
     df = pd.DataFrame({"age": data})
-    dataset_data = DatasetData(DATASETS.get_dataset(DATASETS.census.name), df, [], 0)
+    dataset_data = DatasetData(
+        DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, [], 0
+    )
     NOISE_TYPES.misreport_age(dataset_data, config, "age")
     noised_data = dataset_data.data["age"]
     for perturbation in perturbations:
@@ -604,7 +608,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
 
     config = get_configuration(
         {
-            DATASETS.census.name: {
+            DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "age": {
                         NOISE_TYPES.misreport_age.name: {
@@ -615,11 +619,13 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
                 },
             },
         },
-    )[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.misreport_age.name]
+    )[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.misreport_age.name]
 
     data = pd.Series([str(age)] * num_rows, name="age")
     df = pd.DataFrame({"age": data})
-    dataset_data = DatasetData(DATASETS.get_dataset(DATASETS.census.name), df, [], 0)
+    dataset_data = DatasetData(
+        DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, [], 0
+    )
     NOISE_TYPES.misreport_age(dataset_data, config, "age")
     noised_data = dataset_data.data["age"]
     noised_mask = noised_data != data
@@ -634,7 +640,7 @@ def test_miswrite_ages_flips_negative_to_positive():
 
     config = get_configuration(
         {
-            DATASETS.census.name: {
+            DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "age": {
                         NOISE_TYPES.misreport_age.name: {
@@ -645,11 +651,13 @@ def test_miswrite_ages_flips_negative_to_positive():
                 },
             },
         },
-    )[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.misreport_age.name]
+    )[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.misreport_age.name]
 
     data = pd.Series([str(age)] * num_rows, name="age")
     df = pd.DataFrame({"age": data})
-    dataset_data = DatasetData(DATASETS.get_dataset(DATASETS.census.name), df, [], 0)
+    dataset_data = DatasetData(
+        DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, [], 0
+    )
     NOISE_TYPES.misreport_age(dataset_data, config, "age")
     noised_data = dataset_data.data["age"]
     noised_mask = noised_data != data
@@ -666,7 +674,7 @@ def test_write_wrong_digits_robust(dataset_data, fuzzy_checker: FuzzyChecker):
     config = get_configuration()
     config.update(
         {
-            DATASETS.census.name: {
+            DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "street_number": {
                         NOISE_TYPES.write_wrong_digits.name: {
@@ -678,7 +686,7 @@ def test_write_wrong_digits_robust(dataset_data, fuzzy_checker: FuzzyChecker):
             },
         }
     )
-    config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["street_number"][
+    config = config[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["street_number"][
         NOISE_TYPES.write_wrong_digits.name
     ]
     p_row_noise = config[Keys.CELL_PROBABILITY]
@@ -802,7 +810,7 @@ def test_write_wrong_digits(dataset_data, fuzzy_checker: FuzzyChecker):
     config = get_configuration()
     config.update(
         {
-            DATASETS.census.name: {
+            DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "street_number": {
                         NOISE_TYPES.write_wrong_digits.name: {
@@ -814,7 +822,7 @@ def test_write_wrong_digits(dataset_data, fuzzy_checker: FuzzyChecker):
             },
         }
     )
-    config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["street_number"][
+    config = config[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["street_number"][
         NOISE_TYPES.write_wrong_digits.name
     ]
     expected_cell_noise = config[Keys.CELL_PROBABILITY]
@@ -848,9 +856,9 @@ def test_write_wrong_digits(dataset_data, fuzzy_checker: FuzzyChecker):
 
 
 def test_use_nickname(dataset_data, fuzzy_checker: FuzzyChecker):
-    config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE]["first_name"][
-        NOISE_TYPES.use_nickname.name
-    ]
+    config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][
+        "first_name"
+    ][NOISE_TYPES.use_nickname.name]
     expected_noise = config[Keys.CELL_PROBABILITY]
     data = dataset_data.data["first_name"].copy()
     NOISE_TYPES.use_nickname(dataset_data, config, "first_name")
@@ -909,7 +917,7 @@ def test_use_fake_name(dataset_data, column, fuzzy_checker: FuzzyChecker):
     config = get_configuration()
     config.update(
         {
-            DATASETS.census.name: {
+            DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
                     column: {
                         NOISE_TYPES.use_fake_name.name: {
@@ -920,7 +928,7 @@ def test_use_fake_name(dataset_data, column, fuzzy_checker: FuzzyChecker):
             },
         }
     )
-    config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][
+    config = config[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][column][
         NOISE_TYPES.use_fake_name.name
     ]
 
@@ -965,7 +973,7 @@ def test_generate_phonetic_errors(dataset_data, column, fuzzy_checker: FuzzyChec
     config = get_configuration()
     config.update(
         {
-            DATASETS.census.name: {
+            DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
                     column: {
                         NOISE_TYPES.make_phonetic_errors.name: {
@@ -978,7 +986,7 @@ def test_generate_phonetic_errors(dataset_data, column, fuzzy_checker: FuzzyChec
         }
     )
     # Get node
-    config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][
+    config = config[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][column][
         NOISE_TYPES.make_phonetic_errors.name
     ]
     NOISE_TYPES.make_phonetic_errors(dataset_data, config, column)
@@ -1037,7 +1045,9 @@ def test_phonetic_error_values(pair, fuzzy_checker: FuzzyChecker):
         Keys.TOKEN_PROBABILITY: token_probability,
     }
     df = pd.DataFrame({"column": data})
-    dataset_data = DatasetData(DATASETS.get_dataset(DATASETS.census.name), df, [], 0)
+    dataset_data = DatasetData(
+        DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, [], 0
+    )
     NOISE_TYPES.make_phonetic_errors(dataset_data, config, "column")
     noised_data = dataset_data.data["column"]
 
@@ -1076,7 +1086,7 @@ def test_generate_ocr_errors(dataset_data, column, fuzzy_checker: FuzzyChecker):
     config = get_configuration()
     config.update(
         {
-            DATASETS.census.name: {
+            DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
                     column: {
                         NOISE_TYPES.make_ocr_errors.name: {
@@ -1089,7 +1099,7 @@ def test_generate_ocr_errors(dataset_data, column, fuzzy_checker: FuzzyChecker):
         }
     )
     # Get node
-    config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][
+    config = config[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][column][
         NOISE_TYPES.make_ocr_errors.name
     ]
     data = dataset_data.data[column].copy()
@@ -1148,7 +1158,9 @@ def test_ocr_replacement_values(pair, fuzzy_checker: FuzzyChecker):
         Keys.TOKEN_PROBABILITY: token_probability,
     }
     df = pd.DataFrame({"column": data})
-    dataset_data = DatasetData(DATASETS.get_dataset(DATASETS.census.name), df, [], 0)
+    dataset_data = DatasetData(
+        DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, [], 0
+    )
     NOISE_TYPES.make_ocr_errors(dataset_data, config, "column")
     noised_data = dataset_data.data["column"]
 
@@ -1184,7 +1196,7 @@ def test_make_typos(dataset_data, column, fuzzy_checker: FuzzyChecker):
     config = get_configuration()
     config.update(
         {
-            DATASETS.census.name: {
+            DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
                     column: {
                         NOISE_TYPES.make_typos.name: {
@@ -1196,7 +1208,7 @@ def test_make_typos(dataset_data, column, fuzzy_checker: FuzzyChecker):
             },
         }
     )
-    config = config[DATASETS.census.name][Keys.COLUMN_NOISE][column][
+    config = config[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][column][
         NOISE_TYPES.make_typos.name
     ]
     data = dataset_data.data[column].copy()
@@ -1327,7 +1339,7 @@ def test_age_write_wrong_digits(dataset_data, fuzzy_checker: FuzzyChecker):
     config = get_configuration()
     config.update(
         {
-            DATASETS.census.name: {
+            DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
                     "age": {
                         NOISE_TYPES.write_wrong_digits.name: {
@@ -1339,7 +1351,7 @@ def test_age_write_wrong_digits(dataset_data, fuzzy_checker: FuzzyChecker):
             },
         }
     )
-    config = config[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][
+    config = config[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["age"][
         NOISE_TYPES.write_wrong_digits.name
     ]
     data = dataset_data.data["age"].copy()
