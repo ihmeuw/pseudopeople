@@ -16,7 +16,7 @@ from pseudopeople.schema_entities import COLUMNS, DatasetSchema
 from pseudopeople.utilities import coerce_dtypes, get_randomness_stream
 
 
-class DatasetData:
+class Dataset:
     def __init__(
         self,
         dataset_schema: DatasetSchema,

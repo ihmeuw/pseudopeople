@@ -13,7 +13,7 @@ from pseudopeople.constants import metadata, paths
 from pseudopeople.constants.noise_type_metadata import INT_COLUMNS
 
 if TYPE_CHECKING:
-    from pseudopeople.dataset import DatasetData
+    from pseudopeople.dataset import Dataset
     from pseudopeople.schema_entities import DatasetSchema
 
 
@@ -68,7 +68,7 @@ def vectorized_choice(
 
 
 def get_index_to_noise(
-    dataset_data: "DatasetData",
+    dataset: "Dataset",
     noise_level: Union[float, pd.Series],
     additional_key: Any,
     required_columns: Optional[List[str]] = None,
@@ -77,22 +77,20 @@ def get_index_to_noise(
     Function that takes a series and returns a pd.Index that chosen by Vivarium Common Random Number to be noised.
     """
 
-    index_eligible_for_noise = dataset_data.get_non_empty_index(required_columns)
+    index_eligible_for_noise = dataset.get_non_empty_index(required_columns)
 
     # As long as noise is relatively rare, it will be faster to randomly select cells to
     # noise rather than generating a random draw for every item eligible
     if isinstance(noise_level, float) and noise_level < 0.2:
         rng = np.random.default_rng(
-            seed=get_hash(
-                f"{dataset_data.randomness.seed}_get_index_to_noise_{additional_key}"
-            )
+            seed=get_hash(f"{dataset.randomness.seed}_get_index_to_noise_{additional_key}")
         )
         number_to_noise = rng.binomial(len(index_eligible_for_noise), p=noise_level)
         to_noise_idx = pd.Index(
             rng.choice(index_eligible_for_noise, size=number_to_noise, replace=False)
         )
     else:
-        to_noise_idx = dataset_data.randomness.filter_for_probability(
+        to_noise_idx = dataset.randomness.filter_for_probability(
             index_eligible_for_noise,
             probability=noise_level,
             additional_key=additional_key,

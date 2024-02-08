@@ -8,7 +8,7 @@ import pytest
 from vivarium.config_tree import ConfigTree
 
 from pseudopeople.configuration import Keys
-from pseudopeople.dataset import DatasetData
+from pseudopeople.dataset import Dataset
 from pseudopeople.entity_types import ColumnNoiseType
 from pseudopeople.interface import (
     generate_american_community_survey,
@@ -159,9 +159,9 @@ def test_noise_order(mocker, dummy_data, dataset_schema):
 
     # Get config for dataset
     dummy_config = get_dummy_config_noise_numbers(dataset_schema)
-    # Create a DatasetData object from the dummy data
-    dataset_data = DatasetData(dataset_schema, dummy_data, [], 0)
-    dataset_data._noise_dataset(dummy_config, NOISE_TYPES)
+    # Create a Dataset object from the dummy data
+    dataset = Dataset(dataset_schema, dummy_data, [], 0)
+    dataset._noise_dataset(dummy_config, NOISE_TYPES)
 
     # There are multiple calls that are being mocked. This is not precisely identifying the call
     # to the noise function. Instead, it is identifying mocked calls that have the same argument
@@ -171,7 +171,7 @@ def test_noise_order(mocker, dummy_data, dataset_schema):
         mocked_call_arguments = mocked_call[1]
         if len(mocked_call_arguments) < 3:
             continue
-        first_arg_correct_type = isinstance(mocked_call_arguments[0], DatasetData)
+        first_arg_correct_type = isinstance(mocked_call_arguments[0], Dataset)
         second_arg_correct_type = isinstance(mocked_call_arguments[1], ConfigTree)
         third_arg_correct_type = isinstance(mocked_call_arguments[2], pd.Index)
         if first_arg_correct_type and second_arg_correct_type and third_arg_correct_type:
@@ -223,7 +223,7 @@ def test_columns_noised(dummy_data):
             },
         },
     )
-    dataset = DatasetData(DATASET_SCHEMAS.census, dummy_data, [], 0)
+    dataset = Dataset(DATASET_SCHEMAS.census, dummy_data, [], 0)
     data = dataset.data.copy()
     dataset._noise_dataset(config, [NOISE_TYPES.leave_blank])
     noised_data = dataset.data
@@ -275,14 +275,14 @@ def test_two_noise_functions_are_independent(mocker, fuzzy_checker: FuzzyChecker
 
     # Mock objects for testing
     def alpha_noise_function(
-        dataset: DatasetData, config: ConfigTree, to_noise_idx: pd.Index, column_name: str
+        dataset: Dataset, config: ConfigTree, to_noise_idx: pd.Index, column_name: str
     ):
         dataset.data.loc[to_noise_idx, column_name] = dataset.data.loc[
             to_noise_idx, column_name
         ].str.cat(pd.Series("abc", index=to_noise_idx))
 
     def beta_noise_function(
-        dataset: DatasetData, config: ConfigTree, to_noise_idx: pd.Index, column_name: str
+        dataset: Dataset, config: ConfigTree, to_noise_idx: pd.Index, column_name: str
     ):
         dataset.data.loc[to_noise_idx, column_name] = dataset.data.loc[
             to_noise_idx, column_name
@@ -306,7 +306,7 @@ def test_two_noise_functions_are_independent(mocker, fuzzy_checker: FuzzyChecker
             "fake_column_two": ["shoe", "pants", "shirt", "hat", "sunglasses"] * 20_000,
         }
     )
-    dataset = DatasetData(DATASET_SCHEMAS.census, dummy_dataset, [], 0)
+    dataset = Dataset(DATASET_SCHEMAS.census, dummy_dataset, [], 0)
     dataset._noise_dataset(
         configuration=config_tree,
         noise_types=mock_noise_types,
