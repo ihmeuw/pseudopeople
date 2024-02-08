@@ -78,7 +78,7 @@ def _generate_dataset(
         if not dataset_data:
             continue
 
-        noised_data = dataset_data._get_noised_data(configuration_tree, NOISE_TYPES)
+        noised_data = dataset_data.get_noised_data(configuration_tree, NOISE_TYPES)
         noised_dataset.append(noised_data)
 
     # Check if all shards for the dataset are empty

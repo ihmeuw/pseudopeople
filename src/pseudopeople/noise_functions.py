@@ -238,7 +238,7 @@ def duplicate_with_guardian(
         # would be sorting at the shard level and not the entire dataset.
         data_with_duplicates = pd.concat([dataset_data.data, duplicated_rows])
 
-        duplicated_rows_missing = dataset_data._is_missing(duplicated_rows)
+        duplicated_rows_missing = dataset_data.is_missing(duplicated_rows)
         missingess_with_duplicates = pd.concat(
             [dataset_data.missingness, duplicated_rows_missing]
         ).reindex(data_with_duplicates.index)
@@ -539,8 +539,6 @@ def use_fake_names(
     :return:
     """
 
-    # fake_first_names = fake_first_names
-    # fake_last_names = fake_last_names
     fake_names = {
         "first_name": fake_first_names,
         "middle_name": fake_first_names,
