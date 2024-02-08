@@ -52,7 +52,7 @@ def _get_census_omission_noise_levels(
 def get_apply_do_not_respond_noise_level(
     dataset_data: "DatasetData", configuration: ConfigTree
 ) -> pd.Series:
-    dataset_name = dataset_data.dataset.name
+    dataset_name = dataset_data.dataset_schema.name
     noise_levels = _get_census_omission_noise_levels(dataset_data.data)
 
     # Apply an overall non-response rate of 27.6% for Current Population Survey (CPS)

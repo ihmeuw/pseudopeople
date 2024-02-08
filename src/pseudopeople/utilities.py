@@ -14,7 +14,7 @@ from pseudopeople.constants.noise_type_metadata import INT_COLUMNS
 
 if TYPE_CHECKING:
     from pseudopeople.dataset import DatasetData
-    from pseudopeople.schema_entities import Dataset
+    from pseudopeople.schema_entities import DatasetSchema
 
 
 def get_randomness_stream(dataset_name: str, seed: Any, index: pd.Index) -> RandomnessStream:
@@ -230,12 +230,12 @@ def count_occurrences(string, sub):
 
 def coerce_dtypes(
     data: pd.DataFrame,
-    dataset: "Dataset",
+    dataset_schema: "DatasetSchema",
     cleanse_int_cols: bool = False,
 ) -> pd.DataFrame:
     # Coerce dtypes prior to noising to catch issues early as well as
     # get most columns away from dtype 'category' and into 'object' (strings)
-    for col in dataset.columns:
+    for col in dataset_schema.columns:
         if cleanse_int_cols and col.name in INT_COLUMNS:
             data[col.name] = cleanse_integer_columns(data[col.name])
         # Coerce empty strings to nans
