@@ -34,11 +34,11 @@ class Dataset:
     def __bool__(self):
         return not self.data.empty
 
-    def _is_empty(self, column_name: str) -> bool:
+    def is_empty(self, column_name: str) -> bool:
         """Returns whether the column is empty."""
         return self.missingness[column_name].all()
 
-    def _get_non_empty_index(self, required_columns: Optional[List[str]] = None) -> pd.Index:
+    def get_non_empty_index(self, required_columns: Optional[List[str]] = None) -> pd.Index:
         """Returns the non-empty data."""
 
         if required_columns is None:
@@ -48,7 +48,7 @@ class Dataset:
             non_empty_data = self.data.loc[~missingness_mask, required_columns]
         return non_empty_data.index
 
-    def _get_noised_data(
+    def get_noised_data(
         self, configuration: ConfigTree, noise_types: List[NoiseType]
     ) -> pd.DataFrame:
         """Returns the noised dataset data."""
@@ -146,7 +146,7 @@ class Dataset:
         self.data = self.data[[c.name for c in self.dataset_schema.columns]]
 
     @staticmethod
-    def _is_missing(data: pd.DataFrame) -> pd.DataFrame:
+    def is_missing(data: pd.DataFrame) -> pd.DataFrame:
         """Returns a boolean dataframe with the same columns, index, and shape of
         the data attribute. Boolean dataframe is True if a cell is missing, False otherwise.
         """
