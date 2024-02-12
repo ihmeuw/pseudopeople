@@ -4,9 +4,9 @@ import pytest
 from vivarium.framework.randomness import RandomnessStream
 from vivarium.framework.randomness.index_map import IndexMap
 
-from pseudopeople.dataset import DatasetData
+from pseudopeople.dataset import Dataset
 from pseudopeople.noise_functions import _corrupt_tokens
-from pseudopeople.schema_entities import DATASETS, DtypeNames
+from pseudopeople.schema_entities import DATASET_SCHEMAS, DtypeNames
 from pseudopeople.utilities import (
     cleanse_integer_columns,
     get_index_to_noise,
@@ -175,10 +175,10 @@ def test_get_index_to_noise(fuzzy_checker: FuzzyChecker):
     """
 
     df = pd.DataFrame({"a": list(range(1000))}, index=list(range(1000)))
-    dataset = DatasetData(DATASETS.tax_w2_1099, df, [], 0)
+    dataset = Dataset(DATASET_SCHEMAS.tax_w2_1099, df, [], 0)
     noise_level = 0.62
     chosen_idx = get_index_to_noise(
-        dataset_data=dataset,
+        dataset=dataset,
         noise_level=noise_level,
         additional_key="test_get_index_to_noise",
     )

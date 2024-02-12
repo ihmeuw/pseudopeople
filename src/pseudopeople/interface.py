@@ -9,10 +9,10 @@ from tqdm import tqdm
 from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
-from pseudopeople.dataset import DatasetData
+from pseudopeople.dataset import Dataset
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import DATASETS, Dataset
+from pseudopeople.schema_entities import DATASET_SCHEMAS, DatasetSchema
 from pseudopeople.utilities import (
     coerce_dtypes,
     configure_logging_to_terminal,
@@ -21,7 +21,7 @@ from pseudopeople.utilities import (
 
 
 def _generate_dataset(
-    dataset: Dataset,
+    dataset_schema: DatasetSchema,
     source: Union[Path, str],
     seed: int,
     config: Union[Path, str, Dict],
@@ -31,8 +31,8 @@ def _generate_dataset(
     """
     Helper for generating noised datasets.
 
-    :param dataset:
-        Dataset needing to be noised
+    :param dataset_schema:
+        Schema object for dataset that will be noised
     :param source:
         Root directory of data input which needs to be noised
     :param seed:
@@ -47,15 +47,15 @@ def _generate_dataset(
         Noised dataset data in a pd.DataFrame
     """
     configure_logging_to_terminal(verbose)
-    configuration_tree = get_configuration(config, dataset, user_filters)
+    configuration_tree = get_configuration(config, dataset_schema, user_filters)
 
     if source is None:
         source = paths.SAMPLE_DATA_ROOT
     else:
         source = Path(source)
-        validate_source_compatibility(source, dataset)
+        validate_source_compatibility(source, dataset_schema)
 
-    data_paths = fetch_filepaths(dataset, source)
+    data_paths = fetch_filepaths(dataset_schema, source)
     if not data_paths:
         raise DataSourceError(
             f"No datasets found at directory {str(source)}. "
@@ -71,14 +71,14 @@ def _generate_dataset(
 
     for data_path_index, data_path in enumerate(iterator):
         logger.debug(f"Loading data from {data_path}.")
-        dataset_data = DatasetData(
-            dataset, data_path, user_filters, f"{seed}_{data_path_index}"
+        dataset = Dataset(
+            dataset_schema, data_path, user_filters, f"{seed}_{data_path_index}"
         )
 
-        if not dataset_data:
+        if not dataset:
             continue
 
-        noised_data = dataset_data.get_noised_data(configuration_tree, NOISE_TYPES)
+        noised_data = dataset.get_noised_data(configuration_tree, NOISE_TYPES)
         noised_dataset.append(noised_data)
 
     # Check if all shards for the dataset are empty
@@ -93,7 +93,7 @@ def _generate_dataset(
     # again after concat (https://github.com/pandas-dev/pandas/issues/51362)
     noised_dataset = coerce_dtypes(
         noised_dataset,
-        dataset,
+        dataset_schema,
         cleanse_int_cols=True,
     )
 
@@ -102,14 +102,14 @@ def _generate_dataset(
     return noised_dataset
 
 
-def validate_source_compatibility(source: Path, dataset: Dataset):
+def validate_source_compatibility(source: Path, dataset_schema: DatasetSchema):
     # TODO [MIC-4546]: Clean this up w/ metadata and update test_interface.py tests to be generic
     directories = [x.name for x in source.iterdir() if x.is_dir()]
-    if dataset.name not in directories:
+    if dataset_schema.name not in directories:
         raise FileNotFoundError(
-            f"Could not find '{dataset.name}' in '{source}'. Please check that the provided source "
+            f"Could not find '{dataset_schema.name}' in '{source}'. Please check that the provided source "
             "directory is correct. If using the sample data, no source is required. If providing a source, "
-            f"a directory should provided that has a subdirectory for '{dataset.name}'. "
+            f"a directory should provided that has a subdirectory for '{dataset_schema.name}'. "
         )
     changelog = source / "CHANGELOG.rst"
     if changelog.exists():
@@ -212,12 +212,14 @@ def generate_decennial_census(
     """
     user_filters = []
     if year is not None:
-        user_filters.append((DATASETS.census.date_column_name, "==", year))
+        user_filters.append((DATASET_SCHEMAS.census.date_column_name, "==", year))
     if state is not None:
         user_filters.append(
-            (DATASETS.census.state_column_name, "==", get_state_abbreviation(state))
+            (DATASET_SCHEMAS.census.state_column_name, "==", get_state_abbreviation(state))
         )
-    return _generate_dataset(DATASETS.census, source, seed, config, user_filters, verbose)
+    return _generate_dataset(
+        DATASET_SCHEMAS.census, source, seed, config, user_filters, verbose
+    )
 
 
 def generate_american_community_survey(
@@ -302,12 +304,12 @@ def generate_american_community_survey(
             user_filters.extend(
                 [
                     (
-                        DATASETS.acs.date_column_name,
+                        DATASET_SCHEMAS.acs.date_column_name,
                         ">=",
                         pd.Timestamp(year=year, month=1, day=1),
                     ),
                     (
-                        DATASETS.acs.date_column_name,
+                        DATASET_SCHEMAS.acs.date_column_name,
                         "<=",
                         pd.Timestamp(year=year, month=12, day=31),
                     ),
@@ -318,9 +320,9 @@ def generate_american_community_survey(
         seed = seed * 10_000 + year
     if state is not None:
         user_filters.extend(
-            [(DATASETS.acs.state_column_name, "==", get_state_abbreviation(state))]
+            [(DATASET_SCHEMAS.acs.state_column_name, "==", get_state_abbreviation(state))]
         )
-    return _generate_dataset(DATASETS.acs, source, seed, config, user_filters, verbose)
+    return _generate_dataset(DATASET_SCHEMAS.acs, source, seed, config, user_filters, verbose)
 
 
 def generate_current_population_survey(
@@ -406,12 +408,12 @@ def generate_current_population_survey(
             user_filters.extend(
                 [
                     (
-                        DATASETS.cps.date_column_name,
+                        DATASET_SCHEMAS.cps.date_column_name,
                         ">=",
                         pd.Timestamp(year=year, month=1, day=1),
                     ),
                     (
-                        DATASETS.cps.date_column_name,
+                        DATASET_SCHEMAS.cps.date_column_name,
                         "<=",
                         pd.Timestamp(year=year, month=12, day=31),
                     ),
@@ -422,9 +424,9 @@ def generate_current_population_survey(
         seed = seed * 10_000 + year
     if state is not None:
         user_filters.extend(
-            [(DATASETS.cps.state_column_name, "==", get_state_abbreviation(state))]
+            [(DATASET_SCHEMAS.cps.state_column_name, "==", get_state_abbreviation(state))]
         )
-    return _generate_dataset(DATASETS.cps, source, seed, config, user_filters, verbose)
+    return _generate_dataset(DATASET_SCHEMAS.cps, source, seed, config, user_filters, verbose)
 
 
 def generate_taxes_w2_and_1099(
@@ -497,14 +499,18 @@ def generate_taxes_w2_and_1099(
     """
     user_filters = []
     if year is not None:
-        user_filters.append((DATASETS.tax_w2_1099.date_column_name, "==", year))
+        user_filters.append((DATASET_SCHEMAS.tax_w2_1099.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state is not None:
         user_filters.append(
-            (DATASETS.tax_w2_1099.state_column_name, "==", get_state_abbreviation(state))
+            (
+                DATASET_SCHEMAS.tax_w2_1099.state_column_name,
+                "==",
+                get_state_abbreviation(state),
+            )
         )
     return _generate_dataset(
-        DATASETS.tax_w2_1099, source, seed, config, user_filters, verbose
+        DATASET_SCHEMAS.tax_w2_1099, source, seed, config, user_filters, verbose
     )
 
 
@@ -588,13 +594,13 @@ def generate_women_infants_and_children(
     """
     user_filters = []
     if year is not None:
-        user_filters.append((DATASETS.wic.date_column_name, "==", year))
+        user_filters.append((DATASET_SCHEMAS.wic.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state is not None:
         user_filters.append(
-            (DATASETS.wic.state_column_name, "==", get_state_abbreviation(state))
+            (DATASET_SCHEMAS.wic.state_column_name, "==", get_state_abbreviation(state))
         )
-    return _generate_dataset(DATASETS.wic, source, seed, config, user_filters, verbose)
+    return _generate_dataset(DATASET_SCHEMAS.wic, source, seed, config, user_filters, verbose)
 
 
 def generate_social_security(
@@ -660,7 +666,7 @@ def generate_social_security(
         try:
             user_filters.append(
                 (
-                    DATASETS.ssa.date_column_name,
+                    DATASET_SCHEMAS.ssa.date_column_name,
                     "<=",
                     pd.Timestamp(year=year, month=12, day=31),
                 )
@@ -668,7 +674,7 @@ def generate_social_security(
         except (pd.errors.OutOfBoundsDatetime, ValueError):
             raise ValueError(f"Invalid year provided: '{year}'")
         seed = seed * 10_000 + year
-    return _generate_dataset(DATASETS.ssa, source, seed, config, user_filters, verbose)
+    return _generate_dataset(DATASET_SCHEMAS.ssa, source, seed, config, user_filters, verbose)
 
 
 def generate_taxes_1040(
@@ -741,18 +747,20 @@ def generate_taxes_1040(
     """
     user_filters = []
     if year is not None:
-        user_filters.append((DATASETS.tax_1040.date_column_name, "==", year))
+        user_filters.append((DATASET_SCHEMAS.tax_1040.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state is not None:
         user_filters.append(
-            (DATASETS.tax_1040.state_column_name, "==", get_state_abbreviation(state))
+            (DATASET_SCHEMAS.tax_1040.state_column_name, "==", get_state_abbreviation(state))
         )
-    return _generate_dataset(DATASETS.tax_1040, source, seed, config, user_filters, verbose)
+    return _generate_dataset(
+        DATASET_SCHEMAS.tax_1040, source, seed, config, user_filters, verbose
+    )
 
 
-def fetch_filepaths(dataset: Dataset, source: Path) -> Union[List, List[dict]]:
-    # returns a list of filepaths for all Datasets
-    data_paths = get_dataset_filepaths(source, dataset.name)
+def fetch_filepaths(dataset_schema: DatasetSchema, source: Path) -> Union[List, List[dict]]:
+    # returns a list of filepaths for the dataset
+    data_paths = get_dataset_filepaths(source, dataset_schema.name)
 
     return data_paths
 
