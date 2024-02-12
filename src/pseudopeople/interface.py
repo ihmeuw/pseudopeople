@@ -13,7 +13,7 @@ from pseudopeople.constants import paths
 from pseudopeople.dataset import noise_data
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.loader import load_standard_dataset
-from pseudopeople.schema_entities import DATASETS, Dataset
+from pseudopeople.schema_entities import DATASET_SCHEMAS, DatasetSchema
 from pseudopeople.utilities import (
     PANDAS_ENGINE,
     DataFrame,
@@ -25,7 +25,7 @@ from pseudopeople.utilities import (
 
 
 def _generate_dataset(
-    dataset: Dataset,
+    dataset_schema: DatasetSchema,
     source: Union[Path, str],
     seed: int,
     config: Union[Path, str, Dict],
@@ -36,8 +36,8 @@ def _generate_dataset(
     """
     Helper for generating noised datasets.
 
-    :param dataset:
-        Dataset needing to be noised
+    :param dataset_schema:
+        Schema object for dataset that will be noised
     :param source:
         Root directory of data input which needs to be noised
     :param seed:
@@ -54,19 +54,19 @@ def _generate_dataset(
         Noised dataset data in a dataframe
     """
     configure_logging_to_terminal(verbose)
-    configuration_tree = get_configuration(config, dataset, user_filters)
+    configuration_tree = get_configuration(config, dataset_schema, user_filters)
 
     if source is None:
         source = paths.SAMPLE_DATA_ROOT
     else:
         source = Path(source)
-        validate_source_compatibility(source, dataset)
+        validate_source_compatibility(source, dataset_schema)
 
     engine = get_engine_from_string(engine_name)
 
     if engine == PANDAS_ENGINE:
         # We process shards serially
-        data_file_paths = get_dataset_filepaths(source, dataset.name)
+        data_file_paths = get_dataset_filepaths(source, dataset_schema.name)
         if not data_file_paths:
             raise DataSourceError(
                 f"No datasets found at directory {str(source)}. "
@@ -94,7 +94,7 @@ def _generate_dataset(
             # and the Nth row in each shard will get the same noise
             data_path_seed = f"{seed}_{data_file_index}"
             noised_data = noise_data(
-                dataset, data, configuration=configuration_tree, seed=data_path_seed
+                dataset_schema, data, configuration=configuration_tree, seed=data_path_seed
             )
             noised_dataset.append(noised_data)
 
@@ -102,11 +102,11 @@ def _generate_dataset(
         if len(noised_dataset) == 0:
             raise ValueError(
                 "Invalid value provided for 'state' or 'year'. No data found with "
-                f"the user provided 'state' or 'year' filters at {source / dataset.name}."
+                f"the user provided 'state' or 'year' filters at {source / dataset_schema.name}."
             )
         noised_dataset = pd.concat(noised_dataset, ignore_index=True)
 
-        noised_dataset = coerce_dtypes(noised_dataset, dataset)
+        noised_dataset = coerce_dtypes(noised_dataset, dataset_schema)
     else:
         try:
             from distributed.client import default_client
@@ -118,7 +118,7 @@ def _generate_dataset(
 
         # Let dask deal with how to partition the shards -- we pass it the
         # entire directory containing the parquet files
-        data_directory_path = source / dataset.name
+        data_directory_path = source / dataset_schema.name
         import dask
 
         # Our work depends on the particulars of how dtypes work, and is only
@@ -142,13 +142,13 @@ def _generate_dataset(
 
             noised_dataset = dask_data.map_partitions(
                 lambda data, partition_info=None: noise_data(
-                    dataset,
+                    dataset_schema,
                     data,
                     configuration=configuration_tree,
                     seed=f"{seed}_{partition_info['number'] if partition_info is not None else 1}",
                     progress_bar=False,
                 ),
-                meta=[(c.name, c.dtype_name) for c in dataset.columns],
+                meta=[(c.name, c.dtype_name) for c in dataset_schema.columns],
             )
 
     logger.debug("*** Finished ***")
@@ -156,14 +156,14 @@ def _generate_dataset(
     return noised_dataset
 
 
-def validate_source_compatibility(source: Path, dataset: Dataset):
+def validate_source_compatibility(source: Path, dataset_schema: DatasetSchema):
     # TODO [MIC-4546]: Clean this up w/ metadata and update test_interface.py tests to be generic
     directories = [x.name for x in source.iterdir() if x.is_dir()]
-    if dataset.name not in directories:
+    if dataset_schema.name not in directories:
         raise FileNotFoundError(
-            f"Could not find '{dataset.name}' in '{source}'. Please check that the provided source "
+            f"Could not find '{dataset_schema.name}' in '{source}'. Please check that the provided source "
             "directory is correct. If using the sample data, no source is required. If providing a source, "
-            f"a directory should provided that has a subdirectory for '{dataset.name}'. "
+            f"a directory should provided that has a subdirectory for '{dataset_schema.name}'. "
         )
     changelog = source / "CHANGELOG.rst"
     if changelog.exists():
@@ -276,13 +276,19 @@ def generate_decennial_census(
     """
     user_filters = []
     if year is not None:
-        user_filters.append((DATASETS.census.date_column_name, "==", year))
+        user_filters.append((DATASET_SCHEMAS.census.date_column_name, "==", year))
     if state is not None:
         user_filters.append(
-            (DATASETS.census.state_column_name, "==", get_state_abbreviation(state))
+            (DATASET_SCHEMAS.census.state_column_name, "==", get_state_abbreviation(state))
         )
     return _generate_dataset(
-        DATASETS.census, source, seed, config, user_filters, verbose, engine_name=engine
+        DATASET_SCHEMAS.census,
+        source,
+        seed,
+        config,
+        user_filters,
+        verbose,
+        engine_name=engine,
     )
 
 
@@ -378,12 +384,12 @@ def generate_american_community_survey(
             user_filters.extend(
                 [
                     (
-                        DATASETS.acs.date_column_name,
+                        DATASET_SCHEMAS.acs.date_column_name,
                         ">=",
                         pd.Timestamp(year=year, month=1, day=1),
                     ),
                     (
-                        DATASETS.acs.date_column_name,
+                        DATASET_SCHEMAS.acs.date_column_name,
                         "<=",
                         pd.Timestamp(year=year, month=12, day=31),
                     ),
@@ -394,10 +400,10 @@ def generate_american_community_survey(
         seed = seed * 10_000 + year
     if state is not None:
         user_filters.extend(
-            [(DATASETS.acs.state_column_name, "==", get_state_abbreviation(state))]
+            [(DATASET_SCHEMAS.acs.state_column_name, "==", get_state_abbreviation(state))]
         )
     return _generate_dataset(
-        DATASETS.acs, source, seed, config, user_filters, verbose, engine_name=engine
+        DATASET_SCHEMAS.acs, source, seed, config, user_filters, verbose, engine_name=engine
     )
 
 
@@ -494,12 +500,12 @@ def generate_current_population_survey(
             user_filters.extend(
                 [
                     (
-                        DATASETS.cps.date_column_name,
+                        DATASET_SCHEMAS.cps.date_column_name,
                         ">=",
                         pd.Timestamp(year=year, month=1, day=1),
                     ),
                     (
-                        DATASETS.cps.date_column_name,
+                        DATASET_SCHEMAS.cps.date_column_name,
                         "<=",
                         pd.Timestamp(year=year, month=12, day=31),
                     ),
@@ -510,10 +516,10 @@ def generate_current_population_survey(
         seed = seed * 10_000 + year
     if state is not None:
         user_filters.extend(
-            [(DATASETS.cps.state_column_name, "==", get_state_abbreviation(state))]
+            [(DATASET_SCHEMAS.cps.state_column_name, "==", get_state_abbreviation(state))]
         )
     return _generate_dataset(
-        DATASETS.cps, source, seed, config, user_filters, verbose, engine_name=engine
+        DATASET_SCHEMAS.cps, source, seed, config, user_filters, verbose, engine_name=engine
     )
 
 
@@ -597,14 +603,24 @@ def generate_taxes_w2_and_1099(
     """
     user_filters = []
     if year is not None:
-        user_filters.append((DATASETS.tax_w2_1099.date_column_name, "==", year))
+        user_filters.append((DATASET_SCHEMAS.tax_w2_1099.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state is not None:
         user_filters.append(
-            (DATASETS.tax_w2_1099.state_column_name, "==", get_state_abbreviation(state))
+            (
+                DATASET_SCHEMAS.tax_w2_1099.state_column_name,
+                "==",
+                get_state_abbreviation(state),
+            )
         )
     return _generate_dataset(
-        DATASETS.tax_w2_1099, source, seed, config, user_filters, verbose, engine_name=engine
+        DATASET_SCHEMAS.tax_w2_1099,
+        source,
+        seed,
+        config,
+        user_filters,
+        verbose,
+        engine_name=engine,
     )
 
 
@@ -699,14 +715,14 @@ def generate_women_infants_and_children(
     """
     user_filters = []
     if year is not None:
-        user_filters.append((DATASETS.wic.date_column_name, "==", year))
+        user_filters.append((DATASET_SCHEMAS.wic.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state is not None:
         user_filters.append(
-            (DATASETS.wic.state_column_name, "==", get_state_abbreviation(state))
+            (DATASET_SCHEMAS.wic.state_column_name, "==", get_state_abbreviation(state))
         )
     return _generate_dataset(
-        DATASETS.wic, source, seed, config, user_filters, verbose, engine_name=engine
+        DATASET_SCHEMAS.wic, source, seed, config, user_filters, verbose, engine_name=engine
     )
 
 
@@ -783,7 +799,7 @@ def generate_social_security(
         try:
             user_filters.append(
                 (
-                    DATASETS.ssa.date_column_name,
+                    DATASET_SCHEMAS.ssa.date_column_name,
                     "<=",
                     pd.Timestamp(year=year, month=12, day=31),
                 )
@@ -792,7 +808,7 @@ def generate_social_security(
             raise ValueError(f"Invalid year provided: '{year}'")
         seed = seed * 10_000 + year
     return _generate_dataset(
-        DATASETS.ssa, source, seed, config, user_filters, verbose, engine_name=engine
+        DATASET_SCHEMAS.ssa, source, seed, config, user_filters, verbose, engine_name=engine
     )
 
 
@@ -876,14 +892,20 @@ def generate_taxes_1040(
     """
     user_filters = []
     if year is not None:
-        user_filters.append((DATASETS.tax_1040.date_column_name, "==", year))
+        user_filters.append((DATASET_SCHEMAS.tax_1040.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state is not None:
         user_filters.append(
-            (DATASETS.tax_1040.state_column_name, "==", get_state_abbreviation(state))
+            (DATASET_SCHEMAS.tax_1040.state_column_name, "==", get_state_abbreviation(state))
         )
     return _generate_dataset(
-        DATASETS.tax_1040, source, seed, config, user_filters, verbose, engine_name=engine
+        DATASET_SCHEMAS.tax_1040,
+        source,
+        seed,
+        config,
+        user_filters,
+        verbose,
+        engine_name=engine,
     )
 
 
