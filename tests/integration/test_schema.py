@@ -1,7 +1,10 @@
 import pytest
 
 from pseudopeople.schema_entities import COLUMNS, DATASETS
-from tests.integration.conftest import _get_common_datasets, _load_sample_data
+from tests.integration.conftest import (
+    _get_common_datasets,
+    _initialize_dataset_data_with_sample,
+)
 
 
 @pytest.mark.parametrize(
@@ -25,9 +28,9 @@ def test_unnoised_id_cols(dataset_name: str, request):
     unnoised_id_cols = [COLUMNS.simulant_id.name]
     if dataset_name != DATASETS.ssa.name:
         unnoised_id_cols.append(COLUMNS.household_id.name)
-    data = _load_sample_data(dataset_name, request)
+    original = _initialize_dataset_data_with_sample(dataset_name)
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
-    check_noised, check_original, _ = _get_common_datasets(dataset_name, data, noised_data)
+    check_noised, check_original, _ = _get_common_datasets(original, noised_data)
     assert (
         (
             check_original.reset_index()[unnoised_id_cols]

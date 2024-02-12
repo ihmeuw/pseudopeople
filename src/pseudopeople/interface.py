@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
-import numpy as np
 import pandas as pd
 from loguru import logger
 from packaging.version import parse
@@ -10,17 +9,12 @@ from tqdm import tqdm
 from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
-from pseudopeople.constants.metadata import DATEFORMATS
-from pseudopeople.constants.noise_type_metadata import (
-    COPY_HOUSEHOLD_MEMBER_COLS,
-    INT_COLUMNS,
-)
+from pseudopeople.dataset import DatasetData
 from pseudopeople.exceptions import DataSourceError
-from pseudopeople.loader import load_standard_dataset_file
-from pseudopeople.noise import noise_dataset
-from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
+from pseudopeople.noise_entities import NOISE_TYPES
+from pseudopeople.schema_entities import DATASETS, Dataset
 from pseudopeople.utilities import (
-    cleanse_integer_columns,
+    coerce_dtypes,
     configure_logging_to_terminal,
     get_state_abbreviation,
 )
@@ -77,16 +71,14 @@ def _generate_dataset(
 
     for data_path_index, data_path in enumerate(iterator):
         logger.debug(f"Loading data from {data_path}.")
-        data = _load_data_from_path(data_path, user_filters)
-        if data.empty:
+        dataset_data = DatasetData(
+            dataset, data_path, user_filters, f"{seed}_{data_path_index}"
+        )
+
+        if not dataset_data:
             continue
-        data = _reformat_dates_for_noising(data, dataset)
-        data = _coerce_dtypes(data, dataset)
-        # Use a different seed for each data file/shard, otherwise the randomness will duplicate
-        # and the Nth row in each shard will get the same noise
-        data_path_seed = f"{seed}_{data_path_index}"
-        noised_data = noise_dataset(dataset, data, configuration_tree, data_path_seed)
-        noised_data = _extract_columns(dataset.columns, noised_data)
+
+        noised_data = dataset_data.get_noised_data(configuration_tree, NOISE_TYPES)
         noised_dataset.append(noised_data)
 
     # Check if all shards for the dataset are empty
@@ -99,7 +91,7 @@ def _generate_dataset(
 
     # Known pandas bug: pd.concat does not preserve category dtypes so we coerce
     # again after concat (https://github.com/pandas-dev/pandas/issues/51362)
-    noised_dataset = _coerce_dtypes(
+    noised_dataset = coerce_dtypes(
         noised_dataset,
         dataset,
         cleanse_int_cols=True,
@@ -147,79 +139,6 @@ def _get_data_changelog_version(changelog):
         first_line = file.readline()
     version = parse(first_line.split("**")[1].split("-")[0].strip())
     return version
-
-
-def _coerce_dtypes(
-    data: pd.DataFrame,
-    dataset: Dataset,
-    cleanse_int_cols: bool = False,
-) -> pd.DataFrame:
-    # Coerce dtypes prior to noising to catch issues early as well as
-    # get most columns away from dtype 'category' and into 'object' (strings)
-    for col in dataset.columns:
-        if cleanse_int_cols and col.name in INT_COLUMNS:
-            data[col.name] = cleanse_integer_columns(data[col.name])
-        # Coerce empty strings to nans
-        if cleanse_int_cols and col.name not in INT_COLUMNS:
-            data[col.name] = data[col.name].replace("", np.nan)
-        if col.dtype_name != data[col.name].dtype.name:
-            data[col.name] = data[col.name].astype(col.dtype_name)
-
-    return data
-
-
-def _load_data_from_path(data_path: Path, user_filters: List[Tuple]) -> pd.DataFrame:
-    """Load data from a data file given a data_path and a year_filter."""
-    data = load_standard_dataset_file(data_path, user_filters)
-    return data
-
-
-def _reformat_dates_for_noising(data: pd.DataFrame, dataset: Dataset):
-    """Formats date columns so they can be noised as strings."""
-    data = data.copy()
-
-    for date_column in [COLUMNS.dob.name, COLUMNS.ssa_event_date.name]:
-        # Format both the actual column, and the shadow version that will be used
-        # to copy from a household member
-        for column in [date_column, COPY_HOUSEHOLD_MEMBER_COLS.get(date_column)]:
-            if column in data.columns:
-                # Avoid running strftime on large data, since that will
-                # re-parse the format string for each row
-                # https://github.com/pandas-dev/pandas/issues/44764
-                # Year is already guaranteed to be 4-digit: https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#timeseries-timestamp-limits
-                is_na = data[column].isna()
-                data_column = data.loc[~is_na, column]
-                year_string = data_column.dt.year.astype(str)
-                month_string = _zfill_fast(data_column.dt.month.astype(str), 2)
-                day_string = _zfill_fast(data_column.dt.day.astype(str), 2)
-                if dataset.date_format == DATEFORMATS.YYYYMMDD:
-                    result = year_string + month_string + day_string
-                elif dataset.date_format == DATEFORMATS.MM_DD_YYYY:
-                    result = month_string + "/" + day_string + "/" + year_string
-                elif dataset.date_format == DATEFORMATS.MMDDYYYY:
-                    result = month_string + day_string + year_string
-                else:
-                    raise ValueError(f"Invalid date format in {dataset.name}.")
-
-                data[column] = pd.Series(np.nan, dtype=str)
-                data.loc[~is_na, column] = result
-
-    return data
-
-
-def _zfill_fast(col: pd.Series, desired_length: int) -> pd.Series:
-    """Performs the same operation as col.str.zfill(desired_length), but vectorized."""
-    # The most zeroes that could ever be needed would be desired_length
-    maximum_padding = ("0" * desired_length) + col
-    # Now trim to only the zeroes needed
-    return maximum_padding.str[-desired_length:]
-
-
-def _extract_columns(columns_to_keep, noised_dataset):
-    """Helper function for test mocking purposes"""
-    if columns_to_keep:
-        noised_dataset = noised_dataset[[c.name for c in columns_to_keep]]
-    return noised_dataset
 
 
 def generate_decennial_census(
