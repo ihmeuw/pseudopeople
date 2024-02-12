@@ -137,3 +137,6 @@ notebooks/
 
 # Version
 src/pseudopeople/_version.py
+
+# Format 
+format
