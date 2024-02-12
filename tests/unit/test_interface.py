@@ -10,9 +10,9 @@ from pseudopeople.interface import (
     _get_data_changelog_version,
     validate_source_compatibility,
 )
-from pseudopeople.schema_entities import DATASETS
+from pseudopeople.schema_entities import DATASET_SCHEMAS
 
-CENSUS = DATASETS.get_dataset(DatasetNames.CENSUS)
+CENSUS = DATASET_SCHEMAS.get_dataset_schema(DatasetNames.CENSUS)
 
 
 # TODO [MIC-4546]: stop hardcoding the data version number

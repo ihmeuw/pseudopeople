@@ -10,7 +10,7 @@ from pseudopeople.configuration.interface import get_config
 from pseudopeople.configuration.validator import ConfigurationError
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import COLUMNS, DATASETS
+from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
 
 PROBABILITY_VALUE_LOGS = [
     ("a", "must be floats or ints"),
@@ -38,19 +38,21 @@ def test_default_configuration_structure():
     """Test that the default configuration structure is correct"""
     config = get_configuration()
     # Check datasets
-    assert set(f.name for f in DATASETS) == set(config.keys())
-    for dataset in DATASETS:
+    assert set(f.name for f in DATASET_SCHEMAS) == set(config.keys())
+    for dataset_schema in DATASET_SCHEMAS:
         # Check row noise
-        for row_noise in dataset.row_noise_types:
-            config_probability = config[dataset.name][Keys.ROW_NOISE][row_noise.name]
-            validate_noise_type_config(dataset, row_noise, config_probability)
-        for col in dataset.columns:
+        for row_noise in dataset_schema.row_noise_types:
+            config_probability = config[dataset_schema.name][Keys.ROW_NOISE][row_noise.name]
+            validate_noise_type_config(dataset_schema, row_noise, config_probability)
+        for col in dataset_schema.columns:
             for noise_type in col.noise_types:
-                config_level = config[dataset.name].column_noise[col.name][noise_type.name]
-                validate_noise_type_config(dataset, noise_type, config_level, col)
+                config_level = config[dataset_schema.name].column_noise[col.name][
+                    noise_type.name
+                ]
+                validate_noise_type_config(dataset_schema, noise_type, config_level, col)
 
 
-def validate_noise_type_config(dataset, noise_type, config_level, column=None):
+def validate_noise_type_config(dataset_schema, noise_type, config_level, column=None):
     # FIXME: Is there a way to allow for adding new keys when they
     #  don't exist in baseline? eg the for/if loops below depend on their
     #  being row_noise, token_noise, and additional parameters at the
@@ -61,14 +63,14 @@ def validate_noise_type_config(dataset, noise_type, config_level, column=None):
         config_probability = config_level[Keys.CELL_PROBABILITY]
         if isinstance(noise_type, RowNoiseType):
             default_probability = (
-                DEFAULT_NOISE_VALUES.get(dataset.name, {})
+                DEFAULT_NOISE_VALUES.get(dataset_schema.name, {})
                 .get(noise_key, {})
                 .get(noise_type.name, {})
                 .get(noise_type.probability_key, "no default")
             )
         else:
             default_probability = (
-                DEFAULT_NOISE_VALUES.get(dataset.name, {})
+                DEFAULT_NOISE_VALUES.get(dataset_schema.name, {})
                 .get(noise_key, {})
                 .get(column.name, {})
                 .get(noise_type.name, {})
@@ -84,13 +86,13 @@ def validate_noise_type_config(dataset, noise_type, config_level, column=None):
         }
         if isinstance(noise_type, RowNoiseType):
             default_additional_parameters = (
-                DEFAULT_NOISE_VALUES.get(dataset.name, {})
+                DEFAULT_NOISE_VALUES.get(dataset_schema.name, {})
                 .get(noise_key, {})
                 .get(noise_type.name, {})
             )
         else:
             default_additional_parameters = (
-                DEFAULT_NOISE_VALUES.get(dataset.name, {})
+                DEFAULT_NOISE_VALUES.get(dataset_schema.name, {})
                 .get(noise_key, {})
                 .get(column.name, {})
                 .get(noise_type.name, {})
@@ -122,7 +124,7 @@ def test_get_configuration_with_user_override(mocker):
     """Tests that the default configuration get updated when a user configuration is supplied."""
     mock = mocker.patch("pseudopeople.configuration.generator.LayeredConfigTree")
     config = {
-        DATASETS.census.name: {
+        DATASET_SCHEMAS.census.name: {
             Keys.ROW_NOISE: {NOISE_TYPES.omit_row.name: {Keys.ROW_PROBABILITY: 0.05}},
             Keys.COLUMN_NOISE: {
                 "first_name": {NOISE_TYPES.make_typos.name: {Keys.CELL_PROBABILITY: 0.05}}
@@ -141,7 +143,7 @@ def test_get_configuration_with_user_override(mocker):
 
 def test_loading_from_yaml(tmp_path):
     overrides = {
-        DATASETS.census.name: {
+        DATASET_SCHEMAS.census.name: {
             Keys.COLUMN_NOISE: {
                 COLUMNS.age.name: {
                     NOISE_TYPES.misreport_age.name: {
@@ -155,12 +157,12 @@ def test_loading_from_yaml(tmp_path):
     with open(filepath, "w") as file:
         yaml.dump(overrides, file)
 
-    default_config = get_configuration()[DATASETS.census.name][Keys.COLUMN_NOISE][
+    default_config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][
         COLUMNS.age.name
     ][NOISE_TYPES.misreport_age.name].to_dict()
-    updated_config = get_configuration(filepath)[DATASETS.census.name][Keys.COLUMN_NOISE][
-        COLUMNS.age.name
-    ][NOISE_TYPES.misreport_age.name].to_dict()
+    updated_config = get_configuration(filepath)[DATASET_SCHEMAS.census.name][
+        Keys.COLUMN_NOISE
+    ][COLUMNS.age.name][NOISE_TYPES.misreport_age.name].to_dict()
 
     assert (
         default_config[Keys.POSSIBLE_AGE_DIFFERENCES]
@@ -183,7 +185,7 @@ def test_format_miswrite_ages(age_differences, expected):
     This includes zero-ing out default values that don't exist in the user config
     """
     overrides = {
-        DATASETS.census.name: {
+        DATASET_SCHEMAS.census.name: {
             Keys.COLUMN_NOISE: {
                 COLUMNS.age.name: {
                     NOISE_TYPES.misreport_age.name: {
@@ -194,7 +196,7 @@ def test_format_miswrite_ages(age_differences, expected):
         },
     }
 
-    config = get_configuration(overrides)[DATASETS.census.name][Keys.COLUMN_NOISE][
+    config = get_configuration(overrides)[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][
         COLUMNS.age.name
     ][NOISE_TYPES.misreport_age.name][Keys.POSSIBLE_AGE_DIFFERENCES].to_dict()
 
@@ -220,32 +222,36 @@ def test_type_checking_all_levels(object_bad_type):
             get_configuration(object_bad_type)
 
     with pytest.raises(ConfigurationError, match="must be a Dict"):
-        get_configuration({DATASETS.acs.name: object_bad_type})
+        get_configuration({DATASET_SCHEMAS.acs.name: object_bad_type})
 
     with pytest.raises(ConfigurationError, match="must be a Dict"):
-        get_configuration({DATASETS.acs.name: {Keys.ROW_NOISE: object_bad_type}})
+        get_configuration({DATASET_SCHEMAS.acs.name: {Keys.ROW_NOISE: object_bad_type}})
 
     with pytest.raises(ConfigurationError, match="must be a Dict"):
         get_configuration(
             {
-                DATASETS.acs.name: {
+                DATASET_SCHEMAS.acs.name: {
                     Keys.ROW_NOISE: {NOISE_TYPES.do_not_respond.name: object_bad_type}
                 }
             }
         )
 
     with pytest.raises(ConfigurationError, match="must be a Dict"):
-        get_configuration({DATASETS.acs.name: {Keys.COLUMN_NOISE: object_bad_type}})
+        get_configuration({DATASET_SCHEMAS.acs.name: {Keys.COLUMN_NOISE: object_bad_type}})
 
     with pytest.raises(ConfigurationError, match="must be a Dict"):
         get_configuration(
-            {DATASETS.acs.name: {Keys.COLUMN_NOISE: {COLUMNS.age.name: object_bad_type}}}
+            {
+                DATASET_SCHEMAS.acs.name: {
+                    Keys.COLUMN_NOISE: {COLUMNS.age.name: object_bad_type}
+                }
+            }
         )
 
     with pytest.raises(ConfigurationError, match="must be a Dict"):
         get_configuration(
             {
-                DATASETS.acs.name: {
+                DATASET_SCHEMAS.acs.name: {
                     Keys.COLUMN_NOISE: {
                         COLUMNS.age.name: {NOISE_TYPES.leave_blank.name: object_bad_type}
                     }
@@ -259,32 +265,36 @@ def test_type_checking_all_levels(object_bad_type):
     [
         ({"fake_dataset": {}}, "Invalid dataset '.*' provided. Valid datasets are "),
         (
-            {DATASETS.acs.name: {"other_noise": {}}},
+            {DATASET_SCHEMAS.acs.name: {"other_noise": {}}},
             "Invalid configuration key '.*' provided for dataset '.*'. ",
         ),
         (
-            {DATASETS.acs.name: {Keys.ROW_NOISE: {"fake_noise": {}}}},
+            {DATASET_SCHEMAS.acs.name: {Keys.ROW_NOISE: {"fake_noise": {}}}},
             "Invalid noise type '.*' provided for dataset '.*'. ",
         ),
         (
             {
-                DATASETS.acs.name: {
+                DATASET_SCHEMAS.acs.name: {
                     Keys.ROW_NOISE: {NOISE_TYPES.do_not_respond.name: {"fake": {}}}
                 }
             },
             "Invalid parameter '.*' provided for dataset '.*' and noise type '.*'. ",
         ),
         (
-            {DATASETS.acs.name: {Keys.COLUMN_NOISE: {"fake_column": {}}}},
+            {DATASET_SCHEMAS.acs.name: {Keys.COLUMN_NOISE: {"fake_column": {}}}},
             "Invalid column '.*' provided for dataset '.*'. ",
         ),
         (
-            {DATASETS.acs.name: {Keys.COLUMN_NOISE: {COLUMNS.age.name: {"fake_noise": {}}}}},
+            {
+                DATASET_SCHEMAS.acs.name: {
+                    Keys.COLUMN_NOISE: {COLUMNS.age.name: {"fake_noise": {}}}
+                }
+            },
             "Invalid noise type '.*' provided for dataset '.*' for column '.*'. ",
         ),
         (
             {
-                DATASETS.acs.name: {
+                DATASET_SCHEMAS.acs.name: {
                     Keys.COLUMN_NOISE: {
                         COLUMNS.age.name: {NOISE_TYPES.leave_blank.name: {"fake": 1}}
                     }
@@ -322,7 +332,7 @@ def test_validate_standard_parameters_failures_row_noise(row_noise_type, value, 
     Tests valid configuration values for probability for row noise types.
     """
     dataset_name = [
-        dataset for dataset in DATASETS if row_noise_type in dataset.row_noise_types
+        dataset for dataset in DATASET_SCHEMAS if row_noise_type in dataset.row_noise_types
     ][0].name
     with pytest.raises(ConfigurationError, match=match):
         get_configuration(
@@ -352,12 +362,13 @@ def test_validate_standard_parameters_failures_column_noise(column_noise_type, v
     column_name = [
         column
         for column in COLUMNS
-        if column_noise_type in column.noise_types and column in DATASETS.census.columns
+        if column_noise_type in column.noise_types
+        and column in DATASET_SCHEMAS.census.columns
     ][0].name
     with pytest.raises(ConfigurationError, match=match):
         get_configuration(
             {
-                DATASETS.census.name: {
+                DATASET_SCHEMAS.census.name: {
                     Keys.COLUMN_NOISE: {
                         column_name: {
                             column_noise_type.name: {
@@ -402,7 +413,7 @@ def test_validate_miswrite_ages_failures(perturbations, match):
     with pytest.raises(ConfigurationError, match=match):
         get_configuration(
             {
-                DATASETS.census.name: {
+                DATASET_SCHEMAS.census.name: {
                     Keys.COLUMN_NOISE: {
                         COLUMNS.age.name: {
                             NOISE_TYPES.misreport_age.name: {
@@ -431,7 +442,7 @@ def test_validate_miswrite_zipcode_digit_probabilities_failures(probabilities, m
     with pytest.raises(ConfigurationError, match=match):
         get_configuration(
             {
-                DATASETS.census.name: {
+                DATASET_SCHEMAS.census.name: {
                     Keys.COLUMN_NOISE: {
                         COLUMNS.zipcode.name: {
                             NOISE_TYPES.write_wrong_zipcode_digits.name: {
@@ -481,7 +492,7 @@ def test_validate_choose_wrong_option_configuration(caplog):
         for config_value in config_values:
             get_configuration(
                 {
-                    DATASETS.census.name: {
+                    DATASET_SCHEMAS.census.name: {
                         Keys.COLUMN_NOISE: {
                             column: {
                                 NOISE_TYPES.choose_wrong_option.name: {
@@ -534,7 +545,7 @@ def test_validate_noise_level_proportions(caplog, column, noise_type, noise_leve
     Tests that a warning is thrown when a user provides configuration overrides that are higher
     than the calculated metadata proportions for that column noise type pairing.
     """
-    census = DATASETS.get_dataset("decennial_census")
+    census = DATASET_SCHEMAS.get_dataset_schema("decennial_census")
     user_filters = [
         (census.date_column_name, "==", 2020),
         (census.state_column_name, "==", "WA"),
@@ -542,7 +553,7 @@ def test_validate_noise_level_proportions(caplog, column, noise_type, noise_leve
     # Making guardian duplication 0.0 so that we can test the other noise types only
     get_configuration(
         {
-            DATASETS.census.name: {
+            DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
                     column: {
                         noise_type: {
@@ -576,7 +587,7 @@ def test_duplicate_with_guardian_configuration(value_1, value_2):
 
     config = get_config(
         {
-            DATASETS.census.name: {
+            DATASET_SCHEMAS.census.name: {
                 Keys.ROW_NOISE: {
                     NOISE_TYPES.duplicate_with_guardian.name: {
                         Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: value_1,
@@ -587,7 +598,7 @@ def test_duplicate_with_guardian_configuration(value_1, value_2):
         },
     )
 
-    row_noise_dict = config[DATASETS.census.name][Keys.ROW_NOISE][
+    row_noise_dict = config[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
         NOISE_TYPES.duplicate_with_guardian.name
     ]
     assert row_noise_dict[Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18] == value_1
@@ -606,7 +617,7 @@ def test_bad_duplicate_with_guardian_config(key):
     with pytest.raises(ConfigurationError, match=f"Invalid parameter '{key}' provided"):
         get_configuration(
             {
-                DATASETS.census.name: {
+                DATASET_SCHEMAS.census.name: {
                     Keys.ROW_NOISE: {
                         NOISE_TYPES.duplicate_with_guardian.name: {
                             key: 0.5,
