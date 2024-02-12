@@ -7,9 +7,8 @@ from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.entities import NO_NOISE
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import DatasetNames
+from pseudopeople.dataset import DatasetData
 from pseudopeople.interface import (
-    _coerce_dtypes,
-    _reformat_dates_for_noising,
     generate_american_community_survey,
     generate_current_population_survey,
     generate_decennial_census,
@@ -20,6 +19,7 @@ from pseudopeople.interface import (
 )
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
+from pseudopeople.utilities import coerce_dtypes
 
 ROW_PROBABILITY = 0.05
 CELL_PROBABILITY = 0.25
@@ -160,13 +160,6 @@ def config():
     return config
 
 
-# Un-noised 1040
-@pytest.fixture(scope="session")
-def formatted_1040_sample_data():
-    formatted_1040 = generate_taxes_1040(seed=SEED, year=None, config=NO_NOISE)
-    return formatted_1040
-
-
 # Noised sample datasets
 @pytest.fixture(scope="module")
 def noised_sample_data_decennial_census(config):
@@ -206,7 +199,7 @@ def noised_sample_data_taxes_1040(config):
 # Raw sample datasets with half from a specific state, for state filtering
 @pytest.fixture(scope="module")
 def sample_data_decennial_census_state_edit():
-    data = _load_sample_data(DATASETS.census.name)
+    data = _initialize_dataset_data_with_sample(DATASETS.census.name)
     # Set half of the entries to the state we'll filter on
     data.loc[data.reset_index().index % 2 == 0, DATASETS.census.state_column_name] = STATE
     return data
@@ -214,7 +207,7 @@ def sample_data_decennial_census_state_edit():
 
 @pytest.fixture(scope="module")
 def sample_data_american_community_survey_state_edit():
-    data = _load_sample_data(DATASETS.acs.name)
+    data = _initialize_dataset_data_with_sample(DATASETS.acs.name)
     # Set half of the entries to the state we'll filter on
     data.loc[data.reset_index().index % 2 == 0, DATASETS.acs.state_column_name] = STATE
     return data
@@ -222,7 +215,7 @@ def sample_data_american_community_survey_state_edit():
 
 @pytest.fixture(scope="module")
 def sample_data_current_population_survey_state_edit():
-    data = _load_sample_data(DATASETS.cps.name)
+    data = _initialize_dataset_data_with_sample(DATASETS.cps.name)
     # Set half of the entries to the state we'll filter on
     data.loc[data.reset_index().index % 2 == 0, DATASETS.cps.state_column_name] = STATE
     return data
@@ -230,7 +223,7 @@ def sample_data_current_population_survey_state_edit():
 
 @pytest.fixture(scope="module")
 def sample_data_women_infants_and_children_state_edit():
-    data = _load_sample_data(DATASETS.wic.name)
+    data = _initialize_dataset_data_with_sample(DATASETS.wic.name)
     # Set half of the entries to the state we'll filter on
     data.loc[data.reset_index().index % 2 == 0, DATASETS.wic.state_column_name] = STATE
     return data
@@ -238,7 +231,7 @@ def sample_data_women_infants_and_children_state_edit():
 
 @pytest.fixture(scope="module")
 def sample_data_taxes_w2_and_1099_state_edit():
-    data = _load_sample_data(DATASETS.tax_w2_1099.name)
+    data = _initialize_dataset_data_with_sample(DATASETS.tax_w2_1099.name)
     # Set half of the entries to the state we'll filter on
     data.loc[
         data.reset_index().index % 2 == 0, DATASETS.tax_w2_1099.state_column_name
@@ -251,28 +244,32 @@ def sample_data_taxes_w2_and_1099_state_edit():
 ####################
 
 
-def _load_sample_data(dataset, request):
-    if dataset == DatasetNames.TAXES_1040:
-        # We need to get formatted 1040 data that is not noised to get the expected columns
-        data = request.getfixturevalue("formatted_1040_sample_data")
-    else:
-        data_path = paths.SAMPLE_DATA_ROOT / dataset / f"{dataset}.parquet"
-        data = pd.read_parquet(data_path)
-
-    return data
+def get_unnoised_data(dataset_name):
+    result = _initialize_dataset_data_with_sample(dataset_name)
+    result.data = coerce_dtypes(result.data, result.dataset)
+    return result
 
 
-def _get_common_datasets(dataset_name, data, noised_data):
+def _initialize_dataset_data_with_sample(dataset_name) -> DatasetData:
+    dataset = DATASETS.get_dataset(dataset_name)
+    data_path = paths.SAMPLE_DATA_ROOT / dataset_name / f"{dataset_name}.parquet"
+    dataset_data = DatasetData(dataset, pd.read_parquet(data_path), SEED)
+
+    return dataset_data
+
+
+def _get_common_datasets(unnoised_dataset_data, noised_dataset):
     """Use unique columns to determine shared non-NA rows between noised and
     unnoised data. Note that we cannot use the original index because that
     gets reset after noising, i.e. the unique columns must NOT be noised.
     """
-    idx_cols = IDX_COLS.get(dataset_name)
-    dataset = DATASETS.get_dataset(dataset_name)
-    check_original = _coerce_dtypes(
-        _reformat_dates_for_noising(data, dataset), dataset
-    ).set_index(idx_cols)
-    check_noised = noised_data.set_index(idx_cols)
+    idx_cols = IDX_COLS.get(unnoised_dataset_data.dataset.name)
+    unnoised_dataset_data._reformat_dates_for_noising()
+    unnoised_dataset_data.data = coerce_dtypes(
+        unnoised_dataset_data.data, unnoised_dataset_data.dataset
+    )
+    check_original = unnoised_dataset_data.data.set_index(idx_cols)
+    check_noised = noised_dataset.set_index(idx_cols)
     # Ensure the idx_cols are unique
     assert check_original.index.duplicated().sum() == 0
     assert check_noised.index.duplicated().sum() == 0

@@ -4,8 +4,9 @@ import pytest
 from vivarium.framework.randomness import RandomnessStream
 from vivarium.framework.randomness.index_map import IndexMap
 
-from pseudopeople.dtypes import DtypeNames
+from pseudopeople.dataset import DatasetData
 from pseudopeople.noise_functions import _corrupt_tokens
+from pseudopeople.schema_entities import DATASETS, DtypeNames
 from pseudopeople.utilities import (
     get_index_to_noise,
     to_string_as_integer,
@@ -173,14 +174,13 @@ def test_get_index_to_noise(fuzzy_checker: FuzzyChecker):
     Tests that the index length we will noise validates to expected noise level
     """
 
-    df = pd.DataFrame(index=list(range(1000)))
+    df = pd.DataFrame({"a": list(range(1000))}, index=list(range(1000)))
+    dataset = DatasetData(DATASETS.tax_w2_1099, df, 0)
     noise_level = 0.62
     chosen_idx = get_index_to_noise(
-        data=df,
+        dataset_data=dataset,
         noise_level=noise_level,
-        randomness_stream=RANDOMNESS0,
         additional_key="test_get_index_to_noise",
-        is_column_noise=False,
     )
     # Assert that the proportion of rows to noise is correct
     fuzzy_checker.fuzzy_assert_proportion(

@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 
-import numpy as np
 import pandas as pd
 from layered_config_tree import LayeredConfigTree
 from loguru import logger
@@ -11,20 +10,17 @@ from tqdm import tqdm
 from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
-from pseudopeople.constants.metadata import DATEFORMATS
-from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COLS
-from pseudopeople.dtypes import DtypeNames
+from pseudopeople.dataset import noise_data
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.loader import load_standard_dataset
-from pseudopeople.noise import noise_dataset
-from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
+from pseudopeople.schema_entities import DATASETS, Dataset
 from pseudopeople.utilities import (
     PANDAS_ENGINE,
     DataFrame,
+    coerce_dtypes,
     configure_logging_to_terminal,
     get_engine_from_string,
     get_state_abbreviation,
-    to_string,
 )
 
 
@@ -70,7 +66,7 @@ def _generate_dataset(
 
     if engine == PANDAS_ENGINE:
         # We process shards serially
-        data_file_paths = fetch_filepaths(dataset, source)
+        data_file_paths = get_dataset_filepaths(source, dataset.name)
         if not data_file_paths:
             raise DataSourceError(
                 f"No datasets found at directory {str(source)}. "
@@ -92,13 +88,13 @@ def _generate_dataset(
             data = load_standard_dataset(
                 data_file_path, user_filters, engine=engine, is_file=True
             )
-            if len(data.index) == 0:
+            if len(data) == 0:
                 continue
             # Use a different seed for each data file/shard, otherwise the randomness will duplicate
             # and the Nth row in each shard will get the same noise
             data_path_seed = f"{seed}_{data_file_index}"
-            noised_data = _prep_and_noise_dataset(
-                data, dataset, configuration_tree, data_path_seed
+            noised_data = noise_data(
+                dataset, data, configuration=configuration_tree, seed=data_path_seed
             )
             noised_dataset.append(noised_data)
 
@@ -110,10 +106,7 @@ def _generate_dataset(
             )
         noised_dataset = pd.concat(noised_dataset, ignore_index=True)
 
-        noised_dataset = _coerce_dtypes(
-            noised_dataset,
-            dataset,
-        )
+        noised_dataset = coerce_dtypes(noised_dataset, dataset)
     else:
         try:
             from distributed.client import default_client
@@ -132,30 +125,28 @@ def _generate_dataset(
         # built to work with NumPy dtypes, so we turn off the Dask default behavior
         # of using PyArrow dtypes.
         with dask.config.set({"dataframe.convert-string": False}):
-            data = load_standard_dataset(
+            dask_data = load_standard_dataset(
                 data_directory_path, user_filters, engine=engine, is_file=False
             )
+
             # We are about to check the length, which requires computation anyway, so we cache
             # that computation
-            data = data.persist()
+            dask_data = dask_data.persist()
 
             # Check if all shards for the dataset are empty
-            if len(data) == 0:
+            if len(dask_data) == 0:
                 raise ValueError(
                     "Invalid value provided for 'state' or 'year'. No data found with "
                     f"the user provided 'state' or 'year' filters at {data_directory_path}."
                 )
 
-            noised_dataset = data.map_partitions(
-                lambda df, partition_info=None: _coerce_dtypes(
-                    _prep_and_noise_dataset(
-                        df,
-                        dataset,
-                        configuration_tree,
-                        seed=f"{seed}_{partition_info['number'] if partition_info is not None else 1}",
-                        progress_bar=False,
-                    ),
+            noised_dataset = dask_data.map_partitions(
+                lambda data, partition_info=None: noise_data(
                     dataset,
+                    data,
+                    configuration=configuration_tree,
+                    seed=f"{seed}_{partition_info['number'] if partition_info is not None else 1}",
+                    progress_bar=False,
                 ),
                 meta=[(c.name, c.dtype_name) for c in dataset.columns],
             )
@@ -163,22 +154,6 @@ def _generate_dataset(
     logger.debug("*** Finished ***")
 
     return noised_dataset
-
-
-def _prep_and_noise_dataset(
-    data: pd.DataFrame,
-    dataset: Dataset,
-    configuration_tree: LayeredConfigTree,
-    seed: Any,
-    progress_bar: bool = True,
-) -> pd.DataFrame:
-    data = _reformat_dates_for_noising(data, dataset)
-    data = _clean_input_data(data, dataset)
-    noised_data = noise_dataset(
-        dataset, data, configuration_tree, seed, progress_bar=progress_bar
-    )
-    noised_data = _extract_columns(dataset.columns, noised_data)
-    return noised_data
 
 
 def validate_source_compatibility(source: Path, dataset: Dataset):
@@ -218,86 +193,6 @@ def _get_data_changelog_version(changelog):
         first_line = file.readline()
     version = parse(first_line.split("**")[1].split("-")[0].strip())
     return version
-
-
-def _clean_input_data(
-    data: pd.DataFrame,
-    dataset: Dataset,
-) -> pd.DataFrame:
-    for col in dataset.columns:
-        # Coerce empty strings to nans
-        data[col.name] = data[col.name].replace("", np.nan)
-
-        if data[col.name].dtype.name == "category" and col.dtype_name == DtypeNames.OBJECT:
-            # We made some columns in the pseudopeople input categorical
-            # purely as a kind of DIY compression.
-            # TODO: Determine whether this is benefitting us after
-            # the switch to Parquet.
-            data[col.name] = to_string(data[col.name])
-
-    return data
-
-
-def _coerce_dtypes(
-    data: pd.DataFrame,
-    dataset: Dataset,
-) -> pd.DataFrame:
-    for col in dataset.columns:
-        if col.dtype_name != data[col.name].dtype.name:
-            if col.dtype_name == DtypeNames.OBJECT:
-                data[col.name] = to_string(data[col.name])
-            else:
-                data[col.name] = data[col.name].astype(col.dtype_name)
-
-    return data
-
-
-def _reformat_dates_for_noising(data: pd.DataFrame, dataset: Dataset):
-    """Formats date columns so they can be noised as strings."""
-    data = data.copy()
-
-    for date_column in [COLUMNS.dob.name, COLUMNS.ssa_event_date.name]:
-        # Format both the actual column, and the shadow version that will be used
-        # to copy from a household member
-        for column in [date_column, COPY_HOUSEHOLD_MEMBER_COLS.get(date_column)]:
-            if column in data.columns:
-                # Avoid running strftime on large data, since that will
-                # re-parse the format string for each row
-                # https://github.com/pandas-dev/pandas/issues/44764
-                # Year is already guaranteed to be 4-digit: https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#timeseries-timestamp-limits
-                is_na = data[column].isna()
-                data_column = data.loc[~is_na, column]
-                year_string = data_column.dt.year.astype(str)
-                month_string = _zfill_fast(data_column.dt.month.astype(str), 2)
-                day_string = _zfill_fast(data_column.dt.day.astype(str), 2)
-                if dataset.date_format == DATEFORMATS.YYYYMMDD:
-                    result = year_string + month_string + day_string
-                elif dataset.date_format == DATEFORMATS.MM_DD_YYYY:
-                    result = month_string + "/" + day_string + "/" + year_string
-                elif dataset.date_format == DATEFORMATS.MMDDYYYY:
-                    result = month_string + day_string + year_string
-                else:
-                    raise ValueError(f"Invalid date format in {dataset.name}.")
-
-                data[column] = pd.Series(np.nan, dtype=str)
-                data.loc[~is_na, column] = result
-
-    return data
-
-
-def _zfill_fast(col: pd.Series, desired_length: int) -> pd.Series:
-    """Performs the same operation as col.str.zfill(desired_length), but vectorized."""
-    # The most zeroes that could ever be needed would be desired_length
-    maximum_padding = ("0" * desired_length) + col
-    # Now trim to only the zeroes needed
-    return maximum_padding.str[-desired_length:]
-
-
-def _extract_columns(columns_to_keep, noised_dataset):
-    """Helper function for test mocking purposes"""
-    if columns_to_keep:
-        noised_dataset = noised_dataset[[c.name for c in columns_to_keep]]
-    return noised_dataset
 
 
 def generate_decennial_census(
@@ -990,13 +885,6 @@ def generate_taxes_1040(
     return _generate_dataset(
         DATASETS.tax_1040, source, seed, config, user_filters, verbose, engine_name=engine
     )
-
-
-def fetch_filepaths(dataset: Dataset, source: Path) -> Union[List, List[dict]]:
-    # returns a list of filepaths for all Datasets
-    data_paths = get_dataset_filepaths(source, dataset.name)
-
-    return data_paths
 
 
 def validate_data_path_suffix(data_paths) -> None:
