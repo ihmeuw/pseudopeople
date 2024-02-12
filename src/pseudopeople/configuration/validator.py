@@ -314,9 +314,8 @@ def validate_noise_level_proportions(
         # Go through each row in the queried dataset noise proportions to validate the noise levels
         for i in range(len(dataset_noise_proportions)):
             row = dataset_noise_proportions.iloc[i].copy()
-            if row["column"] not in [
-                col.name for col in dataset_schema.columns
-            ] and not pd.isnull(row["column"]):
+            column_names = [col.name for col in dataset_schema.columns]
+            if row["column"] not in column_names and not pd.isnull(row["column"]):
                 continue
             # Get the maximum noise level and the configured noise level
             if pd.isnull(row["column"]):

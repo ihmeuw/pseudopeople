@@ -520,7 +520,7 @@ def use_fake_names(
     :param to_noise_index: pd.Index of rows to be noised
     :param column_name: String for column that will be noised
     """
-    
+
     fake_names = {
         "first_name": fake_first_names,
         "middle_name": fake_first_names,
