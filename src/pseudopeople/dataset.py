@@ -11,7 +11,7 @@ from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COL
 from pseudopeople.dtypes import DtypeNames
 from pseudopeople.entity_types import ColumnNoiseType, NoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import COLUMNS, Dataset
+from pseudopeople.schema_entities import COLUMNS, DatasetSchema
 from pseudopeople.utilities import (
     DataFrame,
     coerce_dtypes,
@@ -21,27 +21,29 @@ from pseudopeople.utilities import (
 
 
 def noise_data(
-    dataset: Dataset,
+    dataset_schema: DatasetSchema,
     data: pd.DataFrame,
     seed: Any,
     configuration: LayeredConfigTree,
     progress_bar: bool = True,
 ) -> pd.DataFrame:
-    return DatasetData(dataset, data, seed).get_noised_data(
+    return Dataset(dataset_schema, data, seed).get_noised_data(
         configuration, noise_types=NOISE_TYPES, progress_bar=progress_bar
     )
 
 
-class DatasetData:
+class Dataset:
     def __init__(
         self,
-        dataset: Dataset,
+        dataset_schema: DatasetSchema,
         data: pd.DataFrame,
         seed: Any,
     ):
-        self.dataset = dataset
+        self.dataset_schema = dataset_schema
         self.data = data
-        self.randomness = get_randomness_stream(self.dataset.name, seed, self.data.index)
+        self.randomness = get_randomness_stream(
+            self.dataset_schema.name, seed, self.data.index
+        )
         self.missingness = self.is_missing(self.data)
 
     def __bool__(self):
@@ -71,8 +73,8 @@ class DatasetData:
         self._clean_input_data()
         self._reformat_dates_for_noising()
         self._noise_dataset(configuration, noise_types, progress_bar=progress_bar)
-        self.data = coerce_dtypes(self.data, self.dataset)
-        self.data = self.data[[c.name for c in self.dataset.columns]]
+        self.data = coerce_dtypes(self.data, self.dataset_schema)
+        self.data = self.data[[c.name for c in self.dataset_schema.columns]]
         return self.data
 
     def _noise_dataset(
@@ -92,7 +94,7 @@ class DatasetData:
             Object to configure noise levels
         """
 
-        noise_configuration = configuration[self.dataset.name]
+        noise_configuration = configuration[self.dataset_schema.name]
 
         if progress_bar:
             noise_type_iterator = tqdm(
@@ -133,7 +135,7 @@ class DatasetData:
                 )
 
     def _clean_input_data(self) -> None:
-        for col in self.dataset.columns:
+        for col in self.dataset_schema.columns:
             # Coerce empty strings to nans
             self.data[col.name] = self.data[col.name].replace("", np.nan)
 
@@ -165,14 +167,16 @@ class DatasetData:
                     year_string = data_column.dt.year.astype(str)
                     month_string = _zfill_fast(data_column.dt.month.astype(str), 2)
                     day_string = _zfill_fast(data_column.dt.day.astype(str), 2)
-                    if self.dataset.date_format == DATEFORMATS.YYYYMMDD:
+                    if self.dataset_schema.date_format == DATEFORMATS.YYYYMMDD:
                         result = year_string + month_string + day_string
-                    elif self.dataset.date_format == DATEFORMATS.MM_DD_YYYY:
+                    elif self.dataset_schema.date_format == DATEFORMATS.MM_DD_YYYY:
                         result = month_string + "/" + day_string + "/" + year_string
-                    elif self.dataset.date_format == DATEFORMATS.MMDDYYYY:
+                    elif self.dataset_schema.date_format == DATEFORMATS.MMDDYYYY:
                         result = month_string + day_string + year_string
                     else:
-                        raise ValueError(f"Invalid date format in {self.dataset.name}.")
+                        raise ValueError(
+                            f"Invalid date format in {self.dataset_schema.name}."
+                        )
 
                     data[column] = pd.Series(np.nan, dtype=str)
                     data.loc[~is_na, column] = result
