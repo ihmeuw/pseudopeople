@@ -1,6 +1,6 @@
-**1.0.0 - 01/01/24**
+**1.0.0 - 02/12/24**
 
- - Adds duplicatie with guardian row noise type
+ - Adds duplicate with guardian row noise type
  - Optimizes OCR and phonetic noise functions
  - Improves user warnings for noise levels
  - Fix bug in _corrupt_tokens function
