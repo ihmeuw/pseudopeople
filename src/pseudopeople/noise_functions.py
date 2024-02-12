@@ -70,15 +70,15 @@ def apply_do_not_respond(
 
 
 # def duplicate_rows(
-#     dataset: pd.DataFrame,
+#     dataset: "Dataset",
 #     configuration: ConfigTree,
-#     randomness_stream: RandomnessStream,
-# ) -> pd.DataFrame:
+#     to_noise_index: pd.Index,
+# ) -> None:
 #     """
 
 #     :param dataset:
 #     :param configuration:
-#     :param randomness_stream:
+#     :param to_noise_index:
 #     :return:
 #     """
 #     # todo actually duplicate rows
