@@ -16,7 +16,7 @@ def _noise_function_not_implemented(*args, **kwargs):
 
 
 if TYPE_CHECKING:
-    from pseudopeople.dataset import DatasetData
+    from pseudopeople.dataset import Dataset
 
 
 @dataclass
@@ -53,20 +53,20 @@ class RowNoiseType(NoiseType):
     """
 
     noise_function: Callable[
-        ["DatasetData", LayeredConfigTree, pd.Index], None
+        ["Dataset", LayeredConfigTree, pd.Index], None
     ] = _noise_function_not_implemented
     get_noise_level: Callable[
-        ["DatasetData", LayeredConfigTree], float
+        ["Dataset", LayeredConfigTree], float
     ] = lambda _, config: config[Keys.ROW_PROBABILITY]
 
     @property
     def probability_key(self) -> str:
         return Keys.ROW_PROBABILITY
 
-    def __call__(self, dataset_data: "DatasetData", configuration: LayeredConfigTree) -> None:
-        noise_level = self.get_noise_level(dataset_data, configuration)
-        to_noise_idx = get_index_to_noise(dataset_data, noise_level, self.name)
-        self.noise_function(dataset_data, configuration, to_noise_idx)
+    def __call__(self, dataset: "Dataset", configuration: LayeredConfigTree) -> None:
+        noise_level = self.get_noise_level(dataset, configuration)
+        to_noise_idx = get_index_to_noise(dataset, noise_level, self.name)
+        self.noise_function(dataset, configuration, to_noise_idx)
 
 
 @dataclass
@@ -89,7 +89,7 @@ class ColumnNoiseType(NoiseType):
     """
 
     noise_function: Callable[
-        ["DatasetData", LayeredConfigTree, pd.Index, str], None
+        ["Dataset", LayeredConfigTree, pd.Index, str], None
     ] = _noise_function_not_implemented
     probability: Optional[float] = 0.01
     noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0
@@ -102,23 +102,23 @@ class ColumnNoiseType(NoiseType):
 
     def __call__(
         self,
-        dataset_data: "DatasetData",
+        dataset: "Dataset",
         configuration: LayeredConfigTree,
         column_name: str,
     ) -> None:
-        if dataset_data.is_empty(column_name):
+        if dataset.is_empty(column_name):
             return
 
         noise_level = configuration[
             Keys.CELL_PROBABILITY
-        ] * self.noise_level_scaling_function(dataset_data.data, column_name)
+        ] * self.noise_level_scaling_function(dataset.data, column_name)
 
         # Certain columns have their noise level scaled so we must check to make
         # sure the noise level is within the allowed range between 0 and 1 for
         # probabilities
         noise_level = min(noise_level, 1.0)
         to_noise_idx = get_index_to_noise(
-            dataset_data,
+            dataset,
             noise_level,
             f"{self.name}_{column_name}",
             [column_name] + self.additional_column_getter(column_name),
@@ -131,15 +131,13 @@ class ColumnNoiseType(NoiseType):
             )
             return
 
-        input_dtype = dataset_data.data[column_name].dtype
+        input_dtype = dataset.data[column_name].dtype
         output_dtype = self.output_dtype_getter(input_dtype)
 
-        dataset_data.data[column_name] = ensure_dtype(
-            dataset_data.data[column_name], output_dtype
-        )
+        dataset.data[column_name] = ensure_dtype(dataset.data[column_name], output_dtype)
 
         self.noise_function(
-            dataset_data,
+            dataset,
             configuration,
             to_noise_idx,
             column_name,
