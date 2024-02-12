@@ -1,7 +1,7 @@
 import sys
 from dataclasses import dataclass
 from functools import cache
-from typing import Any, Callable, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -14,9 +14,15 @@ from pseudopeople.constants import metadata, paths
 from pseudopeople.constants.noise_type_metadata import INT_TO_STRING_COLUMNS
 from pseudopeople.dtypes import DtypeNames
 
+if TYPE_CHECKING:
+    from pseudopeople.dataset import DatasetData
+    from pseudopeople.schema_entities import Dataset
+
 
 def get_randomness_stream(dataset_name: str, seed: Any, index: pd.Index) -> RandomnessStream:
-    map_size = max(1_000_000, max(index) * 2)
+    # Avoid error from empty index
+    idx_max = max(index) if not index.empty else 1
+    map_size = max(1_000_000, idx_max * 2)
     return RandomnessStream(
         key=dataset_name,
         clock=lambda: pd.Timestamp("2020-04-01"),
@@ -64,40 +70,32 @@ def vectorized_choice(
 
 
 def get_index_to_noise(
-    data: pd.DataFrame,
+    dataset_data: "DatasetData",
     noise_level: Union[float, pd.Series],
-    randomness_stream: RandomnessStream,
     additional_key: Any,
-    is_column_noise: bool = False,
-    missingness: Optional[pd.DataFrame] = None,
+    required_columns: Optional[List[str]] = None,
 ) -> pd.Index:
     """
     Function that takes a series and returns a pd.Index that chosen by Vivarium Common Random Number to be noised.
     """
 
-    # Get rows to noise
-    if is_column_noise:
-        if missingness is None:
-            missingness = data.isna() | (data == "")
-        missing = missingness.any(axis=1)
-        eligible_for_noise_idx = data.index[~missing]
-    else:
-        # Any index can be noised for row noise
-        eligible_for_noise_idx = data.index
+    index_eligible_for_noise = dataset_data.get_non_empty_index(required_columns)
 
     # As long as noise is relatively rare, it will be faster to randomly select cells to
     # noise rather than generating a random draw for every item eligible
     if isinstance(noise_level, float) and noise_level < 0.2:
         rng = np.random.default_rng(
-            seed=get_hash(f"{randomness_stream.seed}_get_index_to_noise_{additional_key}")
+            seed=get_hash(
+                f"{dataset_data.randomness.seed}_get_index_to_noise_{additional_key}"
+            )
         )
-        number_to_noise = rng.binomial(len(eligible_for_noise_idx), p=noise_level)
+        number_to_noise = rng.binomial(len(index_eligible_for_noise), p=noise_level)
         to_noise_idx = pd.Index(
-            rng.choice(eligible_for_noise_idx, size=number_to_noise, replace=False)
+            rng.choice(index_eligible_for_noise, size=number_to_noise, replace=False)
         )
     else:
-        to_noise_idx = randomness_stream.filter_for_probability(
-            eligible_for_noise_idx,
+        to_noise_idx = dataset_data.randomness.filter_for_probability(
+            index_eligible_for_noise,
             probability=noise_level,
             additional_key=additional_key,
         )
@@ -248,6 +246,20 @@ def count_occurrences(string, sub):
             return count
 
 
+def coerce_dtypes(
+    data: pd.DataFrame,
+    dataset: "Dataset",
+) -> pd.DataFrame:
+    for col in dataset.columns:
+        if col.dtype_name != data[col.name].dtype.name:
+            if col.dtype_name == DtypeNames.OBJECT:
+                data[col.name] = to_string(data[col.name])
+            else:
+                data[col.name] = data[col.name].astype(col.dtype_name)
+
+    return data
+
+
 ####################
 # Engine utilities #
 ####################
@@ -275,7 +287,7 @@ def get_dask_dataframe():
 DASK_ENGINE = Engine("dask", get_dask_dataframe)
 
 
-def get_engine_from_string(engine: str):
+def get_engine_from_string(engine: str) -> Engine:
     if engine == "pandas":
         return PANDAS_ENGINE
     elif engine == "dask":

@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
 from layered_config_tree import LayeredConfigTree
 from loguru import logger
-from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
 from pseudopeople.utilities import ensure_dtype, get_index_to_noise
@@ -14,6 +13,10 @@ from pseudopeople.utilities import ensure_dtype, get_index_to_noise
 
 def _noise_function_not_implemented(*args, **kwargs):
     pass
+
+
+if TYPE_CHECKING:
+    from pseudopeople.dataset import DatasetData
 
 
 @dataclass
@@ -50,23 +53,20 @@ class RowNoiseType(NoiseType):
     """
 
     noise_function: Callable[
-        [pd.DataFrame, LayeredConfigTree, RandomnessStream], pd.DataFrame
+        ["DatasetData", LayeredConfigTree, pd.Index], None
     ] = _noise_function_not_implemented
+    get_noise_level: Callable[
+        ["DatasetData", LayeredConfigTree], float
+    ] = lambda _, config: config[Keys.ROW_PROBABILITY]
 
     @property
     def probability_key(self) -> str:
         return Keys.ROW_PROBABILITY
 
-    def __call__(
-        self,
-        dataset_name: str,
-        dataset_data: pd.DataFrame,
-        configuration: LayeredConfigTree,
-        randomness_stream: RandomnessStream,
-    ) -> pd.DataFrame:
-        return self.noise_function(
-            dataset_name, dataset_data, configuration, randomness_stream
-        )
+    def __call__(self, dataset_data: "DatasetData", configuration: LayeredConfigTree) -> None:
+        noise_level = self.get_noise_level(dataset_data, configuration)
+        to_noise_idx = get_index_to_noise(dataset_data, noise_level, self.name)
+        self.noise_function(dataset_data, configuration, to_noise_idx)
 
 
 @dataclass
@@ -89,7 +89,7 @@ class ColumnNoiseType(NoiseType):
     """
 
     noise_function: Callable[
-        [pd.DataFrame, LayeredConfigTree, RandomnessStream, str, str], None
+        ["DatasetData", LayeredConfigTree, pd.Index, str], None
     ] = _noise_function_not_implemented
     probability: Optional[float] = 0.01
     noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0
@@ -102,49 +102,45 @@ class ColumnNoiseType(NoiseType):
 
     def __call__(
         self,
-        data: pd.DataFrame,
+        dataset_data: "DatasetData",
         configuration: LayeredConfigTree,
-        randomness_stream: RandomnessStream,
-        dataset_name: str,
         column_name: str,
-        missingness: Optional[pd.DataFrame] = None,
-    ) -> pd.Index:
-        # Do not noise if the column is empty
-        if (data[column_name].notna() & (data[column_name] != "")).sum() == 0:
-            return pd.Index([])
+    ) -> None:
+        if dataset_data.is_empty(column_name):
+            return
+
         noise_level = configuration[
             Keys.CELL_PROBABILITY
-        ] * self.noise_level_scaling_function(data, column_name)
-        # Certain columns have their noise level scaled so we must check to make sure the noise level is within the
-        # allowed range between 0 and 1 for probabilities
+        ] * self.noise_level_scaling_function(dataset_data.data, column_name)
+
+        # Certain columns have their noise level scaled so we must check to make
+        # sure the noise level is within the allowed range between 0 and 1 for
+        # probabilities
         noise_level = min(noise_level, 1.0)
         to_noise_idx = get_index_to_noise(
-            data,
+            dataset_data,
             noise_level,
-            randomness_stream,
             f"{self.name}_{column_name}",
-            is_column_noise=True,
-            missingness=missingness,
+            [column_name] + self.additional_column_getter(column_name),
         )
         if to_noise_idx.empty:
             logger.debug(
-                f"No cells chosen to noise for noise function {self.name} on column {column_name}. "
-                "This is likely due to a combination of the configuration noise levels and the simulated population data."
+                f"No cells chosen to noise for noise function {self.name} on "
+                f"column {column_name}. This is likely due to a combination "
+                "of the configuration noise levels and the simulated population data."
             )
-            return to_noise_idx
+            return
 
-        input_dtype = data[column_name].dtype
+        input_dtype = dataset_data.data[column_name].dtype
         output_dtype = self.output_dtype_getter(input_dtype)
 
-        data[column_name] = ensure_dtype(data[column_name], output_dtype)
-
-        self.noise_function(
-            data,
-            configuration,
-            to_noise_idx,
-            randomness_stream,
-            dataset_name,
-            column_name,
+        dataset_data.data[column_name] = ensure_dtype(
+            dataset_data.data[column_name], output_dtype
         )
 
-        return to_noise_idx
+        self.noise_function(
+            dataset_data,
+            configuration,
+            to_noise_idx,
+            column_name,
+        )
