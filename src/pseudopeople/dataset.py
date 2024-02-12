@@ -12,21 +12,23 @@ from pseudopeople.constants.metadata import DATEFORMATS
 from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COLS
 from pseudopeople.entity_types import ColumnNoiseType, NoiseType, RowNoiseType
 from pseudopeople.exceptions import DataSourceError
-from pseudopeople.schema_entities import COLUMNS, Dataset
+from pseudopeople.schema_entities import COLUMNS, DatasetSchema
 from pseudopeople.utilities import coerce_dtypes, get_randomness_stream
 
 
-class DatasetData:
+class Dataset:
     def __init__(
         self,
-        dataset: Dataset,
+        dataset_schema: DatasetSchema,
         input_data: Union[Path, pd.DataFrame],
         user_filters: List[Tuple],
         seed: Any,
     ):
-        self.dataset = dataset
+        self.dataset_schema = dataset_schema
         self.data = self._load_data(input_data, user_filters)
-        self.randomness = get_randomness_stream(self.dataset.name, seed, self.data.index)
+        self.randomness = get_randomness_stream(
+            self.dataset_schema.name, seed, self.data.index
+        )
         self.missingness = self.is_missing(self.data)
 
     def __bool__(self):
@@ -58,7 +60,7 @@ class DatasetData:
     def _format_data(self) -> None:
         """Formats the data to match the expected format for noising."""
         self._reformat_dates_for_noising()
-        self.data = coerce_dtypes(self.data, self.dataset)
+        self.data = coerce_dtypes(self.data, self.dataset_schema)
 
     def _noise_dataset(self, configuration: ConfigTree, noise_types: List[NoiseType]) -> None:
         """
@@ -72,7 +74,7 @@ class DatasetData:
             Object to configure noise levels
         """
 
-        noise_configuration = configuration[self.dataset.name]
+        noise_configuration = configuration[self.dataset_schema.name]
 
         for noise_type in tqdm(noise_types, desc="Applying noise", unit="type", leave=False):
             if isinstance(noise_type, RowNoiseType):
@@ -123,14 +125,16 @@ class DatasetData:
                     year_string = data_column.dt.year.astype(str)
                     month_string = _zfill_fast(data_column.dt.month.astype(str), 2)
                     day_string = _zfill_fast(data_column.dt.day.astype(str), 2)
-                    if self.dataset.date_format == DATEFORMATS.YYYYMMDD:
+                    if self.dataset_schema.date_format == DATEFORMATS.YYYYMMDD:
                         result = year_string + month_string + day_string
-                    elif self.dataset.date_format == DATEFORMATS.MM_DD_YYYY:
+                    elif self.dataset_schema.date_format == DATEFORMATS.MM_DD_YYYY:
                         result = month_string + "/" + day_string + "/" + year_string
-                    elif self.dataset.date_format == DATEFORMATS.MMDDYYYY:
+                    elif self.dataset_schema.date_format == DATEFORMATS.MMDDYYYY:
                         result = month_string + day_string + year_string
                     else:
-                        raise ValueError(f"Invalid date format in {self.dataset.name}.")
+                        raise ValueError(
+                            f"Invalid date format in {self.dataset_schema.name}."
+                        )
 
                     data[column] = pd.Series(np.nan, dtype=str)
                     data.loc[~is_na, column] = result
@@ -139,7 +143,7 @@ class DatasetData:
 
     def _drop_extra_columns(self) -> None:
         """Drops columns that are not in the dataset schema."""
-        self.data = self.data[[c.name for c in self.dataset.columns]]
+        self.data = self.data[[c.name for c in self.dataset_schema.columns]]
 
     @staticmethod
     def is_missing(data: pd.DataFrame) -> pd.DataFrame:

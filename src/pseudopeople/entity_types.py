@@ -10,13 +10,13 @@ from pseudopeople.configuration import Keys
 from pseudopeople.utilities import get_index_to_noise
 
 if TYPE_CHECKING:
-    from pseudopeople.dataset import DatasetData
+    from pseudopeople.dataset import Dataset
 
 
 @dataclass
 class NoiseType(ABC):
     name: str
-    noise_function: Callable[["DatasetData", ConfigTree, pd.Index], None]
+    noise_function: Callable[["Dataset", ConfigTree, pd.Index], None]
     probability: Optional[float] = 0.0
     additional_parameters: Dict[str, Any] = None
 
@@ -39,7 +39,7 @@ class RowNoiseType(NoiseType):
     returns the modified DataFrame.
     """
 
-    get_noise_level: Callable[["DatasetData", ConfigTree], float] = lambda _, config: config[
+    get_noise_level: Callable[["Dataset", ConfigTree], float] = lambda _, config: config[
         Keys.ROW_PROBABILITY
     ]
 
@@ -47,10 +47,10 @@ class RowNoiseType(NoiseType):
     def probability_key(self) -> str:
         return Keys.ROW_PROBABILITY
 
-    def __call__(self, dataset_data: "DatasetData", configuration: ConfigTree) -> None:
-        noise_level = self.get_noise_level(dataset_data, configuration)
-        to_noise_idx = get_index_to_noise(dataset_data, noise_level, self.name)
-        self.noise_function(dataset_data, configuration, to_noise_idx)
+    def __call__(self, dataset: "Dataset", configuration: ConfigTree) -> None:
+        noise_level = self.get_noise_level(dataset, configuration)
+        to_noise_idx = get_index_to_noise(dataset, noise_level, self.name)
+        self.noise_function(dataset, configuration, to_noise_idx)
 
 
 @dataclass
@@ -72,7 +72,7 @@ class ColumnNoiseType(NoiseType):
     and an Index of which items in the Series were selected for noise.
     """
 
-    noise_function: Callable[["DatasetData", ConfigTree, pd.Index, str], None]
+    noise_function: Callable[["Dataset", ConfigTree, pd.Index, str], None]
     probability: Optional[float] = 0.01
     noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0
     additional_column_getter: Callable[[str], List[str]] = lambda column_name: []
@@ -83,23 +83,23 @@ class ColumnNoiseType(NoiseType):
 
     def __call__(
         self,
-        dataset_data: "DatasetData",
+        dataset: "Dataset",
         configuration: ConfigTree,
         column_name: str,
     ) -> None:
-        if dataset_data.is_empty(column_name):
+        if dataset.is_empty(column_name):
             return
 
         noise_level = configuration[
             Keys.CELL_PROBABILITY
-        ] * self.noise_level_scaling_function(dataset_data.data, column_name)
+        ] * self.noise_level_scaling_function(dataset.data, column_name)
 
         # Certain columns have their noise level scaled so we must check to make
         # sure the noise level is within the allowed range between 0 and 1 for
         # probabilities
         noise_level = min(noise_level, 1.0)
         to_noise_idx = get_index_to_noise(
-            dataset_data,
+            dataset,
             noise_level,
             f"{self.name}_{column_name}",
             [column_name] + self.additional_column_getter(column_name),
@@ -112,17 +112,17 @@ class ColumnNoiseType(NoiseType):
             )
             return
 
-        original_dtype_name = dataset_data.data[column_name].dtype.name
+        original_dtype_name = dataset.data[column_name].dtype.name
         self.noise_function(
-            dataset_data,
+            dataset,
             configuration,
             to_noise_idx,
             column_name,
         )
 
-        # TODO: Mic-4874: investigate this and also move the logic inside DatasetData
+        # TODO: Mic-4874: investigate this and also move the logic inside Dataset
         # Coerce noised column dtype back to original column's if it has changed
-        if dataset_data.data[column_name].dtype.name != original_dtype_name:
-            dataset_data = dataset_data.data[column_name].astype(
-                dataset_data.data[column_name][column_name].dtype
+        if dataset.data[column_name].dtype.name != original_dtype_name:
+            dataset = dataset.data[column_name].astype(
+                dataset.data[column_name][column_name].dtype
             )

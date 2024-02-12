@@ -9,7 +9,7 @@ from pseudopeople.constants import data_values
 from pseudopeople.constants.metadata import DatasetNames
 
 if TYPE_CHECKING:
-    from pseudopeople.dataset import DatasetData
+    from pseudopeople.dataset import Dataset
 
 
 def _get_census_omission_noise_levels(
@@ -19,7 +19,7 @@ def _get_census_omission_noise_levels(
     """
     Helper function for do_not_respond noising based on demography of age, race/ethnicity, and sex.
 
-    :param population: a dataset containing records of simulants
+    :param population: a dataframe containing records of simulants
     :param base_probability: base probability for do_not_respond
     :return: a pd.Series of probabilities
     """
@@ -50,10 +50,10 @@ def _get_census_omission_noise_levels(
 
 
 def get_apply_do_not_respond_noise_level(
-    dataset_data: "DatasetData", configuration: ConfigTree
+    dataset: "Dataset", configuration: ConfigTree
 ) -> pd.Series:
-    dataset_name = dataset_data.dataset.name
-    noise_levels = _get_census_omission_noise_levels(dataset_data.data)
+    dataset_name = dataset.dataset_schema.name
+    noise_levels = _get_census_omission_noise_levels(dataset.data)
 
     # Apply an overall non-response rate of 27.6% for Current Population Survey (CPS)
     if dataset_name == DatasetNames.CPS:
