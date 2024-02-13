@@ -138,5 +138,7 @@ notebooks/
 # Version
 src/pseudopeople/_version.py
 
-# Format 
+# Make commands 
 format
+integration
+unit
