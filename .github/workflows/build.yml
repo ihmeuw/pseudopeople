@@ -45,6 +45,12 @@ jobs:
             pytest --limit=1 ./tests
           fi
       - name: Test seed
+        run: |
+          if "${{ github.event_name == 'schedule' }}"; then
+            pytest --runslow --seed./tests
+          else
+            pytest --limit=1 --seed ./tests
+          fi
       - name: Doc build
         run: |
           make html -C docs/ SPHINXOPTS="-W --keep-going -n"
