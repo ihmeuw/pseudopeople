@@ -11,7 +11,7 @@ SAFE_NAME = $(shell python -c "from pkg_resources import safe_name; print(safe_n
 about_file   = $(shell find src -name __about__.py)
 version_line = $(shell grep "__version__ = " ${about_file})
 PACKAGE_VERSION = $(shell echo ${version_line} | cut -d "=" -f 2 | xargs)
-# PACKAGE_VERSION = $(shell echo $(shell pip list | grep -e "$(SAFE_NAME)") | cut -d " " -f2)
+PACKAGE_VERSION = $(shell echo $(shell pip list | grep -e "$(SAFE_NAME)") | cut -d " " -f2)
 
 
 # If CONDA_ENV_PATH is set (from a Jenkins build), use the -p flag when making Conda env in
@@ -53,7 +53,7 @@ format: setup.py pyproject.toml $(MAKE_SOURCES) # Run the code formatter and imp
 	-isort $(LOCATIONS)
 	@echo "Ignore, Created by Makefile, `date`" > $@
 
-integration: $(MAKE_SOURCES) # Run full test suite - both integration and unit tests
+tests: $(MAKE_SOURCES) # Run full test suite - both integration and unit tests
 	pytest --runslow tests/
 	@echo "Ignore, Created by Makefile, `date`" > $@
 
