@@ -32,7 +32,6 @@ from tests.conftest import FuzzyChecker
 from tests.integration.conftest import (
     CELL_PROBABILITY,
     IDX_COLS,
-    SEED,
     STATE,
     _get_common_datasets,
     _initialize_dataset_with_sample,
@@ -92,11 +91,12 @@ def test_generate_dataset_from_multiple_shards(
         pytest.skip(reason=dataset_name)
     mocker.patch("pseudopeople.interface.validate_source_compatibility")
     generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
-    original = _initialize_dataset_with_sample(dataset_name)
+    seed = request.getfixturevalue("seed")
+    original = _initialize_dataset_with_sample(dataset_name, seed)
     noised_sample = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
-
+    
     noised_dataset = generation_function(
-        seed=SEED,
+        seed=seed,
         year=None,
         source=split_sample_data_dir,
         config=config,
@@ -155,12 +155,13 @@ def test_seed_behavior(dataset_name: str, config, request):
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
-    original = _initialize_dataset_with_sample(dataset_name)
+    seed = request.getfixturevalue("seed")
+    original = _initialize_dataset_with_sample(dataset_name, seed)
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
     # Generate new (non-fixture) noised datasets with the same seed and a different
     # seed as the fixture
-    noised_data_same_seed = generation_function(seed=SEED, year=None, config=config)
-    noised_data_different_seed = generation_function(seed=SEED + 1, year=None, config=config)
+    noised_data_same_seed = generation_function(seed=seed, year=None, config=config)
+    noised_data_different_seed = generation_function(seed=seed + 1, year=None, config=config)
     assert not original.data.equals(noised_data)
     assert noised_data.equals(noised_data_same_seed)
     assert not noised_data.equals(noised_data_different_seed)
@@ -210,7 +211,8 @@ def test_column_noising(dataset_name: str, config, request, fuzzy_checker: Fuzzy
     """Tests that columns are noised as expected"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
-    original = _initialize_dataset_with_sample(dataset_name)
+    seed = request.getfixturevalue("seed")
+    original = _initialize_dataset_with_sample(dataset_name, seed)
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
     check_noised, check_original, shared_idx = _get_common_datasets(original, noised_data)
 
@@ -274,7 +276,8 @@ def test_row_noising_omit_row_or_do_not_respond(dataset_name: str, config, reque
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     idx_cols = IDX_COLS.get(dataset_name)
-    original = _initialize_dataset_with_sample(dataset_name)
+    seed = request.getfixturevalue("seed")
+    original = _initialize_dataset_with_sample(dataset_name, seed)
     original_data = original.data.set_index(idx_cols)
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}").set_index(
         idx_cols
@@ -331,12 +334,12 @@ def test_row_noising_duplication(dataset_name: str, config, request):
         DATASET_SCHEMAS.tax_1040.name,
     ],
 )
-def test_generate_dataset_with_year(dataset_name: str):
+def test_generate_dataset_with_year(dataset_name: str, seed):
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     year = 2030  # not default 2020
     generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
-    original = _initialize_dataset_with_sample(dataset_name)
+    original = _initialize_dataset_with_sample(dataset_name, seed)
     # Generate a new (non-fixture) noised dataset for a single year
     noised_data = generation_function(year=year)
     assert not original.data.equals(noised_data)

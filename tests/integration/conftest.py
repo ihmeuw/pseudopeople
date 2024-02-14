@@ -1,4 +1,5 @@
 from pathlib import Path
+import sys
 
 import pandas as pd
 import pytest
@@ -22,7 +23,6 @@ from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
 
 ROW_PROBABILITY = 0.05
 CELL_PROBABILITY = 0.25
-SEED = 0
 STATE = "RI"
 
 # TODO: Replace this with the record ID column when implemented (MIC-4039)
@@ -163,44 +163,44 @@ def config():
 
 # Noised sample datasets
 @pytest.fixture(scope="module")
-def noised_sample_data_decennial_census(config):
-    return generate_decennial_census(seed=SEED, year=None, config=config)
+def noised_sample_data_decennial_census(config, seed):
+    return generate_decennial_census(seed=seed, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_american_community_survey(config):
-    return generate_american_community_survey(seed=SEED, year=None, config=config)
+def noised_sample_data_american_community_survey(config, seed):
+    return generate_american_community_survey(seed=seed, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_current_population_survey(config):
-    return generate_current_population_survey(seed=SEED, year=None, config=config)
+def noised_sample_data_current_population_survey(config, seed):
+    return generate_current_population_survey(seed=seed, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_women_infants_and_children(config):
-    return generate_women_infants_and_children(seed=SEED, year=None, config=config)
+def noised_sample_data_women_infants_and_children(config, seed):
+    return generate_women_infants_and_children(seed=seed, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_social_security(config):
-    return generate_social_security(seed=SEED, year=None, config=config)
+def noised_sample_data_social_security(config, seed):
+    return generate_social_security(seed=seed, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_taxes_w2_and_1099(config):
-    return generate_taxes_w2_and_1099(seed=SEED, year=None, config=config)
+def noised_sample_data_taxes_w2_and_1099(config, seed):
+    return generate_taxes_w2_and_1099(seed=seed, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_taxes_1040(config):
-    return generate_taxes_1040(seed=SEED, year=None, config=config)
+def noised_sample_data_taxes_1040(config, seed):
+    return generate_taxes_1040(seed=seed, year=None, config=config)
 
 
 # Raw sample datasets with half from a specific state, for state filtering
 @pytest.fixture(scope="module")
-def sample_data_decennial_census_state_edit():
-    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.census.name)
+def sample_data_decennial_census_state_edit(seed):
+    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.census.name, seed)
     # Set half of the entries to the state we'll filter on
     data.loc[
         data.reset_index().index % 2 == 0, DATASET_SCHEMAS.census.state_column_name
@@ -209,32 +209,32 @@ def sample_data_decennial_census_state_edit():
 
 
 @pytest.fixture(scope="module")
-def sample_data_american_community_survey_state_edit():
-    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.acs.name)
+def sample_data_american_community_survey_state_edit(seed):
+    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.acs.name, seed)
     # Set half of the entries to the state we'll filter on
     data.loc[data.reset_index().index % 2 == 0, DATASET_SCHEMAS.acs.state_column_name] = STATE
     return data
 
 
 @pytest.fixture(scope="module")
-def sample_data_current_population_survey_state_edit():
-    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.cps.name)
+def sample_data_current_population_survey_state_edit(seed):
+    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.cps.name, seed)
     # Set half of the entries to the state we'll filter on
     data.loc[data.reset_index().index % 2 == 0, DATASET_SCHEMAS.cps.state_column_name] = STATE
     return data
 
 
 @pytest.fixture(scope="module")
-def sample_data_women_infants_and_children_state_edit():
-    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.wic.name)
+def sample_data_women_infants_and_children_state_edit(seed):
+    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.wic.name, seed)
     # Set half of the entries to the state we'll filter on
     data.loc[data.reset_index().index % 2 == 0, DATASET_SCHEMAS.wic.state_column_name] = STATE
     return data
 
 
 @pytest.fixture(scope="module")
-def sample_data_taxes_w2_and_1099_state_edit():
-    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.tax_w2_1099.name)
+def sample_data_taxes_w2_and_1099_state_edit(seed):
+    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.tax_w2_1099.name, seed)
     # Set half of the entries to the state we'll filter on
     data.loc[
         data.reset_index().index % 2 == 0, DATASET_SCHEMAS.tax_w2_1099.state_column_name
@@ -247,10 +247,10 @@ def sample_data_taxes_w2_and_1099_state_edit():
 ####################
 
 
-def _initialize_dataset_with_sample(dataset_name) -> Dataset:
+def _initialize_dataset_with_sample(dataset_name, seed) -> Dataset:
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     data_path = paths.SAMPLE_DATA_ROOT / dataset_name / f"{dataset_name}.parquet"
-    dataset = Dataset(dataset_schema, data_path, [], SEED)
+    dataset = Dataset(dataset_schema, data_path, [], seed)
 
     return dataset
 

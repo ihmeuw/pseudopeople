@@ -34,11 +34,11 @@ def dummy_data():
     )
 
 
-def test_omit_row(dummy_data, fuzzy_checker: FuzzyChecker):
+def test_omit_row(dummy_data, fuzzy_checker: FuzzyChecker, seed):
     config = get_configuration()[DATASET_SCHEMAS.tax_w2_1099.name][Keys.ROW_NOISE][
         NOISE_TYPES.omit_row.name
     ]
-    dataset = Dataset(DATASET_SCHEMAS.tax_w2_1099, dummy_data, [], 0)
+    dataset = Dataset(DATASET_SCHEMAS.tax_w2_1099, dummy_data, [], seed)
     NOISE_TYPES.omit_row(dataset, config)
     noised_data1 = dataset.data
 
@@ -53,7 +53,7 @@ def test_omit_row(dummy_data, fuzzy_checker: FuzzyChecker):
     assert (noised_data1.dtypes == dummy_data.dtypes).all()
 
 
-def test_do_not_respond(mocker, dummy_data, fuzzy_checker: FuzzyChecker):
+def test_do_not_respond(mocker, dummy_data, fuzzy_checker: FuzzyChecker, seed):
     config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
         NOISE_TYPES.do_not_respond.name
     ]
@@ -66,8 +66,8 @@ def test_do_not_respond(mocker, dummy_data, fuzzy_checker: FuzzyChecker):
     my_dummy_data["age"] = 27
     my_dummy_data["sex"] = "Female"
     my_dummy_data["race_ethnicity"] = "Vulcan"
-    census = Dataset(DATASET_SCHEMAS.census, my_dummy_data, [], 0)
-    acs = Dataset(DATASET_SCHEMAS.acs, my_dummy_data, [], 0)
+    census = Dataset(DATASET_SCHEMAS.census, my_dummy_data, [], seed)
+    acs = Dataset(DATASET_SCHEMAS.acs, my_dummy_data, [], seed)
     NOISE_TYPES.do_not_respond(census, config)
     NOISE_TYPES.do_not_respond(acs, config)
     noised_census = census.data
@@ -118,17 +118,17 @@ def test__get_census_omission_noise_levels(age, race_ethnicity, sex, expected_le
     assert (np.isclose(result, expected_level, rtol=0.0001)).all()
 
 
-def test_do_not_respond_missing_columns(dummy_data):
+def test_do_not_respond_missing_columns(dummy_data, seed):
     """Test do_not_respond raises error when missing required columns."""
     config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
         NOISE_TYPES.do_not_respond.name
     ]
-    census = Dataset(DATASET_SCHEMAS.census, dummy_data, [], 0)
+    census = Dataset(DATASET_SCHEMAS.census, dummy_data, [], seed)
     with pytest.raises(KeyError, match="race_ethnicity"):
         NOISE_TYPES.do_not_respond(census, config)
 
 
-def test_guardian_duplication():
+def test_guardian_duplication(seed):
     # We are going to make a small dataframe and update the configuration to noise 100% of the
     # available rows. We will then check that the correct rows were copied with the correct
     # information.
@@ -223,7 +223,7 @@ def test_guardian_duplication():
             NOISE_TYPES.duplicate_with_guardian.name
         ]
     }
-    census = Dataset(DATASET_SCHEMAS.census, dummy_data, [], 0)
+    census = Dataset(DATASET_SCHEMAS.census, dummy_data, [], seed)
     NOISE_TYPES.duplicate_with_guardian(census, overrides)
     noised = census.data
     # We know the following since every dependent is duplicated:

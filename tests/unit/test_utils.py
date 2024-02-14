@@ -169,13 +169,13 @@ def test__corrupt_tokens_multiple_options(fuzzy_checker: FuzzyChecker):
         )
 
 
-def test_get_index_to_noise(fuzzy_checker: FuzzyChecker):
+def test_get_index_to_noise(fuzzy_checker: FuzzyChecker, seed):
     """
     Tests that the index length we will noise validates to expected noise level
     """
 
     df = pd.DataFrame({"a": list(range(1000))}, index=list(range(1000)))
-    dataset = Dataset(DATASET_SCHEMAS.tax_w2_1099, df, [], 0)
+    dataset = Dataset(DATASET_SCHEMAS.tax_w2_1099, df, [], seed)
     noise_level = 0.62
     chosen_idx = get_index_to_noise(
         dataset=dataset,

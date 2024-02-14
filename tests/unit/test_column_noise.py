@@ -262,32 +262,32 @@ def string_series():
 
 
 @pytest.fixture()
-def dataset(dummy_dataset):
+def dataset(dummy_dataset, seed):
     # We can't have this be a session scope because then we will be operating on the same object
     # across unit tests. We need to be able to modify the original data in each test.
     df = dummy_dataset.copy()
     census = DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name)
-    dataset = Dataset(census, df, [], 0)
+    dataset = Dataset(census, df, [], seed)
 
     return dataset
 
 
 @pytest.fixture()
-def dataset_same_seed(dummy_dataset):
+def dataset_same_seed(dummy_dataset, seed):
     df = dummy_dataset.copy()
     census = DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name)
-    dataset = Dataset(census, df, [], 0)
+    dataset = Dataset(census, df, [], seed)
 
     return dataset
 
 
 @pytest.fixture()
-def dataset_different_seed(dummy_dataset):
+def dataset_different_seed(dummy_dataset, seed):
     # We can't have this be a session scope because then we will be operating on the same object
     # across unit tests. We need to be able to modify the original data in each test.
     df = dummy_dataset.copy()
     census = DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name)
-    dataset = Dataset(census, df, [], 1)
+    dataset = Dataset(census, df, [], seed + 1)
 
     return dataset
 
@@ -515,7 +515,7 @@ def test_miswrite_ages_default_config(dataset, fuzzy_checker: FuzzyChecker):
     assert noised_data[not_missing_idx].astype(int).min() >= 0
 
 
-def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker):
+def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker, seed):
     """Test that a list of perturbations passed in results in uniform probabilities"""
     num_rows = 100_000
     original_age = 25
@@ -539,7 +539,7 @@ def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker):
     data = pd.Series([str(original_age)] * num_rows, name="age")
     df = pd.DataFrame({"age": data})
     dataset = Dataset(
-        DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, [], 0
+        DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, [], seed
     )
     NOISE_TYPES.misreport_age(dataset, config, "age")
     noised_data = dataset.data["age"]
@@ -555,7 +555,7 @@ def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker):
         )
 
 
-def test_miswrite_ages_provided_probabilities(dataset, fuzzy_checker: FuzzyChecker):
+def test_miswrite_ages_provided_probabilities(dataset, fuzzy_checker: FuzzyChecker, seed):
     """Test that provided age perturation probabilites are handled"""
     num_rows = 100_000
     original_age = 25
@@ -579,7 +579,7 @@ def test_miswrite_ages_provided_probabilities(dataset, fuzzy_checker: FuzzyCheck
     data = pd.Series([str(original_age)] * num_rows, name="age")
     df = pd.DataFrame({"age": data})
     dataset = Dataset(
-        DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, [], 0
+        DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, [], seed
     )
     NOISE_TYPES.misreport_age(dataset, config, "age")
     noised_data = dataset.data["age"]
@@ -594,7 +594,7 @@ def test_miswrite_ages_provided_probabilities(dataset, fuzzy_checker: FuzzyCheck
         )
 
 
-def test_miswrite_ages_handles_perturbation_to_same_age():
+def test_miswrite_ages_handles_perturbation_to_same_age(seed):
     """Tests an edge case. It's possible that after an age is perturbed it ends
     up being the original age. In that case, subtract 1. eg, an age of 1 that is
     perturbed -2 becomes -1. But we cannot have negative so we flip the sign to +1.
@@ -622,7 +622,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
     data = pd.Series([str(age)] * num_rows, name="age")
     df = pd.DataFrame({"age": data})
     dataset = Dataset(
-        DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, [], 0
+        DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, [], seed
     )
     NOISE_TYPES.misreport_age(dataset, config, "age")
     noised_data = dataset.data["age"]
@@ -630,7 +630,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
     assert (noised_data[noised_mask] == 0).all()
 
 
-def test_miswrite_ages_flips_negative_to_positive():
+def test_miswrite_ages_flips_negative_to_positive(seed):
     """Test that any ages perturbed to <0 are reflected to positive values"""
     num_rows = 100
     age = 3
@@ -654,7 +654,7 @@ def test_miswrite_ages_flips_negative_to_positive():
     data = pd.Series([str(age)] * num_rows, name="age")
     df = pd.DataFrame({"age": data})
     dataset = Dataset(
-        DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, [], 0
+        DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, [], seed
     )
     NOISE_TYPES.misreport_age(dataset, config, "age")
     noised_data = dataset.data["age"]
@@ -1032,7 +1032,7 @@ def test_generate_phonetic_errors(dataset, column, fuzzy_checker: FuzzyChecker):
     "pair",
     PHONETIC_STRESS_TEST_PATHWAYS.items(),
 )
-def test_phonetic_error_values(pair, fuzzy_checker: FuzzyChecker):
+def test_phonetic_error_values(pair, fuzzy_checker: FuzzyChecker, seed):
     string, pathways = pair
 
     data = pd.Series([string] * 100_000, name="column")
@@ -1044,7 +1044,7 @@ def test_phonetic_error_values(pair, fuzzy_checker: FuzzyChecker):
     }
     df = pd.DataFrame({"column": data})
     dataset = Dataset(
-        DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, [], 0
+        DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, [], seed
     )
     NOISE_TYPES.make_phonetic_errors(dataset, config, "column")
     noised_data = dataset.data["column"]
@@ -1145,7 +1145,7 @@ def test_generate_ocr_errors(dataset, column, fuzzy_checker: FuzzyChecker):
     "pair",
     OCR_STRESS_TEST_PATHWAYS.items(),
 )
-def test_ocr_replacement_values(pair, fuzzy_checker: FuzzyChecker):
+def test_ocr_replacement_values(pair, fuzzy_checker: FuzzyChecker, seed):
     string, pathways = pair
 
     data = pd.Series([string] * 100_000, name="column")
@@ -1157,7 +1157,7 @@ def test_ocr_replacement_values(pair, fuzzy_checker: FuzzyChecker):
     }
     df = pd.DataFrame({"column": data})
     dataset = Dataset(
-        DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, [], 0
+        DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, [], seed
     )
     NOISE_TYPES.make_ocr_errors(dataset, config, "column")
     noised_data = dataset.data["column"]

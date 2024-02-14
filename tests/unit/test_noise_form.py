@@ -108,7 +108,7 @@ def get_dummy_config_noise_numbers(dataset_schema):
     "dataset_schema",
     list(DATASET_SCHEMAS),
 )
-def test_noise_order(mocker, dummy_data, dataset_schema):
+def test_noise_order(mocker, dummy_data, dataset_schema, seed):
     """From docs: "Noising should be applied in the following order: omit_row,
     do_not_respond, duplicate_row, leave_blank, choose_wrong_option,
     copy_from_household_member, swap_month_and_day, write_wrong_zipcode_digits,
@@ -160,7 +160,7 @@ def test_noise_order(mocker, dummy_data, dataset_schema):
     # Get config for dataset
     dummy_config = get_dummy_config_noise_numbers(dataset_schema)
     # Create a Dataset object from the dummy data
-    dataset = Dataset(dataset_schema, dummy_data, [], 0)
+    dataset = Dataset(dataset_schema, dummy_data, [], seed)
     dataset._noise_dataset(dummy_config, NOISE_TYPES)
 
     # There are multiple calls that are being mocked. This is not precisely identifying the call
@@ -208,7 +208,7 @@ def test_noise_order(mocker, dummy_data, dataset_schema):
 
 
 # TODO: beef this function up
-def test_columns_noised(dummy_data):
+def test_columns_noised(dummy_data, seed):
     """Test that the noise functions are only applied to the numbers column
     (as specified in the dummy config)
     """
@@ -223,7 +223,7 @@ def test_columns_noised(dummy_data):
             },
         },
     )
-    dataset = Dataset(DATASET_SCHEMAS.census, dummy_data, [], 0)
+    dataset = Dataset(DATASET_SCHEMAS.census, dummy_data, [], seed)
     data = dataset.data.copy()
     dataset._noise_dataset(config, [NOISE_TYPES.leave_blank])
     noised_data = dataset.data
@@ -254,7 +254,7 @@ def test_correct_datasets_are_used(func, dataset_schema, mocker):
     assert mock.call_args[0][0] == dataset_schema
 
 
-def test_two_noise_functions_are_independent(mocker, fuzzy_checker: FuzzyChecker):
+def test_two_noise_functions_are_independent(fuzzy_checker: FuzzyChecker, seed):
     # Make simple config tree to test 2 noise functions work together
     config_tree = ConfigTree(
         {
@@ -306,7 +306,7 @@ def test_two_noise_functions_are_independent(mocker, fuzzy_checker: FuzzyChecker
             "fake_column_two": ["shoe", "pants", "shirt", "hat", "sunglasses"] * 20_000,
         }
     )
-    dataset = Dataset(DATASET_SCHEMAS.census, dummy_dataset, [], 0)
+    dataset = Dataset(DATASET_SCHEMAS.census, dummy_dataset, [], seed)
     dataset._noise_dataset(
         configuration=config_tree,
         noise_types=mock_noise_types,

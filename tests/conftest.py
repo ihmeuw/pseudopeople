@@ -21,6 +21,12 @@ def pytest_addoption(parser):
         type=int,
         help="Maximum number of parameterized tests to run",
     )
+    parser.addoption(
+        "--is_cron",
+        action="store_true",
+        default=False,
+        help="Run tests with a different seed than the default 0"
+    )
 
 
 def pytest_configure(config):
@@ -51,6 +57,13 @@ def pytest_collection_modifyitems(config, items):
             for t in to_skip:
                 t.add_marker("skip")
 
+
+@pytest.fixture(scope="session")
+def seed(request):
+    # If is_cron is set, use a random seed to avoid using the same seed each time we run 
+    # overnight tests. This allows us to catch bugs that may only appear with certain seeds 
+    # because we got lucky with other seeds.
+    return 0 if not request.config.getoption("--is_cron") else np.random.randint(0, 1000)
 
 @pytest.fixture
 def caplog(caplog: LogCaptureFixture):
