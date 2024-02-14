@@ -140,5 +140,5 @@ src/pseudopeople/_version.py
 
 # Make commands 
 format
-integration
+test
 unit

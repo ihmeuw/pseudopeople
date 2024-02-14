@@ -27,7 +27,7 @@ MAKE_SOURCES := $(shell find . -type d -name "*" ! -path "./.git*" ! -path "./.v
 
 
 # Phony targets don't produce artifacts.
-.PHONY: .list-targets format integration unit help debug
+.PHONY: .list-targets format test unit help debug
 
 # List of Make targets is generated dynamically. To add description of target, use a # on the target definition.
 list help: debug .list-targets
@@ -53,7 +53,7 @@ format: setup.py pyproject.toml $(MAKE_SOURCES) # Run the code formatter and imp
 	-isort $(LOCATIONS)
 	@echo "Ignore, Created by Makefile, `date`" > $@
 
-tests: $(MAKE_SOURCES) # Run full test suite - both integration and unit tests
+test: $(MAKE_SOURCES) # Run full test suite - both integration and unit tests
 	pytest --runslow tests/
 	@echo "Ignore, Created by Makefile, `date`" > $@
 
