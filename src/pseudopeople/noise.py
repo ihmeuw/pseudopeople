@@ -62,6 +62,7 @@ def noise_dataset(
                 Keys.ROW_NOISE in noise_configuration
                 and noise_type.name in noise_configuration.row_noise
             ):
+                original_index = dataset_data.index
                 # Apply row noise
                 dataset_data = noise_type(
                     dataset.name,
@@ -69,7 +70,15 @@ def noise_dataset(
                     noise_configuration[Keys.ROW_NOISE][noise_type.name],
                     randomness,
                 )
-                missingness = missingness.loc[dataset_data.index].copy()
+                missingness = missingness.loc[
+                    dataset_data.index.intersection(original_index)
+                ].copy()
+                # Check for duplicated rows
+                new_indices = dataset_data.index.difference(original_index)
+                new_missingness = dataset_data.loc[new_indices].isna() | (
+                    dataset_data.loc[new_indices] == ""
+                )
+                missingness = pd.concat([missingness, new_missingness])
 
         elif isinstance(noise_type, ColumnNoiseType):
             if Keys.COLUMN_NOISE in noise_configuration:

@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
+import numpy as np
 import pandas as pd
 from loguru import logger
 from packaging.version import parse
@@ -9,9 +10,9 @@ from tqdm import tqdm
 from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
-from pseudopeople.constants.metadata import (
+from pseudopeople.constants.metadata import DATEFORMATS
+from pseudopeople.constants.noise_type_metadata import (
     COPY_HOUSEHOLD_MEMBER_COLS,
-    DATEFORMATS,
     INT_COLUMNS,
 )
 from pseudopeople.exceptions import DataSourceError
@@ -52,13 +53,13 @@ def _generate_dataset(
         Noised dataset data in a pd.DataFrame
     """
     configure_logging_to_terminal(verbose)
-    configuration_tree = get_configuration(config)
+    configuration_tree = get_configuration(config, dataset, user_filters)
 
     if source is None:
         source = paths.SAMPLE_DATA_ROOT
     else:
         source = Path(source)
-        validate_source_compatibility(source)
+        validate_source_compatibility(source, dataset)
 
     data_paths = fetch_filepaths(dataset, source)
     if not data_paths:
@@ -102,8 +103,15 @@ def _generate_dataset(
     return all_data
 
 
-def validate_source_compatibility(source: Path):
+def validate_source_compatibility(source: Path, dataset: Dataset):
     # TODO [MIC-4546]: Clean this up w/ metadata and update test_interface.py tests to be generic
+    directories = [x.name for x in source.iterdir() if x.is_dir()]
+    if dataset.name not in directories:
+        raise FileNotFoundError(
+            f"Could not find '{dataset.name}' in '{source}'. Please check that the provided source "
+            "directory is correct. If using the sample data, no source is required. If providing a source, "
+            f"a directory should provided that has a subdirectory for '{dataset.name}'. "
+        )
     changelog = source / "CHANGELOG.rst"
     if changelog.exists():
         version = _get_data_changelog_version(changelog)
@@ -135,13 +143,18 @@ def _get_data_changelog_version(changelog):
 
 
 def _coerce_dtypes(
-    data: pd.DataFrame, dataset: Dataset, cleanse_int_cols: bool = False
+    data: pd.DataFrame,
+    dataset: Dataset,
+    cleanse_int_cols: bool = False,
 ) -> pd.DataFrame:
     # Coerce dtypes prior to noising to catch issues early as well as
     # get most columns away from dtype 'category' and into 'object' (strings)
     for col in dataset.columns:
         if cleanse_int_cols and col.name in INT_COLUMNS:
             data[col.name] = cleanse_integer_columns(data[col.name])
+        # Coerce empty strings to nans
+        if cleanse_int_cols and col.name not in INT_COLUMNS:
+            data[col.name] = data[col.name].replace("", np.nan)
         if col.dtype_name != data[col.name].dtype.name:
             data[col.name] = data[col.name].astype(col.dtype_name)
 
@@ -179,7 +192,8 @@ def _reformat_dates_for_noising(data: pd.DataFrame, dataset: Dataset) -> None:
                 # re-parse the format string for each row
                 # https://github.com/pandas-dev/pandas/issues/44764
                 # Year is already guaranteed to be 4-digit: https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#timeseries-timestamp-limits
-                data_column = data[column]
+                is_na = data[column].isna()
+                data_column = data.loc[~is_na, column]
                 year_string = data_column.dt.year.astype(str)
                 month_string = _zfill_fast(data_column.dt.month.astype(str), 2)
                 day_string = _zfill_fast(data_column.dt.day.astype(str), 2)
@@ -192,7 +206,8 @@ def _reformat_dates_for_noising(data: pd.DataFrame, dataset: Dataset) -> None:
                 else:
                     raise ValueError(f"Invalid date format in {dataset.name}.")
 
-                data[column] = result
+                data[column] = pd.Series(np.nan, dtype=str)
+                data.loc[~is_na, column] = result
 
 
 def _zfill_fast(col: pd.Series, desired_length: int) -> pd.Series:

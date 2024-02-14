@@ -8,8 +8,8 @@ Here we cover the realistic simulated datasets, which are analogous to "real wor
 and routinely generated files of social security numbers, that users can generate using Pseudopeople for developing and testing Entity
 Resolution algorithms and software.
 
-Each of the datasets that can be generated using Pseudopeople have "noise" added to them, thereby realistically
-simulating how administrative records can be corrupted or distorted, which creates challenges in linking those
+Each of the datasets that can be generated using pseudopeople has "noise" added to it, thereby realistically
+simulating how population data can be corrupted or distorted, which creates challenges in linking those
 records. To read more about the different kinds of noise that can be applied to the different datasets, please see the
 :ref:`Noise page <noise_main>`.
 
@@ -25,6 +25,8 @@ which is where they are recorded in the Decennial Census and surveys.
 A **mailing address** represents the address a simulant uses to receive mail,
 which may be different -- for example, a PO box.
 Mailing addresses, not physical addresses, are recorded in tax filings.
+
+Note that in the small-scale simulated population that is available by default, these addresses all have their city/state/zip code set to the fictitious location of Anytown, WA 00000.  To read more about obtaining large-scale data with more realistic city, state, and zip code data, please see :ref:`Simulated populations <simulated_populations_main>`.
 
 Some fields are not applicable to every record in a simulated dataset,
 so some columns may contain "missing" values, even if no noise has been added to the data.
@@ -92,13 +94,13 @@ The following columns are included in this dataset:
      -
    * - Physical address city
      - :code:`city`
-     -
+     - Default simulated population always has value "Anytown"
    * - Physical address state
      - :code:`state`
-     -
+     - Default simulated population always has value "WA"
    * - Physical address ZIP code
      - :code:`zipcode`
-     -
+     - Default simulated population always has value "00000"
    * - Housing type
      - :code:`housing_type`
      - Possible values for housing type are "Household" for an individual
@@ -187,13 +189,13 @@ The following columns are included in this dataset:
      -
    * - Physical address city
      - :code:`city`
-     -
+     - Default simulated population always has value "Anytown"
    * - Physical address state
      - :code:`state`
-     -
+     - Default simulated population always has value "WA"
    * - Physical address ZIP code
      - :code:`zipcode`
-     -
+     - Default simulated population always has value "00000"
    * - Housing type
      - :code:`housing_type`
      - Possible values for housing type are "Household" for an individual
@@ -279,13 +281,13 @@ The following columns are included in this dataset:
      -
    * - Physical address city
      - :code:`city`
-     -
+     - Default simulated population always has value "Anytown"
    * - Physical address state
      - :code:`state`
-     -
+     - Default simulated population always has value "WA"
    * - Physical address ZIP code
      - :code:`zipcode`
-     -
+     - Default simulated population always has value "00000"
    * - Sex
      - :code:`sex`
      - Binary; "male" or "female"
@@ -348,13 +350,13 @@ The following columns are included in this dataset:
      -
    * - Physical address city
      - :code:`city`
-     -
+     - Default simulated population always has value "Anytown"
    * - Physical address state
      - :code:`state`
-     -
+     - Default simulated population always has value "WA"
    * - Physical address ZIP code
      - :code:`zipcode`
-     -
+     - Default simulated population always has value "00000"
    * - Sex
      - :code:`sex`
      - Binary; "male" or "female"
@@ -426,7 +428,7 @@ The following columns are included in this dataset:
 Tax forms: W-2 & 1099
 ---------------------
 Administrative data reported in annual tax forms, such as W-2s and 1099s, can also be simulated by Pseudopeople. 1099 forms are used for independent
-contractors or self-employed individuals, while a W-2 form is used for employees (whose employer withholds payroll taxes from their earnings).
+contractors or self-employed individuals, while a W-2 form is submitted by an employer for their employee (as the employer withholds payroll taxes from employee earnings).
 
 pseudopeople can generate a simulated version of the data collected by W-2 and 1099 forms.
 This is a yearly dataset, where the user-specified year is the **tax year** of the data.
@@ -474,13 +476,13 @@ The following columns are included in these datasets:
      -
    * - Employer city
      - :code:`employer_city`
-     -
+     - Default simulated population always has value "Anytown"
    * - Employer state
      - :code:`employer_state`
-     -
+     - Default simulated population always has value "WA"
    * - Employer ZIP code
      - :code:`employer_zipcode`
-     -
+     - Default simulated population always has value "00000"
    * - First name
      - :code:`first_name`
      -
@@ -504,13 +506,13 @@ The following columns are included in these datasets:
      -
    * - Mailing address city
      - :code:`mailing_address_city`
-     -
+     - Default simulated population always has value "Anytown"
    * - Mailing address state
      - :code:`mailing_address_state`
-     -
+     - Default simulated population always has value "WA"
    * - Mailing address ZIP code
      - :code:`mailing_address_zipcode`
-     -
+     - Default simulated population always has value "00000"
    * - Type of tax form
      - :code:`tax_form`
      - Possible values are "W2" or "1099".
@@ -522,7 +524,8 @@ The following columns are included in these datasets:
 Tax form: 1040
 --------------
 As with data collected from W-2 and 1099 forms, pseudopeople enables the simulation of administrative records from 1040 forms, which are
-also reported to the IRS on an annual basis. To find out more about the 1040 tax form, visit the `IRS information page <https://www.irs.gov/instructions/i1040gi>`_.
+also reported to the IRS on an annual basis. While W-2 forms are submitted by an employer to the IRS, 1040 forms are submitted by the 
+employee. To find out more about the 1040 tax form, visit the `IRS information page <https://www.irs.gov/instructions/i1040gi>`_.
 
 A single row in a pseudopeople-generated 1040 dataset may contain information about several
 simulants: the primary filer, the primary filer's joint filer (spouse) if they are married filing
@@ -597,13 +600,13 @@ The following columns are included in this dataset:
      -
    * - Mailing address city
      - :code:`mailing_address_city`
-     -
+     - Default simulated population always has value "Anytown"
    * - Mailing address state
      - :code:`mailing_address_state`
-     -
+     - Default simulated population always has value "WA"
    * - Mailing address ZIP code
      - :code:`mailing_address_zipcode`
-     -
+     - Default simulated population always has value "00000"
    * - Joint filer first name
      - :code:`spouse_first_name`
      -

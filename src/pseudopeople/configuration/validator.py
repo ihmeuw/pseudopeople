@@ -1,14 +1,16 @@
-from typing import Callable, Dict, List, Union
+from typing import Callable, Dict, List, Tuple, Union
 
 import numpy as np
+import pandas as pd
 from loguru import logger
 from vivarium.config_tree import ConfigTree, ConfigurationKeyError
 
 from pseudopeople.configuration import Keys
-from pseudopeople.constants import metadata
+from pseudopeople.constants import metadata, paths
 from pseudopeople.exceptions import ConfigurationError
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.noise_scaling import get_options_for_column
+from pseudopeople.schema_entities import Dataset
 
 
 def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
@@ -48,7 +50,6 @@ def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
                     f"Row noise type '{noise_type}' of dataset '{dataset}' must be a Dict. "
                     f"Provided {noise_type_config} of type {type(noise_type_config)}."
                 )
-
             default_noise_type_config = _get_default_config_node(
                 default_row_noise_config, noise_type, "noise type", dataset
             )
@@ -88,9 +89,6 @@ def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
                     default_column_config, noise_type, "noise type", dataset, column
                 )
                 parameter_config_validator_map = {
-                    NOISE_TYPES.use_nickname.name: {
-                        Keys.CELL_PROBABILITY: _validate_nickname_probability
-                    },
                     NOISE_TYPES.choose_wrong_option.name: {
                         Keys.CELL_PROBABILITY: lambda *args, **kwargs: _validate_choose_wrong_option_probability(
                             *args, **kwargs, column=column
@@ -241,19 +239,6 @@ def _validate_probability(
         )
 
 
-def _validate_nickname_probability(
-    noise_type_config: Union[int, float], parameter: str, base_error_message: str
-) -> None:
-    _validate_probability(noise_type_config, parameter, base_error_message)
-    if noise_type_config > metadata.NICKNAMES_PROPORTION:
-        logger.warning(
-            base_error_message
-            + f"The configured '{parameter}' is {noise_type_config}, but only approximately "
-            f"{metadata.NICKNAMES_PROPORTION:.2%} of names have a nickname. "
-            f"Replacing as many names with nicknames as possible."
-        )
-
-
 def _validate_choose_wrong_option_probability(
     noise_type_config: Union[int, float], parameter: str, base_error_message: str, column: str
 ):
@@ -270,6 +255,88 @@ def _validate_choose_wrong_option_probability(
             f"can only choose the wrong option with a maximum of {maximum_noise_probability:.5f} probability. "
             f"This maximum will be used instead of the configured value."
         )
+
+
+def validate_noise_level_proportions(
+    configuration_tree: ConfigTree, dataset: Dataset, user_filters: List[Tuple]
+) -> None:
+    """
+    Validates that the noise levels provided do not exceed the allowable proportions from the
+    metadata proportions file. If the provided noise levels are higher than the allowable proportions
+    then throw a warning to the user and adjust the noise level to the allowable proportion.
+    """
+    # TODO: update file and filepath
+    metadata_proportions = pd.read_csv(paths.METADATA_PROPORTIONS)
+    dataset_proportions = metadata_proportions.loc[
+        metadata_proportions["dataset"] == dataset.name
+    ]
+    # Set default values for state and year
+    if dataset.name == metadata.DatasetNames.SSA:
+        state = "USA"
+    else:
+        # Note: This is a shortcoming of our current approach to user warnings and will be fixed
+        # with a future release/our next data upload. We do not have a way to get state in a
+        # case where the user is not filtering on state because they either are using the sample
+        # data or state (Rhode Island) data.
+        if len(dataset_proportions["state"].unique()) == 1:
+            state = dataset_proportions["state"].unique()[0]
+        else:
+            state = "USA"
+    year = metadata.YEAR_AGGREGATION_VALUE
+    # Get the state and year from the user filters
+    for i in range(len(user_filters)):
+        if user_filters[i][0] == dataset.state_column_name:
+            state = user_filters[i][2]
+            break
+    for i in range(len(user_filters)):
+        if user_filters[i][0] == dataset.date_column_name:
+            if isinstance(user_filters[i][2], pd.Timestamp):
+                year = user_filters[i][2].year
+            else:
+                year = user_filters[i][2]
+            break
+
+    # Subset the metadata proportions to the state and year that the user is querying
+    dataset_noise_proportions = dataset_proportions.loc[
+        (dataset_proportions["state"] == state) & (dataset_proportions["year"] == year)
+    ]
+
+    # If there is no data for a queried dataset, we want the user's to hit the correct error that there
+    # is no data available so we do not throw an error here.
+    if not dataset_noise_proportions.empty:
+        # Go through each row in the queried dataset noise proportions to validate the noise levels
+        for i in range(len(dataset_noise_proportions)):
+            row = dataset_noise_proportions.iloc[i].copy()
+            if row["column"] not in [col.name for col in dataset.columns] and not pd.isnull(
+                row["column"]
+            ):
+                continue
+            # Get the maximum noise level and the configured noise level
+            if pd.isnull(row["column"]):
+                # Note: Using pd.isnull here and above because np.isnan does not work on strings
+                if NOISE_TYPES.duplicate_with_guardian in dataset.row_noise_types:
+                    # Config level for guardian duplication group
+                    config_noise_level = configuration_tree[row["dataset"]][Keys.ROW_NOISE][
+                        NOISE_TYPES.duplicate_with_guardian.name
+                    ][row["noise_type"]]
+                    entity_type = Keys.ROW_NOISE
+                else:
+                    # I have preloaded the metadata for ACS and CPS to have the duplicate with
+                    # guardian metadata but we are not using it right now.
+                    continue
+            else:
+                # Config level for each column noise type
+                config_noise_level = configuration_tree[row["dataset"]][Keys.COLUMN_NOISE][
+                    row["column"]
+                ][row["noise_type"]][Keys.CELL_PROBABILITY]
+                entity_type = Keys.COLUMN_NOISE
+            max_noise_level = row["proportion"]
+            if config_noise_level > max_noise_level:
+                logger.warning(
+                    f"The configured '{row['noise_type']}' noise level for {entity_type} '{row['column']}' is {config_noise_level}, "
+                    f"which is higher than the maximum possible value based on the provided data for '{row['dataset']}'. "
+                    "Noising as many rows as possible. "
+                )
 
 
 DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP = {

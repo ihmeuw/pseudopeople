@@ -76,7 +76,7 @@ This noise type is called :code:`omit_row` in the configuration. It takes one
 parameter:
 
 .. list-table:: Parameters to the omit_row noise type
-  :widths: 1 5 1
+  :widths: 1 5 3
   :header-rows: 1
 
   * - Parameter
@@ -84,7 +84,47 @@ parameter:
     - Default
   * - :code:`row_probability`
     - The probability that a row is missing from the dataset.
-    - 0.01 (1%)
+    - * 0.005 (0.5%) for WIC and tax forms W2 and 1099
+      * 0.0 (0%) for other datasets
 
 When applying :code:`omit_row` noise, each row of data is selected for omission
 independently with probability :code:`row_probability`.
+
+Duplicate with guardian
+-----------------------
+
+A known challenge in entity resolution is people being reported multiple
+times at different addresses. This can occur when family structures are
+complex and children spend time at multiple households. A related
+challenge occurs with college students, who are sometimes counted both at their
+university and at their guardian’s home address.
+
+
+To simulate such challenges, pseudopeople can apply this type of duplication to two mutually exclusive categories of
+simulants based on age and GQ status: Simulants younger than 18 and not
+in GQ and simulants under 24 and in college GQ.
+
+For each of the two categories of simulants, a maximum duplication rate will
+be calculated based on those who have a guardian living at a different address.
+Most simulants in college GQ will have a guardian at a
+different address, but most simulants younger than 18 will not.
+If you as the user select a duplication rate that is higher than the 
+calculated maximum rate, you will see a warning that 
+the requested rate is greater than the maximum possible.
+
+This noise type is called :code:`duplicate_with_guardian` in the configuration. 
+It takes two parameters:
+
+.. list-table:: Parameters to the duplicate_with_guardian noise type
+  :widths: 1 5 3
+  :header-rows: 1
+
+  * - Parameter
+    - Description
+    - Default
+  * - :code:`row_probability_in_households_under_18`
+    - The probability that a simulant under 18 in a household is recorded twice.
+    - 0.02 (2%)
+  * - :code:`row_probability_in_college_group_quarters_under_24`
+    - The probability that a simulant under 24 in college GQ is recorded twice.
+    - 0.05 (5%)

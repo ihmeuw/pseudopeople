@@ -1,15 +1,19 @@
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
+import pandas as pd
 import yaml
 from vivarium.config_tree import ConfigTree
 
 from pseudopeople.configuration import NO_NOISE, Keys
-from pseudopeople.configuration.validator import validate_overrides
+from pseudopeople.configuration.validator import (
+    validate_noise_level_proportions,
+    validate_overrides,
+)
 from pseudopeople.constants.data_values import DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY
-from pseudopeople.exceptions import ConfigurationError
+from pseudopeople.entity_types import RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import COLUMNS, DATASETS
+from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
 
 # Define non-baseline default items
 # NOTE: default values are defined in entity_types.RowNoiseType and entity_types.ColumnNoiseType
@@ -55,6 +59,13 @@ DEFAULT_NOISE_VALUES = {
             },
         },
     },
+    DATASETS.wic.name: {
+        Keys.ROW_NOISE: {
+            NOISE_TYPES.omit_row.name: {
+                Keys.ROW_PROBABILITY: 0.005,
+            },
+        },
+    },
     # No noise of any kind for SSN in the SSA observer
     DATASETS.ssa.name: {
         Keys.COLUMN_NOISE: {
@@ -69,7 +80,11 @@ DEFAULT_NOISE_VALUES = {
 }
 
 
-def get_configuration(overrides: Optional[Union[Path, str, Dict]] = None) -> ConfigTree:
+def get_configuration(
+    overrides: Optional[Union[Path, str, Dict]] = None,
+    dataset: Dataset = None,
+    user_filters: List[Tuple[Union[str, int, pd.Timestamp]]] = None,
+) -> ConfigTree:
     """
     Gets a noising configuration ConfigTree, optionally overridden by a user-provided YAML.
 
@@ -88,7 +103,7 @@ def get_configuration(overrides: Optional[Union[Path, str, Dict]] = None) -> Con
         is_no_noise = False
     noising_configuration = _generate_configuration(is_no_noise)
     if overrides is not None:
-        add_overrides(noising_configuration, overrides)
+        add_overrides(noising_configuration, overrides, dataset, user_filters)
 
     return noising_configuration
 
@@ -110,13 +125,7 @@ def _generate_configuration(is_no_noise: bool) -> ConfigTree:
 
         # Loop through row noise types
         for row_noise in dataset.row_noise_types:
-            row_noise_type_dict = {}
-            if row_noise.row_probability is not None:
-                if is_no_noise:
-                    noise_level = 0.0
-                else:
-                    noise_level = row_noise.row_probability
-                row_noise_type_dict[Keys.ROW_PROBABILITY] = noise_level
+            row_noise_type_dict = get_noise_type_dict(row_noise, is_no_noise)
             if row_noise_type_dict:
                 row_noise_dict[row_noise.name] = row_noise_type_dict
 
@@ -124,16 +133,7 @@ def _generate_configuration(is_no_noise: bool) -> ConfigTree:
         for column in dataset.columns:
             column_noise_dict = {}
             for noise_type in column.noise_types:
-                column_noise_type_dict = {}
-                if noise_type.cell_probability is not None:
-                    if is_no_noise:
-                        noise_level = 0.0
-                    else:
-                        noise_level = noise_type.cell_probability
-                    column_noise_type_dict[Keys.CELL_PROBABILITY] = noise_level
-                if noise_type.additional_parameters is not None:
-                    for key, value in noise_type.additional_parameters.items():
-                        column_noise_type_dict[key] = value
+                column_noise_type_dict = get_noise_type_dict(noise_type, is_no_noise)
                 if column_noise_type_dict:
                     column_noise_dict[noise_type.name] = column_noise_type_dict
             if column_noise_dict:
@@ -157,10 +157,38 @@ def _generate_configuration(is_no_noise: bool) -> ConfigTree:
     return noising_configuration
 
 
-def add_overrides(noising_configuration: ConfigTree, overrides: Dict) -> None:
+def get_noise_type_dict(noise_type, is_no_noise: bool) -> Dict:
+    noise_type_dict = {}
+    if noise_type.probability is not None:
+        noise_level = 0.0 if is_no_noise else noise_type.probability
+        noise_type_dict[noise_type.probability_key] = noise_level
+    if noise_type.additional_parameters is not None:
+        for key, value in noise_type.additional_parameters.items():
+            # FIXME: This makes a big assumption that the additional parameters are all floats
+            # If we were to add a noise type or additional parameter key that was a list or dict
+            # like we have in some column noise types this would not work.
+            noise_level = (
+                0.0 if is_no_noise and isinstance(noise_type, RowNoiseType) else value
+            )
+            noise_type_dict[key] = noise_level
+    return noise_type_dict
+
+
+def add_overrides(
+    noising_configuration: ConfigTree,
+    overrides: Dict,
+    dataset: Dataset = None,
+    user_filters: List[Tuple[Union[str, int, pd.Timestamp]]] = None,
+) -> None:
     validate_overrides(overrides, noising_configuration)
     overrides = _format_overrides(noising_configuration, overrides)
     noising_configuration.update(overrides, layer="user")
+    # Note: dataset and user_filters should both be None when using the get_config wrapper
+    # or both be inputs from generate_XXX functions.
+    if (dataset is not None) and (user_filters is not None):
+        # TODO: refactor validate_noise_level_proportions to take overrides as arg and live in validate overrides
+        # Note: validate_noise_level_proportions must happen after user layer configuration update
+        validate_noise_level_proportions(noising_configuration, dataset, user_filters)
 
 
 def _format_overrides(default_config: ConfigTree, user_dict: Dict) -> Dict:

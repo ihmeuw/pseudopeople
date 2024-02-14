@@ -1,5 +1,6 @@
 import itertools
 
+import pandas as pd
 import pytest
 import yaml
 
@@ -20,7 +21,9 @@ COLUMN_NOISE_TYPES = [
     noise_type for noise_type in NOISE_TYPES if isinstance(noise_type, ColumnNoiseType)
 ]
 ROW_NOISE_TYPES = [
-    noise_type for noise_type in NOISE_TYPES if isinstance(noise_type, RowNoiseType)
+    noise_type
+    for noise_type in NOISE_TYPES
+    if isinstance(noise_type, RowNoiseType) and noise_type.name != "duplicate_with_guardian"
 ]
 
 
@@ -39,75 +42,80 @@ def test_default_configuration_structure():
     for dataset in DATASETS:
         # Check row noise
         for row_noise in dataset.row_noise_types:
-            config_probability = config[dataset.name][Keys.ROW_NOISE][row_noise.name][
-                Keys.ROW_PROBABILITY
-            ]
-            default_probability = (
-                DEFAULT_NOISE_VALUES.get(dataset.name, {})
-                .get(Keys.ROW_NOISE, {})
-                .get(row_noise.name, {})
-                .get(Keys.ROW_PROBABILITY, "no default")
-            )
-            if default_probability == "no default":
-                assert config_probability == row_noise.row_probability
-            else:
-                assert config_probability == default_probability
+            config_probability = config[dataset.name][Keys.ROW_NOISE][row_noise.name]
+            validate_noise_type_config(dataset, row_noise, config_probability)
         for col in dataset.columns:
             for noise_type in col.noise_types:
                 config_level = config[dataset.name].column_noise[col.name][noise_type.name]
-                # FIXME: Is there a way to allow for adding new keys when they
-                #  don't exist in baseline? eg the for/if loops below depend on their
-                #  being row_noise, token_noise, and additional parameters at the
-                #  baseline level ('noise_type in col.noise_types')
-                #  Would we ever want to allow for adding non-baseline default noise?
-                if noise_type.cell_probability:
-                    config_probability = config_level[Keys.CELL_PROBABILITY]
-                    default_probability = (
-                        DEFAULT_NOISE_VALUES.get(dataset.name, {})
-                        .get(Keys.COLUMN_NOISE, {})
-                        .get(col.name, {})
-                        .get(noise_type.name, {})
-                        .get(Keys.CELL_PROBABILITY, "no default")
-                    )
-                    if default_probability == "no default":
-                        assert config_probability == noise_type.cell_probability
-                    else:
-                        assert config_probability == default_probability
-                if noise_type.additional_parameters:
-                    config_additional_parameters = {
-                        k: v
-                        for k, v in config_level.to_dict().items()
-                        if k != Keys.CELL_PROBABILITY
-                    }
-                    default_additional_parameters = (
-                        DEFAULT_NOISE_VALUES.get(dataset.name, {})
-                        .get(Keys.COLUMN_NOISE, {})
-                        .get(col.name, {})
-                        .get(noise_type.name, {})
-                    )
-                    default_additional_parameters = {
-                        k: v
-                        for k, v in default_additional_parameters.items()
-                        if k != Keys.CELL_PROBABILITY
-                    }
-                    if default_additional_parameters == {}:
-                        assert (
-                            config_additional_parameters == noise_type.additional_parameters
-                        )
-                    else:
-                        # Confirm config includes default values
-                        for key, value in default_additional_parameters.items():
-                            assert config_additional_parameters[key] == value
-                        # Check that non-default values are baseline
-                        baseline_keys = [
-                            k
-                            for k in config_additional_parameters
-                            if k not in default_additional_parameters
-                        ]
-                        for key, value in config_additional_parameters.items():
-                            if key not in baseline_keys:
-                                continue
-                            assert noise_type.additional_parameters[key] == value
+                validate_noise_type_config(dataset, noise_type, config_level, col)
+
+
+def validate_noise_type_config(dataset, noise_type, config_level, column=None):
+    # FIXME: Is there a way to allow for adding new keys when they
+    #  don't exist in baseline? eg the for/if loops below depend on their
+    #  being row_noise, token_noise, and additional parameters at the
+    #  baseline level ('noise_type in col.noise_types')
+    #  Would we ever want to allow for adding non-baseline default noise?
+    noise_key = Keys.ROW_NOISE if isinstance(noise_type, RowNoiseType) else Keys.COLUMN_NOISE
+    if noise_type.probability:
+        config_probability = config_level[Keys.CELL_PROBABILITY]
+        if isinstance(noise_type, RowNoiseType):
+            default_probability = (
+                DEFAULT_NOISE_VALUES.get(dataset.name, {})
+                .get(noise_key, {})
+                .get(noise_type.name, {})
+                .get(noise_type.probability_key, "no default")
+            )
+        else:
+            default_probability = (
+                DEFAULT_NOISE_VALUES.get(dataset.name, {})
+                .get(noise_key, {})
+                .get(column.name, {})
+                .get(noise_type.name, {})
+                .get(noise_type.probability_key, "no default")
+            )
+        if default_probability == "no default":
+            assert config_probability == noise_type.probability
+        else:
+            assert config_probability == default_probability
+    if noise_type.additional_parameters:
+        config_additional_parameters = {
+            k: v for k, v in config_level.to_dict().items() if k != noise_type.probability_key
+        }
+        if isinstance(noise_type, RowNoiseType):
+            default_additional_parameters = (
+                DEFAULT_NOISE_VALUES.get(dataset.name, {})
+                .get(noise_key, {})
+                .get(noise_type.name, {})
+            )
+        else:
+            default_additional_parameters = (
+                DEFAULT_NOISE_VALUES.get(dataset.name, {})
+                .get(noise_key, {})
+                .get(column.name, {})
+                .get(noise_type.name, {})
+            )
+        default_additional_parameters = {
+            k: v
+            for k, v in default_additional_parameters.items()
+            if k != noise_type.probability_key
+        }
+        if default_additional_parameters == {}:
+            assert config_additional_parameters == noise_type.additional_parameters
+        else:
+            # Confirm config includes default values
+            for key, value in default_additional_parameters.items():
+                assert config_additional_parameters[key] == value
+            # Check that non-default values are baseline
+            baseline_keys = [
+                k
+                for k in config_additional_parameters
+                if k not in default_additional_parameters
+            ]
+            for key, value in config_additional_parameters.items():
+                if key not in baseline_keys:
+                    continue
+                assert noise_type.additional_parameters[key] == value
 
 
 def test_get_configuration_with_user_override(mocker):
@@ -438,17 +446,6 @@ def test_validate_miswrite_zipcode_digit_probabilities_failures(probabilities, m
 
 
 def test_get_config(caplog):
-    overrides = {
-        DATASETS.acs.name: {
-            Keys.COLUMN_NOISE: {
-                "zipcode": {
-                    NOISE_TYPES.leave_blank.name: {
-                        Keys.CELL_PROBABILITY: 0.25,
-                    },
-                },
-            },
-        },
-    }
     config_1 = get_config()
     assert isinstance(config_1, dict)
     assert not caplog.records
@@ -461,51 +458,12 @@ def test_get_config(caplog):
         row_noise_dict = config_2[dataset][Keys.ROW_NOISE]
         column_dict = config_2[dataset][Keys.COLUMN_NOISE]
         for row_noise in row_noise_dict:
-            assert row_noise_dict[row_noise][Keys.ROW_PROBABILITY] == 0.0
+            for key, value in row_noise_dict[row_noise].items():
+                assert row_noise_dict[row_noise][key] == 0.0
         for column in column_dict:
             column_noise_dict = column_dict[column]
             for column_noise in column_noise_dict:
                 assert column_noise_dict[column_noise][Keys.CELL_PROBABILITY] == 0.0
-
-
-def test_omit_rows_do_not_respond_mutex_default_configuration():
-    """Test that omit_rows and do_not_respond are not both defined in the default configuration"""
-    config = get_configuration()
-    for dataset in DATASETS:
-        has_omit_rows = (
-            NOISE_TYPES.omit_row.name in config[dataset.name][Keys.ROW_NOISE].keys()
-        )
-        has_do_not_respond = (
-            NOISE_TYPES.do_not_respond.name in config[dataset.name][Keys.ROW_NOISE].keys()
-        )
-        assert not has_do_not_respond or not has_omit_rows
-
-
-def test_validate_nickname_configuration(caplog):
-    """
-    Tests that warning is thrown if cell probability is higher than nickname proportion.  Also tests noise leve
-    is appropriately adjust if this is the case.
-    """
-    config_values = [0.45, 0.65]
-    for config_value in config_values:
-        caplog.clear()
-        get_configuration(
-            {
-                DATASETS.census.name: {
-                    Keys.COLUMN_NOISE: {
-                        COLUMNS.first_name.name: {
-                            NOISE_TYPES.use_nickname.name: {
-                                Keys.CELL_PROBABILITY: config_value,
-                            },
-                        },
-                    },
-                },
-            },
-        )
-        if config_value == 0.45:
-            assert not caplog.records
-        else:
-            assert "Replacing as many names with nicknames as possible" in caplog.text
 
 
 def test_validate_choose_wrong_option_configuration(caplog):
@@ -552,8 +510,108 @@ def test_no_noise():
         dataset_row_noise_dict = dataset_dict[Keys.ROW_NOISE]
         dataset_column_dict = dataset_dict[Keys.COLUMN_NOISE]
         for row_noise_type in dataset_row_noise_dict.keys():
-            assert dataset_row_noise_dict[row_noise_type][Keys.ROW_PROBABILITY] == 0.0
+            for key, value in dataset_row_noise_dict[row_noise_type].items():
+                assert dataset_row_noise_dict[row_noise_type][key] == 0.0
         for column in dataset_column_dict.keys():
             column_noise_dict = dataset_column_dict[column]
             for column_noise_type in column_noise_dict.keys():
                 assert column_noise_dict[column_noise_type][Keys.CELL_PROBABILITY] == 0.0
+
+
+@pytest.mark.parametrize(
+    "column, noise_type, noise_level",
+    [
+        ("age", "copy_from_household_member", 0.2),
+        ("age", "copy_from_household_member", 0.95),
+        ("first_name", "use_nickname", 0.05),
+        ("first_name", "use_nickname", 0.85),
+        ("date_of_birth", "copy_from_household_member", 0.15),
+        ("date_of_birth", "copy_from_household_member", 0.90),
+    ],
+)
+def test_validate_noise_level_proportions(caplog, column, noise_type, noise_level):
+    """
+    Tests that a warning is thrown when a user provides configuration overrides that are higher
+    than the calculated metadata proportions for that column noise type pairing.
+    """
+    census = DATASETS.get_dataset("decennial_census")
+    user_filters = [
+        (census.date_column_name, "==", 2020),
+        (census.state_column_name, "==", "WA"),
+    ]
+    # Making guardian duplication 0.0 so that we can test the other noise types only
+    get_configuration(
+        {
+            DATASETS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    column: {
+                        noise_type: {
+                            Keys.CELL_PROBABILITY: noise_level,
+                        },
+                    },
+                },
+            },
+        },
+        census,
+        user_filters,
+    )
+    if noise_level < 0.5:
+        assert not caplog.records
+    else:
+        assert "Noising as many rows as possible" in caplog.text
+
+
+@pytest.mark.parametrize(
+    "value_1, value_2",
+    [
+        (0.0, 0.1),
+        (0.2, 0.5),
+        (0.5, 0.8),
+    ],
+)
+def test_duplicate_with_guardian_configuration(value_1, value_2):
+    """
+    Tests config is set correctly for each group in guardian duplication.
+    """
+
+    config = get_config(
+        {
+            DATASETS.census.name: {
+                Keys.ROW_NOISE: {
+                    NOISE_TYPES.duplicate_with_guardian.name: {
+                        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: value_1,
+                        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: value_2,
+                    },
+                },
+            },
+        },
+    )
+
+    row_noise_dict = config[DATASETS.census.name][Keys.ROW_NOISE][
+        NOISE_TYPES.duplicate_with_guardian.name
+    ]
+    assert row_noise_dict[Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18] == value_1
+    assert row_noise_dict[Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24] == value_2
+
+
+@pytest.mark.parametrize(
+    "key",
+    [
+        (Keys.ROW_PROBABILITY),
+        ("over_24_in_group_quarters"),
+    ],
+)
+def test_bad_duplicate_with_guardian_config(key):
+    # Tests error is thrown for keys that are not a valid configuration for duplicate with guardian
+    with pytest.raises(ConfigurationError, match=f"Invalid parameter '{key}' provided"):
+        get_configuration(
+            {
+                DATASETS.census.name: {
+                    Keys.ROW_NOISE: {
+                        NOISE_TYPES.duplicate_with_guardian.name: {
+                            key: 0.5,
+                        },
+                    },
+                },
+            },
+        )

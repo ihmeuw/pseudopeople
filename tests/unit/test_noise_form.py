@@ -21,6 +21,7 @@ from pseudopeople.interface import (
 from pseudopeople.noise import noise_dataset
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS
+from tests.conftest import FuzzyChecker
 
 
 @pytest.fixture(scope="module")
@@ -87,10 +88,16 @@ def get_dummy_config_noise_numbers(dataset):
                     },
                 },
                 Keys.ROW_NOISE: {
-                    noise_type.name: {
+                    NOISE_TYPES.do_not_respond.name: {
                         Keys.ROW_PROBABILITY: 0.01,
-                    }
-                    for noise_type in dataset.row_noise_types
+                    },
+                    NOISE_TYPES.omit_row.name: {
+                        Keys.ROW_PROBABILITY: 0.01,
+                    },
+                    NOISE_TYPES.duplicate_with_guardian.name: {
+                        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0.05,
+                        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: 0.05,
+                    },
                 },
             },
         }
@@ -119,7 +126,12 @@ def test_noise_order(mocker, dummy_data, dataset):
         mock_return = (
             dummy_data[["event_type"]]
             if field
-            in [NOISE_TYPES.do_not_respond.name, NOISE_TYPES.omit_row.name, "duplicate_row"]
+            in [
+                NOISE_TYPES.do_not_respond.name,
+                NOISE_TYPES.omit_row.name,
+                "duplicate_row",
+                NOISE_TYPES.duplicate_with_guardian.name,
+            ]
             else dummy_data["event_type"]
         )
         mock.attach_mock(
@@ -133,6 +145,7 @@ def test_noise_order(mocker, dummy_data, dataset):
             NOISE_TYPES.do_not_respond.name,
             NOISE_TYPES.omit_row.name,
             "duplicate_row",
+            NOISE_TYPES.duplicate_with_guardian.name,
         ]:
             mock.attach_mock(
                 mocker.patch(
@@ -160,7 +173,17 @@ def test_noise_order(mocker, dummy_data, dataset):
     # function is called. Here we grab the string of the noise type for one mock method
     # call and not the second method.
     call_order = [x[0] for x in mock.mock_calls if type(x[1][0]) == str]
-    row_order = [row_noise_type.name for row_noise_type in dataset.row_noise_types]
+    row_order = [
+        noise_type
+        for noise_type in NOISE_TYPES._fields
+        if noise_type
+        in [
+            NOISE_TYPES.duplicate_with_guardian.name,
+            NOISE_TYPES.do_not_respond.name,
+            NOISE_TYPES.omit_row.name,
+            "duplicate_row",
+        ]
+    ]
     column_order = [
         NOISE_TYPES.leave_blank.name,
         NOISE_TYPES.choose_wrong_option.name,
@@ -225,7 +248,7 @@ def test_correct_datasets_are_used(func, dataset, mocker):
     assert mock.call_args[0][0] == dataset
 
 
-def test_two_noise_functions_are_independent(mocker):
+def test_two_noise_functions_are_independent(mocker, fuzzy_checker: FuzzyChecker):
     # Make simple config tree to test 2 noise functions work together
     config_tree = ConfigTree(
         {
@@ -292,38 +315,44 @@ def test_two_noise_functions_are_independent(mocker):
     col2_expected_123_proportion = (
         config_tree.decennial_census.column_noise.fake_column_two.beta[Keys.CELL_PROBABILITY]
     )
-
-    assert np.isclose(
-        noised_data["fake_column_one"].str.contains("abc").mean(),
-        col1_expected_abc_proportion,
-        rtol=0.02,
+    fuzzy_checker.fuzzy_assert_proportion(
+        name="fake_column_one_abc_proportion",
+        observed_numerator=noised_data["fake_column_one"].str.contains("abc").sum(),
+        observed_denominator=len(noised_data),
+        target_proportion=col1_expected_abc_proportion,
     )
-    assert np.isclose(
-        noised_data["fake_column_two"].str.contains("abc").mean(),
-        col2_expected_abc_proportion,
-        rtol=0.02,
+    fuzzy_checker.fuzzy_assert_proportion(
+        name="fake_column_two_abc_proportion",
+        observed_numerator=noised_data["fake_column_two"].str.contains("abc").sum(),
+        observed_denominator=len(noised_data),
+        target_proportion=col2_expected_abc_proportion,
     )
-    assert np.isclose(
-        noised_data["fake_column_one"].str.contains("123").mean(),
-        col1_expected_123_proportion,
-        rtol=0.02,
+    fuzzy_checker.fuzzy_assert_proportion(
+        name="fake_column_one_123_proportion",
+        observed_numerator=noised_data["fake_column_one"].str.contains("123").sum(),
+        observed_denominator=len(noised_data),
+        target_proportion=col1_expected_123_proportion,
     )
-    assert np.isclose(
-        noised_data["fake_column_two"].str.contains("123").mean(),
-        col2_expected_123_proportion,
-        rtol=0.02,
+    fuzzy_checker.fuzzy_assert_proportion(
+        name="fake_column_two_123_proportion",
+        observed_numerator=noised_data["fake_column_two"].str.contains("123").sum(),
+        observed_denominator=len(noised_data),
+        target_proportion=col2_expected_123_proportion,
     )
 
     # Assert columns experience both noise
-    assert np.isclose(
-        noised_data["fake_column_one"].str.contains("abc123").mean(),
-        col1_expected_abc_proportion * col1_expected_123_proportion,
-        rtol=0.02,
+    fuzzy_checker.fuzzy_assert_proportion(
+        name="fake_column_one_abc123_proportion",
+        observed_numerator=noised_data["fake_column_one"].str.contains("abc123").sum(),
+        observed_denominator=len(noised_data),
+        target_proportion=col1_expected_abc_proportion * col1_expected_123_proportion,
     )
-    assert np.isclose(
-        noised_data["fake_column_two"].str.contains("abc123").mean(),
-        col2_expected_abc_proportion * col2_expected_123_proportion,
-        rtol=0.02,
+    fuzzy_checker.fuzzy_assert_proportion(
+        name="fake_column_two_abc123_proportion",
+        observed_numerator=noised_data["fake_column_two"].str.contains("abc123").sum(),
+        observed_denominator=len(noised_data),
+        target_proportion=col2_expected_abc_proportion * col2_expected_123_proportion,
     )
+    # Assert expected order of noise application
     assert noised_data["fake_column_one"].str.contains("123abc").sum() == 0
     assert noised_data["fake_column_two"].str.contains("123abc").sum() == 0

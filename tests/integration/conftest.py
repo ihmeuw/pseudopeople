@@ -17,6 +17,7 @@ from pseudopeople.interface import (
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
+from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS
 
 ROW_PROBABILITY = 0.05
@@ -127,6 +128,7 @@ def config():
                 Keys.ROW_PROBABILITY: ROW_PROBABILITY,
             }
             for noise_type in dataset.row_noise_types
+            if noise_type != NOISE_TYPES.duplicate_with_guardian
         }
         for col in [c for c in dataset.columns if c.noise_types]:
             config[dataset_name][Keys.COLUMN_NOISE][col.name] = {
@@ -136,6 +138,15 @@ def config():
                 for noise_type in col.noise_types
             }
 
+    # FIXME: Remove when record_id is added as the truth deck for datasets.
+    # For integration tests, we will NOT duplicate rows with guardian duplication.
+    # This is because we want to be able to compare the noised and unnoised data
+    # and a big assumption we make is that simulant_id and household_id are the
+    # truth decks in our datasets.
+    config[DATASETS.census.name][Keys.ROW_NOISE][NOISE_TYPES.duplicate_with_guardian.name] = {
+        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0.0,
+        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: 0.0,
+    }
     # Update SSA dataset to noise 'ssn' but NOT noise 'ssa_event_type' since that
     # will be used as an identifier along with simulant_id
     # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)

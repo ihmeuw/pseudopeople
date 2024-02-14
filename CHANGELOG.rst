@@ -1,21 +1,41 @@
+**1.0.0 - 02/12/24**
+
+ - Adds duplicate with guardian row noise type
+ - Optimizes OCR and phonetic noise functions
+ - Improves user warnings for noise levels
+ - Fix bug in _corrupt_tokens function
+
+**0.8.3 - 01/09/24**
+
+ - Update PyPI to 2FA with trusted publisher
+
+**0.8.2 - 10/30/23**
+
+ - Fixes a bug in date formatting
+
 **0.8.1 - 10/25/23**
+
  - Implements setuptools-scm for versioning
 
 **0.8.0 - 10/25/23**
+
  - Improve performance of dataset generation functions
 
 **0.7.2 - 10/16/23**
+
  - Drop support for python 3.8
  - Fix bug in "Choose the wrong option" noise type
  - Fixed minor bug in copy_from_household_member noise type
 
 **0.7.1 - 09/18/23**
+
  - Improved configuration validation
  - Security patch for configuration file loading
  - Fixed bug introduced by newest numpy release
  - Improved docstrings
 
 **0.7.0 - 09/08/23**
+
  - Added generate_taxes_1040 function
  - Added copy_from_household_member noise type
  - Improved performance of typographic noise type
@@ -26,25 +46,31 @@
  - Assorted bug fixes
 
 **0.6.5 - 05/09/23**
+
  - Hotfix to pin vivarium dependency
 
 **0.6.4 - 04/25/23**
+
  - Updated documentation
 
 **0.6.3 - 04/24/23**
+
  - Updated documentation
  - Added data access request to issue template
 
 **0.6.2 - 04/21/23**
+
  - Updated documentation
  - Updated progress bar behavior
 
 **0.6.1 - 04/21/23**
+
  - Updated documentation
  - Standardized configuration key names
  - Updated to account for changes to simulated population data schema
 
 **0.6.0 - 04/19/23**
+
  - Update documentation (landing page, datasets section, quickstart)
  - Update zipcode miswriting function to act on each digit independently
  - Modify config key names
@@ -58,6 +84,7 @@
  - Add a github issues template
 
 **0.5.1 - 04/14/23**
+
  - Formatting of noised dates implemented
  - Moved from pd.NA to np.nan
  - Added validation of user-supplied configuration
@@ -66,6 +93,7 @@
  - Set default logging level to 'INFO', configurable with 'verbose' flag
 
 **0.5.0 - 04/13/23**
+
  - Bugfix to apply incorrect selection noising at the expected probability
  - Implement the omission noise function
  - Implement schema for output columns and their dtypes
@@ -74,6 +102,7 @@
  - Update documentation
  
  **0.4.0 - 04/11/23**
+
  - Generate default configuration instead of maintaining a static file
  - Read sample data if no data argument is provided
  - Update sample datasets

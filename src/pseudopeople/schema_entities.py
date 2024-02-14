@@ -32,6 +32,7 @@ class __Columns(NamedTuple):
             NOISE_TYPES.misreport_age,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
+            NOISE_TYPES.write_wrong_digits,
         ),
     )
     city: Column = Column(
@@ -176,6 +177,18 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_typos,
         ),
     )
+    dependent_1_copy_ssn: Column = Column(
+        "dependent_1_copy_ssn",
+    )
+    dependent_2_copy_ssn: Column = Column(
+        "dependent_2_copy_ssn",
+    )
+    dependent_3_copy_ssn: Column = Column(
+        "dependent_3_copy_ssn",
+    )
+    dependent_4_copy_ssn: Column = Column(
+        "dependent_4_copy_ssn",
+    )
     dob: Column = Column(
         "date_of_birth",
         (
@@ -262,8 +275,11 @@ class __Columns(NamedTuple):
             NOISE_TYPES.make_typos,
         ),
     )
-    guardian_id: Column = Column(
-        "guardian_id",
+    guardian_id_1: Column = Column(
+        "guardian_1",
+    )
+    guardian_id_2: Column = Column(
+        "guardian_2",
     )
     household_id: Column = Column(
         "household_id",
@@ -436,7 +452,6 @@ class __Columns(NamedTuple):
         "spouse_last_name",
         (
             NOISE_TYPES.leave_blank,
-            NOISE_TYPES.use_nickname,
             NOISE_TYPES.use_fake_name,
             NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
@@ -610,6 +625,8 @@ class __Datasets(NamedTuple):
         state_column_name=COLUMNS.state.name,
         row_noise_types=(
             NOISE_TYPES.do_not_respond,
+            NOISE_TYPES.omit_row,
+            NOISE_TYPES.duplicate_with_guardian,
             # NOISE_TYPES.duplication,
         ),
         date_format=DATEFORMATS.MM_DD_YYYY,
@@ -640,6 +657,7 @@ class __Datasets(NamedTuple):
         state_column_name=COLUMNS.state.name,
         row_noise_types=(
             NOISE_TYPES.do_not_respond,
+            NOISE_TYPES.omit_row,
             # NOISE_TYPES.duplication,
         ),
         date_format=DATEFORMATS.MM_DD_YYYY,
@@ -668,6 +686,7 @@ class __Datasets(NamedTuple):
         state_column_name=COLUMNS.state.name,
         row_noise_types=(
             NOISE_TYPES.do_not_respond,
+            NOISE_TYPES.omit_row,
             # NOISE_TYPES.duplication,
         ),
         date_format=DATEFORMATS.MM_DD_YYYY,
