@@ -13,12 +13,11 @@ version_line = $(shell grep "__version__ = " ${about_file})
 PACKAGE_VERSION = $(shell echo ${version_line} | cut -d "=" -f 2 | xargs)
 PACKAGE_VERSION = $(shell echo $(shell pip list | grep -e "$(SAFE_NAME)") | cut -d " " -f2)
 
-
+PYTHON_VERSION ?= 3.11  # TODO: Update when pytype supports >3.10
+CONDA_ENV_NAME ?= ${PACKAGE_NAME}_py${PYTHON_VERSION}
 # If CONDA_ENV_PATH is set (from a Jenkins build), use the -p flag when making Conda env in
 # order to make env at specific path. Otherwise, make a named env at the default path using
 # the -n flag.
-PYTHON_VERSION ?= 3.11  # TODO: Update when pytype supports >3.10
-CONDA_ENV_NAME ?= ${PACKAGE_NAME}_py${PYTHON_VERSION}
 CONDA_ENV_CREATION_FLAG = $(if $(CONDA_ENV_PATH),-p ${CONDA_ENV_PATH},-n ${CONDA_ENV_NAME})
 
 # These are the doc and source code files in this repo.
@@ -49,8 +48,8 @@ debug: # Print debug information (environment variables)
 	@echo "Make sources:                     ${MAKE_SOURCES}"
 
 format: setup.py pyproject.toml $(MAKE_SOURCES) # Run the code formatter and import sorter
-	-black $(LOCATIONS)
 	-isort $(LOCATIONS)
+	-black $(LOCATIONS)
 	@echo "Ignore, Created by Makefile, `date`" > $@
 
 test: $(MAKE_SOURCES) # Run full test suite - both integration and unit tests
