@@ -59,11 +59,29 @@ def pytest_collection_modifyitems(config, items):
 
 
 @pytest.fixture(scope="session")
+def is_random_seed(request):
+    is_random_seed = True if request.config.getoption("--seed") else False
+    return is_random_seed
+
+
+def get_seeds(is_random_seed) -> List[int]:
+    breakpoint()
+    if is_random_seed:
+        return np.random.randint(0, 1_000_000, size=5)
+    else:
+        return [0]
+
+
+SEEDS = get_seeds(is_random_seed)
+
+
+@pytest.fixture(scope="session", params=SEEDS)
 def seed(request):
-    # If is_cron is set, use a random seed to avoid using the same seed each time we run
+    # If --seed is set, use a random seed to avoid using the same seed each time we run
     # overnight tests. This allows us to catch bugs that may only appear with certain seeds
     # because we got lucky with other seeds.
-    return 0 if not request.config.getoption("--seed") else np.random.randint(0, 1000)
+    breakpoint()
+    return 0 if not request.config.getoption("--seed") else request.param
 
 
 @pytest.fixture

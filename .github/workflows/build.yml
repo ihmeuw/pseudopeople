@@ -45,18 +45,38 @@ jobs:
             pytest --limit=1 ./tests
           fi
       - name: Test seed
+        id: test_random_seed
         run: |
           if "${{ github.event_name == 'schedule' }}"; then
-            pytest --runslow --seed./tests
-          else
-            pytest --limit=1 --seed ./tests
+            pytest --runslow --seed ./tests
           fi
+        continue-on-error: true
       - name: Doc build
         run: |
           make html -C docs/ SPHINXOPTS="-W --keep-going -n"
       - name: Doctest
         run: |
           make doctest -C docs/
+      -name: Find failure
+        if: steps.test_random_seed.outputs.status == 'failure'
+        env:
+          step_name: test_random_seed
+        uses: dawidd6/action-send-mail@v2
+        with:
+          # mail server settings
+          server_address: smtp.gmail.com
+          server_port: 465
+          # user credentials
+          username: ${{ secrets.NOTIFY_EMAIL }}
+          password: ${{ secrets.NOTIFY_PASSWORD }}
+          # email subject
+          subject: Test random seed failed for ${{ github.job }} job of ${{ github.repository }}
+          # email body as text
+          body: Test random seed failed for ${{ github.job }} job in worflow ${{ github.workflow }} of ${{ github.repository }} has ${{ job.status }}
+          # comma-separated string, send email to
+          to: albrja@uw.edu
+          # from email name
+          from: Pseudopeople Notifications
       - name: Send mail
         # Notify when cron job fails
         if: (github.event_name == 'schedule' && failure())

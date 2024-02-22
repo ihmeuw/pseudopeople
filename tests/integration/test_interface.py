@@ -71,13 +71,14 @@ TOKENS_PER_STRING_MAPPER = {
         DATASET_SCHEMAS.acs.name,
         DATASET_SCHEMAS.cps.name,
         DATASET_SCHEMAS.ssa.name,
-        DATASET_SCHEMAS.tax_w2_1099.name,
-        DATASET_SCHEMAS.wic.name,
+        DATASET_SCHEMAS.tax_w2_1099.name, 
+        DATASET_SCHEMAS.wic.name, 
         DATASET_SCHEMAS.tax_1040.name,
     ],
 )
 def test_generate_dataset_from_multiple_shards(
     dataset_name: str,
+    seed,
     config,
     request,
     split_sample_data_dir,
@@ -91,7 +92,6 @@ def test_generate_dataset_from_multiple_shards(
         pytest.skip(reason=dataset_name)
     mocker.patch("pseudopeople.interface.validate_source_compatibility")
     generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
-    seed = request.getfixturevalue("seed")
     original = _initialize_dataset_with_sample(dataset_name, seed)
     noised_sample = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
 
