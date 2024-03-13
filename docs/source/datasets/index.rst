@@ -28,8 +28,8 @@ Mailing addresses, not physical addresses, are recorded in tax filings.
 
 Note that in the small-scale simulated population that is available by default, these addresses all have their 
 city/state/zip code set to the fictitious location of Anytown, WA 00000. This is to ensure that linking is not 
-unrealistically easy with the sample population (i.e., you cannot block on these attributes, as they are all identical). 
-To read more about obtaining large-scale data with more realistic city, state, and zip code data, please see 
+unrealistically easy with the sample population (i.e., using these attributes to eliminate clear non-matches is
+not possible, as they are all identical). To read more about obtaining large-scale data with more realistic city, state, and zip code data, please see 
 :ref:`Simulated populations <simulated_populations_main>`.
 
 Some fields are not applicable to every record in a simulated dataset,
