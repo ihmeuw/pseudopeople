@@ -9,7 +9,7 @@ __all__ = [
 ]
 
 __title__ = "pseudopeople"
-__summary__ = "pseudopeople is package which adds noise to simulated census-scale data using standard scientific Python tools."
+__summary__ = "pseudopeople generates realistic simulated data about a fictional United States population, designed for use in testing entity resolution (record linkage) methods or other data science algorithms at scale."
 __uri__ = "https://github.com/ihmeuw/pseudopeople"
 
 __author__ = "The pseudopeople developers"
