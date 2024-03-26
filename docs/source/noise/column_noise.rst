@@ -417,7 +417,7 @@ There are currently no typos involving special characters.
 
 This noise type is called :code:`make_typos` in the configuration. It takes two parameters:
 
-.. list-table:: Parameters to the leave_blank noise type
+.. list-table:: Parameters to the make_typos noise type
   :widths: 1 5 1
   :header-rows: 1
 

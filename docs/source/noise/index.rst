@@ -52,16 +52,16 @@ The "Config key" column shows the name of the noise type in the :ref:`configurat
   * - Noise type
     - Config key
     - Example cause
+  * - Duplicate with guardian
+    - ``duplicate_with_guardian``
+    - Filling out a survey questionnaire for your child that lives in college housing, while they simultaneously
+      fill out the same questionnaire for themselves
   * - Do not respond
     - ``do_not_respond``
     - Not returning the American Community Survey questionnaire that the US Census Bureau sent you
   * - Omit a row
     - ``omit_row``
     - Losing data because of an administrative error
-  * - Duplicate with guardian
-    - ``duplicate_with_guardian``
-    - Filling out a survey questionnaire for your child that lives in college housing, while they simultaneously
-      fill out the same questionnaire for themselves
 
 .. list-table:: Types of column-based noise (``column_noise``)
   :widths: 1 2 5
