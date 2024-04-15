@@ -2,9 +2,9 @@ from typing import Callable, Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from layered_config_tree import ConfigurationKeyError, LayeredConfigTree
 from loguru import logger
 
-from layered_config_tree import ConfigurationKeyError, LayeredConfigTree
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import metadata, paths
 from pseudopeople.exceptions import ConfigurationError

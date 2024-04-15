@@ -2,8 +2,9 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-
 from layered_config_tree import LayeredConfigTree
+from vivarium.framework.randomness import RandomnessStream, get_hash
+
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import data_values
 from pseudopeople.constants.metadata import DatasetNames
@@ -25,7 +26,6 @@ from pseudopeople.utilities import (
     two_d_array_choice,
     vectorized_choice,
 )
-from vivarium.framework.randomness import RandomnessStream, get_hash
 
 
 def omit_rows(
@@ -222,12 +222,12 @@ def duplicate_with_guardian(
     ]
 
     # Merge depedents with their guardians
-    formatted_group_data[Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18] = (
-        _merge_dependents_and_guardians(in_households_under_18, dataset_data)
-    )
-    formatted_group_data[Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24] = (
-        _merge_dependents_and_guardians(in_college_under_24, dataset_data)
-    )
+    formatted_group_data[
+        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18
+    ] = _merge_dependents_and_guardians(in_households_under_18, dataset_data)
+    formatted_group_data[
+        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24
+    ] = _merge_dependents_and_guardians(in_college_under_24, dataset_data)
     # Note: We have two dicts (configuration and formatted_group_data) at this point that have
     # the key for the group and then a dataframe for that group or the group and the configured
     # noise level

@@ -15,9 +15,9 @@ by column and row for each type of additional noise type.
 from typing import Any
 
 import pandas as pd
+from layered_config_tree import LayeredConfigTree
 from tqdm import tqdm
 
-from layered_config_tree import LayeredConfigTree
 from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
