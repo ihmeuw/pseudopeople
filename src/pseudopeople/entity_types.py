@@ -3,12 +3,12 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import pandas as pd
-from loguru import logger
-
 from layered_config_tree import LayeredConfigTree
+from loguru import logger
+from vivarium.framework.randomness import RandomnessStream
+
 from pseudopeople.configuration import Keys
 from pseudopeople.utilities import get_index_to_noise
-from vivarium.framework.randomness import RandomnessStream
 
 
 @dataclass

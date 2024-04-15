@@ -7,18 +7,9 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 import pytest
-from pandas.api.types import is_datetime64_any_dtype as is_datetime
-from tests.conftest import FuzzyChecker
-from tests.integration.conftest import (
-    CELL_PROBABILITY,
-    IDX_COLS,
-    SEED,
-    STATE,
-    _get_common_datasets,
-    _load_sample_data,
-)
-
 from layered_config_tree import LayeredConfigTree
+from pandas.api.types import is_datetime64_any_dtype as is_datetime
+
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants.noise_type_metadata import INT_COLUMNS
 from pseudopeople.interface import (
@@ -38,6 +29,15 @@ from pseudopeople.utilities import (
     load_ocr_errors,
     load_phonetic_errors,
     load_qwerty_errors_data,
+)
+from tests.conftest import FuzzyChecker
+from tests.integration.conftest import (
+    CELL_PROBABILITY,
+    IDX_COLS,
+    SEED,
+    STATE,
+    _get_common_datasets,
+    _load_sample_data,
 )
 
 DATASET_GENERATION_FUNCS = {

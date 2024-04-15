@@ -3,8 +3,8 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 import yaml
-
 from layered_config_tree import LayeredConfigTree
+
 from pseudopeople.configuration import NO_NOISE, Keys
 from pseudopeople.configuration.validator import (
     validate_noise_level_proportions,

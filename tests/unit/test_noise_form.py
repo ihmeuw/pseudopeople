@@ -5,9 +5,8 @@ from typing import NamedTuple
 import numpy as np
 import pandas as pd
 import pytest
-from tests.conftest import FuzzyChecker
-
 from layered_config_tree import LayeredConfigTree
+
 from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType
 from pseudopeople.interface import (
@@ -22,6 +21,7 @@ from pseudopeople.interface import (
 from pseudopeople.noise import noise_dataset
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS
+from tests.conftest import FuzzyChecker
 
 
 @pytest.fixture(scope="module")
