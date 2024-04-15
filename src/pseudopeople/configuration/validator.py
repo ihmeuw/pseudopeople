@@ -3,8 +3,8 @@ from typing import Callable, Dict, List, Tuple, Union
 import numpy as np
 import pandas as pd
 from loguru import logger
-from vivarium.config_tree import ConfigTree, ConfigurationKeyError
 
+from layered_config_tree import ConfigurationKeyError, LayeredConfigTree
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import metadata, paths
 from pseudopeople.exceptions import ConfigurationError
@@ -13,7 +13,7 @@ from pseudopeople.noise_scaling import get_options_for_column
 from pseudopeople.schema_entities import Dataset
 
 
-def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
+def validate_overrides(overrides: Dict, default_config: LayeredConfigTree) -> None:
     """
     Validates the user-provided overrides. Confirms that all user-provided
     keys exist in the default configuration. Confirms that all user-provided
@@ -107,7 +107,7 @@ def validate_overrides(overrides: Dict, default_config: ConfigTree) -> None:
 
 def _validate_noise_type_config(
     noise_type_config: Union[Dict, List],
-    default_noise_type_config: ConfigTree,
+    default_noise_type_config: LayeredConfigTree,
     dataset: str,
     noise_type: str,
     parameter_config_validator_map: Dict[str, Callable],
@@ -133,13 +133,13 @@ def _validate_noise_type_config(
 
 
 def _get_default_config_node(
-    default_config: ConfigTree,
+    default_config: LayeredConfigTree,
     key: str,
     key_type: str,
     dataset: str = None,
     column: str = None,
     noise_type: str = None,
-) -> ConfigTree:
+) -> LayeredConfigTree:
     """
     Validate that the node the user is trying to add exists in the default
     configuration.
@@ -258,7 +258,7 @@ def _validate_choose_wrong_option_probability(
 
 
 def validate_noise_level_proportions(
-    configuration_tree: ConfigTree, dataset: Dataset, user_filters: List[Tuple]
+    configuration_tree: LayeredConfigTree, dataset: Dataset, user_filters: List[Tuple]
 ) -> None:
     """
     Validates that the noise levels provided do not exceed the allowable proportions from the

@@ -5,8 +5,9 @@ from typing import NamedTuple
 import numpy as np
 import pandas as pd
 import pytest
-from vivarium.config_tree import ConfigTree
+from tests.conftest import FuzzyChecker
 
+from layered_config_tree import LayeredConfigTree
 from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType
 from pseudopeople.interface import (
@@ -21,7 +22,6 @@ from pseudopeople.interface import (
 from pseudopeople.noise import noise_dataset
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS
-from tests.conftest import FuzzyChecker
 
 
 @pytest.fixture(scope="module")
@@ -48,7 +48,7 @@ def get_dummy_config_noise_numbers(dataset):
     NOTE: this is not a realistic scenario but allows for certain
     types of stress testing.
     """
-    return ConfigTree(
+    return LayeredConfigTree(
         {
             dataset.name: {
                 Keys.COLUMN_NOISE: {
@@ -208,7 +208,7 @@ def test_columns_noised(dummy_data):
     """Test that the noise functions are only applied to the numbers column
     (as specified in the dummy config)
     """
-    config = ConfigTree(
+    config = LayeredConfigTree(
         {
             DATASETS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -250,7 +250,7 @@ def test_correct_datasets_are_used(func, dataset, mocker):
 
 def test_two_noise_functions_are_independent(mocker, fuzzy_checker: FuzzyChecker):
     # Make simple config tree to test 2 noise functions work together
-    config_tree = ConfigTree(
+    config_tree = LayeredConfigTree(
         {
             DATASETS.census.name: {
                 "column_noise": {

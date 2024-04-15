@@ -11,12 +11,13 @@ provided by the user.  First, the Dataset will be noised for missing data and ha
 rows in each columns changed to null values.  Then, the dataset data will be noised
 by column and row for each type of additional noise type.
 """
+
 from typing import Any
 
 import pandas as pd
 from tqdm import tqdm
-from vivarium import ConfigTree
 
+from layered_config_tree import LayeredConfigTree
 from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
@@ -27,7 +28,7 @@ from pseudopeople.utilities import get_randomness_stream
 def noise_dataset(
     dataset: Dataset,
     dataset_data: pd.DataFrame,
-    configuration: ConfigTree,
+    configuration: LayeredConfigTree,
     seed: Any,
 ) -> pd.DataFrame:
     """
