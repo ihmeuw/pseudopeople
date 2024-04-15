@@ -8,8 +8,17 @@ import numpy as np
 import pandas as pd
 import pytest
 from pandas.api.types import is_datetime64_any_dtype as is_datetime
-from vivarium.config_tree import ConfigTree
+from tests.conftest import FuzzyChecker
+from tests.integration.conftest import (
+    CELL_PROBABILITY,
+    IDX_COLS,
+    SEED,
+    STATE,
+    _get_common_datasets,
+    _load_sample_data,
+)
 
+from layered_config_tree import LayeredConfigTree
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants.noise_type_metadata import INT_COLUMNS
 from pseudopeople.interface import (
@@ -29,15 +38,6 @@ from pseudopeople.utilities import (
     load_ocr_errors,
     load_phonetic_errors,
     load_qwerty_errors_data,
-)
-from tests.conftest import FuzzyChecker
-from tests.integration.conftest import (
-    CELL_PROBABILITY,
-    IDX_COLS,
-    SEED,
-    STATE,
-    _get_common_datasets,
-    _load_sample_data,
 )
 
 DATASET_GENERATION_FUNCS = {
@@ -610,7 +610,7 @@ def _validate_column_noise_level(
     check_idx: pd.Index,
     noise_level: float,
     col: Column,
-    config: ConfigTree,
+    config: LayeredConfigTree,
     fuzzy_name: str,
     validator: FuzzyChecker,
 ):

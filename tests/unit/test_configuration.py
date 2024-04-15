@@ -29,7 +29,7 @@ ROW_NOISE_TYPES = [
 
 def test_get_default_configuration(mocker):
     """Tests that the default configuration can be retrieved."""
-    mock = mocker.patch("pseudopeople.configuration.generator.ConfigTree")
+    mock = mocker.patch("pseudopeople.configuration.generator.LayeredConfigTree")
     _ = get_configuration()
     mock.assert_called_once_with(layers=["baseline", "default", "user"])
 
@@ -120,7 +120,7 @@ def validate_noise_type_config(dataset, noise_type, config_level, column=None):
 
 def test_get_configuration_with_user_override(mocker):
     """Tests that the default configuration get updated when a user configuration is supplied."""
-    mock = mocker.patch("pseudopeople.configuration.generator.ConfigTree")
+    mock = mocker.patch("pseudopeople.configuration.generator.LayeredConfigTree")
     config = {
         DATASETS.census.name: {
             Keys.ROW_NOISE: {NOISE_TYPES.omit_row.name: {Keys.ROW_PROBABILITY: 0.05}},
@@ -179,7 +179,7 @@ def test_loading_from_yaml(tmp_path):
     ids=["list", "dict"],
 )
 def test_format_miswrite_ages(age_differences, expected):
-    """Test that user-supplied dictionary properly updates ConfigTree object.
+    """Test that user-supplied dictionary properly updates LayeredConfigTree object.
     This includes zero-ing out default values that don't exist in the user config
     """
     overrides = {
