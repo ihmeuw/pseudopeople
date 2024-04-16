@@ -40,7 +40,7 @@ if __name__ == "__main__":
         "vivarium>=1.2.0",
         "pyarrow",
         "tqdm",
-        "layered_config_tree",
+        "layered_config_tree>=1.0.1",
     ]
 
     setup_requires = ["setuptools_scm"]
