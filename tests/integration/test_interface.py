@@ -185,14 +185,15 @@ def test_column_dtypes(dataset_name: str, request):
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
-    idx_cols = IDX_COLS.get(dataset_name)
-    check_noised = noised_data.set_index(idx_cols)
-    for col_name in check_noised.columns:
+    for col_name in noised_data.columns:
         col = COLUMNS.get_column(col_name)
         expected_dtype = col.dtype_name
-        if expected_dtype == np.dtype(str):
+        if expected_dtype == np.dtype(object):
             # str dtype is 'object'
-            expected_dtype = np.dtype(object)
+            # Check that they are actually strings and not some other
+            # type of object.
+            actual_types = noised_data[col.name].dropna().apply(type)
+            assert (actual_types == str).all(), actual_types.unique()
         assert noised_data[col.name].dtype == expected_dtype
 
 
