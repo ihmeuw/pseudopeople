@@ -11,8 +11,10 @@ from layered_config_tree import LayeredConfigTree
 from pandas.api.types import is_datetime64_any_dtype as is_datetime
 
 from pseudopeople.configuration import Keys, get_configuration
-from pseudopeople.constants.noise_type_metadata import INT_COLUMNS
+from pseudopeople.constants.noise_type_metadata import INT_TO_STRING_COLUMNS
 from pseudopeople.interface import (
+    _coerce_dtypes,
+    _reformat_dates_for_noising,
     generate_american_community_survey,
     generate_current_population_survey,
     generate_decennial_census,
@@ -232,7 +234,7 @@ def test_column_noising(dataset_name: str, config, request, fuzzy_checker: Fuzzy
         if col.noise_types:
             # Note: Coercing check_original to string. This seems like it should not
             # have passed before but our rtol was 0.7
-            if col.name in INT_COLUMNS:
+            if col.name in INT_TO_STRING_COLUMNS:
                 check_original[col.name] = cleanse_integer_columns(check_original[col.name])
             assert (
                 check_original.loc[to_compare_idx, col.name].values
@@ -279,7 +281,8 @@ def test_row_noising_omit_row_or_do_not_respond(dataset_name: str, config, reque
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     idx_cols = IDX_COLS.get(dataset_name)
-    data = _load_sample_data(dataset_name, request)
+    dataset = DATASETS.get_dataset(dataset_name)
+    data = _coerce_dtypes(_reformat_dates_for_noising(_load_sample_data(dataset_name, request), dataset), dataset)
     data = data.set_index(idx_cols)
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}").set_index(
         idx_cols
@@ -687,7 +690,7 @@ def _get_column_noise_level(
     to_compare_sample_idx = common_idx.difference(originally_missing_sample_idx)
     # Note: Coercing check_original to string. This seems like it should not
     # have passed before but our rtol was 0.7
-    if column.name in INT_COLUMNS:
+    if column.name in INT_TO_STRING_COLUMNS:
         unnoised_data[column.name] = cleanse_integer_columns(unnoised_data[column.name])
 
     noise_level = (

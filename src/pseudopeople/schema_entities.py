@@ -12,6 +12,7 @@ class DtypeNames:
     CATEGORICAL = "category"
     DATETIME = "datetime64[ns]"
     OBJECT = "object"
+    INT = "int64"
 
 
 @dataclass
@@ -550,6 +551,7 @@ class __Columns(NamedTuple):
     )
     tax_year: Column = Column(
         "tax_year",
+        dtype_name=DtypeNames.INT,
     )
     unit_number: Column = Column(
         "unit_number",
@@ -562,6 +564,7 @@ class __Columns(NamedTuple):
     )
     year: Column = Column(
         "year",
+        dtype_name=DtypeNames.INT,
     )
     zipcode: Column = Column(
         "zipcode",
