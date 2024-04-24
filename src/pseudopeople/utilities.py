@@ -189,6 +189,7 @@ def to_string_preserve_nans(s: pd.Series) -> pd.Series:
     result[s.isna()] = np.nan
     return result
 
+
 def cleanse_integer_columns(column: pd.Series) -> pd.Series:
     column = to_string_preserve_nans(column)
     float_mask = column.notna() & (column.str.contains(".", regex=False))

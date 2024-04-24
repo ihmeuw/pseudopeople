@@ -164,6 +164,7 @@ def _clean_input_data(
 
     return data
 
+
 def _coerce_dtypes(
     data: pd.DataFrame,
     dataset: Dataset,

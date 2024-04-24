@@ -269,7 +269,9 @@ def _get_common_datasets(dataset_name, data, noised_data):
     """
     idx_cols = IDX_COLS.get(dataset_name)
     dataset = DATASETS.get_dataset(dataset_name)
-    check_original = _coerce_dtypes(_reformat_dates_for_noising(data, dataset), dataset).set_index(idx_cols)
+    check_original = _coerce_dtypes(
+        _reformat_dates_for_noising(data, dataset), dataset
+    ).set_index(idx_cols)
     check_noised = noised_data.set_index(idx_cols)
     # Ensure the idx_cols are unique
     assert check_original.index.duplicated().sum() == 0

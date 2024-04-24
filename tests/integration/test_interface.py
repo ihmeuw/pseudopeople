@@ -282,7 +282,10 @@ def test_row_noising_omit_row_or_do_not_respond(dataset_name: str, config, reque
         pytest.skip(reason=dataset_name)
     idx_cols = IDX_COLS.get(dataset_name)
     dataset = DATASETS.get_dataset(dataset_name)
-    data = _coerce_dtypes(_reformat_dates_for_noising(_load_sample_data(dataset_name, request), dataset), dataset)
+    data = _coerce_dtypes(
+        _reformat_dates_for_noising(_load_sample_data(dataset_name, request), dataset),
+        dataset,
+    )
     data = data.set_index(idx_cols)
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}").set_index(
         idx_cols
