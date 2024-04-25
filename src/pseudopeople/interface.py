@@ -141,7 +141,6 @@ def _generate_dataset(
                     seed=f"{seed}_{partition_info['number'] if partition_info is not None else 1}",
                 ),
                 dataset,
-                cleanse_int_cols=True,
             ),
             meta=[(c.name, c.dtype_name) for c in dataset.columns],
         )
