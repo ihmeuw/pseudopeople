@@ -81,8 +81,16 @@ TOKENS_PER_STRING_MAPPER = {
         DATASETS.tax_1040.name,
     ],
 )
+@pytest.mark.parametrize(
+    "engine",
+    [
+        "pandas",
+        "dask",
+    ],
+)
 def test_generate_dataset_from_multiple_shards(
     dataset_name: str,
+    engine: str,
     config,
     request,
     split_sample_data_dir,
@@ -103,8 +111,12 @@ def test_generate_dataset_from_multiple_shards(
         seed=SEED,
         year=None,
         source=split_sample_data_dir,
+        engine=engine,
         config=config,
     )
+
+    if engine == "dask":
+        noised_dataset = noised_dataset.compute()
 
     # Check same order of magnitude of rows was removed -- we don't know the
     # full data size (we would need unnoised data for that), so we just check

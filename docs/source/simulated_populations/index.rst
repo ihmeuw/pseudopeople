@@ -137,3 +137,11 @@ or United States), unzip the contents to the desired location on your computer.
 Once you've unzipped the simulated population data, you can pass the directory
 path to the :code:`source` parameter of the :ref:`dataset generation functions
 <dataset_generation_functions>` to generate large-scale datasets!
+
+If you're using one of the larger populations, you'll also want to take a look at the
+:code:`engine` parameter.
+By default, pseudopeople generates datasets using Pandas, which does not fully parallelize
+across cores and requires the entire dataset to fit into RAM.
+However, by passing "dask" to the :code:`engine` parameter, you can run the dataset
+generation on a Dask cluster, which can spill data to disk and even distribute
+the computation across multiple computers!

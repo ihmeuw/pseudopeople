@@ -1,6 +1,7 @@
 import sys
+from dataclasses import dataclass
 from functools import cache
-from typing import Any, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -227,6 +228,51 @@ def count_occurrences(string, sub):
             count += 1
         else:
             return count
+
+
+####################
+# Engine utilities #
+####################
+
+
+@dataclass
+class Engine:
+    name: str
+    dataframe_class_getter: Callable
+
+    @property
+    def dataframe_class(self):
+        return self.dataframe_class_getter()
+
+
+PANDAS_ENGINE = Engine("pandas", lambda: pd.DataFrame)
+
+
+def get_dask_dataframe():
+    import dask.dataframe as dd
+
+    return dd.DataFrame
+
+
+DASK_ENGINE = Engine("dask", get_dask_dataframe)
+
+
+def get_engine_from_string(engine: str):
+    if engine == "pandas":
+        return PANDAS_ENGINE
+    elif engine == "dask":
+        return DASK_ENGINE
+    else:
+        raise ValueError(f"Unknown engine {engine}")
+
+
+try:
+    # Optional dependency
+    import dask.dataframe as dd
+
+    DataFrame = Union[dd.DataFrame, pd.DataFrame]
+except ImportError:
+    DataFrame = pd.DataFrame
 
 
 ##########################
