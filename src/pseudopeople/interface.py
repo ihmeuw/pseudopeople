@@ -324,6 +324,7 @@ def generate_decennial_census(
     :param engine:
 
         Engine to use for loading data. Determines the return type.
+        Default is "pandas" which returns a pandas DataFrame.
 
     :return:
 
@@ -417,6 +418,7 @@ def generate_american_community_survey(
     :param engine:
 
         Engine to use for loading data. Determines the return type.
+        Default is "pandas" which returns a pandas DataFrame.
 
     :return:
 
@@ -528,6 +530,7 @@ def generate_current_population_survey(
     :param engine:
 
         Engine to use for loading data. Determines the return type.
+        Default is "pandas" which returns a pandas DataFrame.
 
     :return:
 
@@ -630,6 +633,7 @@ def generate_taxes_w2_and_1099(
     :param engine:
 
         Engine to use for loading data. Determines the return type.
+        Default is "pandas" which returns a pandas DataFrame.
 
     :return:
 
@@ -727,6 +731,7 @@ def generate_women_infants_and_children(
     :param engine:
 
         Engine to use for loading data. Determines the return type.
+        Default is "pandas" which returns a pandas DataFrame.
 
     :return:
 
@@ -803,6 +808,7 @@ def generate_social_security(
     :param engine:
 
         Engine to use for loading data. Determines the return type.
+        Default is "pandas" which returns a pandas DataFrame.
 
     :return:
 
@@ -894,6 +900,7 @@ def generate_taxes_1040(
     :param engine:
 
         Engine to use for loading data. Determines the return type.
+        Default is "pandas" which returns a pandas DataFrame.
 
     :return:
 
