@@ -14,12 +14,12 @@ from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import DATEFORMATS
 from pseudopeople.constants.noise_type_metadata import (
     COPY_HOUSEHOLD_MEMBER_COLS,
-    INT_COLUMNS,
+    INT_TO_STRING_COLUMNS,
 )
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.loader import load_standard_dataset
 from pseudopeople.noise import noise_dataset
-from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
+from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset, DtypeNames
 from pseudopeople.utilities import (
     PANDAS_ENGINE,
     DataFrame,
@@ -27,6 +27,7 @@ from pseudopeople.utilities import (
     configure_logging_to_terminal,
     get_engine_from_string,
     get_state_abbreviation,
+    to_string_preserve_nans,
 )
 
 
@@ -112,12 +113,9 @@ def _generate_dataset(
             )
         noised_dataset = pd.concat(noised_dataset, ignore_index=True)
 
-        # Known pandas bug: pd.concat does not preserve category dtypes so we coerce
-        # again after concat (https://github.com/pandas-dev/pandas/issues/51362)
         noised_dataset = _coerce_dtypes(
             noised_dataset,
             dataset,
-            cleanse_int_cols=True,
         )
     else:
         # Let dask deal with how to partition the shards -- we pass it the
@@ -157,7 +155,7 @@ def _prep_and_noise_dataset(
     data: pd.DataFrame, dataset: Dataset, configuration_tree: LayeredConfigTree, seed: Any
 ) -> pd.DataFrame:
     data = _reformat_dates_for_noising(data, dataset)
-    data = _coerce_dtypes(data, dataset)
+    data = _clean_input_data(data, dataset)
     noised_data = noise_dataset(dataset, data, configuration_tree, seed)
     noised_data = _extract_columns(dataset.columns, noised_data)
     return noised_data
@@ -202,21 +200,37 @@ def _get_data_changelog_version(changelog):
     return version
 
 
+def _clean_input_data(
+    data: pd.DataFrame,
+    dataset: Dataset,
+) -> pd.DataFrame:
+    for col in dataset.columns:
+        # Coerce empty strings to nans
+        data[col.name] = data[col.name].replace("", np.nan)
+
+        if data[col.name].dtype.name == "category" and col.dtype_name == DtypeNames.OBJECT:
+            # We made some columns in the pseudopeople input categorical
+            # purely as a kind of DIY compression.
+            # TODO: Determine whether this is benefitting us after
+            # the switch to Parquet.
+            data[col.name] = to_string_preserve_nans(data[col.name])
+
+    return data
+
+
 def _coerce_dtypes(
     data: pd.DataFrame,
     dataset: Dataset,
-    cleanse_int_cols: bool = False,
 ) -> pd.DataFrame:
-    # Coerce dtypes prior to noising to catch issues early as well as
-    # get most columns away from dtype 'category' and into 'object' (strings)
     for col in dataset.columns:
-        if cleanse_int_cols and col.name in INT_COLUMNS:
+        if col.name in INT_TO_STRING_COLUMNS:
             data[col.name] = cleanse_integer_columns(data[col.name])
-        # Coerce empty strings to nans
-        if cleanse_int_cols and col.name not in INT_COLUMNS:
-            data[col.name] = data[col.name].replace("", np.nan)
+
         if col.dtype_name != data[col.name].dtype.name:
-            data[col.name] = data[col.name].astype(col.dtype_name)
+            if col.dtype_name == DtypeNames.OBJECT:
+                data[col.name] = to_string_preserve_nans(data[col.name])
+            else:
+                data[col.name] = data[col.name].astype(col.dtype_name)
 
     return data
 

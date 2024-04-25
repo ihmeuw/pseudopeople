@@ -25,8 +25,10 @@ COPY_HOUSEHOLD_MEMBER_COLS = {
     "dependent_4_ssn": "dependent_4_copy_ssn",
 }
 
-
-INT_COLUMNS = ["age", "wages", "mailing_address_po_box"]
+# Columns that are integers in pseudopeople input but strings in
+# the pseudopeople output. We have to be careful that they don't
+# end up getting stringified as floats, e.g. age being 26.0 instead of 26
+INT_TO_STRING_COLUMNS = ["age", "wages", "mailing_address_po_box"]
 
 
 HOUSING_TYPE_GUARDIAN_DUPLICATION_RELATONSHIP_MAP = {
