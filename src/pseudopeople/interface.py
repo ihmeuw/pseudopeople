@@ -339,6 +339,10 @@ def generate_decennial_census(
 
         Engine to use for loading data. Determines the return type.
         Default is "pandas" which returns a pandas DataFrame.
+        "dask" returns a Dask DataFrame and requires Dask to be
+        installed (e.g. `pip install pseudopeople[dask]`).
+        It runs the dataset generation on a Dask cluster, which can
+        parallelize and run out-of-core.
 
     :return:
 
@@ -433,6 +437,10 @@ def generate_american_community_survey(
 
         Engine to use for loading data. Determines the return type.
         Default is "pandas" which returns a pandas DataFrame.
+        "dask" returns a Dask DataFrame and requires Dask to be
+        installed (e.g. `pip install pseudopeople[dask]`).
+        It runs the dataset generation on a Dask cluster, which can
+        parallelize and run out-of-core.
 
     :return:
 
@@ -545,6 +553,10 @@ def generate_current_population_survey(
 
         Engine to use for loading data. Determines the return type.
         Default is "pandas" which returns a pandas DataFrame.
+        "dask" returns a Dask DataFrame and requires Dask to be
+        installed (e.g. `pip install pseudopeople[dask]`).
+        It runs the dataset generation on a Dask cluster, which can
+        parallelize and run out-of-core.
 
     :return:
 
@@ -648,6 +660,10 @@ def generate_taxes_w2_and_1099(
 
         Engine to use for loading data. Determines the return type.
         Default is "pandas" which returns a pandas DataFrame.
+        "dask" returns a Dask DataFrame and requires Dask to be
+        installed (e.g. `pip install pseudopeople[dask]`).
+        It runs the dataset generation on a Dask cluster, which can
+        parallelize and run out-of-core.
 
     :return:
 
@@ -746,6 +762,10 @@ def generate_women_infants_and_children(
 
         Engine to use for loading data. Determines the return type.
         Default is "pandas" which returns a pandas DataFrame.
+        "dask" returns a Dask DataFrame and requires Dask to be
+        installed (e.g. `pip install pseudopeople[dask]`).
+        It runs the dataset generation on a Dask cluster, which can
+        parallelize and run out-of-core.
 
     :return:
 
@@ -823,6 +843,10 @@ def generate_social_security(
 
         Engine to use for loading data. Determines the return type.
         Default is "pandas" which returns a pandas DataFrame.
+        "dask" returns a Dask DataFrame and requires Dask to be
+        installed (e.g. `pip install pseudopeople[dask]`).
+        It runs the dataset generation on a Dask cluster, which can
+        parallelize and run out-of-core.
 
     :return:
 
@@ -915,6 +939,10 @@ def generate_taxes_1040(
 
         Engine to use for loading data. Determines the return type.
         Default is "pandas" which returns a pandas DataFrame.
+        "dask" returns a Dask DataFrame and requires Dask to be
+        installed (e.g. `pip install pseudopeople[dask]`).
+        It runs the dataset generation on a Dask cluster, which can
+        parallelize and run out-of-core.
 
     :return:
 
