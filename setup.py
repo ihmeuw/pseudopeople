@@ -81,7 +81,7 @@ if __name__ == "__main__":
             "Intended Audience :: Developers",
             "Intended Audience :: Education",
             "Intended Audience :: Science/Research",
-            "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+            "License :: OSI Approved :: BSD License",
             "Natural Language :: English",
             "Operating System :: MacOS :: MacOS X",
             "Operating System :: POSIX",
