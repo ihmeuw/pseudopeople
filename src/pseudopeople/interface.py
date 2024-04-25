@@ -72,31 +72,33 @@ def _generate_dataset(
 
     if engine == PANDAS_ENGINE:
         # We process shards serially
-        data_paths = fetch_filepaths(dataset, source)
-        if not data_paths:
+        data_file_paths = fetch_filepaths(dataset, source)
+        if not data_file_paths:
             raise DataSourceError(
                 f"No datasets found at directory {str(source)}. "
                 "Please provide the path to the unmodified root data directory."
             )
 
-        validate_data_path_suffix(data_paths)
+        validate_data_path_suffix(data_file_paths)
 
         # Iterate sequentially
         noised_dataset = []
         iterator = (
-            tqdm(data_paths, desc="Noising data", leave=False)
-            if len(data_paths) > 1
-            else data_paths
+            tqdm(data_file_paths, desc="Noising data", leave=False)
+            if len(data_file_paths) > 1
+            else data_file_paths
         )
 
-        for data_path_index, data_path in enumerate(iterator):
-            logger.debug(f"Loading data from {data_path}.")
-            data = load_standard_dataset(data_path, user_filters, engine=engine, is_file=True)
+        for data_file_index, data_file_path in enumerate(iterator):
+            logger.debug(f"Loading data from {data_file_path}.")
+            data = load_standard_dataset(
+                data_file_path, user_filters, engine=engine, is_file=True
+            )
             if len(data.index) == 0:
                 continue
             # Use a different seed for each data file/shard, otherwise the randomness will duplicate
             # and the Nth row in each shard will get the same noise
-            data_path_seed = f"{seed}_{data_path_index}"
+            data_path_seed = f"{seed}_{data_file_index}"
             noised_data = _prep_and_noise_dataset(
                 data, dataset, configuration_tree, data_path_seed
             )
@@ -106,7 +108,7 @@ def _generate_dataset(
         if len(noised_dataset) == 0:
             raise ValueError(
                 "Invalid value provided for 'state' or 'year'. No data found with "
-                f"the user provided 'state' or 'year' filters at {data_path}."
+                f"the user provided 'state' or 'year' filters at {source / dataset.name}."
             )
         noised_dataset = pd.concat(noised_dataset, ignore_index=True)
 
@@ -118,16 +120,18 @@ def _generate_dataset(
             cleanse_int_cols=True,
         )
     else:
-        # Let dask deal with how to partition the shards -- the data path is the
+        # Let dask deal with how to partition the shards -- we pass it the
         # entire directory containing the parquet files
-        data_path = source / dataset.name
-        data = load_standard_dataset(data_path, user_filters, engine=engine, is_file=False)
+        data_directory_path = source / dataset.name
+        data = load_standard_dataset(
+            data_directory_path, user_filters, engine=engine, is_file=False
+        )
 
         # Check if all shards for the dataset are empty
         if len(data) == 0:
             raise ValueError(
                 "Invalid value provided for 'state' or 'year'. No data found with "
-                f"the user provided 'state' or 'year' filters at {data_path}."
+                f"the user provided 'state' or 'year' filters at {data_directory_path}."
             )
 
         noised_dataset = data.map_partitions(
