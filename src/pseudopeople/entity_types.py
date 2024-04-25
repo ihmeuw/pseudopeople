@@ -122,10 +122,6 @@ class ColumnNoiseType(NoiseType):
             column_name,
         )
 
-        # Coerce noised column dtype back to original column's if it has changed
-        if noised_data.dtype.name != data[column_name].dtype.name:
-            noised_data = noised_data.astype(data[column_name].dtype)
-
         result = data[column_name].copy()
         result.loc[to_noise_idx] = noised_data
 
