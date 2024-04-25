@@ -1,3 +1,9 @@
+**1.1.0 - 05/29/24**
+
+ - Adds out-of-core and distributed processing capability via Dask
+ - Fixes a bug with incorrect dtypes in some integer columns
+ - Corrects license metadata
+
 **1.0.0 - 02/12/24**
 
  - Adds duplicate with guardian row noise type
