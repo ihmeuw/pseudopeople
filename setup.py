@@ -51,10 +51,12 @@ if __name__ == "__main__":
         "jupyter",
     ]
 
+    dask_requirements = ["dask"]
+
     test_requirements = [
         "pytest",
         "pytest-mock",
-    ]
+    ] + dask_requirements
 
     lint_requirements = [
         "black==22.3.0",
@@ -109,6 +111,7 @@ if __name__ == "__main__":
             + test_requirements
             + interactive_requirements
             + lint_requirements,
+            "dask": dask_requirements,
         },
         # entry_points="""
         #         [console_scripts]
