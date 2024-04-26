@@ -30,6 +30,7 @@ def noise_dataset(
     dataset_data: pd.DataFrame,
     configuration: LayeredConfigTree,
     seed: Any,
+    progress_bar: bool = True,
 ) -> pd.DataFrame:
     """
     Adds noise to the input dataset data. Noise functions are executed in the order
@@ -57,7 +58,14 @@ def noise_dataset(
     # except for the leave_blank kind which is special-cased below
     missingness = (dataset_data == "") | (dataset_data.isna())
 
-    for noise_type in tqdm(NOISE_TYPES, desc="Applying noise", unit="type", leave=False):
+    if progress_bar:
+        noise_type_iterator = tqdm(
+            NOISE_TYPES, desc="Applying noise", unit="type", leave=False
+        )
+    else:
+        noise_type_iterator = NOISE_TYPES
+
+    for noise_type in noise_type_iterator:
         if isinstance(noise_type, RowNoiseType):
             if (
                 Keys.ROW_NOISE in noise_configuration
