@@ -122,29 +122,38 @@ def _generate_dataset(
         # Let dask deal with how to partition the shards -- we pass it the
         # entire directory containing the parquet files
         data_directory_path = source / dataset.name
-        data = load_standard_dataset(
-            data_directory_path, user_filters, engine=engine, is_file=False
-        )
+        import dask
 
-        # Check if all shards for the dataset are empty
-        if len(data) == 0:
-            raise ValueError(
-                "Invalid value provided for 'state' or 'year'. No data found with "
-                f"the user provided 'state' or 'year' filters at {data_directory_path}."
+        # Our work depends on the particulars of how dtypes work, and is only
+        # built to work with NumPy dtypes, so we turn off the Dask default behavior
+        # of using PyArrow dtypes.
+        with dask.config.set({"dataframe.convert-string": False}):
+            data = load_standard_dataset(
+                data_directory_path, user_filters, engine=engine, is_file=False
             )
+            # We are about to check the length, which requires computation anyway, so we cache
+            # that computation
+            data = data.persist()
 
-        noised_dataset = data.map_partitions(
-            lambda df, partition_info=None: _coerce_dtypes(
-                _prep_and_noise_dataset(
-                    df,
+            # Check if all shards for the dataset are empty
+            if len(data) == 0:
+                raise ValueError(
+                    "Invalid value provided for 'state' or 'year'. No data found with "
+                    f"the user provided 'state' or 'year' filters at {data_directory_path}."
+                )
+
+            noised_dataset = data.map_partitions(
+                lambda df, partition_info=None: _coerce_dtypes(
+                    _prep_and_noise_dataset(
+                        df,
+                        dataset,
+                        configuration_tree,
+                        seed=f"{seed}_{partition_info['number'] if partition_info is not None else 1}",
+                    ),
                     dataset,
-                    configuration_tree,
-                    seed=f"{seed}_{partition_info['number'] if partition_info is not None else 1}",
                 ),
-                dataset,
-            ),
-            meta=[(c.name, c.dtype_name) for c in dataset.columns],
-        )
+                meta=[(c.name, c.dtype_name) for c in dataset.columns],
+            )
 
     logger.debug("*** Finished ***")
 
