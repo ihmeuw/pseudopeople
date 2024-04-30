@@ -10,6 +10,7 @@ from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants.noise_type_metadata import INT_TO_STRING_COLUMNS
+from pseudopeople.dtypes import DtypeNames
 from pseudopeople.utilities import (
     get_index_to_noise,
     to_string_as_integer,
@@ -131,7 +132,7 @@ class ColumnNoiseType(NoiseType):
 
         input_dtype = data[column_name].dtype
         output_dtype = self.output_dtype_getter(input_dtype)
-        if output_dtype == np.dtype("O"):
+        if output_dtype == DtypeNames.OBJECT:
             as_output_dtype = (
                 to_string_as_integer
                 if column_name in INT_TO_STRING_COLUMNS
