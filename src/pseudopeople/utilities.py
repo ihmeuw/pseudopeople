@@ -11,6 +11,7 @@ from vivarium.framework.randomness import RandomnessStream, get_hash
 from vivarium.framework.randomness.index_map import IndexMap
 
 from pseudopeople.constants import metadata, paths
+from pseudopeople.dtypes import DtypeNames
 
 
 def get_randomness_stream(dataset_name: str, seed: Any, index: pd.Index) -> RandomnessStream:
@@ -186,12 +187,14 @@ def get_state_abbreviation(state: str) -> str:
 
 
 def to_string_preserve_nans(s: pd.Series) -> pd.Series:
-    result = s.astype(str)
+    # NOTE: In newer versions of pandas, astype(str) will use the *pandas*
+    # string type, which we haven't adopted yet.
+    result = s.astype(str).astype(DtypeNames.OBJECT)
     result[s.isna()] = np.nan
     return result
 
 
-def cleanse_integer_columns(column: pd.Series) -> pd.Series:
+def to_string_as_integer(column: pd.Series) -> pd.Series:
     column = to_string_preserve_nans(column)
     float_mask = column.notna() & (column.str.contains(".", regex=False))
     column.loc[float_mask] = column.loc[float_mask].astype(str).str.split(".").str[0]

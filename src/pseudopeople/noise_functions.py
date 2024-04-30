@@ -12,6 +12,7 @@ from pseudopeople.constants.noise_type_metadata import (
     COPY_HOUSEHOLD_MEMBER_COLS,
     GUARDIAN_DUPLICATION_ADDRESS_COLUMNS,
     HOUSING_TYPE_GUARDIAN_DUPLICATION_RELATONSHIP_MAP,
+    INT_TO_STRING_COLUMNS,
 )
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_scaling import (
@@ -23,6 +24,7 @@ from pseudopeople.utilities import (
     load_ocr_errors,
     load_phonetic_errors,
     load_qwerty_errors_data,
+    to_string_as_integer,
     two_d_array_choice,
     vectorized_choice,
 )
@@ -517,7 +519,11 @@ def write_wrong_digits(
     rng = np.random.default_rng(
         get_hash(f"{randomness_stream.seed}_{column_name}_write_wrong_digits")
     )
-    column = column.astype(str)
+    if column_name in INT_TO_STRING_COLUMNS:
+        column = to_string_as_integer(column)
+    else:
+        column = column.astype(str)
+
     max_str_length = column.str.len().max()
 
     possible_replacements = np.array(list("0123456789"))

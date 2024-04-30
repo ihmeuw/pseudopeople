@@ -26,11 +26,11 @@ from pseudopeople.interface import (
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Column
 from pseudopeople.utilities import (
-    cleanse_integer_columns,
     count_number_of_tokens_per_string,
     load_ocr_errors,
     load_phonetic_errors,
     load_qwerty_errors_data,
+    to_string_as_integer,
 )
 from tests.conftest import FuzzyChecker
 from tests.integration.conftest import (
@@ -247,7 +247,7 @@ def test_column_noising(dataset_name: str, config, request, fuzzy_checker: Fuzzy
             # Note: Coercing check_original to string. This seems like it should not
             # have passed before but our rtol was 0.7
             if col.name in INT_TO_STRING_COLUMNS:
-                check_original[col.name] = cleanse_integer_columns(check_original[col.name])
+                check_original[col.name] = to_string_as_integer(check_original[col.name])
             assert (
                 check_original.loc[to_compare_idx, col.name].values
                 != check_noised.loc[to_compare_idx, col.name].values
@@ -706,7 +706,7 @@ def _get_column_noise_level(
     # Note: Coercing check_original to string. This seems like it should not
     # have passed before but our rtol was 0.7
     if column.name in INT_TO_STRING_COLUMNS:
-        unnoised_data[column.name] = cleanse_integer_columns(unnoised_data[column.name])
+        unnoised_data[column.name] = to_string_as_integer(unnoised_data[column.name])
 
     noise_level = (
         unnoised_data.loc[to_compare_sample_idx, column.name].values

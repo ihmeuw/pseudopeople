@@ -2,13 +2,19 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
+import numpy as np
 import pandas as pd
 from layered_config_tree import LayeredConfigTree
 from loguru import logger
 from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
-from pseudopeople.utilities import get_index_to_noise
+from pseudopeople.constants.noise_type_metadata import INT_TO_STRING_COLUMNS
+from pseudopeople.utilities import (
+    get_index_to_noise,
+    to_string_as_integer,
+    to_string_preserve_nans,
+)
 
 
 @dataclass
@@ -77,6 +83,7 @@ class ColumnNoiseType(NoiseType):
     probability: Optional[float] = 0.01
     noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0
     additional_column_getter: Callable[[str], List[str]] = lambda column_name: []
+    output_dtype_getter: Callable[[np.dtype], np.dtype] = lambda dtype: dtype
 
     @property
     def probability_key(self) -> str:
@@ -122,7 +129,17 @@ class ColumnNoiseType(NoiseType):
             column_name,
         )
 
-        result = data[column_name].copy()
-        result.loc[to_noise_idx] = noised_data
+        input_dtype = data[column_name].dtype
+        output_dtype = self.output_dtype_getter(input_dtype)
+        if output_dtype == np.dtype("O"):
+            as_output_dtype = (
+                to_string_as_integer
+                if column_name in INT_TO_STRING_COLUMNS
+                else to_string_preserve_nans
+            )
+        else:
+            as_output_dtype = lambda x: x.astype(output_dtype)
+        result = as_output_dtype(data[column_name].copy())
+        result.loc[to_noise_idx] = as_output_dtype(noised_data)
 
         return result, to_noise_idx

@@ -16,17 +16,18 @@ from pseudopeople.constants.noise_type_metadata import (
     COPY_HOUSEHOLD_MEMBER_COLS,
     INT_TO_STRING_COLUMNS,
 )
+from pseudopeople.dtypes import DtypeNames
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.loader import load_standard_dataset
 from pseudopeople.noise import noise_dataset
-from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset, DtypeNames
+from pseudopeople.schema_entities import COLUMNS, DATASETS, Dataset
 from pseudopeople.utilities import (
     PANDAS_ENGINE,
     DataFrame,
-    cleanse_integer_columns,
     configure_logging_to_terminal,
     get_engine_from_string,
     get_state_abbreviation,
+    to_string_as_integer,
     to_string_preserve_nans,
 )
 
@@ -223,7 +224,7 @@ def _coerce_dtypes(
 ) -> pd.DataFrame:
     for col in dataset.columns:
         if col.name in INT_TO_STRING_COLUMNS:
-            data[col.name] = cleanse_integer_columns(data[col.name])
+            data[col.name] = to_string_as_integer(data[col.name])
 
         if col.dtype_name != data[col.name].dtype.name:
             if col.dtype_name == DtypeNames.OBJECT:
