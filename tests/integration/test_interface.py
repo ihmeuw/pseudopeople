@@ -188,7 +188,7 @@ def test_seed_behavior(dataset_name: str, engine: str, config, request):
         )
     else:
         noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
-        
+
     # Generate new (non-fixture) noised datasets with the same seed and a different
     # seed as the fixture
     noised_data_same_seed = generation_function(
@@ -237,7 +237,7 @@ def test_column_dtypes(dataset_name: str, engine: str, config, request):
     """Tests that column dtypes are as expected"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
-    
+
     if engine == "dask":
         generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
         noised_data = generation_function(
@@ -280,7 +280,9 @@ def test_column_dtypes(dataset_name: str, engine: str, config, request):
         "dask",
     ],
 )
-def test_column_noising(dataset_name: str, engine: str, config, request, fuzzy_checker: FuzzyChecker):
+def test_column_noising(
+    dataset_name: str, engine: str, config, request, fuzzy_checker: FuzzyChecker
+):
     """Tests that columns are noised as expected"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -362,7 +364,9 @@ def test_column_noising(dataset_name: str, engine: str, config, request, fuzzy_c
         "dask",
     ],
 )
-def test_row_noising_omit_row_or_do_not_respond(dataset_name: str, engine: str, config, request):
+def test_row_noising_omit_row_or_do_not_respond(
+    dataset_name: str, engine: str, config, request
+):
     """Tests that omit_row and do_not_respond row noising are being applied"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -383,9 +387,7 @@ def test_row_noising_omit_row_or_do_not_respond(dataset_name: str, engine: str, 
         ).compute()
     else:
         noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
-    noised_data = noised_data.set_index(
-        idx_cols
-    )
+    noised_data = noised_data.set_index(idx_cols)
     config = get_configuration(config)[dataset_name][Keys.ROW_NOISE]
     noise_type = [
         n for n in config if n in [NOISE_TYPES.omit_row.name, NOISE_TYPES.do_not_respond.name]
@@ -565,7 +567,9 @@ def test_generate_dataset_with_state_filtered(
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
 
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
-    noised_data = generation_function(source=split_sample_data_dir_state_edit, state=STATE, engine=engine)
+    noised_data = generation_function(
+        source=split_sample_data_dir_state_edit, state=STATE, engine=engine
+    )
     if engine == "dask":
         noised_data = noised_data.compute()
 
@@ -748,7 +752,9 @@ def test_generate_dataset_with_bad_state(
         "dask",
     ],
 )
-def test_generate_dataset_with_bad_year(dataset_name: str, engine: str, split_sample_data_dir, mocker):
+def test_generate_dataset_with_bad_year(
+    dataset_name: str, engine: str, split_sample_data_dir, mocker
+):
     """Test that a ValueError is raised both for a bad year and a year that has no data"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
