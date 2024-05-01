@@ -166,17 +166,49 @@ def test_generate_dataset_from_multiple_shards(
         DATASETS.tax_1040.name,
     ],
 )
-def test_seed_behavior(dataset_name: str, config, request):
+@pytest.mark.parametrize(
+    "engine",
+    [
+        "pandas",
+        "dask",
+    ],
+)
+def test_seed_behavior(dataset_name: str, engine: str, config, request):
     """Tests seed behavior"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
     data = _load_sample_data(dataset_name, request)
-    noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
+    if engine == "dask":
+        noised_data = generation_function(
+            seed=SEED,
+            year=None,
+            config=config,
+            engine=engine,
+        )
+    else:
+        noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
+        
     # Generate new (non-fixture) noised datasets with the same seed and a different
     # seed as the fixture
-    noised_data_same_seed = generation_function(seed=SEED, year=None, config=config)
-    noised_data_different_seed = generation_function(seed=SEED + 1, year=None, config=config)
+    noised_data_same_seed = generation_function(
+        seed=SEED,
+        year=None,
+        config=config,
+        engine=engine,
+    )
+    noised_data_different_seed = generation_function(
+        seed=SEED + 1,
+        year=None,
+        config=config,
+        engine=engine,
+    )
+
+    if engine == "dask":
+        noised_data = noised_data.compute()
+        noised_data_same_seed = noised_data_same_seed.compute()
+        noised_data_different_seed = noised_data_different_seed.compute()
+
     assert not data.equals(noised_data)
     assert noised_data.equals(noised_data_same_seed)
     assert not noised_data.equals(noised_data_different_seed)
@@ -194,11 +226,29 @@ def test_seed_behavior(dataset_name: str, config, request):
         DATASETS.tax_1040.name,
     ],
 )
-def test_column_dtypes(dataset_name: str, request):
+@pytest.mark.parametrize(
+    "engine",
+    [
+        "pandas",
+        "dask",
+    ],
+)
+def test_column_dtypes(dataset_name: str, engine: str, config, request):
     """Tests that column dtypes are as expected"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
-    noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
+    
+    if engine == "dask":
+        generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
+        noised_data = generation_function(
+            seed=SEED,
+            year=None,
+            config=config,
+            engine=engine,
+        ).compute()
+    else:
+        noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
+
     for col_name in noised_data.columns:
         col = COLUMNS.get_column(col_name)
         expected_dtype = col.dtype_name
@@ -223,12 +273,29 @@ def test_column_dtypes(dataset_name: str, request):
         DATASETS.tax_1040.name,
     ],
 )
-def test_column_noising(dataset_name: str, config, request, fuzzy_checker: FuzzyChecker):
+@pytest.mark.parametrize(
+    "engine",
+    [
+        "pandas",
+        "dask",
+    ],
+)
+def test_column_noising(dataset_name: str, engine: str, config, request, fuzzy_checker: FuzzyChecker):
     """Tests that columns are noised as expected"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     data = _load_sample_data(dataset_name, request)
-    noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
+    if engine == "dask":
+        generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
+        noised_data = generation_function(
+            seed=SEED,
+            year=None,
+            config=config,
+            engine=engine,
+        ).compute()
+    else:
+        noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
+
     check_noised, check_original, shared_idx = _get_common_datasets(
         dataset_name, data, noised_data
     )
@@ -288,7 +355,14 @@ def test_column_noising(dataset_name: str, config, request, fuzzy_checker: Fuzzy
         DATASETS.tax_1040.name,
     ],
 )
-def test_row_noising_omit_row_or_do_not_respond(dataset_name: str, config, request):
+@pytest.mark.parametrize(
+    "engine",
+    [
+        "pandas",
+        "dask",
+    ],
+)
+def test_row_noising_omit_row_or_do_not_respond(dataset_name: str, engine: str, config, request):
     """Tests that omit_row and do_not_respond row noising are being applied"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -299,7 +373,17 @@ def test_row_noising_omit_row_or_do_not_respond(dataset_name: str, config, reque
         dataset,
     )
     data = data.set_index(idx_cols)
-    noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}").set_index(
+    if engine == "dask":
+        generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
+        noised_data = generation_function(
+            seed=SEED,
+            year=None,
+            config=config,
+            engine=engine,
+        ).compute()
+    else:
+        noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
+    noised_data = noised_data.set_index(
         idx_cols
     )
     config = get_configuration(config)[dataset_name][Keys.ROW_NOISE]
@@ -350,14 +434,23 @@ def test_row_noising_duplication(dataset_name: str, config, request):
         DATASETS.tax_1040.name,
     ],
 )
-def test_generate_dataset_with_year(dataset_name: str, request):
+@pytest.mark.parametrize(
+    "engine",
+    [
+        "pandas",
+        "dask",
+    ],
+)
+def test_generate_dataset_with_year(dataset_name: str, engine: str, request):
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     year = 2030  # not default 2020
     generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
     data = _load_sample_data(dataset_name, request)
     # Generate a new (non-fixture) noised dataset for a single year
-    noised_data = generation_function(year=year)
+    noised_data = generation_function(year=year, engine=engine)
+    if engine == "dask":
+        noised_data = noised_data.compute()
     assert not data.equals(noised_data)
 
 
@@ -370,7 +463,14 @@ def test_generate_dataset_with_year(dataset_name: str, request):
         DATASETS.tax_1040.name,
     ],
 )
-def test_dataset_filter_by_year(mocker, dataset_name: str):
+@pytest.mark.parametrize(
+    "engine",
+    [
+        "pandas",
+        "dask",
+    ],
+)
+def test_dataset_filter_by_year(mocker, dataset_name: str, engine: str):
     """Mock the noising function so that it returns the date column of interest
     with the original (unnoised) values to ensure filtering is happening
     """
@@ -380,10 +480,12 @@ def test_dataset_filter_by_year(mocker, dataset_name: str):
     # Generate a new (non-fixture) noised dataset for a single year but mocked such
     # that no noise actually happens (otherwise the years would get noised and
     # we couldn't tell if the filter was working properly)
-    mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
+    # mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
-    noised_data = generation_function(year=year)
+    noised_data = generation_function(year=year, engine=engine)
+    if engine == "dask":
+        noised_data = noised_data.compute()
     dataset = DATASETS.get_dataset(dataset_name)
     assert (noised_data[dataset.date_column_name] == year).all()
 
@@ -396,7 +498,14 @@ def test_dataset_filter_by_year(mocker, dataset_name: str):
         DATASETS.ssa.name,
     ],
 )
-def test_dataset_filter_by_year_with_full_dates(mocker, dataset_name: str):
+@pytest.mark.parametrize(
+    "engine",
+    [
+        "pandas",
+        "dask",
+    ],
+)
+def test_dataset_filter_by_year_with_full_dates(mocker, dataset_name: str, engine: str):
     """Mock the noising function so that it returns the date column of interest
     with the original (unnoised) values to ensure filtering is happening
     """
@@ -404,10 +513,12 @@ def test_dataset_filter_by_year_with_full_dates(mocker, dataset_name: str):
     # Generate a new (non-fixture) noised dataset for a single year but mocked such
     # that no noise actually happens (otherwise the years would get noised and
     # we couldn't tell if the filter was working properly)
-    mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
+    # mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
-    noised_data = generation_function(year=year)
+    noised_data = generation_function(year=year, engine=engine)
+    if engine == "dask":
+        noised_data = noised_data.compute()
     dataset = DATASETS.get_dataset(dataset_name)
 
     noised_column = noised_data[dataset.date_column_name]
@@ -433,8 +544,15 @@ def test_dataset_filter_by_year_with_full_dates(mocker, dataset_name: str):
         DATASETS.tax_1040.name,
     ],
 )
+@pytest.mark.parametrize(
+    "engine",
+    [
+        "pandas",
+        "dask",
+    ],
+)
 def test_generate_dataset_with_state_filtered(
-    dataset_name: str, split_sample_data_dir_state_edit, mocker
+    dataset_name: str, engine: str, split_sample_data_dir_state_edit, mocker
 ):
     """Test that values returned by dataset generators are only for the specified state"""
     if "TODO" in dataset_name:
@@ -447,7 +565,9 @@ def test_generate_dataset_with_state_filtered(
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
 
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
-    noised_data = generation_function(source=split_sample_data_dir_state_edit, state=STATE)
+    noised_data = generation_function(source=split_sample_data_dir_state_edit, state=STATE, engine=engine)
+    if engine == "dask":
+        noised_data = noised_data.compute()
 
     assert (noised_data[dataset.state_column_name] == STATE).all()
 
@@ -463,8 +583,15 @@ def test_generate_dataset_with_state_filtered(
         DATASETS.tax_1040.name,
     ],
 )
+@pytest.mark.parametrize(
+    "engine",
+    [
+        "pandas",
+        "dask",
+    ],
+)
 def test_generate_dataset_with_state_unfiltered(
-    dataset_name: str, split_sample_data_dir_state_edit, mocker
+    dataset_name: str, engine: str, split_sample_data_dir_state_edit, mocker
 ):
     # Important note: Currently the way this test is working is we have a fixture where we have
     # edited the sample data so half of it has a state to filter to. However, when we split the
@@ -481,7 +608,7 @@ def test_generate_dataset_with_state_unfiltered(
     # Skip noising (noising can incorrect select another state)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
-    noised_data = generation_function(source=split_sample_data_dir_state_edit)
+    noised_data = generation_function(source=split_sample_data_dir_state_edit, engine=engine)
 
     assert len(noised_data[dataset.state_column_name].unique()) > 1
 
@@ -495,22 +622,32 @@ def test_generate_dataset_with_state_unfiltered(
         DATASETS.tax_1040.name,
     ],
 )
+@pytest.mark.parametrize(
+    "engine",
+    [
+        "pandas",
+        "dask",
+    ],
+)
 def test_dataset_filter_by_state_and_year(
-    mocker, split_sample_data_dir_state_edit, dataset_name: str
+    mocker, split_sample_data_dir_state_edit, dataset_name: str, engine: str
 ):
     """Test that dataset generation works with state and year filters in conjunction"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     year = 2030  # not default 2020
     mocker.patch("pseudopeople.interface.validate_source_compatibility")
-    mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
+    # mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
     noised_data = generation_function(
         source=split_sample_data_dir_state_edit,
         year=year,
         state=STATE,
+        engine=engine,
     )
+    if engine == "dask":
+        noised_data = noised_data.compute()
     dataset = DATASETS.get_dataset(dataset_name)
     assert (noised_data[dataset.date_column_name] == year).all()
     assert (noised_data[dataset.state_column_name] == STATE).all()
@@ -520,20 +657,30 @@ def test_dataset_filter_by_state_and_year(
     "dataset_name",
     [DATASETS.acs.name, DATASETS.cps.name],
 )
+@pytest.mark.parametrize(
+    "engine",
+    [
+        "pandas",
+        "dask",
+    ],
+)
 def test_dataset_filter_by_state_and_year_with_full_dates(
-    mocker, split_sample_data_dir_state_edit, dataset_name: str
+    mocker, split_sample_data_dir_state_edit, dataset_name: str, engine: str
 ):
     """Test that dataset generation works with state and year filters in conjunction"""
     year = 2030  # not default 2020
     mocker.patch("pseudopeople.interface.validate_source_compatibility")
-    mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
+    # mocker.patch("pseudopeople.interface._extract_columns", side_effect=_mock_extract_columns)
     mocker.patch("pseudopeople.interface.noise_dataset", side_effect=_mock_noise_dataset)
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
     noised_data = generation_function(
         source=split_sample_data_dir_state_edit,
         year=year,
         state=STATE,
+        engine=engine,
     )
+    if engine == "dask":
+        noised_data = noised_data.compute()
     dataset = DATASETS.get_dataset(dataset_name)
 
     noised_column = noised_data[dataset.date_column_name]
@@ -557,8 +704,15 @@ def test_dataset_filter_by_state_and_year_with_full_dates(
         DATASETS.tax_1040.name,
     ],
 )
+@pytest.mark.parametrize(
+    "engine",
+    [
+        "pandas",
+        "dask",
+    ],
+)
 def test_generate_dataset_with_bad_state(
-    dataset_name: str, split_sample_data_dir_state_edit, mocker
+    dataset_name: str, engine: str, split_sample_data_dir_state_edit, mocker
 ):
     """Test that bad state values result in informative ValueErrors"""
     if "TODO" in dataset_name:
@@ -567,10 +721,13 @@ def test_generate_dataset_with_bad_state(
     mocker.patch("pseudopeople.interface.validate_source_compatibility")
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
     with pytest.raises(ValueError, match=bad_state.upper()):
-        _ = generation_function(
+        df = generation_function(
             source=split_sample_data_dir_state_edit,
             state=bad_state,
+            engine=engine,
         )
+        if engine == "dask":
+            df.compute()
 
 
 @pytest.mark.parametrize(
@@ -584,7 +741,14 @@ def test_generate_dataset_with_bad_state(
         DATASETS.tax_1040.name,
     ],
 )
-def test_generate_dataset_with_bad_year(dataset_name: str, split_sample_data_dir, mocker):
+@pytest.mark.parametrize(
+    "engine",
+    [
+        "pandas",
+        "dask",
+    ],
+)
+def test_generate_dataset_with_bad_year(dataset_name: str, engine: str, split_sample_data_dir, mocker):
     """Test that a ValueError is raised both for a bad year and a year that has no data"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -593,24 +757,26 @@ def test_generate_dataset_with_bad_year(dataset_name: str, split_sample_data_dir
     mocker.patch("pseudopeople.interface.validate_source_compatibility")
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
     with pytest.raises(ValueError):
-        _ = generation_function(
+        df = generation_function(
             source=split_sample_data_dir,
             year=bad_year,
+            engine=engine,
         )
+        if engine == "dask":
+            df.compute()
     with pytest.raises(ValueError):
-        _ = generation_function(
+        df = generation_function(
             source=split_sample_data_dir,
             year=no_data_year,
+            engine=engine,
         )
+        if engine == "dask":
+            df.compute()
 
 
 ####################
 # HELPER FUNCTIONS #
 ####################
-
-
-def _mock_extract_columns(columns_to_keep, noised_dataset):
-    return noised_dataset
 
 
 def _mock_noise_dataset(
