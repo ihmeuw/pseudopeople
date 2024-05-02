@@ -618,6 +618,8 @@ def _mock_noise_dataset(
     dataset_data: pd.DataFrame,
     configuration,
     seed: int,
+    *args,
+    **kwargs,
 ):
     """Mock noise_dataset that just returns unnoised data"""
     return dataset_data
