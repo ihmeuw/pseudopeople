@@ -12,9 +12,7 @@ from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import DATEFORMATS
-from pseudopeople.constants.noise_type_metadata import (
-    COPY_HOUSEHOLD_MEMBER_COLS,
-)
+from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COLS
 from pseudopeople.dtypes import DtypeNames
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.loader import load_standard_dataset

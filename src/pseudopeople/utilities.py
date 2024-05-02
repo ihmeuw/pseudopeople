@@ -201,10 +201,11 @@ def to_string_as_integer(column: pd.Series) -> pd.Series:
     column.loc[float_mask] = column.loc[float_mask].astype(str).str.split(".").str[0]
     return column
 
+
 def to_string(column: pd.Series, column_name: str = None) -> pd.Series:
     if column_name is None:
         column_name = column.name
-    
+
     if column_name in INT_TO_STRING_COLUMNS:
         return to_string_as_integer(column)
     else:

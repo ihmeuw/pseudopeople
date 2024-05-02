@@ -10,10 +10,7 @@ from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
 from pseudopeople.dtypes import DtypeNames
-from pseudopeople.utilities import (
-    get_index_to_noise,
-    to_string,
-)
+from pseudopeople.utilities import get_index_to_noise, to_string
 
 
 @dataclass
