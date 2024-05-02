@@ -11,6 +11,7 @@ from vivarium.framework.randomness import RandomnessStream, get_hash
 from vivarium.framework.randomness.index_map import IndexMap
 
 from pseudopeople.constants import metadata, paths
+from pseudopeople.constants.noise_type_metadata import INT_TO_STRING_COLUMNS
 from pseudopeople.dtypes import DtypeNames
 
 
@@ -199,6 +200,15 @@ def to_string_as_integer(column: pd.Series) -> pd.Series:
     float_mask = column.notna() & (column.str.contains(".", regex=False))
     column.loc[float_mask] = column.loc[float_mask].astype(str).str.split(".").str[0]
     return column
+
+def to_string(column: pd.Series, column_name: str = None) -> pd.Series:
+    if column_name is None:
+        column_name = column.name
+    
+    if column_name in INT_TO_STRING_COLUMNS:
+        return to_string_as_integer(column)
+    else:
+        return to_string_preserve_nans(column)
 
 
 def count_number_of_tokens_per_string(s1: pd.Series, s2: pd.Series) -> pd.Series:

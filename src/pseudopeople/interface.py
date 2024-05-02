@@ -14,7 +14,6 @@ from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import DATEFORMATS
 from pseudopeople.constants.noise_type_metadata import (
     COPY_HOUSEHOLD_MEMBER_COLS,
-    INT_TO_STRING_COLUMNS,
 )
 from pseudopeople.dtypes import DtypeNames
 from pseudopeople.exceptions import DataSourceError
@@ -27,6 +26,7 @@ from pseudopeople.utilities import (
     configure_logging_to_terminal,
     get_engine_from_string,
     get_state_abbreviation,
+    to_string,
     to_string_as_integer,
     to_string_preserve_nans,
 )
@@ -230,12 +230,9 @@ def _coerce_dtypes(
     dataset: Dataset,
 ) -> pd.DataFrame:
     for col in dataset.columns:
-        if col.name in INT_TO_STRING_COLUMNS:
-            data[col.name] = to_string_as_integer(data[col.name])
-
         if col.dtype_name != data[col.name].dtype.name:
             if col.dtype_name == DtypeNames.OBJECT:
-                data[col.name] = to_string_preserve_nans(data[col.name])
+                data[col.name] = to_string(data[col.name])
             else:
                 data[col.name] = data[col.name].astype(col.dtype_name)
 
