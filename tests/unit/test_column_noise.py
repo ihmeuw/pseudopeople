@@ -15,6 +15,7 @@ from pseudopeople.utilities import (
     load_ocr_errors,
     load_phonetic_errors,
     load_qwerty_errors_data,
+    to_string_as_integer,
 )
 from tests.conftest import FuzzyChecker
 
@@ -207,9 +208,7 @@ def dummy_dataset():
     maximum_age = 120
     ages = integer_series.apply(pd.to_numeric, args=("coerce",))
     ages = ages / ages.max() * (maximum_age + 1)
-    ages[ages.isna()] = -1  # temp nan
-    ages = ages.astype(int).astype(str)
-    ages[ages == "-1"] = ""
+    ages = ages.astype(float).round()
 
     # Add a string_series column of mixed letters and numbers
     string_series = pd.Series(
@@ -227,7 +226,7 @@ def dummy_dataset():
     date_of_birth_series = pd.Series(
         date_of_birth_list * int(num_simulants / len(date_of_birth_list))
     )
-    copy_age_list = ["10", "20", "30", "40", "50", "60", "70", "80", "", "100"]
+    copy_age_list = [10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, np.nan, 100.0]
     copy_age_series = pd.Series(copy_age_list * int(num_simulants / len(copy_age_list)))
 
     phonetic_stress_test_series = pd.Series(
@@ -348,7 +347,7 @@ def test_generate_copy_from_household_member(dummy_dataset, fuzzy_checker: Fuzzy
 
     # Check for expected noise level
     expected_noise = config[Keys.CELL_PROBABILITY]
-    original_missing_idx = data.index[data["age"] == ""]
+    original_missing_idx = data.index[data["age"].isnull()]
     eligible_for_noise_idx = data.index.difference(original_missing_idx)
     data = data["age"]
     actual_noise = (noised_data[eligible_for_noise_idx] != data[eligible_for_noise_idx]).sum()
@@ -367,7 +366,13 @@ def test_generate_copy_from_household_member(dummy_dataset, fuzzy_checker: Fuzzy
         == noised_data.loc[noised_idx]
     ).all()
     not_noised_idx = dummy_dataset.index.difference(noised_idx)
-    assert (dummy_dataset.loc[not_noised_idx, "age"] == noised_data.loc[not_noised_idx]).all()
+    assert (
+        (dummy_dataset.loc[not_noised_idx, "age"] == noised_data.loc[not_noised_idx])
+        | (
+            dummy_dataset.loc[not_noised_idx, "age"].isnull()
+            & noised_data.loc[not_noised_idx].isnull()
+        )
+    ).all()
 
 
 def test_swap_months_and_days(dummy_dataset, fuzzy_checker: FuzzyChecker):
@@ -484,7 +489,7 @@ def test_miswrite_ages_default_config(dummy_dataset, fuzzy_checker: FuzzyChecker
     data = data.squeeze()
 
     # Check for expected noise level
-    not_missing_idx = data.index[data != ""]
+    not_missing_idx = data.index[data.notnull()]
     expected_noise = config[Keys.CELL_PROBABILITY]
     actual_noise = (noised_data[not_missing_idx] != data[not_missing_idx]).sum()
     # NOTE: the expected noise calculated above does not account for the fact that
@@ -582,7 +587,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
     But that's the same as the original age and so should become 1-1=0.
     """
     num_rows = 100
-    age = 1
+    age = 1.0
     perturbations = [-2]  # This will cause -1 which will be flipped to +1
 
     config = get_configuration(
@@ -600,7 +605,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
         },
     )[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.misreport_age.name]
 
-    data = pd.Series([str(age)] * num_rows, name="age")
+    data = pd.Series([age] * num_rows, name="age")
     df = pd.DataFrame({"age": data})
     noised_data, _ = NOISE_TYPES.misreport_age(df, config, RANDOMNESS0, "dataset", "age")
 
@@ -610,7 +615,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
 def test_miswrite_ages_flips_negative_to_positive():
     """Test that any ages perturbed to <0 are reflected to positive values"""
     num_rows = 100
-    age = 3
+    age = 3.0
     perturbations = [-7]  # This will cause -4 and should flip to +4
 
     config = get_configuration(
@@ -628,7 +633,7 @@ def test_miswrite_ages_flips_negative_to_positive():
         },
     )[DATASETS.census.name][Keys.COLUMN_NOISE]["age"][NOISE_TYPES.misreport_age.name]
 
-    data = pd.Series([str(age)] * num_rows, name="age")
+    data = pd.Series([age] * num_rows, name="age")
     df = pd.DataFrame({"age": data})
     noised_data, _ = NOISE_TYPES.misreport_age(df, config, RANDOMNESS0, "dataset", "age")
 
@@ -1353,13 +1358,13 @@ def test_age_write_wrong_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
     )
     # Calculate expected noise level
     data = data.squeeze()
-    missing_mask = data == ""
-    check_original = data[~missing_mask]
+    missing_mask = data.isnull()
+    check_original = data[~missing_mask].astype(int).astype(str)
     check_noised = noised_data[~missing_mask]
     expected_noise = (check_original != check_noised).sum()
     cell_probability = config[Keys.CELL_PROBABILITY]
     token_probability = config[Keys.TOKEN_PROBABILITY]
-    tokens_per_string = check_original.str.len()
+    tokens_per_string = check_original.astype(str).str.len()
     avg_probability_any_token_noised = (
         1 - (1 - token_probability) ** tokens_per_string
     ).mean()

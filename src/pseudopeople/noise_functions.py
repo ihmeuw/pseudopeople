@@ -23,6 +23,7 @@ from pseudopeople.utilities import (
     load_ocr_errors,
     load_phonetic_errors,
     load_qwerty_errors_data,
+    to_string,
     two_d_array_choice,
     vectorized_choice,
 )
@@ -517,7 +518,8 @@ def write_wrong_digits(
     rng = np.random.default_rng(
         get_hash(f"{randomness_stream.seed}_{column_name}_write_wrong_digits")
     )
-    column = column.astype(str)
+    column = to_string(column)
+
     max_str_length = column.str.len().max()
 
     possible_replacements = np.array(list("0123456789"))

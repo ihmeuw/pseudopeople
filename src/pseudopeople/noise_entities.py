@@ -1,6 +1,11 @@
 from typing import NamedTuple
 
-from pseudopeople import column_getters, noise_functions, noise_scaling
+from pseudopeople import (
+    column_getters,
+    noise_functions,
+    noise_scaling,
+    output_dtype_getters,
+)
 from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 
@@ -33,6 +38,7 @@ class __NoiseTypes(NamedTuple):
     leave_blank: ColumnNoiseType = ColumnNoiseType(
         "leave_blank",
         noise_functions.leave_blanks,
+        output_dtype_getter=output_dtype_getters.output_dtype_getter_leave_blank,
     )
     choose_wrong_option: ColumnNoiseType = ColumnNoiseType(
         "choose_wrong_option",
@@ -48,10 +54,12 @@ class __NoiseTypes(NamedTuple):
     swap_month_and_day: ColumnNoiseType = ColumnNoiseType(
         "swap_month_and_day",
         noise_functions.swap_months_and_days,
+        output_dtype_getter=output_dtype_getters.output_dtype_getter_always_string,
     )
     write_wrong_zipcode_digits: ColumnNoiseType = ColumnNoiseType(
         "write_wrong_zipcode_digits",
         noise_functions.write_wrong_zipcode_digits,
+        output_dtype_getter=output_dtype_getters.output_dtype_getter_always_string,
         additional_parameters={
             Keys.ZIPCODE_DIGIT_PROBABILITIES: [0.04, 0.04, 0.20, 0.36, 0.36],
         },
@@ -66,6 +74,7 @@ class __NoiseTypes(NamedTuple):
     write_wrong_digits: ColumnNoiseType = ColumnNoiseType(
         "write_wrong_digits",
         noise_functions.write_wrong_digits,
+        output_dtype_getter=output_dtype_getters.output_dtype_getter_always_string,
         additional_parameters={
             Keys.TOKEN_PROBABILITY: 0.1,
         },
@@ -82,6 +91,7 @@ class __NoiseTypes(NamedTuple):
     make_phonetic_errors: ColumnNoiseType = ColumnNoiseType(
         "make_phonetic_errors",
         noise_functions.make_phonetic_errors,
+        output_dtype_getter=output_dtype_getters.output_dtype_getter_always_string,
         additional_parameters={
             Keys.TOKEN_PROBABILITY: 0.1,
         },
@@ -89,6 +99,7 @@ class __NoiseTypes(NamedTuple):
     make_ocr_errors: ColumnNoiseType = ColumnNoiseType(
         "make_ocr_errors",
         noise_functions.make_ocr_errors,
+        output_dtype_getter=output_dtype_getters.output_dtype_getter_always_string,
         additional_parameters={
             Keys.TOKEN_PROBABILITY: 0.1,
         },
@@ -96,6 +107,7 @@ class __NoiseTypes(NamedTuple):
     make_typos: ColumnNoiseType = ColumnNoiseType(
         "make_typos",
         noise_functions.make_typos,
+        output_dtype_getter=output_dtype_getters.output_dtype_getter_always_string,
         additional_parameters={
             Keys.TOKEN_PROBABILITY: 0.1,
         },
