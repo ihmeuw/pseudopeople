@@ -2,17 +2,9 @@ from dataclasses import dataclass
 from typing import NamedTuple, Optional, Tuple
 
 from pseudopeople.constants.metadata import DATEFORMATS, DatasetNames
+from pseudopeople.dtypes import DtypeNames
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
-
-
-class DtypeNames:
-    """Container of expected dtype names"""
-
-    CATEGORICAL = "category"
-    DATETIME = "datetime64[ns]"
-    OBJECT = "object"
-    INT = "int64"
 
 
 @dataclass

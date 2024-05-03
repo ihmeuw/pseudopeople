@@ -11,7 +11,6 @@ from layered_config_tree import LayeredConfigTree
 from pandas.api.types import is_datetime64_any_dtype as is_datetime
 
 from pseudopeople.configuration import Keys, get_configuration
-from pseudopeople.constants.noise_type_metadata import INT_TO_STRING_COLUMNS
 from pseudopeople.interface import (
     _coerce_dtypes,
     _reformat_dates_for_noising,
@@ -26,11 +25,11 @@ from pseudopeople.interface import (
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASETS, Column
 from pseudopeople.utilities import (
-    cleanse_integer_columns,
     count_number_of_tokens_per_string,
     load_ocr_errors,
     load_phonetic_errors,
     load_qwerty_errors_data,
+    to_string_as_integer,
 )
 from tests.conftest import FuzzyChecker
 from tests.integration.conftest import (
@@ -244,10 +243,6 @@ def test_column_noising(dataset_name: str, config, request, fuzzy_checker: Fuzzy
         # Check for noising where applicable
         to_compare_idx = shared_idx.difference(originally_missing_idx)
         if col.noise_types:
-            # Note: Coercing check_original to string. This seems like it should not
-            # have passed before but our rtol was 0.7
-            if col.name in INT_TO_STRING_COLUMNS:
-                check_original[col.name] = cleanse_integer_columns(check_original[col.name])
             assert (
                 check_original.loc[to_compare_idx, col.name].values
                 != check_noised.loc[to_compare_idx, col.name].values
@@ -705,10 +700,6 @@ def _get_column_noise_level(
 
     # Check for noising where applicable
     to_compare_sample_idx = common_idx.difference(originally_missing_sample_idx)
-    # Note: Coercing check_original to string. This seems like it should not
-    # have passed before but our rtol was 0.7
-    if column.name in INT_TO_STRING_COLUMNS:
-        unnoised_data[column.name] = cleanse_integer_columns(unnoised_data[column.name])
 
     noise_level = (
         unnoised_data.loc[to_compare_sample_idx, column.name].values
