@@ -4,11 +4,11 @@ import pytest
 from vivarium.framework.randomness import RandomnessStream
 from vivarium.framework.randomness.index_map import IndexMap
 
+from pseudopeople.dtypes import DtypeNames
 from pseudopeople.noise_functions import _corrupt_tokens
-from pseudopeople.schema_entities import DtypeNames
 from pseudopeople.utilities import (
-    cleanse_integer_columns,
     get_index_to_noise,
+    to_string_as_integer,
     two_d_array_choice,
     vectorized_choice,
 )
@@ -53,12 +53,12 @@ CORRUPT_TOKENS_TEST_CASES = {
 }
 
 
-def test_cleanse_integer_columns():
+def test_to_string_as_integer():
     # This tests that object columns return only strings.
     # This is to handle dtype issues we were having with int/float/strings in
     # age, wages, and po box columns.
     s = pd.Series([np.nan, 1, "2.0", 3.01, 4.0, "5.055", np.nan])
-    t = cleanse_integer_columns(s)
+    t = to_string_as_integer(s)
     assert s.dtype.name == t.dtype.name
     assert t.dtype.name == DtypeNames.OBJECT
 
