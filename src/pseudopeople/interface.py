@@ -25,8 +25,6 @@ from pseudopeople.utilities import (
     get_engine_from_string,
     get_state_abbreviation,
     to_string,
-    to_string_as_integer,
-    to_string_preserve_nans,
 )
 
 
@@ -218,7 +216,7 @@ def _clean_input_data(
             # purely as a kind of DIY compression.
             # TODO: Determine whether this is benefitting us after
             # the switch to Parquet.
-            data[col.name] = to_string_preserve_nans(data[col.name])
+            data[col.name] = to_string(data[col.name])
 
     return data
 
