@@ -51,7 +51,7 @@ if __name__ == "__main__":
         "jupyter",
     ]
 
-    dask_requirements = ["dask"]
+    dask_requirements = ["dask[distributed,dataframe]"]
 
     test_requirements = [
         "pytest",

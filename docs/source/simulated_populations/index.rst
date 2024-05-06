@@ -146,14 +146,14 @@ across cores and requires the entire dataset to fit into RAM.
 If you're using one of the larger populations and don't have a huge computer, this
 will make dataset generation slow or impossible.
 
-To address this issue, we have included support for loading data with [Dask](https://www.dask.org/),
+To address this issue, we have included support for loading data with `Dask <https://www.dask.org/>`_,
 which can run across multiple cores (and even multiple separate computers in a cluster)
 and spill data to disk that doesn't fit in memory.
+With Dask, it is possible to generate a simulated full-scale Decennial Census dataset with
+64GB of RAM, or with 200GB of RAM in under 40 minutes.
 
-In most cases, you'll first want to start a Dask cluster across multiple processes or computers
-(the default is a cluster across threads, which isn't too helpful for pseudopeople).
-You can start a cluster on your local machine by running the following code anytime before
-your dataset generation call:
+First you'll first want to start a Dask cluster, on one or multiple computers.
+You can start a cluster on your local machine by running the following code:
 
 .. code-block:: python
 
@@ -163,12 +163,49 @@ your dataset generation call:
 
 **If you are on an shared computer, such as a node in a high-performance compute cluster,
 Dask will not know how many resources it can use.**
-See the :class:`distributed.LocalCluster` documentation for how to tell
-it how many CPUs and how much RAM to use.
+Below is an example of how to provide this information to Dask on a `Slurm <https://slurm.schedmd.com/>`_ cluster node.
+You will want to have as many Dask workers as your node has CPUs.
+See the :class:`distributed.LocalCluster` documentation for more information.
 
+.. code-block:: python
+
+  import os
+  from dask.distributed import LocalCluster
+  cluster = LocalCluster(
+    n_workers=int(os.environ['SLURM_CPUS_ON_NODE']),
+    threads_per_worker=1,
+    memory_limit=(
+      # Per worker!
+      int(os.environ['SLURM_MEM_PER_NODE']) / int(os.environ['SLURM_CPUS_ON_NODE'])
+    ) * 1_000 * 1_000, # Dask uses bytes, Slurm reports in megabytes.
+  )
+  client = cluster.get_client() # NOTE: This step is necessary, even if you don't use "client"!
+
+The more resources you give Dask, the faster it will work.
 For guidance on starting a Dask cluster across multiple machines, see `the Dask documentation
 about deployment <https://docs.dask.org/en/stable/deploying.html>`_.
 
 When you have a Dask cluster and a client connected to it,
-simply pass "dask" to the :code:`engine` parameter of any dataset generation function,
-and pseudopeople will use your cluster!
+simply pass "dask" to the :code:`engine` parameter of any dataset generation function.
+pseudopeople will use your cluster, and return a :class:`dask.dataframe.DataFrame`.
+
+.. code-block:: python
+
+  import pseudopeople as psp
+  df = psp.generate_decennial_census(
+    source="<directory path of unzipped simulated population>",
+    engine="dask",
+  )
+
+Working with Dask DataFrames is a bit different than working with Pandas DataFrames,
+though their APIs are similar.
+The biggest difference you will notice is that Dask DataFrames are *lazy*: they don't
+actually perform any computation until they have to.
+If you call :code:`df.compute()` on a large Dask DataFrame, it will likely crash,
+since it tries to load the entire data into memory.
+However, if you do operations first that cause the DataFrame to become small,
+such as filtering to only the first name "Meredith," :code:`df.compute()` will convert
+the resulting data into a familiar Pandas DataFrame.
+A common operation is to save your large data out to disk, which you can accomplish
+with :code:`df.to_csv('<directory for CSV files>')`
+without ever loading the entire dataset into memory at once.
