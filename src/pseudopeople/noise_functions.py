@@ -12,6 +12,7 @@ from pseudopeople.constants.noise_type_metadata import (
     COPY_HOUSEHOLD_MEMBER_COLS,
     GUARDIAN_DUPLICATION_ADDRESS_COLUMNS,
     HOUSING_TYPE_GUARDIAN_DUPLICATION_RELATONSHIP_MAP,
+    INT_TO_STRING_COLUMNS,
 )
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_scaling import (
