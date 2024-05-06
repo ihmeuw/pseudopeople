@@ -3,19 +3,15 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
+import numpy as np
 import pandas as pd
 from layered_config_tree import LayeredConfigTree
 from loguru import logger
 from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
-from pseudopeople.constants.noise_type_metadata import INT_TO_STRING_COLUMNS
 from pseudopeople.dtypes import DtypeNames
-from pseudopeople.utilities import (
-    get_index_to_noise,
-    to_string_as_integer,
-    to_string_preserve_nans,
-)
+from pseudopeople.utilities import get_index_to_noise, to_string
 
 
 @dataclass
@@ -133,11 +129,7 @@ class ColumnNoiseType(NoiseType):
         input_dtype = data[column_name].dtype
         output_dtype = self.output_dtype_getter(input_dtype)
         if output_dtype == DtypeNames.OBJECT:
-            as_output_dtype = (
-                to_string_as_integer
-                if column_name in INT_TO_STRING_COLUMNS
-                else to_string_preserve_nans
-            )
+            as_output_dtype = to_string
         else:
             as_output_dtype = lambda x: x.astype(output_dtype)
         result = as_output_dtype(data[column_name].copy())

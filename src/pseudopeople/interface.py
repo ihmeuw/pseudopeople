@@ -12,10 +12,7 @@ from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import DATEFORMATS
-from pseudopeople.constants.noise_type_metadata import (
-    COPY_HOUSEHOLD_MEMBER_COLS,
-    INT_TO_STRING_COLUMNS,
-)
+from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COLS
 from pseudopeople.dtypes import DtypeNames
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.loader import load_standard_dataset
@@ -27,8 +24,7 @@ from pseudopeople.utilities import (
     configure_logging_to_terminal,
     get_engine_from_string,
     get_state_abbreviation,
-    to_string_as_integer,
-    to_string_preserve_nans,
+    to_string,
 )
 
 
@@ -229,7 +225,7 @@ def _clean_input_data(
             # purely as a kind of DIY compression.
             # TODO: Determine whether this is benefitting us after
             # the switch to Parquet.
-            data[col.name] = to_string_preserve_nans(data[col.name])
+            data[col.name] = to_string(data[col.name])
 
     return data
 
@@ -239,12 +235,9 @@ def _coerce_dtypes(
     dataset: Dataset,
 ) -> pd.DataFrame:
     for col in dataset.columns:
-        if col.name in INT_TO_STRING_COLUMNS:
-            data[col.name] = to_string_as_integer(data[col.name])
-
         if col.dtype_name != data[col.name].dtype.name:
             if col.dtype_name == DtypeNames.OBJECT:
-                data[col.name] = to_string_preserve_nans(data[col.name])
+                data[col.name] = to_string(data[col.name])
             else:
                 data[col.name] = data[col.name].astype(col.dtype_name)
 
