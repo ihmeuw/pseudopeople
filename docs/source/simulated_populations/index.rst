@@ -146,7 +146,7 @@ across cores and requires the entire dataset to fit into RAM.
 If you're using one of the larger populations and don't have a huge computer, this
 will make dataset generation slow or impossible.
 
-To address this issue, you'll want to generate your dataset with Dask,
+To address this issue, we have included support for loading data with [Dask](https://www.dask.org/),
 which can run across multiple cores (and even multiple separate computers in a cluster)
 and spill data to disk that doesn't fit in memory.
 
