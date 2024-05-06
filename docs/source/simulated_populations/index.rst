@@ -138,10 +138,37 @@ Once you've unzipped the simulated population data, you can pass the directory
 path to the :code:`source` parameter of the :ref:`dataset generation functions
 <dataset_generation_functions>` to generate large-scale datasets!
 
-If you're using one of the larger populations, you'll also want to take a look at the
-:code:`engine` parameter.
+Generating datasets with Dask
+"""""""""""""""""""""""""""""
+
 By default, pseudopeople generates datasets using Pandas, which does not fully parallelize
 across cores and requires the entire dataset to fit into RAM.
-However, by passing "dask" to the :code:`engine` parameter, you can run the dataset
-generation on a Dask cluster, which can spill data to disk and even distribute
-the computation across multiple computers!
+If you're using one of the larger populations and don't have a huge computer, this
+will make dataset generation slow or impossible.
+
+To address this issue, you'll want to generate your dataset with Dask,
+which can run across multiple cores (and even multiple separate computers in a cluster)
+and spill data to disk that doesn't fit in memory.
+
+In most cases, you'll first want to start a Dask cluster across multiple processes or computers
+(the default is a cluster across threads, which isn't too helpful for pseudopeople).
+You can start a cluster on your local machine by running the following code anytime before
+your dataset generation call:
+
+.. code-block:: python
+
+  from dask.distributed import LocalCluster
+  cluster = LocalCluster() # Fully-featured local Dask cluster
+  client = cluster.get_client() # NOTE: This step is necessary, even if you don't use "client"!
+
+**If you are on an shared computer, such as a node in a high-performance compute cluster,
+Dask will not know how many resources it can use.**
+See the :class:`distributed.LocalCluster` documentation for how to tell
+it how many CPUs and how much RAM to use.
+
+For guidance on starting a Dask cluster across multiple machines, see `the Dask documentation
+about deployment <https://docs.dask.org/en/stable/deploying.html>`_.
+
+When you have a Dask cluster and a client connected to it,
+simply pass "dask" to the :code:`engine` parameter of any dataset generation function,
+and pseudopeople will use your cluster!
