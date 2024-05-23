@@ -115,6 +115,14 @@ def _generate_dataset(
             dataset,
         )
     else:
+        try:
+            from distributed.client import default_client
+
+            default_client().run(lambda: configure_logging_to_terminal(verbose))
+        except ImportError:
+            # Not using a distributed cluster, so the configure_logging_to_terminal call above already did everything
+            pass
+
         # Let dask deal with how to partition the shards -- we pass it the
         # entire directory containing the parquet files
         data_directory_path = source / dataset.name
