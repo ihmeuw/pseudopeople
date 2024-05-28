@@ -138,10 +138,108 @@ Once you've unzipped the simulated population data, you can pass the directory
 path to the :code:`source` parameter of the :ref:`dataset generation functions
 <dataset_generation_functions>` to generate large-scale datasets!
 
-If you're using one of the larger populations, you'll also want to take a look at the
-:code:`engine` parameter.
-By default, pseudopeople generates datasets using Pandas, which does not fully parallelize
-across cores and requires the entire dataset to fit into RAM.
-However, by passing "dask" to the :code:`engine` parameter, you can run the dataset
-generation on a Dask cluster, which can spill data to disk and even distribute
-the computation across multiple computers!
+Generating datasets with Dask
+"""""""""""""""""""""""""""""
+
+By default, pseudopeople generates datasets using pandas.
+pandas stores data in random access memory (RAM),
+which is `fast but fairly small <https://en.wikipedia.org/wiki/Memory_hierarchy>`_.
+If you try to generate a larger-scale pseudopeople dataset with pandas
+on a laptop (or even a large server), you may not have enough RAM to do so.
+pandas also mostly doesn't parallelize across CPU cores,
+which slows down dataset generation.
+
+To address these issues, we have included support for loading data with `Dask <https://www.dask.org/>`_,
+which can run across multiple cores (and even multiple separate computers in a cluster)
+and use disk (which is slower but larger) when datasets don't fit in RAM.
+With Dask, it is possible to generate a simulated full-scale Decennial Census dataset with
+64GB of RAM in under 2 hours, or with 200GB of RAM in under 40 minutes.
+It should be possible to generate full-scale datasets with even less RAM,
+though it will be very slow.
+
+First you'll first want to start a Dask cluster, on one or multiple computers.
+You can start a cluster on your local machine by running the following code:
+
+.. code-block:: python
+
+  from dask.distributed import LocalCluster
+  cluster = LocalCluster() # Fully-featured local Dask cluster
+  client = cluster.get_client() # NOTE: This step is necessary, even if you don't use "client"!
+
+**If you are on an shared computer, such as a node in a high-performance compute cluster,
+Dask will not know how many resources it can use.**
+Below is an example of how to provide this information to Dask on a `Slurm <https://slurm.schedmd.com/>`_ cluster node.
+You will usually want to have as many Dask workers as you have CPUs,
+though you may need to use fewer if you don't have enough RAM to process
+that much data at once.
+See the :class:`distributed.LocalCluster` documentation for more information
+on local Dask cluster setup.
+
+.. code-block:: python
+
+  import os
+  from dask.distributed import LocalCluster
+  cluster = LocalCluster(
+    n_workers=int(os.environ["SLURM_CPUS_ON_NODE"]),
+    threads_per_worker=1,
+    memory_limit=(
+      # Per worker!
+      int(os.environ["SLURM_MEM_PER_NODE"]) / int(os.environ["SLURM_CPUS_ON_NODE"])
+    ) * 1_000 * 1_000, # Dask uses bytes, Slurm reports in megabytes.
+  )
+  client = cluster.get_client() # NOTE: This step is necessary, even if you don't use "client"!
+
+The more resources you give Dask, the faster it will work.
+For guidance on starting a Dask cluster across multiple machines, see `the Dask documentation
+about deployment <https://docs.dask.org/en/stable/deploying.html>`_.
+
+When you have a Dask cluster and a client connected to it,
+simply pass "dask" to the :code:`engine` parameter of any dataset generation function.
+pseudopeople will use your cluster, and return a :class:`dask.dataframe.DataFrame`.
+
+.. code-block:: python
+
+  import pseudopeople as psp
+  df = psp.generate_decennial_census(
+    source="<directory path of unzipped simulated population>",
+    engine="dask",
+  )
+
+Working with Dask DataFrames is a bit different than working with pandas DataFrames,
+though their APIs are similar.
+The biggest difference you will notice is that Dask DataFrames are *lazy*: they don't
+actually perform any computation until they have to.
+If you want to save your generated dataset to CSV, it isn't until you
+call :code:`to_csv` that the dataset gets generated.
+
+.. code-block:: python
+
+  df.to_csv("/your/directory/for/csv/files")
+
+Many operations in Dask work the same way they do in pandas.
+For example, filtering a DataFrame looks like this:
+
+.. code-block:: python
+
+  people_named_jeff = df[df.first_name == "Jeff"]
+
+Note that :code:`people_named_jeff` is *also* a Dask DataFrame, so nothing has
+actually happened yet.
+It is only when you do something like saving it to a file that it gets computed.
+
+.. code-block:: python
+
+  people_named_jeff.to_csv("/your/directory/for/csv/files")
+
+If you need to do more complicated operations that are hard to do using Dask,
+you can convert any Dask DataFrame into a pandas DataFrame by calling :code:`df.compute()`.
+**Do not do this for very large DataFrames** -- this will attempt to load them into RAM
+and crash if you don't have enough.
+In our case, maybe there are few enough people named Jeff that we can call:
+
+.. code-block:: python
+
+  people_named_jeff_pandas = people_named_jeff.compute()
+
+From then on, we can manipulate :code:`people_named_jeff_pandas` like any other pandas
+DataFrame.
