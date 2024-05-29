@@ -119,7 +119,7 @@ def _generate_dataset(
             from distributed.client import default_client
 
             default_client().run(lambda: configure_logging_to_terminal(verbose))
-        except ImportError:
+        except (ImportError, ValueError):
             # Not using a distributed cluster, so the configure_logging_to_terminal call above already did everything
             pass
 
