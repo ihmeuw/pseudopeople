@@ -279,9 +279,9 @@ def test_two_noise_functions_are_independent(mocker, fuzzy_checker: FuzzyChecker
         dataset_name: str,
         column_name: str,
     ):
-        data.loc[to_noise_idx, column_name] = data.loc[
-            to_noise_idx, column_name
-        ].str.cat(pd.Series("abc", index=to_noise_idx))
+        data.loc[to_noise_idx, column_name] = data.loc[to_noise_idx, column_name].str.cat(
+            pd.Series("abc", index=to_noise_idx)
+        )
 
     def beta_noise_function(
         data: pd.DataFrame,
@@ -291,10 +291,10 @@ def test_two_noise_functions_are_independent(mocker, fuzzy_checker: FuzzyChecker
         dataset_name: str,
         column_name: str,
     ):
-        data.loc[to_noise_idx, column_name] = data.loc[
-            to_noise_idx, column_name
-        ].str.cat(pd.Series("123", index=to_noise_idx))
-    
+        data.loc[to_noise_idx, column_name] = data.loc[to_noise_idx, column_name].str.cat(
+            pd.Series("123", index=to_noise_idx)
+        )
+
     def leave_blank_noise_function(
         data: pd.DataFrame,
         configuration: any,

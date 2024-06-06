@@ -318,9 +318,7 @@ def test_choose_wrong_option(dummy_dataset, fuzzy_checker: FuzzyChecker):
     ]
     data = dummy_dataset[["state"]]
     noised_data = data.copy()
-    NOISE_TYPES.choose_wrong_option(
-        noised_data, config, RANDOMNESS0, "dataset", "state"
-    )
+    NOISE_TYPES.choose_wrong_option(noised_data, config, RANDOMNESS0, "dataset", "state")
     data = data.squeeze()
     noised_data = noised_data.squeeze()
     # Check for expected noise level
@@ -346,9 +344,7 @@ def test_generate_copy_from_household_member(dummy_dataset, fuzzy_checker: Fuzzy
     ]
     data = dummy_dataset[["age", "copy_age"]]
     noised_data = data.copy()
-    NOISE_TYPES.copy_from_household_member(
-        noised_data, config, RANDOMNESS0, "dataset", "age"
-    )
+    NOISE_TYPES.copy_from_household_member(noised_data, config, RANDOMNESS0, "dataset", "age")
 
     # Check for expected noise level
     expected_noise = config[Keys.CELL_PROBABILITY]
@@ -495,7 +491,7 @@ def test_miswrite_ages_default_config(dummy_dataset, fuzzy_checker: FuzzyChecker
         NOISE_TYPES.misreport_age.name
     ]
     data = dummy_dataset[["age"]]
-    
+
     noised_data = data.copy()
     NOISE_TYPES.misreport_age(noised_data, config, RANDOMNESS0, "dataset", "age")
     data = data.squeeze()
@@ -868,9 +864,7 @@ def test_use_nickname(dummy_dataset, fuzzy_checker: FuzzyChecker):
     expected_noise = config[Keys.CELL_PROBABILITY]
     data = dummy_dataset[["first_name"]]
     noised_data = data.copy()
-    NOISE_TYPES.use_nickname(
-        noised_data, config, RANDOMNESS0, "dataset", "first_name"
-    )
+    NOISE_TYPES.use_nickname(noised_data, config, RANDOMNESS0, "dataset", "first_name")
     data = data.squeeze()
     noised_data = noised_data.squeeze()
 
@@ -1034,9 +1028,7 @@ def test_generate_phonetic_errors(dummy_dataset, column, fuzzy_checker: FuzzyChe
         NOISE_TYPES.make_phonetic_errors.name
     ]
     noised_data = data.copy()
-    NOISE_TYPES.make_phonetic_errors(
-        noised_data, config, RANDOMNESS0, "dataset", column
-    )
+    NOISE_TYPES.make_phonetic_errors(noised_data, config, RANDOMNESS0, "dataset", column)
     data = data.squeeze()
     noised_data = noised_data.squeeze()
 
@@ -1094,9 +1086,7 @@ def test_phonetic_error_values(pair, fuzzy_checker: FuzzyChecker):
     }
     df = pd.DataFrame({"column": data})
     noised_data = df.copy()
-    NOISE_TYPES.make_phonetic_errors(
-        noised_data, config, RANDOMNESS0, "dataset", "column"
-    )
+    NOISE_TYPES.make_phonetic_errors(noised_data, config, RANDOMNESS0, "dataset", "column")
     noised_data = noised_data.squeeze()
 
     assert noised_data.isin(
@@ -1401,9 +1391,7 @@ def test_age_write_wrong_digits(dummy_dataset, fuzzy_checker: FuzzyChecker):
     ]
     data = dummy_dataset[["age"]]
     noised_data = data.copy()
-    NOISE_TYPES.write_wrong_digits(
-        noised_data, config, RANDOMNESS0, "dataset", "age"
-    )
+    NOISE_TYPES.write_wrong_digits(noised_data, config, RANDOMNESS0, "dataset", "age")
     # Calculate expected noise level
     data = data.squeeze()
     noised_data = noised_data.squeeze()
