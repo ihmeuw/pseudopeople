@@ -15,6 +15,7 @@ from pseudopeople.constants.noise_type_metadata import (
     INT_TO_STRING_COLUMNS,
 )
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
+from pseudopeople.dtypes import DtypeNames
 from pseudopeople.noise_scaling import (
     load_incorrect_select_options,
     load_nicknames_data,
@@ -305,6 +306,7 @@ def duplicate_with_guardian(
 
 def choose_wrong_options(
     data: pd.DataFrame,
+    to_noise_idx: pd.Index,
     _: LayeredConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
@@ -333,16 +335,17 @@ def choose_wrong_options(
     options = selection_options.loc[selection_options[selection_type].notna(), selection_type]
     new_values = vectorized_choice(
         options=options,
-        n_to_choose=len(data),
+        n_to_choose=len(to_noise_idx),
         randomness_stream=randomness_stream,
         additional_key=f"{column_name}_incorrect_select_choice",
     ).to_numpy()
 
-    return pd.Series(new_values, index=data.index, name=column_name)
+    data.loc[to_noise_idx, column_name] = _ensure_dtype(pd.Series(new_values, index=to_noise_idx), data[column_name].dtype)
 
 
 def copy_from_household_member(
     data: pd.DataFrame,
+    to_noise_idx: pd.Index,
     configuration: LayeredConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
@@ -357,13 +360,13 @@ def copy_from_household_member(
     :returns: pd.Series where data has been noised with other values from a list of possibilities
     """
 
-    copy_values = data[COPY_HOUSEHOLD_MEMBER_COLS[column_name]]
-    column = pd.Series(copy_values, index=data.index, name=column_name)
-    return column
+    copy_values = data.loc[to_noise_idx, COPY_HOUSEHOLD_MEMBER_COLS[column_name]]
+    data.loc[to_noise_idx, column_name] = _ensure_dtype(pd.Series(copy_values, index=to_noise_idx), data[column_name].dtype)
 
 
 def swap_months_and_days(
     data: pd.DataFrame,
+    to_noise_idx: pd.Index,
     _: LayeredConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
@@ -380,9 +383,11 @@ def swap_months_and_days(
     """
     from pseudopeople.schema_entities import DATASETS, DATEFORMATS
 
+    data[column_name] = _ensure_dtype(data[column_name], DtypeNames.OBJECT)
+
     date_format = DATASETS.get_dataset(dataset_name).date_format
 
-    column = data[column_name]
+    column = data.loc[to_noise_idx, column_name]
     if date_format == DATEFORMATS.YYYYMMDD:  # YYYYMMDD
         year = column.str[:4]
         month = column.str[4:6]
@@ -401,11 +406,11 @@ def swap_months_and_days(
     else:
         raise ValueError(f"Invalid date format in {dataset_name}.")
 
-    return noised
-
+    data.loc[to_noise_idx, column_name] = noised
 
 def write_wrong_zipcode_digits(
     data: pd.DataFrame,
+    to_noise_idx: pd.Index,
     configuration: LayeredConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
@@ -421,7 +426,9 @@ def write_wrong_zipcode_digits(
     :return: pd.Series of noised zipcodes
     """
 
-    column = data[column_name]
+    data[column_name] = _ensure_dtype(data[column_name], DtypeNames.OBJECT)
+
+    column = data.loc[to_noise_idx, column_name]
     str_len = column.str.len()
     if (str_len != 5).sum() > 0:
         # TODO: This is a BAD error message. It should never appear and if it
@@ -452,15 +459,14 @@ def write_wrong_zipcode_digits(
     # view("U1") then reinterprets this memory as an array of individual (Unicode) characters.
     same_len_col_exploded = column.values.astype("U5").view("U1").reshape(shape)
     same_len_col_exploded[replace] = random_digits
-    return pd.Series(
-        same_len_col_exploded.view("U5").reshape(len(column)),
-        index=column.index,
-        name=column.name,
-    )
+
+    noised_values = same_len_col_exploded.view("U5").reshape(len(column))
+    data.loc[to_noise_idx, column_name] = noised_values
 
 
 def misreport_ages(
     data: pd.DataFrame,
+    to_noise_idx: pd.Index,
     configuration: LayeredConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
@@ -476,7 +482,7 @@ def misreport_ages(
     :return: pd.Series with some values noised from the original
     """
 
-    column = data[column_name]
+    column = data.loc[to_noise_idx, column_name]
     possible_perturbations = configuration[Keys.POSSIBLE_AGE_DIFFERENCES].to_dict()
     perturbations = vectorized_choice(
         options=list(possible_perturbations.keys()),
@@ -491,11 +497,12 @@ def misreport_ages(
     # If new age == original age, subtract 1
     new_values[new_values == column.astype(int)] -= 1
 
-    return new_values
+    data.loc[to_noise_idx, column_name] = _ensure_dtype(pd.Series(new_values, index=to_noise_idx), data[column_name].dtype)
 
 
 def write_wrong_digits(
     data: pd.DataFrame,
+    to_noise_idx: pd.Index,
     configuration: LayeredConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
@@ -511,7 +518,8 @@ def write_wrong_digits(
 
     returns: pd.Series with some numeric values experiencing noise.
     """
-    column = data[column_name]
+    data[column_name] = to_string(data[column_name])
+    column = data.loc[to_noise_idx, column_name]
     if column.empty:
         return column
     # This is a fix to not replacing the original token for noise options
@@ -519,7 +527,6 @@ def write_wrong_digits(
     rng = np.random.default_rng(
         get_hash(f"{randomness_stream.seed}_{column_name}_write_wrong_digits")
     )
-    column = to_string(column)
 
     max_str_length = column.str.len().max()
 
@@ -549,11 +556,12 @@ def write_wrong_digits(
     same_len_col_exploded[replace] = random_digits
     noised_column = same_len_col_exploded.view(f"U{max_str_length}").reshape(len(column))
 
-    return pd.Series(noised_column, index=column.index, name=column.name)
+    data.loc[to_noise_idx, column_name] = noised_column
 
 
 def use_nicknames(
     data: pd.DataFrame,
+    to_noise_idx: pd.Index,
     _: LayeredConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
@@ -570,7 +578,7 @@ def use_nicknames(
     """
     nicknames = load_nicknames_data()
     nickname_eligible_names = set(nicknames.index)
-    column = data[column_name]
+    column = data.loc[to_noise_idx, column_name]
     have_nickname_idx = column.index[column.isin(nickname_eligible_names)]
     noised = two_d_array_choice(
         column.loc[have_nickname_idx],
@@ -578,12 +586,12 @@ def use_nicknames(
         randomness_stream,
         f"{column_name}_use_nicknames",
     )
-    column.loc[have_nickname_idx] = noised
-    return column
+    data.loc[have_nickname_idx, column_name] = _ensure_dtype(pd.Series(noised, index=to_noise_idx), data[column_name].dtype)
 
 
 def use_fake_names(
     data: pd.DataFrame,
+    to_noise_idx: pd.Index,
     _: LayeredConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
@@ -597,7 +605,7 @@ def use_fake_names(
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return:
     """
-    column = data[column_name]
+    column = data.loc[to_noise_idx, column_name]
     fake_first = fake_first_names
     fake_last = fake_last_names
     fake_names = {
@@ -623,11 +631,13 @@ def use_fake_names(
         randomness_stream=randomness_stream,
         additional_key=f"{column_name}_fake_names",
     )
-    return pd.Series(new_values, index=column.index, name=column.name)
+
+    data.loc[to_noise_idx, column_name] = _ensure_dtype(pd.Series(new_values, index=to_noise_idx), data[column_name].dtype)
 
 
 def make_phonetic_errors(
-    data: pd.Series,
+    data: pd.DataFrame,
+    to_noise_idx: pd.Index,
     configuration: LayeredConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
@@ -645,9 +655,11 @@ def make_phonetic_errors(
     # Load phonetic errors
     phonetic_errors = load_phonetic_errors()
 
-    return _corrupt_tokens(
+    data[column_name] = to_string(data[column_name])
+
+    data.loc[to_noise_idx, column_name] = _corrupt_tokens(
         phonetic_errors,
-        data[column_name].astype(str),
+        data.loc[to_noise_idx, column_name],
         configuration[Keys.TOKEN_PROBABILITY],
         randomness_stream,
         addl_key=f"{column_name}_make_phonetic_errors",
@@ -656,6 +668,7 @@ def make_phonetic_errors(
 
 def leave_blanks(
     data: pd.DataFrame,
+    to_noise_idx: pd.Index,
     configuration: LayeredConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
@@ -669,11 +682,16 @@ def leave_blanks(
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     """
-    return pd.Series(np.nan, index=data.index, name=column_name)
+
+    input_dtype = data[column_name].dtype
+    output_dtype = "float" if "int" in input_dtype.name else input_dtype
+    data[column_name] = _ensure_dtype(data[column_name], output_dtype)
+    data.loc[to_noise_idx, column_name] = np.nan
 
 
 def make_typos(
     data: pd.DataFrame,
+    to_noise_idx: pd.Index,
     configuration: LayeredConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
@@ -692,7 +710,9 @@ def make_typos(
     qwerty_errors = load_qwerty_errors_data()
     qwerty_errors_eligible_chars = set(qwerty_errors.index)
 
-    column = data[column_name]
+    data[column_name] = to_string(data[column_name])
+
+    column = data.loc[to_noise_idx, column_name]
     if column.empty:
         return column
     column = column.astype(str)
@@ -755,11 +775,12 @@ def make_typos(
 
     noised_column = np.sum(same_len_col_exploded, axis=1)
 
-    return pd.Series(noised_column, index=column.index, name=column.name)
+    data.loc[to_noise_idx, column_name] = noised_column
 
 
 def make_ocr_errors(
     data: pd.DataFrame,
+    to_noise_idx: pd.Index,
     configuration: LayeredConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
@@ -776,9 +797,11 @@ def make_ocr_errors(
     # Load OCR error dict
     ocr_errors = load_ocr_errors()
 
-    return _corrupt_tokens(
+    data[column_name] = to_string(data[column_name])
+
+    data.loc[to_noise_idx, column_name] = _corrupt_tokens(
         ocr_errors,
-        data[column_name].astype(str),
+        data.loc[to_noise_idx, column_name],
         configuration[Keys.TOKEN_PROBABILITY],
         randomness_stream,
         addl_key=f"{column_name}_make_ocr_errors",
@@ -927,3 +950,9 @@ def _corrupt_tokens(
 
     # "Un-explode" (re-concatenate) each string from its pieces.
     return pd.Series(result.sum(axis=1), index=column.index)
+
+def _ensure_dtype(data: pd.Series, dtype):
+    if dtype == DtypeNames.OBJECT:
+        return to_string(data)
+    else:
+        return data.astype(dtype)

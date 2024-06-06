@@ -79,7 +79,6 @@ class ColumnNoiseType(NoiseType):
     probability: Optional[float] = 0.01
     noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0
     additional_column_getter: Callable[[str], List[str]] = lambda column_name: []
-    output_dtype_getter: Callable[[np.dtype], np.dtype] = lambda dtype: dtype
 
     @property
     def probability_key(self) -> str:
@@ -116,22 +115,14 @@ class ColumnNoiseType(NoiseType):
                 f"No cells chosen to noise for noise function {self.name} on column {column_name}. "
                 "This is likely due to a combination of the configuration noise levels and the simulated population data."
             )
-            return data[column_name], to_noise_idx
-        noised_data = self.noise_function(
-            data.loc[to_noise_idx],
+            return to_noise_idx
+        self.noise_function(
+            data,
+            to_noise_idx,
             configuration,
             randomness_stream,
             dataset_name,
             column_name,
         )
 
-        input_dtype = data[column_name].dtype
-        output_dtype = self.output_dtype_getter(input_dtype)
-        if output_dtype == DtypeNames.OBJECT:
-            as_output_dtype = to_string
-        else:
-            as_output_dtype = lambda x: x.astype(output_dtype)
-        result = as_output_dtype(data[column_name].copy())
-        result.loc[to_noise_idx] = as_output_dtype(noised_data)
-
-        return result, to_noise_idx
+        return to_noise_idx
