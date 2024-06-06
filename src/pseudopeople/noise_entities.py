@@ -1,10 +1,6 @@
 from typing import NamedTuple
 
-from pseudopeople import (
-    column_getters,
-    noise_functions,
-    noise_scaling,
-)
+from pseudopeople import column_getters, noise_functions, noise_scaling
 from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 

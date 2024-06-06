@@ -88,8 +88,6 @@ def noise_dataset(
                     dataset_data.loc[new_indices] == ""
                 )
                 missingness = pd.concat([missingness, new_missingness])
-                if not (missingness == dataset_data.isnull()).all().all():
-                    import pdb; pdb.set_trace()
 
         elif isinstance(noise_type, ColumnNoiseType):
             if Keys.COLUMN_NOISE in noise_configuration:
@@ -113,8 +111,6 @@ def noise_dataset(
                     if noise_type == NOISE_TYPES.leave_blank:
                         # The only situation in which more missingness is introduced
                         missingness.loc[index_noised, column] = True
-                    if not (missingness == dataset_data.isnull()).all().all():
-                        import pdb; pdb.set_trace()
         else:
             raise TypeError(
                 f"Invalid noise type. Allowed types are {RowNoiseType} and "

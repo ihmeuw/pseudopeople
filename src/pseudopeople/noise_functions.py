@@ -340,7 +340,9 @@ def choose_wrong_options(
         additional_key=f"{column_name}_incorrect_select_choice",
     ).to_numpy()
 
-    data.loc[to_noise_idx, column_name] = _ensure_dtype(pd.Series(new_values, index=to_noise_idx), data[column_name].dtype)
+    data.loc[to_noise_idx, column_name] = _ensure_dtype(
+        pd.Series(new_values, index=to_noise_idx), data[column_name].dtype
+    )
 
 
 def copy_from_household_member(
@@ -361,7 +363,9 @@ def copy_from_household_member(
     """
 
     copy_values = data.loc[to_noise_idx, COPY_HOUSEHOLD_MEMBER_COLS[column_name]]
-    data.loc[to_noise_idx, column_name] = _ensure_dtype(pd.Series(copy_values, index=to_noise_idx), data[column_name].dtype)
+    data.loc[to_noise_idx, column_name] = _ensure_dtype(
+        pd.Series(copy_values, index=to_noise_idx), data[column_name].dtype
+    )
 
 
 def swap_months_and_days(
@@ -407,6 +411,7 @@ def swap_months_and_days(
         raise ValueError(f"Invalid date format in {dataset_name}.")
 
     data.loc[to_noise_idx, column_name] = noised
+
 
 def write_wrong_zipcode_digits(
     data: pd.DataFrame,
@@ -497,7 +502,9 @@ def misreport_ages(
     # If new age == original age, subtract 1
     new_values[new_values == column.astype(int)] -= 1
 
-    data.loc[to_noise_idx, column_name] = _ensure_dtype(pd.Series(new_values, index=to_noise_idx), data[column_name].dtype)
+    data.loc[to_noise_idx, column_name] = _ensure_dtype(
+        pd.Series(new_values, index=to_noise_idx), data[column_name].dtype
+    )
 
 
 def write_wrong_digits(
@@ -586,7 +593,9 @@ def use_nicknames(
         randomness_stream,
         f"{column_name}_use_nicknames",
     )
-    data.loc[have_nickname_idx, column_name] = _ensure_dtype(pd.Series(noised, index=to_noise_idx), data[column_name].dtype)
+    data.loc[have_nickname_idx, column_name] = _ensure_dtype(
+        pd.Series(noised, index=to_noise_idx), data[column_name].dtype
+    )
 
 
 def use_fake_names(
@@ -632,7 +641,9 @@ def use_fake_names(
         additional_key=f"{column_name}_fake_names",
     )
 
-    data.loc[to_noise_idx, column_name] = _ensure_dtype(pd.Series(new_values, index=to_noise_idx), data[column_name].dtype)
+    data.loc[to_noise_idx, column_name] = _ensure_dtype(
+        pd.Series(new_values, index=to_noise_idx), data[column_name].dtype
+    )
 
 
 def make_phonetic_errors(
@@ -950,6 +961,7 @@ def _corrupt_tokens(
 
     # "Un-explode" (re-concatenate) each string from its pieces.
     return pd.Series(result.sum(axis=1), index=column.index)
+
 
 def _ensure_dtype(data: pd.Series, dtype):
     if dtype == DtypeNames.OBJECT:
