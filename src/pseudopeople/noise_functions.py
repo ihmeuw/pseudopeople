@@ -306,8 +306,8 @@ def duplicate_with_guardian(
 
 def choose_wrong_options(
     data: pd.DataFrame,
-    to_noise_idx: pd.Index,
     _: LayeredConfigTree,
+    to_noise_idx: pd.Index,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -347,8 +347,8 @@ def choose_wrong_options(
 
 def copy_from_household_member(
     data: pd.DataFrame,
-    to_noise_idx: pd.Index,
     configuration: LayeredConfigTree,
+    to_noise_idx: pd.Index,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -370,8 +370,8 @@ def copy_from_household_member(
 
 def swap_months_and_days(
     data: pd.DataFrame,
-    to_noise_idx: pd.Index,
     _: LayeredConfigTree,
+    to_noise_idx: pd.Index,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -415,8 +415,8 @@ def swap_months_and_days(
 
 def write_wrong_zipcode_digits(
     data: pd.DataFrame,
-    to_noise_idx: pd.Index,
     configuration: LayeredConfigTree,
+    to_noise_idx: pd.Index,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -471,8 +471,8 @@ def write_wrong_zipcode_digits(
 
 def misreport_ages(
     data: pd.DataFrame,
-    to_noise_idx: pd.Index,
     configuration: LayeredConfigTree,
+    to_noise_idx: pd.Index,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -509,8 +509,8 @@ def misreport_ages(
 
 def write_wrong_digits(
     data: pd.DataFrame,
-    to_noise_idx: pd.Index,
     configuration: LayeredConfigTree,
+    to_noise_idx: pd.Index,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -568,8 +568,8 @@ def write_wrong_digits(
 
 def use_nicknames(
     data: pd.DataFrame,
-    to_noise_idx: pd.Index,
     _: LayeredConfigTree,
+    to_noise_idx: pd.Index,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -600,8 +600,8 @@ def use_nicknames(
 
 def use_fake_names(
     data: pd.DataFrame,
-    to_noise_idx: pd.Index,
     _: LayeredConfigTree,
+    to_noise_idx: pd.Index,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -648,8 +648,8 @@ def use_fake_names(
 
 def make_phonetic_errors(
     data: pd.DataFrame,
-    to_noise_idx: pd.Index,
     configuration: LayeredConfigTree,
+    to_noise_idx: pd.Index,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: Any,
@@ -679,8 +679,8 @@ def make_phonetic_errors(
 
 def leave_blanks(
     data: pd.DataFrame,
-    to_noise_idx: pd.Index,
     configuration: LayeredConfigTree,
+    to_noise_idx: pd.Index,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -702,8 +702,8 @@ def leave_blanks(
 
 def make_typos(
     data: pd.DataFrame,
-    to_noise_idx: pd.Index,
     configuration: LayeredConfigTree,
+    to_noise_idx: pd.Index,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -791,8 +791,8 @@ def make_typos(
 
 def make_ocr_errors(
     data: pd.DataFrame,
-    to_noise_idx: pd.Index,
     configuration: LayeredConfigTree,
+    to_noise_idx: pd.Index,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
