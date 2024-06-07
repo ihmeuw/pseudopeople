@@ -202,14 +202,18 @@ def to_string_as_integer(column: pd.Series) -> pd.Series:
     return column
 
 
-def to_string(column: pd.Series, column_name: str = None) -> pd.Series:
-    if column_name is None:
-        column_name = column.name
-
-    if column_name in INT_TO_STRING_COLUMNS:
+def to_string(column: pd.Series) -> pd.Series:
+    if column.name in INT_TO_STRING_COLUMNS:
         return to_string_as_integer(column)
     else:
         return to_string_preserve_nans(column)
+
+
+def ensure_dtype(data: pd.Series, dtype: np.dtype):
+    if dtype.name == DtypeNames.OBJECT:
+        return to_string(data)
+    else:
+        return data.astype(dtype)
 
 
 def count_number_of_tokens_per_string(s1: pd.Series, s2: pd.Series) -> pd.Series:

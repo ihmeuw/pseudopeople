@@ -9,8 +9,7 @@ from loguru import logger
 from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
-from pseudopeople.dtypes import DtypeNames
-from pseudopeople.utilities import get_index_to_noise, to_string
+from pseudopeople.utilities import ensure_dtype, get_index_to_noise
 
 
 @dataclass
@@ -79,6 +78,7 @@ class ColumnNoiseType(NoiseType):
     probability: Optional[float] = 0.01
     noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0
     additional_column_getter: Callable[[str], List[str]] = lambda column_name: []
+    output_dtype_getter: Callable[[np.dtype], np.dtype] = lambda dtype: dtype
 
     @property
     def probability_key(self) -> str:
@@ -116,6 +116,12 @@ class ColumnNoiseType(NoiseType):
                 "This is likely due to a combination of the configuration noise levels and the simulated population data."
             )
             return to_noise_idx
+
+        input_dtype = data[column_name].dtype
+        output_dtype = self.output_dtype_getter(input_dtype)
+
+        data[column_name] = ensure_dtype(data[column_name], output_dtype)
+
         self.noise_function(
             data,
             configuration,
