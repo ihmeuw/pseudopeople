@@ -11,15 +11,23 @@ from vivarium.framework.randomness import RandomnessStream
 from pseudopeople.configuration import Keys
 from pseudopeople.utilities import ensure_dtype, get_index_to_noise
 
+def _noise_function_not_implemented(*args, **kwargs):
+    pass
+
 
 @dataclass
 class NoiseType(ABC):
     name: str
-    noise_function: Callable[
-        [pd.DataFrame, LayeredConfigTree, RandomnessStream], pd.DataFrame
-    ]
+    noise_function: Callable = _noise_function_not_implemented
     probability: Optional[float] = 0.0
     additional_parameters: Dict[str, Any] = None
+
+    def __post_init__(self):
+        if self.noise_function == _noise_function_not_implemented:
+            raise NotImplementedError(
+                "You must pass a noise_function when creating a NoiseType. "
+                f"No noise_function provided to NoiseType {self.name}."
+            )        
 
     @abstractmethod
     def probability_key(self) -> str:
@@ -39,6 +47,9 @@ class RowNoiseType(NoiseType):
     randomness. It applies the noising operation to the entire DataFrame and
     returns the modified DataFrame.
     """
+    noise_function: Callable[
+        [pd.DataFrame, LayeredConfigTree, RandomnessStream], pd.DataFrame
+    ] = _noise_function_not_implemented
 
     @property
     def probability_key(self) -> str:
@@ -75,6 +86,9 @@ class ColumnNoiseType(NoiseType):
     and an Index of which items in the Series were selected for noise.
     """
 
+    noise_function: Callable[
+        [pd.DataFrame, LayeredConfigTree, RandomnessStream, str, str], None
+    ] = _noise_function_not_implemented
     probability: Optional[float] = 0.01
     noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0
     additional_column_getter: Callable[[str], List[str]] = lambda column_name: []
@@ -92,7 +106,7 @@ class ColumnNoiseType(NoiseType):
         dataset_name: str,
         column_name: str,
         missingness: Optional[pd.DataFrame] = None,
-    ) -> Tuple[pd.Series, pd.Index]:
+    ) -> pd.Index:
         # Do not noise if the column is empty
         if (data[column_name].notna() & (data[column_name] != "")).sum() == 0:
             return pd.Index([])
