@@ -39,9 +39,9 @@ class RowNoiseType(NoiseType):
     returns the modified DataFrame.
     """
 
-    get_noise_level: Callable[["Dataset", LayeredConfigTree], float] = lambda _, config: config[
-        Keys.ROW_PROBABILITY
-    ]
+    get_noise_level: Callable[
+        ["Dataset", LayeredConfigTree], float
+    ] = lambda _, config: config[Keys.ROW_PROBABILITY]
 
     @property
     def probability_key(self) -> str:

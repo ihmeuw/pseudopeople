@@ -265,7 +265,9 @@ def _validate_choose_wrong_option_probability(
 
 
 def validate_noise_level_proportions(
-    configuration_tree: LayeredConfigTree, dataset_schema: DatasetSchema, user_filters: List[Tuple]
+    configuration_tree: LayeredConfigTree,
+    dataset_schema: DatasetSchema,
+    user_filters: List[Tuple],
 ) -> None:
     """
     Validates that the noise levels provided do not exceed the allowable proportions from the

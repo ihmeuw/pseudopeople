@@ -4,8 +4,8 @@ from typing import Any, List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
-from tqdm import tqdm
 from layered_config_tree import LayeredConfigTree
+from tqdm import tqdm
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants.metadata import DATEFORMATS
@@ -62,7 +62,9 @@ class Dataset:
         self._reformat_dates_for_noising()
         self.data = coerce_dtypes(self.data, self.dataset_schema)
 
-    def _noise_dataset(self, configuration: LayeredConfigTree, noise_types: List[NoiseType]) -> None:
+    def _noise_dataset(
+        self, configuration: LayeredConfigTree, noise_types: List[NoiseType]
+    ) -> None:
         """
         Adds noise to the dataset data. Noise functions are executed in the order
         defined by :py:const: `.NOISE_TYPES`. Row noise functions are applied to the
