@@ -100,8 +100,8 @@ def noise_dataset(
                 # Apply column noise to each column as appropriate
                 for column in columns_to_noise:
                     required_cols = [column] + noise_type.additional_column_getter(column)
-                    dataset_data[column], index_noised = noise_type(
-                        dataset_data[required_cols],
+                    index_noised = noise_type(
+                        dataset_data,
                         noise_configuration.column_noise[column][noise_type.name],
                         randomness,
                         dataset.name,

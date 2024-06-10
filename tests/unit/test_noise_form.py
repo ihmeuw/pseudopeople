@@ -271,18 +271,52 @@ def test_two_noise_functions_are_independent(mocker, fuzzy_checker: FuzzyChecker
 
     # Mock objects for testing
 
+    def alpha_noise_function(
+        data: pd.DataFrame,
+        configuration: any,
+        to_noise_idx: pd.Index,
+        randomness_stream: any,
+        dataset_name: str,
+        column_name: str,
+    ):
+        data.loc[to_noise_idx, column_name] = data.loc[to_noise_idx, column_name].str.cat(
+            pd.Series("abc", index=to_noise_idx)
+        )
+
+    def beta_noise_function(
+        data: pd.DataFrame,
+        configuration: any,
+        to_noise_idx: pd.Index,
+        randomness_stream: any,
+        dataset_name: str,
+        column_name: str,
+    ):
+        data.loc[to_noise_idx, column_name] = data.loc[to_noise_idx, column_name].str.cat(
+            pd.Series("123", index=to_noise_idx)
+        )
+
+    def leave_blank_noise_function(
+        data: pd.DataFrame,
+        configuration: any,
+        to_noise_idx: pd.Index,
+        randomness_stream: any,
+        dataset_name: str,
+        column_name: str,
+    ):
+        data.loc[to_noise_idx, column_name] = np.nan
+
     class MockNoiseTypes(NamedTuple):
         ALPHA: ColumnNoiseType = ColumnNoiseType(
             "alpha",
-            lambda data, *_: data.squeeze().str.cat(pd.Series("abc", index=data.index)),
+            alpha_noise_function,
         )
         BETA: ColumnNoiseType = ColumnNoiseType(
             "beta",
-            lambda data, *_: data.squeeze().str.cat(pd.Series("123", index=data.index)),
+            beta_noise_function,
         )
-        leave_blank = ColumnNoiseType(
+        leave_blank: ColumnNoiseType = ColumnNoiseType(
             "leave_blank",
-            lambda data, *_: pd.Series(np.nan, index=data.index),
+            leave_blank_noise_function,
         )
 
     mock_noise_types = MockNoiseTypes()
