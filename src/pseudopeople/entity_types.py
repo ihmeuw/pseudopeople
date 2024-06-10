@@ -11,6 +11,7 @@ from vivarium.framework.randomness import RandomnessStream
 from pseudopeople.configuration import Keys
 from pseudopeople.utilities import ensure_dtype, get_index_to_noise
 
+
 def _noise_function_not_implemented(*args, **kwargs):
     pass
 
@@ -27,7 +28,7 @@ class NoiseType(ABC):
             raise NotImplementedError(
                 "You must pass a noise_function when creating a NoiseType. "
                 f"No noise_function provided to NoiseType {self.name}."
-            )        
+            )
 
     @abstractmethod
     def probability_key(self) -> str:
@@ -47,6 +48,7 @@ class RowNoiseType(NoiseType):
     randomness. It applies the noising operation to the entire DataFrame and
     returns the modified DataFrame.
     """
+
     noise_function: Callable[
         [pd.DataFrame, LayeredConfigTree, RandomnessStream], pd.DataFrame
     ] = _noise_function_not_implemented
