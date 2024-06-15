@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pandas as pd
 from layered_config_tree import LayeredConfigTree
-from vivarium.framework.randomness import RandomnessStream, get_hash
+
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants.noise_type_metadata import (
@@ -19,6 +19,7 @@ from pseudopeople.noise_scaling import (
 )
 from pseudopeople.utilities import (
     ensure_dtype,
+    get_hash,
     get_index_to_noise,
     load_ocr_errors,
     load_phonetic_errors,
@@ -173,10 +174,13 @@ def duplicate_with_guardian(
             & (group_df["guardian_2_household_id"].notna())
         ]
         # Choose which guardian to copy when dependent lives in different address from both guardians
-        choices = dataset.randomness.choice(
-            both_different_index,
-            choices=["guardian_1", "guardian_2"],
-            additional_key=f"duplicate_with_guardian_{group}_guardian_choice",
+        choices = pd.Series(
+            dataset.randomness.choice(
+                ["guardian_1", "guardian_2"],
+                size=len(both_different_index),
+                replace=False,
+            ),
+            index=both_different_index
         )
         group_df.loc[both_different_index, "copy_guardian"] = choices
         # Get remaining dependents that live in different address from one of their guardians
@@ -273,8 +277,7 @@ def choose_wrong_options(
     new_values = vectorized_choice(
         options=options,
         n_to_choose=len(to_noise_index),
-        randomness_stream=dataset.randomness,
-        additional_key=f"{column_name}_incorrect_select_choice",
+        randomn_state=dataset.randomness,
     ).to_numpy()
 
     dataset.data.loc[to_noise_index, column_name] = ensure_dtype(
@@ -373,7 +376,7 @@ def write_wrong_zipcode_digits(
         )
 
     rng = np.random.default_rng(
-        get_hash(f"{dataset.randomness.seed}_{column_name}_write_wrong_zipcode_digits")
+        get_hash(f"{dataset.seed}_{column_name}_write_wrong_zipcode_digits")
     )
     shape = (len(to_noise_zipcodes), 5)
 
@@ -423,8 +426,7 @@ def misreport_ages(
         options=list(possible_perturbations.keys()),
         weights=list(possible_perturbations.values()),
         n_to_choose=len(to_noise_index),
-        randomness_stream=dataset.randomness,
-        additional_key=f"{column_name}_{column.name}_miswrite_ages",
+        randomn_state=dataset.randomness,
     )
     new_values = column.astype(int) + perturbations
     # Reflect negative values to positive
@@ -456,7 +458,7 @@ def write_wrong_digits(
     # This is a fix to not replacing the original token for noise options
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY] / 0.9
     rng = np.random.default_rng(
-        get_hash(f"{dataset.randomness.seed}_{column_name}_write_wrong_digits")
+        get_hash(f"{dataset.seed}_{column_name}_write_wrong_digits")
     )
 
     max_str_length = column.str.len().max()
@@ -517,7 +519,6 @@ def use_nicknames(
         column.loc[have_nickname_idx],
         nicknames,
         dataset.randomness,
-        f"{column_name}_use_nicknames",
     )
     dataset.data.loc[have_nickname_idx, column_name] = ensure_dtype(
         pd.Series(noised, name=column_name, index=have_nickname_idx),
@@ -559,8 +560,7 @@ def use_fake_names(
     new_values = vectorized_choice(
         options=options,
         n_to_choose=len(to_noise_index),
-        randomness_stream=dataset.randomness,
-        additional_key=f"{column_name}_fake_names",
+        randomn_state=dataset.randomness,
     )
 
     dataset.data.loc[to_noise_index, column_name] = ensure_dtype(
@@ -647,7 +647,7 @@ def make_typos(
     # TODO: remove this hard-coding
     include_token_probability_level = 0.1
     rng = np.random.default_rng(
-        seed=get_hash(f"{dataset.randomness.seed}_{column_name}_make_typos")
+        seed=get_hash(f"{dataset.seed}_{column_name}_make_typos")
     )
 
     same_len_col_exploded = (
@@ -742,7 +742,7 @@ def _corrupt_tokens(
     errors: pd.DataFrame,
     column: pd.Series,
     token_probability: float,
-    randomness_stream: RandomnessStream,
+    random_state: np.random.RandomState,
     addl_key: str,
 ) -> pd.Series:
     """
@@ -784,8 +784,9 @@ def _corrupt_tokens(
         .view("U1")
         .reshape((len(column), lengths.max()))
     )
-
-    rng = np.random.default_rng(seed=get_hash(f"{randomness_stream.seed}_{addl_key}"))
+    # TODO: np.random.RandomState does not have a seed attribute and we do not have acess
+    # to dataset.seed as of now
+    rng = np.random.default_rng(seed=get_hash(f"{random_state.seed}_{addl_key}"))
 
     # NOTE: Somewhat surprisingly, this seemed to perform better using Python string types than NumPy types.
     # Perhaps worth more investigation in the future.

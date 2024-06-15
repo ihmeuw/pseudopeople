@@ -47,7 +47,7 @@ class RowNoiseType(NoiseType):
     "duplicate_row").
 
     The noise function takes as input a DataFrame, the configuration value
-    for this RowNoise operation, and a RandomnessStream for controlling
+    for this RowNoise operation, and a np.random.RandomState for controlling
     randomness. It applies the noising operation to the entire DataFrame and
     returns the modified DataFrame.
     """
@@ -78,7 +78,7 @@ class ColumnNoiseType(NoiseType):
     "make_phonetic_errors").
 
     The noise function takes as input a DataFrame, the LayeredConfigTree object for this
-    ColumnNoise operation, a RandomnessStream for controlling randomness, and
+    ColumnNoise operation, a np.random.RandomState for controlling randomness, and
     a column name, which is the column that will be noised and who's name will be used
     as the additional key for the RandomnessStream.
     Optionally, it can take a pre-existing DataFrame indicating where there is missingness

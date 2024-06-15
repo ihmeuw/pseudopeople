@@ -95,7 +95,7 @@ def test__corrupt_tokens(pair, fuzzy_checker: FuzzyChecker):
         errors=fake_errors,
         column=data,
         token_probability=token_probability,
-        randomness_stream=RANDOMNESS0,
+        random_state=RANDOMNESS0,
         addl_key="test__corrupt_tokens",
     )
 
@@ -152,7 +152,7 @@ def test__corrupt_tokens_multiple_options(fuzzy_checker: FuzzyChecker):
         errors=fake_errors,
         column=data,
         token_probability=token_probability,
-        randomness_stream=RANDOMNESS0,
+        random_state=RANDOMNESS0,
         addl_key="test__corrupt_tokens",
     )
     strings = ["abc", "def", "ghi", "jkl"]
@@ -199,7 +199,7 @@ def test_vectorized_choice(fuzzy_checker: FuzzyChecker):
     picks = vectorized_choice(
         options=options,
         n_to_choose=num_choices,
-        randomness_stream=RANDOMNESS0,
+        randomn_state=RANDOMNESS0,
         weights=choice_weights,
         additional_key="best_seattle_sports_team",
     )
@@ -244,7 +244,7 @@ def test_two_d_array_choice(fuzzy_checker: FuzzyChecker):
     choices = two_d_array_choice(
         data=sports,
         options=options,
-        randomness_stream=RANDOMNESS0,
+        random_state=RANDOMNESS0,
         additional_key="2D_best_sports_team",
     )
 
