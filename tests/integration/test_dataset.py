@@ -1,8 +1,8 @@
-import pytest
 import numpy as np
 import pandas as pd
+import pytest
 
-from pseudopeople.configuration import Keys
+from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.entity_types import ColumnNoiseType, NoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASET_SCHEMAS
@@ -21,10 +21,14 @@ from tests.integration.conftest import _initialize_dataset_with_sample
         DATASET_SCHEMAS.tax_1040.name,
     ],
 )
-def test_dataset_missingness(config, dataset_name: str):
+def test_dataset_missingness(dataset_name: str):
     # Tests that missingness is accurate with dataset.data
     # mocker.patch("pseudopeople.interface.validate_source_compatibility")
     dataset = _initialize_dataset_with_sample(dataset_name)
+    # We must manually clean the data for noising since we are recreating our main noising loop
+    dataset._clean_input_data()
+    dataset._reformat_dates_for_noising()
+    config = get_configuration()
     dataset_config = config[dataset_name]
     # NOTE: This is replicated Dataset._noise_dataset but adding assertions for missingness
     for noise_type in NOISE_TYPES:
