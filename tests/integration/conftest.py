@@ -132,6 +132,8 @@ def config():
             if noise_type != NOISE_TYPES.duplicate_with_guardian
         }
         for col in [c for c in dataset_schema.columns if c.noise_types]:
+            if col.name == "zipcode":
+                breakpoint()
             config[dataset_name][Keys.COLUMN_NOISE][col.name] = {
                 noise_type.name: {
                     Keys.CELL_PROBABILITY: CELL_PROBABILITY,
