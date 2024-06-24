@@ -43,7 +43,7 @@ def omit_rows(
     """
     dataset.data = dataset.data.loc[dataset.data.index.difference(to_noise_index)]
     # TODO: Mic-4875 add update_missingness method to Dataset
-    dataset.missingness.loc[to_noise_index, :] = True
+    dataset.missingness = dataset.missingness.loc[dataset.data.index.difference(to_noise_index)]
 
 
 def apply_do_not_respond(
@@ -66,8 +66,8 @@ def apply_do_not_respond(
         )
 
     dataset.data = dataset.data.loc[dataset.data.index.difference(to_noise_index)]
-    # todo should dataset have a function like `make_missing`?
-    dataset.missingness.loc[to_noise_index, :] = True
+    # TODO: Mic-4875 add update_missingness method to Dataset
+    dataset.missingness = dataset.missingness.loc[dataset.data.index.difference(to_noise_index)]
     # todo should we reset index here to get a RangeIndex?
 
 
