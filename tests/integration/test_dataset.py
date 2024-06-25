@@ -30,7 +30,7 @@ def test_dataset_missingness(dataset_name: str):
     dataset._reformat_dates_for_noising()
     config = get_configuration()
     dataset_config = config[dataset_name]
-    # NOTE: This is replicated Dataset._noise_dataset but adding assertions for missingness
+    # NOTE: This is recreating Dataset._noise_dataset but adding assertions for missingness
     for noise_type in NOISE_TYPES:
         if isinstance(noise_type, RowNoiseType):
             if noise_type.name not in dataset_config[Keys.ROW_NOISE]:
