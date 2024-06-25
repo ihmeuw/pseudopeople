@@ -22,8 +22,7 @@ from tests.integration.conftest import _initialize_dataset_with_sample
     ],
 )
 def test_dataset_missingness(dataset_name: str):
-    # Tests that missingness is accurate with dataset.data
-    # mocker.patch("pseudopeople.interface.validate_source_compatibility")
+    """Tests that missingness is accurate with dataset.data."""
     dataset = _initialize_dataset_with_sample(dataset_name)
     # We must manually clean the data for noising since we are recreating our main noising loop
     dataset._clean_input_data()
