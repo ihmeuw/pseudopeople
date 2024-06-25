@@ -41,7 +41,7 @@ def vectorized_choice(
 
     :param options: List and series of possible values to choose
     :param n_to_choose: Number of choices to make, the length of the returned array of values
-    :param random_state: np.random.default_rng being used for common random numbers
+    :param random_generator: np.random.default_rng being used for common random numbers
     :param weights: List or series containing weights for each options
 
     returns: ndarray
@@ -121,7 +121,7 @@ def two_d_array_choice(
     Makes vectorized choice for 2D array options.
     :param data: pd.Series which should be a subset of options.index
     :param options: pd.DataFrame where the index is the values of data and columns are available choices.
-    :param random_state: np.random.default_rng instance
+    :param random_generator: np.random.default_rng instance
     :returns: pd.Series with new choices replacing the original values in data.
     """
 
