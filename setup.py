@@ -39,8 +39,10 @@ if __name__ == "__main__":
         "numpy<2.0.0",
         "pyyaml>=5.1",
         "pyarrow",
+        "scipy",
         "tqdm",
         "layered_config_tree>=1.0.1",
+        "loguru",
     ]
 
     setup_requires = ["setuptools_scm"]
