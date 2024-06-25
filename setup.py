@@ -38,7 +38,6 @@ if __name__ == "__main__":
         "pandas",
         "numpy<2.0.0",
         "pyyaml>=5.1",
-        "vivarium>=1.2.0",
         "pyarrow",
         "tqdm",
         "layered_config_tree>=1.0.1",
