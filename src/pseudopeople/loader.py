@@ -1,11 +1,8 @@
 from pathlib import Path
 from typing import List, Tuple
 
-import numpy as np
-import pandas as pd
 import pyarrow.parquet as pq
 
-from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.utilities import PANDAS_ENGINE, DataFrame, Engine
 
