@@ -43,7 +43,9 @@ def omit_rows(
     """
     dataset.data = dataset.data.loc[dataset.data.index.difference(to_noise_index)]
     # TODO: Mic-4875 add update_missingness method to Dataset
-    dataset.missingness.loc[to_noise_index, :] = True
+    dataset.missingness = dataset.missingness.loc[
+        dataset.data.index.difference(to_noise_index)
+    ]
 
 
 def apply_do_not_respond(
@@ -66,8 +68,10 @@ def apply_do_not_respond(
         )
 
     dataset.data = dataset.data.loc[dataset.data.index.difference(to_noise_index)]
-    # todo should dataset have a function like `make_missing`?
-    dataset.missingness.loc[to_noise_index, :] = True
+    # TODO: Mic-4875 add update_missingness method to Dataset
+    dataset.missingness = dataset.missingness.loc[
+        dataset.data.index.difference(to_noise_index)
+    ]
     # todo should we reset index here to get a RangeIndex?
 
 
@@ -516,7 +520,7 @@ def use_nicknames(
         f"{column_name}_use_nicknames",
     )
     dataset.data.loc[have_nickname_idx, column_name] = ensure_dtype(
-        pd.Series(noised, name=column_name, index=to_noise_index),
+        pd.Series(noised, name=column_name, index=have_nickname_idx),
         dataset.data[column_name].dtype,
     )
 
