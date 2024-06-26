@@ -61,6 +61,7 @@ if __name__ == "__main__":
     lint_requirements = [
         "black==22.3.0",
         "isort",
+        "mypy",
     ]
 
     doc_requirements = [

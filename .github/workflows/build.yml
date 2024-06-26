@@ -34,9 +34,10 @@ jobs:
           pip install .[dev]
       - name: Lint
         run: |
-          pip install black==22.3.0 isort
+          pip install black==22.3.0 isort mypy
           black . --check --diff
           isort . --check --verbose --only-modified --diff
+          mypy .
       - name: Test
         run: |
           if "${{ github.event_name == 'schedule' }}"; then
