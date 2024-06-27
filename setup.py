@@ -37,10 +37,11 @@ if __name__ == "__main__":
     install_requirements = [
         "pandas",
         "pyyaml>=5.1",
-        "vivarium>=1.2.0",
         "pyarrow",
+        "scipy",
         "tqdm",
         "layered_config_tree>=1.0.1",
+        "loguru",
     ]
 
     setup_requires = ["setuptools_scm"]

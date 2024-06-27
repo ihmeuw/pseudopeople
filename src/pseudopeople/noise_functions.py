@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pandas as pd
 from layered_config_tree import LayeredConfigTree
-from vivarium.framework.randomness import RandomnessStream, get_hash
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants.noise_type_metadata import (
@@ -19,6 +18,7 @@ from pseudopeople.noise_scaling import (
 )
 from pseudopeople.utilities import (
     ensure_dtype,
+    get_hash,
     get_index_to_noise,
     load_ocr_errors,
     load_phonetic_errors,
@@ -173,10 +173,12 @@ def duplicate_with_guardian(
             & (group_df["guardian_2_household_id"].notna())
         ]
         # Choose which guardian to copy when dependent lives in different address from both guardians
-        choices = dataset.randomness.choice(
-            both_different_index,
-            choices=["guardian_1", "guardian_2"],
-            additional_key=f"duplicate_with_guardian_{group}_guardian_choice",
+        choices = pd.Series(
+            dataset.randomness.choice(
+                ["guardian_1", "guardian_2"],
+                size=len(both_different_index),
+            ),
+            index=both_different_index,
         )
         group_df.loc[both_different_index, "copy_guardian"] = choices
         # Get remaining dependents that live in different address from one of their guardians
@@ -195,7 +197,8 @@ def duplicate_with_guardian(
         # TODO: Mic-4876 Can we only operate on the index eligible for noise and
         # not the entire dataset?
         to_noise_index = get_index_to_noise(
-            dataset, configuration[group], f"duplicate_with_guardian_{group}"
+            dataset,
+            configuration[group],
         ).intersection(group_df.index)
 
         # Copy over address information from guardian to dependent
@@ -273,8 +276,7 @@ def choose_wrong_options(
     new_values = vectorized_choice(
         options=options,
         n_to_choose=len(to_noise_index),
-        randomness_stream=dataset.randomness,
-        additional_key=f"{column_name}_incorrect_select_choice",
+        random_generator=dataset.randomness,
     ).to_numpy()
 
     dataset.data.loc[to_noise_index, column_name] = ensure_dtype(
@@ -372,9 +374,6 @@ def write_wrong_zipcode_digits(
             "Zipcode data contains zipcodes that are not 5 digits long. Please check simulated population data."
         )
 
-    rng = np.random.default_rng(
-        get_hash(f"{dataset.randomness.seed}_{column_name}_write_wrong_zipcode_digits")
-    )
     shape = (len(to_noise_zipcodes), 5)
 
     # todo: Update when vectorized choice is improved
@@ -385,9 +384,9 @@ def write_wrong_zipcode_digits(
     digit_probabilities = scaleup_factor * np.array(
         configuration[Keys.ZIPCODE_DIGIT_PROBABILITIES]
     )
-    replace = rng.random(shape) < digit_probabilities
+    replace = dataset.randomness.random(shape) < digit_probabilities
     num_to_replace = replace.sum()
-    random_digits = rng.choice(possible_replacements, num_to_replace)
+    random_digits = dataset.randomness.choice(possible_replacements, num_to_replace)
 
     # https://stackoverflow.com/a/9493192/
     # Changing this to a U5 numpy string type means that each string will have exactly 5 characters.
@@ -423,8 +422,7 @@ def misreport_ages(
         options=list(possible_perturbations.keys()),
         weights=list(possible_perturbations.values()),
         n_to_choose=len(to_noise_index),
-        randomness_stream=dataset.randomness,
-        additional_key=f"{column_name}_{column.name}_miswrite_ages",
+        random_generator=dataset.randomness,
     )
     new_values = column.astype(int) + perturbations
     # Reflect negative values to positive
@@ -455,9 +453,6 @@ def write_wrong_digits(
     column = dataset.data.loc[to_noise_index, column_name]
     # This is a fix to not replacing the original token for noise options
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY] / 0.9
-    rng = np.random.default_rng(
-        get_hash(f"{dataset.randomness.seed}_{column_name}_write_wrong_digits")
-    )
 
     max_str_length = column.str.len().max()
 
@@ -480,9 +475,9 @@ def write_wrong_digits(
     )
 
     replace = np.zeros_like(is_number, dtype=bool)
-    replace[is_number] = rng.random(is_number.sum()) < token_noise_level
+    replace[is_number] = dataset.randomness.random(is_number.sum()) < token_noise_level
     num_to_replace = replace.sum()
-    random_digits = rng.choice(possible_replacements, num_to_replace)
+    random_digits = dataset.randomness.choice(possible_replacements, num_to_replace)
 
     same_len_col_exploded[replace] = random_digits
     noised_column = same_len_col_exploded.view(f"U{max_str_length}").reshape(len(column))
@@ -517,7 +512,6 @@ def use_nicknames(
         column.loc[have_nickname_idx],
         nicknames,
         dataset.randomness,
-        f"{column_name}_use_nicknames",
     )
     dataset.data.loc[have_nickname_idx, column_name] = ensure_dtype(
         pd.Series(noised, name=column_name, index=have_nickname_idx),
@@ -559,8 +553,7 @@ def use_fake_names(
     new_values = vectorized_choice(
         options=options,
         n_to_choose=len(to_noise_index),
-        randomness_stream=dataset.randomness,
-        additional_key=f"{column_name}_fake_names",
+        random_generator=dataset.randomness,
     )
 
     dataset.data.loc[to_noise_index, column_name] = ensure_dtype(
@@ -592,7 +585,6 @@ def make_phonetic_errors(
         dataset.data.loc[to_noise_index, column_name],
         configuration[Keys.TOKEN_PROBABILITY],
         dataset.randomness,
-        addl_key=f"{column_name}_make_phonetic_errors",
     )
 
     dataset.data.loc[to_noise_index, column_name] = ensure_dtype(
@@ -646,9 +638,6 @@ def make_typos(
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
     # TODO: remove this hard-coding
     include_token_probability_level = 0.1
-    rng = np.random.default_rng(
-        seed=get_hash(f"{dataset.randomness.seed}_{column_name}_make_typos")
-    )
 
     same_len_col_exploded = (
         # Somewhat counterintuitively, .astype(str) turns the column into a numpy,
@@ -672,13 +661,17 @@ def make_typos(
         pd.DataFrame(same_len_col_exploded).isin(qwerty_errors_eligible_chars).to_numpy()
     )
     replace = np.zeros_like(is_typo_option)
-    replace[is_typo_option] = rng.random(is_typo_option.sum()) < token_noise_level
+    replace[is_typo_option] = (
+        dataset.randomness.random(is_typo_option.sum()) < token_noise_level
+    )
     keep_original = np.zeros_like(replace)
-    keep_original[replace] = rng.random(replace.sum()) < include_token_probability_level
+    keep_original[replace] = (
+        dataset.randomness.random(replace.sum()) < include_token_probability_level
+    )
 
     # Apply noising
     to_replace = same_len_col_exploded[replace]
-    replace_random = rng.random(replace.sum())
+    replace_random = dataset.randomness.random(replace.sum())
     number_of_options = qwerty_errors.count(axis=1)
     replace_option_index = np.floor(
         replace_random * number_of_options.loc[to_replace].to_numpy()
@@ -729,7 +722,6 @@ def make_ocr_errors(
         dataset.data.loc[to_noise_index, column_name],
         configuration[Keys.TOKEN_PROBABILITY],
         dataset.randomness,
-        addl_key=f"{column_name}_make_ocr_errors",
     )
 
     dataset.data.loc[to_noise_index, column_name] = ensure_dtype(
@@ -742,8 +734,7 @@ def _corrupt_tokens(
     errors: pd.DataFrame,
     column: pd.Series,
     token_probability: float,
-    randomness_stream: RandomnessStream,
-    addl_key: str,
+    random_generator: np.random.default_rng,
 ) -> pd.Series:
     """
     Performs token-level corruption on a string Series when the tokens to corrupt
@@ -784,8 +775,6 @@ def _corrupt_tokens(
         .view("U1")
         .reshape((len(column), lengths.max()))
     )
-
-    rng = np.random.default_rng(seed=get_hash(f"{randomness_stream.seed}_{addl_key}"))
 
     # NOTE: Somewhat surprisingly, this seemed to perform better using Python string types than NumPy types.
     # Perhaps worth more investigation in the future.
@@ -841,7 +830,7 @@ def _corrupt_tokens(
 
             # If so, should we corrupt them?
             corrupted = np.zeros(len(column), dtype=bool)
-            corrupted[eligible] = rng.random(eligible.sum()) < token_probability
+            corrupted[eligible] = random_generator.random(eligible.sum()) < token_probability
             if corrupted.sum() == 0:
                 continue
             del eligible
@@ -855,7 +844,8 @@ def _corrupt_tokens(
             num_options = number_of_options.loc[to_corrupt].to_numpy()
             multiple_options = num_options > 1
             corrupted_token_index[multiple_options] = np.floor(
-                rng.random(multiple_options.sum()) * num_options[multiple_options]
+                random_generator.random(multiple_options.sum())
+                * num_options[multiple_options]
             )
             # Get the actual string corresponding to the corrupted token chosen.
             # First, find the index in the errors array corresponding to the first corruption

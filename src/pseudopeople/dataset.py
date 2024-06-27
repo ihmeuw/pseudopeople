@@ -15,7 +15,7 @@ from pseudopeople.schema_entities import COLUMNS, DatasetSchema
 from pseudopeople.utilities import (
     DataFrame,
     coerce_dtypes,
-    get_randomness_stream,
+    get_random_generator,
     to_string,
 )
 
@@ -41,9 +41,7 @@ class Dataset:
     ):
         self.dataset_schema = dataset_schema
         self.data = data
-        self.randomness = get_randomness_stream(
-            self.dataset_schema.name, seed, self.data.index
-        )
+        self.randomness = get_random_generator(self.dataset_schema.name, seed)
         self.missingness = self.is_missing(self.data)
 
     def __bool__(self):
