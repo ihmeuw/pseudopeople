@@ -41,7 +41,8 @@ def _generate_dataset(
     :param source:
         Root directory of data input which needs to be noised
     :param seed:
-        Seed for controlling randomness
+        Seed for controlling common random number generation. Using the same
+        seed and configuration will yield the same results
     :param config:
         Object to configure noise levels
     :param user_filters:
@@ -217,7 +218,9 @@ def generate_decennial_census(
 
     :param seed:
 
-        An integer seed for randomness. Defaults to 0.
+        An integer seed for controlling common random number generation. Using
+        the same combination of data, seed, and configuration will yield the
+        same results. Defaults to 0.
 
     :param config:
 
@@ -320,7 +323,9 @@ def generate_american_community_survey(
 
     :param seed:
 
-        An integer seed for randomness. Defaults to 0.
+        An integer seed for controlling common random number generation. Using
+        the same combination of data, seed, and configuration will yield the
+        same results. Defaults to 0.
 
     :param config:
 
@@ -436,7 +441,9 @@ def generate_current_population_survey(
 
     :param seed:
 
-        An integer seed for randomness. Defaults to 0.
+        An integer seed for controlling common random number generation. Using
+        the same combination of data, seed, and configuration will yield the
+        same results. Defaults to 0.
 
     :param config:
 
@@ -544,7 +551,9 @@ def generate_taxes_w2_and_1099(
 
     :param seed:
 
-        An integer seed for randomness. Defaults to 0.
+        An integer seed for controlling common random number generation. Using
+        the same combination of data, seed, and configuration will yield the
+        same results. Defaults to 0.
 
     :param config:
 
@@ -652,7 +661,9 @@ def generate_women_infants_and_children(
 
     :param seed:
 
-        An integer seed for randomness. Defaults to 0.
+        An integer seed for controlling common random number generation. Using
+        the same combination of data, seed, and configuration will yield the
+        same results. Defaults to 0.
 
     :param config:
 
@@ -746,7 +757,9 @@ def generate_social_security(
 
     :param seed:
 
-        An integer seed for randomness. Defaults to 0.
+        An integer seed for controlling common random number generation. Using
+        the same combination of data, seed, and configuration will yield the
+        same results. Defaults to 0.
 
     :param config:
 
@@ -833,7 +846,9 @@ def generate_taxes_1040(
 
     :param seed:
 
-        An integer seed for randomness. Defaults to 0.
+        An integer seed for controlling common random number generation. Using
+        the same combination of data, seed, and configuration will yield the
+        same results. Defaults to 0.
 
     :param config:
 
