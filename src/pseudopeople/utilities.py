@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import hashlib
 import sys
 from dataclasses import dataclass
