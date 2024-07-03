@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import pytest
+from vivarium.framework.randomness import RandomnessStream
+from vivarium.framework.randomness.index_map import IndexMap
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants.noise_type_metadata import (

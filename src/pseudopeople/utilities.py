@@ -1,7 +1,7 @@
-import hashlib
 import sys
 from dataclasses import dataclass
 from functools import cache
+import hashlib
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
 
 import numpy as np
@@ -19,12 +19,12 @@ if TYPE_CHECKING:
 
 
 def get_hash(key: str) -> int:
-    max_allowable_numpy_seed = 4294967295  # 2**32 - 1
-    return int(hashlib.sha1(key.encode("utf8")).hexdigest(), 16) % max_allowable_numpy_seed
+        max_allowable_numpy_seed = 4294967295  # 2**32 - 1
+        return int(hashlib.sha1(key.encode("utf8")).hexdigest(), 16) % max_allowable_numpy_seed
 
 
-def get_random_generator(dataset_name: str, seed: Any) -> np.random.default_rng:
-
+def get_random_generator(dataset_name: str, seed: Any, index: pd.Index) -> np.random.default_rng:
+    
     key = "_".join([dataset_name, str(seed)])
     return np.random.default_rng(get_hash(key))
 
@@ -75,15 +75,11 @@ def get_index_to_noise(
     """
 
     index_eligible_for_noise = dataset.get_non_empty_index(required_columns)
-
+    
     if isinstance(noise_level, float):
-        number_to_noise = dataset.randomness.binomial(
-            len(index_eligible_for_noise), p=noise_level
-        )
+        number_to_noise = dataset.randomness.binomial(len(index_eligible_for_noise), p=noise_level)
         to_noise_idx = pd.Index(
-            dataset.randomness.choice(
-                index_eligible_for_noise, size=number_to_noise, replace=False
-            )
+            dataset.randomness.choice(index_eligible_for_noise, size=number_to_noise, replace=False)
         )
     else:
         # This is a copy paste of filter for probability
@@ -119,6 +115,7 @@ def two_d_array_choice(
     data: pd.Series,
     options: pd.DataFrame,
     random_generator: np.random.default_rng,
+    additional_key: str,
 ):
     """
     Makes vectorized choice for 2D array options.
@@ -143,10 +140,10 @@ def two_d_array_choice(
     pmf = weights.div(weights.sum(axis=1), axis=0)
     cdf = np.cumsum(pmf, axis=1)
     # Get draw for each row
-    probs = random_generator.random(size=len(data.index))
+    probs = random_generator.random(pd.Index(data.index), additional_key=additional_key)
 
     # Select indices of nickname to choose based on random draw
-    choice_index = (probs[np.newaxis].T > cdf).sum(axis=1)
+    choice_index = (probs.values[np.newaxis].T > cdf).sum(axis=1)
     options["choice_index"] = choice_index
     idx, cols = pd.factorize(options["choice_index"])
     # 2D array lookup to make an array for the series value

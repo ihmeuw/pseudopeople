@@ -117,8 +117,8 @@ class ColumnNoiseType(NoiseType):
         noise_level = min(noise_level, 1.0)
         to_noise_idx = get_index_to_noise(
             dataset,
-            noise_level,
-            [column_name] + self.additional_column_getter(column_name),
+            noise_level,    
+            [column_name],
         )
         if to_noise_idx.empty:
             logger.debug(

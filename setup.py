@@ -38,10 +38,8 @@ if __name__ == "__main__":
         "pandas",
         "pyyaml>=5.1",
         "pyarrow",
-        "scipy",
         "tqdm",
         "layered_config_tree>=1.0.1",
-        "loguru",
     ]
 
     setup_requires = ["setuptools_scm"]

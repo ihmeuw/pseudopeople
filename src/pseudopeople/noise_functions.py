@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from layered_config_tree import LayeredConfigTree
 
+
 from pseudopeople.configuration import Keys
 from pseudopeople.constants.noise_type_metadata import (
     COPY_HOUSEHOLD_MEMBER_COLS,
@@ -178,7 +179,7 @@ def duplicate_with_guardian(
                 ["guardian_1", "guardian_2"],
                 size=len(both_different_index),
             ),
-            index=both_different_index,
+            index=both_different_index
         )
         group_df.loc[both_different_index, "copy_guardian"] = choices
         # Get remaining dependents that live in different address from one of their guardians
@@ -197,8 +198,7 @@ def duplicate_with_guardian(
         # TODO: Mic-4876 Can we only operate on the index eligible for noise and
         # not the entire dataset?
         to_noise_index = get_index_to_noise(
-            dataset,
-            configuration[group],
+            dataset, configuration[group],
         ).intersection(group_df.index)
 
         # Copy over address information from guardian to dependent
@@ -373,7 +373,7 @@ def write_wrong_zipcode_digits(
         raise ValueError(
             "Zipcode data contains zipcodes that are not 5 digits long. Please check simulated population data."
         )
-
+    
     shape = (len(to_noise_zipcodes), 5)
 
     # todo: Update when vectorized choice is improved
@@ -585,6 +585,7 @@ def make_phonetic_errors(
         dataset.data.loc[to_noise_index, column_name],
         configuration[Keys.TOKEN_PROBABILITY],
         dataset.randomness,
+        addl_key=f"{column_name}_make_phonetic_errors",
     )
 
     dataset.data.loc[to_noise_index, column_name] = ensure_dtype(
@@ -661,13 +662,9 @@ def make_typos(
         pd.DataFrame(same_len_col_exploded).isin(qwerty_errors_eligible_chars).to_numpy()
     )
     replace = np.zeros_like(is_typo_option)
-    replace[is_typo_option] = (
-        dataset.randomness.random(is_typo_option.sum()) < token_noise_level
-    )
+    replace[is_typo_option] = dataset.randomness.random(is_typo_option.sum()) < token_noise_level
     keep_original = np.zeros_like(replace)
-    keep_original[replace] = (
-        dataset.randomness.random(replace.sum()) < include_token_probability_level
-    )
+    keep_original[replace] = dataset.randomness.random(replace.sum()) < include_token_probability_level
 
     # Apply noising
     to_replace = same_len_col_exploded[replace]
@@ -722,6 +719,7 @@ def make_ocr_errors(
         dataset.data.loc[to_noise_index, column_name],
         configuration[Keys.TOKEN_PROBABILITY],
         dataset.randomness,
+        addl_key=f"{column_name}_make_ocr_errors",
     )
 
     dataset.data.loc[to_noise_index, column_name] = ensure_dtype(
@@ -844,8 +842,7 @@ def _corrupt_tokens(
             num_options = number_of_options.loc[to_corrupt].to_numpy()
             multiple_options = num_options > 1
             corrupted_token_index[multiple_options] = np.floor(
-                random_generator.random(multiple_options.sum())
-                * num_options[multiple_options]
+                random_generator.random(multiple_options.sum()) * num_options[multiple_options]
             )
             # Get the actual string corresponding to the corrupted token chosen.
             # First, find the index in the errors array corresponding to the first corruption

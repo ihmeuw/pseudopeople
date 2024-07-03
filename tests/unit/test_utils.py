@@ -1,12 +1,13 @@
 import numpy as np
 import pandas as pd
 import pytest
+from vivarium.framework.randomness import RandomnessStream
+from vivarium.framework.randomness.index_map import IndexMap
 
 from pseudopeople.dataset import Dataset
 from pseudopeople.noise_functions import _corrupt_tokens
 from pseudopeople.schema_entities import DATASET_SCHEMAS, DtypeNames
 from pseudopeople.utilities import (
-    get_hash,
     get_index_to_noise,
     to_string_as_integer,
     two_d_array_choice,
@@ -14,8 +15,12 @@ from pseudopeople.utilities import (
 )
 from tests.conftest import FuzzyChecker
 
-RANDOMNESS0 = np.random.default_rng(get_hash("test_utils_0"))
-
+RANDOMNESS0 = RandomnessStream(
+    key="test_utils",
+    clock=lambda: pd.Timestamp("2020-09-01"),
+    seed=0,
+    index_map=IndexMap(),
+)
 CORRUPT_TOKENS_TEST_CASES = {
     # Possible tokens to noise: abc, ab, a, c
     # Tuples of (token noised, token not noised)
@@ -91,6 +96,7 @@ def test__corrupt_tokens(pair, fuzzy_checker: FuzzyChecker):
         column=data,
         token_probability=token_probability,
         random_generator=RANDOMNESS0,
+        addl_key="test__corrupt_tokens",
     )
 
     # Assert our noised data is one of our possible strings. This also checks that
@@ -147,6 +153,7 @@ def test__corrupt_tokens_multiple_options(fuzzy_checker: FuzzyChecker):
         column=data,
         token_probability=token_probability,
         random_generator=RANDOMNESS0,
+        addl_key="test__corrupt_tokens",
     )
     strings = ["abc", "def", "ghi", "jkl"]
     assert (noised.isin(strings)).all()
@@ -193,6 +200,7 @@ def test_vectorized_choice(fuzzy_checker: FuzzyChecker):
         n_to_choose=num_choices,
         random_generator=RANDOMNESS0,
         weights=choice_weights,
+        additional_key="best_seattle_sports_team",
     )
     picks = pd.Series(picks)
 
@@ -236,6 +244,7 @@ def test_two_d_array_choice(fuzzy_checker: FuzzyChecker):
         data=sports,
         options=options,
         random_generator=RANDOMNESS0,
+        additional_key="2D_best_sports_team",
     )
 
     assert (choices.isin(options.values.flatten())).all()
