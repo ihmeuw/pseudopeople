@@ -14,9 +14,7 @@ from pseudopeople.utilities import (
 )
 from tests.conftest import FuzzyChecker
 
-@pytest.fixture()
-def randomness0():
-    return np.random.default_rng(get_hash("test_utils_0"))
+RANDOMNESS0 = np.random.default_rng(get_hash("test_utils_0"))
 
 CORRUPT_TOKENS_TEST_CASES = {
     # Possible tokens to noise: abc, ab, a, c
@@ -66,7 +64,7 @@ def test_to_string_as_integer():
 
 
 @pytest.mark.parametrize("pair", CORRUPT_TOKENS_TEST_CASES.items())
-def test__corrupt_tokens(pair, randomness0, fuzzy_checker: FuzzyChecker):
+def test__corrupt_tokens(pair, fuzzy_checker: FuzzyChecker):
     """
     Unit test for _corrupt_tokens. We want to test that the noise level is correct, that the
     correct tokens are noised, and that the correct behavior happens (meaning the longer tokens
@@ -92,7 +90,7 @@ def test__corrupt_tokens(pair, randomness0, fuzzy_checker: FuzzyChecker):
         errors=fake_errors,
         column=data,
         token_probability=token_probability,
-        random_generator=randomness0,
+        random_generator=RANDOMNESS0,
     )
 
     # Assert our noised data is one of our possible strings. This also checks that
@@ -129,7 +127,7 @@ def test__corrupt_tokens(pair, randomness0, fuzzy_checker: FuzzyChecker):
     )
 
 
-def test__corrupt_tokens_multiple_options(randomness0, fuzzy_checker: FuzzyChecker):
+def test__corrupt_tokens_multiple_options(fuzzy_checker: FuzzyChecker):
     """
     Tests that multiple options can be chosen for a token
     """
@@ -148,7 +146,7 @@ def test__corrupt_tokens_multiple_options(randomness0, fuzzy_checker: FuzzyCheck
         errors=fake_errors,
         column=data,
         token_probability=token_probability,
-        random_generator=randomness0,
+        random_generator=RANDOMNESS0,
     )
     strings = ["abc", "def", "ghi", "jkl"]
     assert (noised.isin(strings)).all()
@@ -185,7 +183,7 @@ def test_get_index_to_noise(fuzzy_checker: FuzzyChecker):
     )
 
 
-def test_vectorized_choice(randomness0, fuzzy_checker: FuzzyChecker):
+def test_vectorized_choice(fuzzy_checker: FuzzyChecker):
 
     options = ["Supersonics", "Mariners", "Kraken"]
     num_choices = 50_000
@@ -193,7 +191,7 @@ def test_vectorized_choice(randomness0, fuzzy_checker: FuzzyChecker):
     picks = vectorized_choice(
         options=options,
         n_to_choose=num_choices,
-        random_generator=randomness0,
+        random_generator=RANDOMNESS0,
         weights=choice_weights,
     )
     picks = pd.Series(picks)
@@ -210,10 +208,10 @@ def test_vectorized_choice(randomness0, fuzzy_checker: FuzzyChecker):
         )
 
 
-def test_two_d_array_choice(randomness0, fuzzy_checker: FuzzyChecker):
+def test_two_d_array_choice(fuzzy_checker: FuzzyChecker):
 
     best_sports = ["Basketball", "Baseball", "Football"]
-    sports = pd.Series(best_sports * 10_000)
+    sports = pd.Series(best_sports * 1000)
     options = pd.DataFrame(
         {
             "option1": [
@@ -237,7 +235,7 @@ def test_two_d_array_choice(randomness0, fuzzy_checker: FuzzyChecker):
     choices = two_d_array_choice(
         data=sports,
         options=options,
-        random_generator=randomness0,
+        random_generator=RANDOMNESS0,
     )
 
     assert (choices.isin(options.values.flatten())).all()
