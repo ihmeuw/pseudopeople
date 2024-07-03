@@ -23,7 +23,7 @@ def get_hash(key: str) -> int:
     return int(hashlib.sha1(key.encode("utf8")).hexdigest(), 16) % max_allowable_numpy_seed
 
 
-def get_random_generator(dataset_name: str, seed: Any) -> np.Generator:
+def get_random_generator(dataset_name: str, seed: Any) -> np.random.default_rng:
 
     key = "_".join([dataset_name, str(seed)])
     return np.random.default_rng(get_hash(key))
@@ -32,7 +32,7 @@ def get_random_generator(dataset_name: str, seed: Any) -> np.Generator:
 def vectorized_choice(
     options: Union[list, pd.Series],
     n_to_choose: int,
-    random_generator: np.Generator,
+    random_generator: np.random.default_rng,
     weights: Union[list, pd.Series] = None,
 ) -> np.ndarray:
     """
@@ -118,7 +118,7 @@ def add_logging_sink(sink, verbose, colorize=False, serialize=False):
 def two_d_array_choice(
     data: pd.Series,
     options: pd.DataFrame,
-    random_generator: np.Generator,
+    random_generator: np.random.default_rng,
 ):
     """
     Makes vectorized choice for 2D array options.

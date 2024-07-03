@@ -734,7 +734,7 @@ def _corrupt_tokens(
     errors: pd.DataFrame,
     column: pd.Series,
     token_probability: float,
-    random_generator: np.Generator,
+    random_generator: np.random.default_rng,
 ) -> pd.Series:
     """
     Performs token-level corruption on a string Series when the tokens to corrupt
