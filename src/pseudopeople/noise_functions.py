@@ -842,7 +842,7 @@ def _corrupt_tokens(
             num_options = number_of_options.loc[to_corrupt].to_numpy()
             multiple_options = num_options > 1
             corrupted_token_index[multiple_options] = np.floor(
-                random_generator.random(multiple_options.sum()) * num_options[multiple_options]
+                rng.random(multiple_options.sum()) * num_options[multiple_options]
             )
             # Get the actual string corresponding to the corrupted token chosen.
             # First, find the index in the errors array corresponding to the first corruption
