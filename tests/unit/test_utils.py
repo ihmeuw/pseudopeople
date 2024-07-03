@@ -14,7 +14,6 @@ from pseudopeople.utilities import (
 )
 from tests.conftest import FuzzyChecker
 
-
 @pytest.fixture()
 def randomness0():
     return np.random.default_rng(get_hash("test_utils_0"))
