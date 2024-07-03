@@ -47,7 +47,7 @@ class RowNoiseType(NoiseType):
     "duplicate_row").
 
     The noise function takes as input a DataFrame, the configuration value
-    for this RowNoise operation, and a np.random.default_rng for controlling
+    for this RowNoise operation, and a np.random.RandomState for controlling
     randomness. It applies the noising operation to the entire DataFrame and
     returns the modified DataFrame.
     """
@@ -65,7 +65,7 @@ class RowNoiseType(NoiseType):
 
     def __call__(self, dataset: "Dataset", configuration: LayeredConfigTree) -> None:
         noise_level = self.get_noise_level(dataset, configuration)
-        to_noise_idx = get_index_to_noise(dataset, noise_level)
+        to_noise_idx = get_index_to_noise(dataset, noise_level, self.name)
         self.noise_function(dataset, configuration, to_noise_idx)
 
 
@@ -78,7 +78,9 @@ class ColumnNoiseType(NoiseType):
     "make_phonetic_errors").
 
     The noise function takes as input a DataFrame, the LayeredConfigTree object for this
-    ColumnNoise operation, a np.random.default_rng for controlling randomness.
+    ColumnNoise operation, a np.random.RandomState for controlling randomness, and
+    a column name, which is the column that will be noised and who's name will be used
+    as the additional key for the RandomnessStream.
     Optionally, it can take a pre-existing DataFrame indicating where there is missingness
     in the data (same index and columns as the main DataFrame, all boolean type) --
     if this is not passed, it calculates it, which can be expensive for large data.
@@ -117,8 +119,9 @@ class ColumnNoiseType(NoiseType):
         noise_level = min(noise_level, 1.0)
         to_noise_idx = get_index_to_noise(
             dataset,
-            noise_level,    
-            [column_name],
+            noise_level,
+            f"{self.name}_{column_name}",
+            [column_name] + self.additional_column_getter(column_name),
         )
         if to_noise_idx.empty:
             logger.debug(

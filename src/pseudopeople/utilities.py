@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 import yaml
 from loguru import logger
+from vivarium.framework.randomness import RandomnessStream, get_hash
+from vivarium.framework.randomness.index_map import IndexMap
 
 from pseudopeople.constants import metadata, paths
 from pseudopeople.constants.noise_type_metadata import INT_TO_STRING_COLUMNS
@@ -23,16 +25,17 @@ def get_hash(key: str) -> int:
         return int(hashlib.sha1(key.encode("utf8")).hexdigest(), 16) % max_allowable_numpy_seed
 
 
-def get_random_generator(dataset_name: str, seed: Any, index: pd.Index) -> np.random.default_rng:
+def get_random_state(dataset_name: str, seed: Any, index: pd.Index) -> RandomnessStream:
     
+    # TODO: do we need to be more exact in the key?
     key = "_".join([dataset_name, str(seed)])
-    return np.random.default_rng(get_hash(key))
+    return np.random.RandomState(get_hash(key))
 
 
 def vectorized_choice(
     options: Union[list, pd.Series],
     n_to_choose: int,
-    random_generator: np.random.default_rng,
+    randomn_state: np.random.RandomState,
     weights: Union[list, pd.Series] = None,
 ) -> np.ndarray:
     """
@@ -41,14 +44,14 @@ def vectorized_choice(
 
     :param options: List and series of possible values to choose
     :param n_to_choose: Number of choices to make, the length of the returned array of values
-    :param random_state: np.random.default_rng being used for common random numbers
+    :param random_state: np.random.RandomState being used for common random numbers
     :param weights: List or series containing weights for each options
 
     returns: ndarray
     """
     # for each of n_to_choose, sample uniformly between 0 and 1
     index = pd.Index(np.arange(n_to_choose))
-    probs = random_generator.random(size=len(index))
+    probs = randomn_state.uniform(index)
 
     if weights is None:
         chosen_indices = np.floor(probs * len(options)).astype(int)
@@ -68,6 +71,7 @@ def vectorized_choice(
 def get_index_to_noise(
     dataset: "Dataset",
     noise_level: Union[float, pd.Series],
+    additional_key: Any,
     required_columns: Optional[List[str]] = None,
 ) -> pd.Index:
     """
@@ -75,17 +79,23 @@ def get_index_to_noise(
     """
 
     index_eligible_for_noise = dataset.get_non_empty_index(required_columns)
-    
-    if isinstance(noise_level, float):
-        number_to_noise = dataset.randomness.binomial(len(index_eligible_for_noise), p=noise_level)
+
+    # As long as noise is relatively rare, it will be faster to randomly select cells to
+    # noise rather than generating a random draw for every item eligible
+    if isinstance(noise_level, float) and noise_level < 0.2:
+        rng = np.random.default_rng(
+            seed=get_hash(f"{dataset.randomness.seed}_get_index_to_noise_{additional_key}")
+        )
+        number_to_noise = rng.binomial(len(index_eligible_for_noise), p=noise_level)
         to_noise_idx = pd.Index(
-            dataset.randomness.choice(index_eligible_for_noise, size=number_to_noise, replace=False)
+            rng.choice(index_eligible_for_noise, size=number_to_noise, replace=False)
         )
     else:
-        # This is a copy paste of filter for probability
-        draws = dataset.randomness.random(size=len(index_eligible_for_noise))
-        chosen = np.array(draws < noise_level)
-        to_noise_idx = index_eligible_for_noise[chosen]
+        to_noise_idx = dataset.randomness.filter_for_probability(
+            index_eligible_for_noise,
+            probability=noise_level,
+            additional_key=additional_key,
+        )
 
     return to_noise_idx
 
@@ -114,14 +124,14 @@ def add_logging_sink(sink, verbose, colorize=False, serialize=False):
 def two_d_array_choice(
     data: pd.Series,
     options: pd.DataFrame,
-    random_generator: np.random.default_rng,
+    random_state: np.random.RandomState,
     additional_key: str,
 ):
     """
     Makes vectorized choice for 2D array options.
     :param data: pd.Series which should be a subset of options.index
     :param options: pd.DataFrame where the index is the values of data and columns are available choices.
-    :param random_state: np.random.default_rng instance
+    :param random_state: np.random.RandomState instance
     :returns: pd.Series with new choices replacing the original values in data.
     """
 
@@ -140,7 +150,7 @@ def two_d_array_choice(
     pmf = weights.div(weights.sum(axis=1), axis=0)
     cdf = np.cumsum(pmf, axis=1)
     # Get draw for each row
-    probs = random_generator.random(pd.Index(data.index), additional_key=additional_key)
+    probs = random_state.uniform(pd.Index(data.index), additional_key=additional_key)
 
     # Select indices of nickname to choose based on random draw
     choice_index = (probs.values[np.newaxis].T > cdf).sum(axis=1)
