@@ -35,8 +35,8 @@ jobs:
       - name: Lint
         run: |
           pip install black==22.3.0 isort mypy
-          isort . --check --verbose --only-modified --diff
           black . --check --diff
+          isort . --check --verbose --only-modified --diff
           mypy .
       - name: Test
         run: |
