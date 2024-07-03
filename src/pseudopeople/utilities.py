@@ -1,7 +1,6 @@
 import sys
 from dataclasses import dataclass
 from functools import cache
-import hashlib
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
 
 import numpy as np
@@ -20,23 +19,24 @@ if TYPE_CHECKING:
     from pseudopeople.schema_entities import DatasetSchema
 
 
-def get_hash(key: str) -> int:
-        max_allowable_numpy_seed = 4294967295  # 2**32 - 1
-        return int(hashlib.sha1(key.encode("utf8")).hexdigest(), 16) % max_allowable_numpy_seed
-
-
-def get_random_state(dataset_name: str, seed: Any, index: pd.Index) -> RandomnessStream:
-    
-    # TODO: do we need to be more exact in the key?
-    key = "_".join([dataset_name, str(seed)])
-    return np.random.RandomState(get_hash(key))
+def get_randomness_stream(dataset_name: str, seed: Any, index: pd.Index) -> RandomnessStream:
+    # Avoid error from empty index
+    idx_max = max(index) if not index.empty else 1
+    map_size = max(1_000_000, idx_max * 2)
+    return RandomnessStream(
+        key=dataset_name,
+        clock=lambda: pd.Timestamp("2020-04-01"),
+        seed=seed,
+        index_map=IndexMap(size=map_size),
+    )
 
 
 def vectorized_choice(
     options: Union[list, pd.Series],
     n_to_choose: int,
-    randomn_state: np.random.RandomState,
+    randomness_stream: RandomnessStream,
     weights: Union[list, pd.Series] = None,
+    additional_key: Any = None,
 ) -> np.ndarray:
     """
     Function that takes a list of options and uses Vivarium common random numbers framework to make a given number
@@ -44,14 +44,15 @@ def vectorized_choice(
 
     :param options: List and series of possible values to choose
     :param n_to_choose: Number of choices to make, the length of the returned array of values
-    :param random_state: np.random.RandomState being used for common random numbers
+    :param randomness_stream: RandomnessStream being used for Vivarium's CRN framework
     :param weights: List or series containing weights for each options
+    :param additional_key: Key to pass to randomness_stream
 
     returns: ndarray
     """
     # for each of n_to_choose, sample uniformly between 0 and 1
     index = pd.Index(np.arange(n_to_choose))
-    probs = randomn_state.uniform(index)
+    probs = randomness_stream.get_draw(index, additional_key=additional_key)
 
     if weights is None:
         chosen_indices = np.floor(probs * len(options)).astype(int)
@@ -124,14 +125,15 @@ def add_logging_sink(sink, verbose, colorize=False, serialize=False):
 def two_d_array_choice(
     data: pd.Series,
     options: pd.DataFrame,
-    random_state: np.random.RandomState,
+    randomness_stream: RandomnessStream,
     additional_key: str,
 ):
     """
     Makes vectorized choice for 2D array options.
     :param data: pd.Series which should be a subset of options.index
     :param options: pd.DataFrame where the index is the values of data and columns are available choices.
-    :param random_state: np.random.RandomState instance
+    :param randomness_stream: RandomnessStream object
+    :param additional_key: key for randomness_stream
     :returns: pd.Series with new choices replacing the original values in data.
     """
 
@@ -150,7 +152,7 @@ def two_d_array_choice(
     pmf = weights.div(weights.sum(axis=1), axis=0)
     cdf = np.cumsum(pmf, axis=1)
     # Get draw for each row
-    probs = random_state.uniform(pd.Index(data.index), additional_key=additional_key)
+    probs = randomness_stream.get_draw(pd.Index(data.index), additional_key=additional_key)
 
     # Select indices of nickname to choose based on random draw
     choice_index = (probs.values[np.newaxis].T > cdf).sum(axis=1)
