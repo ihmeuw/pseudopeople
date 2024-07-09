@@ -47,7 +47,7 @@ class Dataset:
     def __bool__(self):
         return not self.data.empty
 
-    def is_empty(self, column_name: str) -> Any:
+    def is_empty(self, column_name: str) -> pd.BooleanDtype:
         """Returns whether the column is empty."""
         return self.missingness[column_name].all()
 
