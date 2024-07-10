@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import pandas as pd
 import yaml
 from layered_config_tree import LayeredConfigTree
+from layered_config_tree.types import NestedDict
 
 from pseudopeople.configuration import NO_NOISE, Keys
 from pseudopeople.configuration.validator import (
@@ -17,7 +18,7 @@ from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS, DatasetSchema
 
 # Define non-baseline default items
 # NOTE: default values are defined in entity_types.RowNoiseType and entity_types.ColumnNoiseType
-DEFAULT_NOISE_VALUES = {
+DEFAULT_NOISE_VALUES: NestedDict = {
     DATASET_SCHEMAS.census.name: {
         Keys.ROW_NOISE: {
             NOISE_TYPES.do_not_respond.name: {
@@ -103,7 +104,8 @@ def get_configuration(
         is_no_noise = False
     noising_configuration = _generate_configuration(is_no_noise)
     if overrides is not None:
-        add_overrides(noising_configuration, overrides, dataset_schema, user_filters)
+        overrides_dict: Dict = overrides
+        add_overrides(noising_configuration, overrides_dict, dataset_schema, user_filters)
 
     return noising_configuration
 
