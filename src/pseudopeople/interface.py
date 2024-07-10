@@ -281,8 +281,9 @@ def generate_decennial_census(
     if year is not None:
         user_filters.append((DATASET_SCHEMAS.census.date_column_name, "==", year))
     if state is not None:
+        state_column_name: str = DATASET_SCHEMAS.census.state_column_name
         user_filters.append(
-            (DATASET_SCHEMAS.census.state_column_name, "==", get_state_abbreviation(state))
+            (state_column_name, "==", get_state_abbreviation(state))
         )
     return _generate_dataset(
         DATASET_SCHEMAS.census,
@@ -615,9 +616,10 @@ def generate_taxes_w2_and_1099(
         user_filters.append((DATASET_SCHEMAS.tax_w2_1099.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state is not None:
+        state_column_name: str = DATASET_SCHEMAS.tax_w2_1099.state_column_name
         user_filters.append(
             (
-                DATASET_SCHEMAS.tax_w2_1099.state_column_name,
+                state_column_name,
                 "==",
                 get_state_abbreviation(state),
             )
@@ -729,8 +731,9 @@ def generate_women_infants_and_children(
         user_filters.append((DATASET_SCHEMAS.wic.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state is not None:
+        state_column_name: str = DATASET_SCHEMAS.wic.state_column_name
         user_filters.append(
-            (DATASET_SCHEMAS.wic.state_column_name, "==", get_state_abbreviation(state))
+            (state_column_name, "==", get_state_abbreviation(state))
         )
     return _generate_dataset(
         DATASET_SCHEMAS.wic, source, seed, config, user_filters, verbose, engine_name=engine
@@ -910,8 +913,9 @@ def generate_taxes_1040(
         user_filters.append((DATASET_SCHEMAS.tax_1040.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state is not None:
+        state_column_name: str = DATASET_SCHEMAS.tax_1040.state_column_name
         user_filters.append(
-            (DATASET_SCHEMAS.tax_1040.state_column_name, "==", get_state_abbreviation(state))
+            (state_column_name, "==", get_state_abbreviation(state))
         )
     return _generate_dataset(
         DATASET_SCHEMAS.tax_1040,
