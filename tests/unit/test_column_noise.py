@@ -318,7 +318,7 @@ def test_leave_blank(dataset, fuzzy_checker: FuzzyChecker):
     ]
 
     # Check for expected noise level
-    expected_noise: tuple[float, float] | float = config[Keys.CELL_PROBABILITY]
+    expected_noise: float = config[Keys.CELL_PROBABILITY]
     fuzzy_checker.fuzzy_assert_proportion(
         name="leave_blank",
         observed_numerator=len(newly_missing_idx),
@@ -339,7 +339,7 @@ def test_choose_wrong_option(dataset, fuzzy_checker: FuzzyChecker):
     NOISE_TYPES.choose_wrong_option(dataset, config, "state")
     noised_data = dataset.data["state"]
     # Check for expected noise level
-    expected_noise: tuple[float, float] | float = config[Keys.CELL_PROBABILITY]
+    expected_noise: float = config[Keys.CELL_PROBABILITY]
     # todo: Update when choose_wrong_options uses exclusive resampling
     # Get real expected noise to account for possibility of noising with original value
     # Here we have a a possibility of choosing any of the 50 states for our categorical series fixture
@@ -363,7 +363,7 @@ def test_generate_copy_from_household_member(dataset, fuzzy_checker: FuzzyChecke
     NOISE_TYPES.copy_from_household_member(dataset, config, "age")
     noised_data = dataset.data["age"]
     # Check for expected noise level
-    expected_noise: tuple[float, float] | float = config[Keys.CELL_PROBABILITY]
+    expected_noise: float = config[Keys.CELL_PROBABILITY]
     original_missing_idx = original_data.index[original_data["age"].isnull()]
     eligible_for_noise_idx = original_data.index.difference(original_missing_idx)
     data = original_data["age"]
@@ -411,7 +411,7 @@ def test_swap_months_and_days(dataset, fuzzy_checker: FuzzyChecker):
             config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][col][
                 NOISE_TYPES.swap_month_and_day.name
             ]
-        expected_noise: tuple[float, float] | float = config[Keys.CELL_PROBABILITY]
+        expected_noise: float = config[Keys.CELL_PROBABILITY]
         NOISE_TYPES.swap_month_and_day(dataset, config, col)
         noised_data = dataset.data[col]
         # Confirm missing data remains missing
@@ -496,7 +496,7 @@ def test_miswrite_ages_default_config(dataset, fuzzy_checker: FuzzyChecker):
 
     # Check for expected noise level
     not_missing_idx = data.index[data.notnull()]
-    expected_noise: tuple[float, float] | float = config[Keys.CELL_PROBABILITY]
+    expected_noise: float = config[Keys.CELL_PROBABILITY]
     actual_noise = (noised_data[not_missing_idx] != data[not_missing_idx]).sum()
     # NOTE: the expected noise calculated above does not account for the fact that
     # if a perturbed age ends up being the same as the original age, then 1 is subtracted.
@@ -850,7 +850,7 @@ def test_use_nickname(dataset, fuzzy_checker: FuzzyChecker):
     config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][
         "first_name"
     ][NOISE_TYPES.use_nickname.name]
-    expected_noise: tuple[float, float] | float = config[Keys.CELL_PROBABILITY]
+    expected_noise: float = config[Keys.CELL_PROBABILITY]
     data = dataset.data["first_name"].copy()
     NOISE_TYPES.use_nickname(dataset, config, "first_name")
     noised_data = dataset.data["first_name"]
@@ -933,7 +933,7 @@ def test_use_fake_name(dataset, column, fuzzy_checker: FuzzyChecker):
     # todo: equal across fake values
     # Check noised values
     actual_noise = (data[~orig_missing] != noised_data[~orig_missing]).sum()
-    expected_noise: tuple[float, float] | float = config[Keys.CELL_PROBABILITY]
+    expected_noise: float = config[Keys.CELL_PROBABILITY]
     fuzzy_checker.fuzzy_assert_proportion(
         name="use_fake_name_first_name",
         observed_numerator=actual_noise,
