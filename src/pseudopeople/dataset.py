@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Tuple, Sequence
+from typing import Any, List, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
@@ -108,7 +108,9 @@ class Dataset:
                     and noise_type.name in noise_configuration.row_noise
                 ):
                     # Apply row noise
-                    row_noise_configuration: LayeredConfigTree = noise_configuration[Keys.ROW_NOISE][noise_type.name]
+                    row_noise_configuration: LayeredConfigTree = noise_configuration[
+                        Keys.ROW_NOISE
+                    ][noise_type.name]
                     noise_type(self, row_noise_configuration)
 
             elif isinstance(noise_type, ColumnNoiseType):
@@ -121,8 +123,9 @@ class Dataset:
                     ]
                     # Apply column noise to each column as appropriate
                     for column in columns_to_noise:
-                        column_noise_configuration: LayeredConfigTree = noise_configuration.column_noise[
-                            column][noise_type.name]
+                        column_noise_configuration: LayeredConfigTree = (
+                            noise_configuration.column_noise[column][noise_type.name]
+                        )
                         noise_type(
                             self,
                             column_noise_configuration,

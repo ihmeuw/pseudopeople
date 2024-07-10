@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
+from layered_config_tree import LayeredConfigTree
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants.noise_type_metadata import (
@@ -11,7 +12,7 @@ from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.noise_level import _get_census_omission_noise_levels
 from pseudopeople.schema_entities import DATASET_SCHEMAS
 from tests.conftest import FuzzyChecker
-from layered_config_tree import LayeredConfigTree
+
 
 @pytest.fixture()
 def dummy_data():

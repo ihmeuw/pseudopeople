@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Union, Tuple
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 import pandas as pd
 from layered_config_tree import LayeredConfigTree
@@ -282,9 +282,7 @@ def generate_decennial_census(
         user_filters.append((DATASET_SCHEMAS.census.date_column_name, "==", year))
     if state is not None:
         state_column_name: str = DATASET_SCHEMAS.census.state_column_name
-        user_filters.append(
-            (state_column_name, "==", get_state_abbreviation(state))
-        )
+        user_filters.append((state_column_name, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.census,
         source,
@@ -732,9 +730,7 @@ def generate_women_infants_and_children(
         seed = seed * 10_000 + year
     if state is not None:
         state_column_name: str = DATASET_SCHEMAS.wic.state_column_name
-        user_filters.append(
-            (state_column_name, "==", get_state_abbreviation(state))
-        )
+        user_filters.append((state_column_name, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.wic, source, seed, config, user_filters, verbose, engine_name=engine
     )
@@ -914,9 +910,7 @@ def generate_taxes_1040(
         seed = seed * 10_000 + year
     if state is not None:
         state_column_name: str = DATASET_SCHEMAS.tax_1040.state_column_name
-        user_filters.append(
-            (state_column_name, "==", get_state_abbreviation(state))
-        )
+        user_filters.append((state_column_name, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.tax_1040,
         source,
