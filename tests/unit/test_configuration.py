@@ -547,7 +547,7 @@ def test_validate_noise_level_proportions(caplog, column, noise_type, noise_leve
     """
     census = DATASET_SCHEMAS.get_dataset_schema("decennial_census")
     state_column_name: str = census.state_column_name
-    user_filters = [
+    user_filters: List[Tuple[str, str, Union[str, int]]] = [] [
         (census.date_column_name, "==", 2020),
         (state_column_name, "==", "WA"),
     ]
