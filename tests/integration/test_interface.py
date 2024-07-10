@@ -1,6 +1,6 @@
 import math
 from functools import partial
-from typing import Tuple
+from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -783,12 +783,12 @@ def _validate_column_noise_level(
     and calculates the expected noise level for each. It then accumulates the expected
     noise level as we layer more noise types on top of each other.
     """
-    tmp_config = config[dataset_name][Keys.COLUMN_NOISE][col.name]
+    tmp_config: LayeredConfigTree = config[dataset_name][Keys.COLUMN_NOISE][col.name]
     includes_token_noising = [
-        c
-        for c in tmp_config
-        for k in [Keys.TOKEN_PROBABILITY, Keys.ZIPCODE_DIGIT_PROBABILITIES]
-        if k in tmp_config[c].keys()
+        noise_type
+        for noise_type in tmp_config
+        for key in [Keys.TOKEN_PROBABILITY, Keys.ZIPCODE_DIGIT_PROBABILITIES]
+        if key in tmp_config[noise_type].keys()  # type: ignore[union-attr]
     ]
 
     # Calculate expected noise (target proportion for fuzzy checker)
@@ -800,7 +800,9 @@ def _validate_column_noise_level(
             token_probability_key = {
                 NOISE_TYPES.write_wrong_zipcode_digits.name: Keys.ZIPCODE_DIGIT_PROBABILITIES,
             }.get(col_noise_type.name, Keys.TOKEN_PROBABILITY)
-            token_probability = tmp_config[col_noise_type.name][token_probability_key]
+            token_probability: Union[float, list[float]] = tmp_config[col_noise_type.name][
+                token_probability_key
+            ]
             # Get number of tokens per string to calculate expected proportion
             tokens_per_string_getter = TOKENS_PER_STRING_MAPPER.get(
                 col_noise_type.name, lambda x: x.astype(str).str.len()
@@ -809,9 +811,10 @@ def _validate_column_noise_level(
 
             # Calculate probability no token is noised
             if col_noise_type.name == NOISE_TYPES.write_wrong_zipcode_digits.name:
+                token_probabilities: list[float] = token_probability
                 # Calculate write wrong zipcode average digits probability any token is noise
                 avg_probability_any_token_noised = 1 - math.prod(
-                    [1 - p for p in token_probability]
+                    [1 - p for p in token_probabilities]
                 )
             else:
                 avg_probability_any_token_noised = (

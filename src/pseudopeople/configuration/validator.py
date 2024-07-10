@@ -108,7 +108,7 @@ def validate_overrides(overrides: Dict, default_config: LayeredConfigTree) -> No
 
 
 def _validate_noise_type_config(
-    noise_type_config: Union[Dict, List],
+    noise_type_config: Dict,
     default_noise_type_config: LayeredConfigTree,
     dataset_name: str,
     noise_type: str,

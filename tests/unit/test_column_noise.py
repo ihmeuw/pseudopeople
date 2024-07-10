@@ -3,6 +3,7 @@ import math
 import numpy as np
 import pandas as pd
 import pytest
+from layered_config_tree import LayeredConfigTree
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COLS
@@ -390,9 +391,9 @@ def test_swap_months_and_days(dataset, fuzzy_checker: FuzzyChecker):
     for col in ["event_date", "date_of_birth"]:
         data = dataset.data[col].copy()
         if col == "event_date":
-            config = get_configuration()[DATASET_SCHEMAS.ssa.name][Keys.COLUMN_NOISE][col][
-                NOISE_TYPES.swap_month_and_day.name
-            ]
+            config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.ssa.name][
+                Keys.COLUMN_NOISE
+            ][col][NOISE_TYPES.swap_month_and_day.name]
             config.update(
                 {
                     DATASET_SCHEMAS.ssa.name: {
@@ -450,7 +451,7 @@ def test_write_wrong_zipcode_digits(dataset, fuzzy_checker: FuzzyChecker):
 
     # Get configuration values for each piece of 5 digit zipcode
     cell_probability = config[Keys.CELL_PROBABILITY]
-    token_probability = config[Keys.ZIPCODE_DIGIT_PROBABILITIES]
+    token_probability: list[float] = config[Keys.ZIPCODE_DIGIT_PROBABILITIES]
     data = dataset.data["zipcode"].copy()
     NOISE_TYPES.write_wrong_zipcode_digits(dataset, config, "zipcode")
     noised_data = dataset.data["zipcode"]
