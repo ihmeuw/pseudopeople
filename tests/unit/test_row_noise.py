@@ -70,13 +70,14 @@ def test_do_not_respond(mocker, dummy_data, fuzzy_checker: FuzzyChecker):
     NOISE_TYPES.do_not_respond(acs, config)
     noised_census = census.data
     noised_acs = acs.data
+    target_proportion: tuple[float, float] | float = config[Keys.ROW_PROBABILITY]
 
     # Test that noising affects expected proportion with expected types
     fuzzy_checker.fuzzy_assert_proportion(
         name="test_do_not_respond",
         observed_numerator=len(my_dummy_data) - len(noised_census),
         observed_denominator=len(my_dummy_data),
-        target_proportion=config[Keys.ROW_PROBABILITY],
+        target_proportion=target_proportion,
         name_additional=f"noised_data1",
     )
     assert set(noised_census.columns) == set(my_dummy_data.columns)
