@@ -152,7 +152,8 @@ def _get_default_config_node(
     configuration.
     """
     try:
-        return default_config[key]
+        config_node: LayeredConfigTree = default_config[key]
+        return config_node
     except ConfigurationKeyError:
         dataset_context = "" if dataset_name is None else f" for dataset '{dataset_name}'"
         column_context = "" if column is None else f" for column '{column}'"

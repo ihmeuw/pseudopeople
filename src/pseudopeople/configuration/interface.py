@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Union
+from typing import Any, Dict, Union
 
 from pseudopeople.configuration.generator import get_configuration
 
@@ -48,4 +48,5 @@ def get_config(overrides: Union[Path, str, Dict] = None) -> Dict:
         An invalid configuration is passed with `overrides`.
 
     """
-    return get_configuration(overrides).to_dict()
+    config: Dict = get_configuration(overrides).to_dict()
+    return config
