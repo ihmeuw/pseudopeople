@@ -1,6 +1,5 @@
 import math
 from functools import partial
-from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -839,7 +838,7 @@ def _get_column_noise_level(
     noised_data: pd.DataFrame,
     unnoised_data: pd.DataFrame,
     common_idx: pd.Index,
-) -> Tuple[int, pd.Index]:
+) -> tuple[int, pd.Index]:
 
     # Check that originally missing data remained missing
     originally_missing_sample_idx = unnoised_data.index[unnoised_data[column.name].isna()]

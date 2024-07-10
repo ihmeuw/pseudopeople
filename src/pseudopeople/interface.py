@@ -1,8 +1,7 @@
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import Dict, List, Literal, Optional, Union
 
 import pandas as pd
-from layered_config_tree import LayeredConfigTree
 from loguru import logger
 from packaging.version import parse
 from tqdm import tqdm
@@ -277,7 +276,7 @@ def generate_decennial_census(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    user_filters: List[Tuple[str, str, Union[str, int]]] = []
+    user_filters: List[tuple[str, str, Union[str, int]]] = []
     if year is not None:
         user_filters.append((DATASET_SCHEMAS.census.date_column_name, "==", year))
     if state is not None:
@@ -609,7 +608,7 @@ def generate_taxes_w2_and_1099(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    user_filters: List[Tuple[str, str, Union[str, int]]] = []
+    user_filters: List[tuple[str, str, Union[str, int]]] = []
     if year is not None:
         user_filters.append((DATASET_SCHEMAS.tax_w2_1099.date_column_name, "==", year))
         seed = seed * 10_000 + year
@@ -724,7 +723,7 @@ def generate_women_infants_and_children(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    user_filters: List[Tuple[str, str, Union[str, int]]] = []
+    user_filters: List[tuple[str, str, Union[str, int]]] = []
     if year is not None:
         user_filters.append((DATASET_SCHEMAS.wic.date_column_name, "==", year))
         seed = seed * 10_000 + year
@@ -904,7 +903,7 @@ def generate_taxes_1040(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    user_filters: List[Tuple[str, str, Union[str, int]]] = []
+    user_filters: List[tuple[str, str, Union[str, int]]] = []
     if year is not None:
         user_filters.append((DATASET_SCHEMAS.tax_1040.date_column_name, "==", year))
         seed = seed * 10_000 + year
