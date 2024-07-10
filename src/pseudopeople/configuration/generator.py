@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, Optional, Union
 
 import pandas as pd
 import yaml
@@ -84,7 +84,7 @@ DEFAULT_NOISE_VALUES: NestedDict = {
 def get_configuration(
     overrides: Optional[Union[Path, str, Dict]] = None,
     dataset_schema: DatasetSchema = None,
-    user_filters: List[Tuple[Union[str, int, pd.Timestamp]]] = None,
+    user_filters: list[tuple[str, str, Union[str, int, pd.Timestamp]]] = None,
 ) -> LayeredConfigTree:
     """
     Gets a noising configuration LayeredConfigTree, optionally overridden by a user-provided YAML.
@@ -180,7 +180,7 @@ def add_overrides(
     noising_configuration: LayeredConfigTree,
     overrides: Dict,
     dataset_schema: DatasetSchema = None,
-    user_filters: List[Tuple[Union[str, int, pd.Timestamp]]] = None,
+    user_filters: list[tuple[str, str, Union[str, int, pd.Timestamp]]] = None,
 ) -> None:
     validate_overrides(overrides, noising_configuration)
     overrides = _format_overrides(noising_configuration, overrides)
