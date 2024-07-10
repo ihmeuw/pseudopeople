@@ -1,9 +1,9 @@
 import itertools
+from typing import Union
 
 import pandas as pd
 import pytest
 import yaml
-from typing import Union
 
 from pseudopeople.configuration import NO_NOISE, Keys, get_configuration
 from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
