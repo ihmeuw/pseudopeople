@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Sequence
 
 import numpy as np
 import pandas as pd
@@ -64,9 +64,9 @@ class Dataset:
     def get_noised_data(
         self,
         configuration: LayeredConfigTree,
-        noise_types: List[NoiseType],
+        noise_types: Sequence[NoiseType],
         progress_bar: bool = True,
-    ) -> DataFrame:
+    ) -> pd.DataFrame:
         """Returns the noised dataset data."""
         self._clean_input_data()
         self._reformat_dates_for_noising()
@@ -78,7 +78,7 @@ class Dataset:
     def _noise_dataset(
         self,
         configuration: LayeredConfigTree,
-        noise_types: List[NoiseType],
+        noise_types: Sequence[NoiseType],
         progress_bar: bool = True,
     ) -> None:
         """
