@@ -772,7 +772,7 @@ def _validate_column_noise_level(
     dataset_name: str,
     check_data: pd.DataFrame,
     check_idx: pd.Index,
-    noise_level: float,
+    noise_level: int,
     col: Column,
     config: LayeredConfigTree,
     fuzzy_name: str,
@@ -839,7 +839,7 @@ def _get_column_noise_level(
     noised_data: pd.DataFrame,
     unnoised_data: pd.DataFrame,
     common_idx: pd.Index,
-) -> Tuple[float, pd.Index]:
+) -> Tuple[int, pd.Index]:
 
     # Check that originally missing data remained missing
     originally_missing_sample_idx = unnoised_data.index[unnoised_data[column.name].isna()]
