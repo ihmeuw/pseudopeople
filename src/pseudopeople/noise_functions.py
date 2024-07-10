@@ -581,11 +581,12 @@ def make_phonetic_errors(
 
     # Load phonetic errors
     phonetic_errors = load_phonetic_errors()
+    token_probability: float = configuration[Keys.TOKEN_PROBABILITY]
 
     noised_values = _corrupt_tokens(
         phonetic_errors,
         dataset.data.loc[to_noise_index, column_name],
-        configuration[Keys.TOKEN_PROBABILITY],
+        token_probability,
         dataset.randomness,
     )
 
@@ -718,11 +719,12 @@ def make_ocr_errors(
 
     # Load OCR error dict
     ocr_errors = load_ocr_errors()
+    token_probability: float = configuration[Keys.TOKEN_PROBABILITY]
 
     noised_values = _corrupt_tokens(
         ocr_errors,
         dataset.data.loc[to_noise_index, column_name],
-        configuration[Keys.TOKEN_PROBABILITY],
+        token_probability,
         dataset.randomness,
     )
 
