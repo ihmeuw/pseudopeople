@@ -3,7 +3,7 @@ import math
 import numpy as np
 import pandas as pd
 import pytest
-
+from layered_config_tree import LayeredConfigTree
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COLS
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
@@ -291,7 +291,7 @@ def dataset_different_seed(dummy_dataset):
 
 
 def test_leave_blank(dataset, fuzzy_checker: FuzzyChecker):
-    config = get_configuration(
+    config: LayeredConfigTree = get_configuration(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -331,7 +331,7 @@ def test_leave_blank(dataset, fuzzy_checker: FuzzyChecker):
 
 
 def test_choose_wrong_option(dataset, fuzzy_checker: FuzzyChecker):
-    config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["state"][
+    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["state"][
         NOISE_TYPES.choose_wrong_option.name
     ]
     data = dataset.data["state"].copy()
@@ -355,7 +355,7 @@ def test_choose_wrong_option(dataset, fuzzy_checker: FuzzyChecker):
 
 
 def test_generate_copy_from_household_member(dataset, fuzzy_checker: FuzzyChecker):
-    config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["age"][
+    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["age"][
         NOISE_TYPES.copy_from_household_member.name
     ]
     original_data = dataset.data[["age", "copy_age"]]
@@ -390,7 +390,7 @@ def test_swap_months_and_days(dataset, fuzzy_checker: FuzzyChecker):
     for col in ["event_date", "date_of_birth"]:
         data = dataset.data[col].copy()
         if col == "event_date":
-            config = get_configuration()[DATASET_SCHEMAS.ssa.name][Keys.COLUMN_NOISE][col][
+            config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.ssa.name][Keys.COLUMN_NOISE][col][
                 NOISE_TYPES.swap_month_and_day.name
             ]
             config.update(
@@ -429,7 +429,7 @@ def test_swap_months_and_days(dataset, fuzzy_checker: FuzzyChecker):
 
 def test_write_wrong_zipcode_digits(dataset, fuzzy_checker: FuzzyChecker):
     dummy_digit_probabilities = [0.3, 0.3, 0.4, 0.5, 0.5]
-    config = get_configuration()
+    config: LayeredConfigTree = get_configuration()
     config.update(
         {
             DATASET_SCHEMAS.census.name: {
@@ -486,7 +486,7 @@ def test_miswrite_ages_default_config(dataset, fuzzy_checker: FuzzyChecker):
     """Test that miswritten ages are appropriately handled, including
     no perturbation probabilities defaults to uniform distribution,
     perturbation probabilities"""
-    config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["age"][
+    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["age"][
         NOISE_TYPES.misreport_age.name
     ]
     data = dataset.data["age"].copy()
@@ -521,7 +521,7 @@ def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker):
     original_age = 25
     perturbations = [-2, -1, 1]
 
-    config = get_configuration(
+    config: LayeredConfigTree = get_configuration(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -559,7 +559,7 @@ def test_miswrite_ages_provided_probabilities(dataset, fuzzy_checker: FuzzyCheck
     original_age = 25
     perturbations = {-1: 0.1, 1: 0.9}
 
-    config = get_configuration(
+    config: LayeredConfigTree = get_configuration(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -600,7 +600,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
     age = 1.0
     perturbations = [-2]  # This will cause -1 which will be flipped to +1
 
-    config = get_configuration(
+    config: LayeredConfigTree = get_configuration(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -630,7 +630,7 @@ def test_miswrite_ages_flips_negative_to_positive():
     age = 3.0
     perturbations = [-7]  # This will cause -4 and should flip to +4
 
-    config = get_configuration(
+    config: LayeredConfigTree = get_configuration(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -661,7 +661,7 @@ def test_write_wrong_digits_robust(dataset, fuzzy_checker: FuzzyChecker):
     """
     # This test is pretty slow because of the number of times we have to iterate through the series
     # so I have marked it as slow - albrja
-    config = get_configuration()
+    config: LayeredConfigTree = get_configuration()
     config.update(
         {
             DATASET_SCHEMAS.census.name: {
@@ -797,7 +797,7 @@ def test_write_wrong_digits(dataset, fuzzy_checker: FuzzyChecker):
     # This is a quicker (less robust) version of the test above.
     # It only checks that numeric characters are noised at the correct level as
     # a sanity check our noise is of the right magnitude
-    config = get_configuration()
+    config: LayeredConfigTree = get_configuration()
     config.update(
         {
             DATASET_SCHEMAS.census.name: {
@@ -846,7 +846,7 @@ def test_write_wrong_digits(dataset, fuzzy_checker: FuzzyChecker):
 
 
 def test_use_nickname(dataset, fuzzy_checker: FuzzyChecker):
-    config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][
+    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][
         "first_name"
     ][NOISE_TYPES.use_nickname.name]
     expected_noise = config[Keys.CELL_PROBABILITY]
@@ -904,7 +904,7 @@ def test_use_fake_name(dataset, column, fuzzy_checker: FuzzyChecker):
     """
     Function to test that fake names are noised and replace raw values at a configured percentage
     """
-    config = get_configuration()
+    config: LayeredConfigTree = get_configuration()
     config.update(
         {
             DATASET_SCHEMAS.census.name: {
@@ -1030,10 +1030,10 @@ def test_phonetic_error_values(pair, fuzzy_checker: FuzzyChecker):
     data = pd.Series([string] * 100_000, name="column")
     cell_probability = 0.9
     token_probability = 0.3
-    config = {
+    config = LayeredConfigTree({
         Keys.CELL_PROBABILITY: cell_probability,
         Keys.TOKEN_PROBABILITY: token_probability,
-    }
+    })
     df = pd.DataFrame({"column": data})
     dataset = Dataset(DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, 0)
     NOISE_TYPES.make_phonetic_errors(dataset, config, "column")
@@ -1071,7 +1071,7 @@ def test_phonetic_error_values(pair, fuzzy_checker: FuzzyChecker):
     ],
 )
 def test_generate_ocr_errors(dataset, column, fuzzy_checker: FuzzyChecker):
-    config = get_configuration()
+    config: LayeredConfigTree = get_configuration()
     config.update(
         {
             DATASET_SCHEMAS.census.name: {
@@ -1141,10 +1141,10 @@ def test_ocr_replacement_values(pair, fuzzy_checker: FuzzyChecker):
     data = pd.Series([string] * 100_000, name="column")
     cell_probability = 0.9
     token_probability = 0.3
-    config = {
+    config = LayeredConfigTree({
         Keys.CELL_PROBABILITY: cell_probability,
         Keys.TOKEN_PROBABILITY: token_probability,
-    }
+    })
     df = pd.DataFrame({"column": data})
     dataset = Dataset(DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, 0)
     NOISE_TYPES.make_ocr_errors(dataset, config, "column")

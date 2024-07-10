@@ -11,7 +11,7 @@ from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.noise_level import _get_census_omission_noise_levels
 from pseudopeople.schema_entities import DATASET_SCHEMAS
 from tests.conftest import FuzzyChecker
-
+from layered_config_tree import LayeredConfigTree
 
 @pytest.fixture()
 def dummy_data():
@@ -33,7 +33,7 @@ def dummy_data():
 
 
 def test_omit_row(dummy_data, fuzzy_checker: FuzzyChecker):
-    config = get_configuration()[DATASET_SCHEMAS.tax_w2_1099.name][Keys.ROW_NOISE][
+    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.tax_w2_1099.name][Keys.ROW_NOISE][
         NOISE_TYPES.omit_row.name
     ]
     dataset = Dataset(DATASET_SCHEMAS.tax_w2_1099, dummy_data, 0)
@@ -52,7 +52,7 @@ def test_omit_row(dummy_data, fuzzy_checker: FuzzyChecker):
 
 
 def test_do_not_respond(mocker, dummy_data, fuzzy_checker: FuzzyChecker):
-    config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
+    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
         NOISE_TYPES.do_not_respond.name
     ]
     mocker.patch(
@@ -118,7 +118,7 @@ def test__get_census_omission_noise_levels(age, race_ethnicity, sex, expected_le
 
 def test_do_not_respond_missing_columns(dummy_data):
     """Test do_not_respond raises error when missing required columns."""
-    config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
+    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
         NOISE_TYPES.do_not_respond.name
     ]
     census = Dataset(DATASET_SCHEMAS.census, dummy_data, 0)
@@ -215,12 +215,12 @@ def test_guardian_duplication():
         }
     )
     # Noise 100% of rows
-    overrides = {
+    overrides = LayeredConfigTree({
         key: 1
         for key in get_configuration()[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
             NOISE_TYPES.duplicate_with_guardian.name
         ]
-    }
+    })
     census = Dataset(DATASET_SCHEMAS.census, dummy_data, 0)
     NOISE_TYPES.duplicate_with_guardian(census, overrides)
     noised = census.data

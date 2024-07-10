@@ -108,7 +108,8 @@ class Dataset:
                     and noise_type.name in noise_configuration.row_noise
                 ):
                     # Apply row noise
-                    noise_type(self, noise_configuration[Keys.ROW_NOISE][noise_type.name])
+                    row_noise_configuration: LayeredConfigTree = noise_configuration[Keys.ROW_NOISE][noise_type.name]
+                    noise_type(self, row_noise_configuration)
 
             elif isinstance(noise_type, ColumnNoiseType):
                 if Keys.COLUMN_NOISE in noise_configuration:
@@ -120,9 +121,11 @@ class Dataset:
                     ]
                     # Apply column noise to each column as appropriate
                     for column in columns_to_noise:
+                        column_noise_configuration: LayeredConfigTree = noise_configuration.column_noise[
+                            column][noise_type.name]
                         noise_type(
                             self,
-                            noise_configuration.column_noise[column][noise_type.name],
+                            column_noise_configuration,
                             column,
                         )
 
