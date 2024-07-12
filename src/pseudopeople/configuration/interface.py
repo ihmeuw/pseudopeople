@@ -1,10 +1,10 @@
 from pathlib import Path
-from typing import Dict, Union
+from typing import Union
 
 from pseudopeople.configuration.generator import get_configuration
 
 
-def get_config(overrides: Union[Path, str, Dict] = None) -> Dict:
+def get_config(overrides: Union[Path, str, dict] = None) -> dict:
     """
     Function that returns the pseudopeople configuration containing all
     default values. To get the default probability of nonresponse in the
@@ -48,5 +48,5 @@ def get_config(overrides: Union[Path, str, Dict] = None) -> Dict:
         An invalid configuration is passed with `overrides`.
 
     """
-    config: Dict = get_configuration(overrides).to_dict()
+    config: dict = get_configuration(overrides).to_dict()
     return config
