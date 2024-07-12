@@ -787,8 +787,8 @@ def _validate_column_noise_level(
     includes_token_noising = [
         noise_type
         for noise_type in tmp_config
-        for key in [Keys.TOKEN_PROBABILITY, Keys.ZIPCODE_DIGIT_PROBABILITIES]
-        if key in tmp_config[noise_type].keys()  # type: ignore[union-attr]
+        if Keys.TOKEN_PROBABILITY in tmp_config[noise_type]
+        or Keys.ZIPCODE_DIGIT_PROBABILITIES in tmp_config[noise_type]
     ]
 
     # Calculate expected noise (target proportion for fuzzy checker)
@@ -800,9 +800,7 @@ def _validate_column_noise_level(
             token_probability_key = {
                 NOISE_TYPES.write_wrong_zipcode_digits.name: Keys.ZIPCODE_DIGIT_PROBABILITIES,
             }.get(col_noise_type.name, Keys.TOKEN_PROBABILITY)
-            token_probability: Union[float, list[float]] = tmp_config[col_noise_type.name][
-                token_probability_key
-            ]
+            token_probability = tmp_config[col_noise_type.name][token_probability_key]
             # Get number of tokens per string to calculate expected proportion
             tokens_per_string_getter = TOKENS_PER_STRING_MAPPER.get(
                 col_noise_type.name, lambda x: x.astype(str).str.len()
@@ -810,11 +808,10 @@ def _validate_column_noise_level(
             tokens_per_string = tokens_per_string_getter(check_data.loc[check_idx, col.name])
 
             # Calculate probability no token is noised
-            if col_noise_type.name == NOISE_TYPES.write_wrong_zipcode_digits.name:
-                token_probabilities: list[float] = token_probability
+            if isinstance(token_probability, list):
                 # Calculate write wrong zipcode average digits probability any token is noise
                 avg_probability_any_token_noised = 1 - math.prod(
-                    [1 - p for p in token_probabilities]
+                    [1 - p for p in token_probability]
                 )
             else:
                 avg_probability_any_token_noised = (
