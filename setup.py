@@ -16,12 +16,16 @@ max_version = max(python_versions)
 if not (
     min_version <= parse(".".join([str(v) for v in sys.version_info[:2]])) <= max_version
 ):
-    # Python 3.5 does not support f-strings
     py_version = ".".join([str(v) for v in sys.version_info[:3]])
+    # Python 3.5 does not support f-strings
     error = (
         "\n----------------------------------------\n"
-        f"Error: Pseudopeople runs under python {min_version.base_version}-{max_version.base_version}.\n"
-        f"You are running python {py_version}"
+        "Error: Pseudopeople runs under python {min_version}-{max_version}.\n"
+        "You are running python {py_version}".format(
+            min_version=min_version.base_version,
+            max_version=max_version.base_version,
+            py_version=py_version,
+        )
     )
     print(error, file=sys.stderr)
     sys.exit(1)
