@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
 #   - invoked on push, pull_request, manual trigger, or schedule
-#   - test under at least 3 versions of python
+#   - test under all supported versions of python (python_versions.json)
 # -----------------------------------------------------------------------------
 name: build
 on:
@@ -11,11 +11,25 @@ on:
     - cron: "0 8 * * *"
 
 jobs:
+  get-python-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install jq
+        run: sudo apt-get install jq
+      - name: Get Python versions
+        id: set-matrix
+        run: |
+          echo "MATRIX_RESULT=$(jq -c . python_versions.json)" >> $GITHUB_ENV
+    outputs:
+      matrix: ${{ env.MATRIX_RESULT }}
   build:
+    needs: get-python-versions
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ${{ fromJSON(needs.get-python-versions.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
