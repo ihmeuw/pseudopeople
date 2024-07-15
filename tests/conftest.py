@@ -242,13 +242,13 @@ class FuzzyChecker:
         # if we generate a probability too small to be stored in a floating point number(!), which is known
         # as "underflow"
         with np.errstate(under="ignore"):
-            bug_marginal_likelihood = bug_distribution.pmf(numerator)
-            no_bug_marginal_likelihood = no_bug_distribution.pmf(numerator)
+            bug_marginal_likelihood = float(bug_distribution.pmf(numerator))
+            no_bug_marginal_likelihood = float(no_bug_distribution.pmf(numerator))
 
         try:
             return bug_marginal_likelihood / no_bug_marginal_likelihood
         except (ZeroDivisionError, FloatingPointError):
-            return np.finfo(float).max
+            return float(np.finfo(float).max)
 
     @cache
     def _fit_beta_distribution_to_uncertainty_interval(
