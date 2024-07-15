@@ -92,7 +92,7 @@ class Dataset:
             Object to configure noise levels
         """
 
-        noise_configuration = configuration[self.dataset_schema.name]
+        noise_configuration: LayeredConfigTree = configuration[self.dataset_schema.name]
 
         if progress_bar:
             noise_type_iterator = tqdm(

@@ -1,8 +1,8 @@
 import itertools
 
-import pandas as pd
 import pytest
 import yaml
+from layered_config_tree import LayeredConfigTree
 
 from pseudopeople.configuration import NO_NOISE, Keys, get_configuration
 from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
@@ -46,7 +46,7 @@ def test_default_configuration_structure():
             validate_noise_type_config(dataset_schema, row_noise, config_probability)
         for col in dataset_schema.columns:
             for noise_type in col.noise_types:
-                config_level = config[dataset_schema.name].column_noise[col.name][
+                config_level = config[dataset_schema.name][Keys.COLUMN_NOISE][col.name][
                     noise_type.name
                 ]
                 validate_noise_type_config(dataset_schema, noise_type, config_level, col)
@@ -157,12 +157,14 @@ def test_loading_from_yaml(tmp_path):
     with open(filepath, "w") as file:
         yaml.dump(overrides, file)
 
-    default_config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][
-        COLUMNS.age.name
-    ][NOISE_TYPES.misreport_age.name].to_dict()
-    updated_config = get_configuration(filepath)[DATASET_SCHEMAS.census.name][
+    default_config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][
         Keys.COLUMN_NOISE
-    ][COLUMNS.age.name][NOISE_TYPES.misreport_age.name].to_dict()
+    ][COLUMNS.age.name][NOISE_TYPES.misreport_age.name]
+    default_config = default_config.to_dict()
+    updated_config: LayeredConfigTree = get_configuration(filepath)[
+        DATASET_SCHEMAS.census.name
+    ][Keys.COLUMN_NOISE][COLUMNS.age.name][NOISE_TYPES.misreport_age.name]
+    updated_config = updated_config.to_dict()
 
     assert (
         default_config[Keys.POSSIBLE_AGE_DIFFERENCES]
@@ -196,9 +198,10 @@ def test_format_miswrite_ages(age_differences, expected):
         },
     }
 
-    config = get_configuration(overrides)[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][
-        COLUMNS.age.name
-    ][NOISE_TYPES.misreport_age.name][Keys.POSSIBLE_AGE_DIFFERENCES].to_dict()
+    config: LayeredConfigTree = get_configuration(overrides)[DATASET_SCHEMAS.census.name][
+        Keys.COLUMN_NOISE
+    ][COLUMNS.age.name][NOISE_TYPES.misreport_age.name][Keys.POSSIBLE_AGE_DIFFERENCES]
+    config = config.to_dict()
 
     assert config == expected
 
@@ -517,14 +520,15 @@ def test_no_noise():
     no_noise_config = get_configuration("no_noise")
 
     for dataset in no_noise_config.keys():
-        dataset_dict = no_noise_config[dataset]
-        dataset_row_noise_dict = dataset_dict[Keys.ROW_NOISE]
-        dataset_column_dict = dataset_dict[Keys.COLUMN_NOISE]
+        dataset_dict: LayeredConfigTree = no_noise_config[dataset]
+        dataset_row_noise_dict: LayeredConfigTree = dataset_dict[Keys.ROW_NOISE]
+        dataset_column_dict: LayeredConfigTree = dataset_dict[Keys.COLUMN_NOISE]
         for row_noise_type in dataset_row_noise_dict.keys():
-            for key, value in dataset_row_noise_dict[row_noise_type].items():
+            noise_specific_config: LayeredConfigTree = dataset_row_noise_dict[row_noise_type]
+            for key, value in noise_specific_config.items():
                 assert dataset_row_noise_dict[row_noise_type][key] == 0.0
         for column in dataset_column_dict.keys():
-            column_noise_dict = dataset_column_dict[column]
+            column_noise_dict: LayeredConfigTree = dataset_column_dict[column]
             for column_noise_type in column_noise_dict.keys():
                 assert column_noise_dict[column_noise_type][Keys.CELL_PROBABILITY] == 0.0
 
