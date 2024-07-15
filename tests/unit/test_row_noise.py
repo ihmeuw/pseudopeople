@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
+from layered_config_tree import LayeredConfigTree
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants.noise_type_metadata import (
@@ -215,12 +216,10 @@ def test_guardian_duplication():
         }
     )
     # Noise 100% of rows
-    overrides = {
-        key: 1
-        for key in get_configuration()[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
-            NOISE_TYPES.duplicate_with_guardian.name
-        ]
-    }
+    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][
+        Keys.ROW_NOISE
+    ][NOISE_TYPES.duplicate_with_guardian.name]
+    overrides = {key: 1 for key in config}
     census = Dataset(DATASET_SCHEMAS.census, dummy_data, 0)
     NOISE_TYPES.duplicate_with_guardian(census, overrides)
     noised = census.data
