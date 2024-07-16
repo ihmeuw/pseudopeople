@@ -2,7 +2,7 @@ import os
 import warnings
 from functools import cache
 from pathlib import Path
-from typing import Any, Tuple, Union
+from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -296,7 +296,7 @@ class FuzzyChecker:
 
     def _quantile_squared_error(
         self, dist: scipy.stats.rv_continuous, value: float, intended_quantile: float
-    ) -> Union[Any, float]:
+    ) -> float:
         with np.errstate(under="ignore"):
             actual_quantile = dist.cdf(value)
 
