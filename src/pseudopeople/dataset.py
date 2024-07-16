@@ -47,9 +47,10 @@ class Dataset:
     def __bool__(self):
         return not self.data.empty
 
-    def is_empty(self, column_name: str) -> pd.BooleanDtype:
+    def is_empty(self, column_name: str) -> bool:
         """Returns whether the column is empty."""
-        return self.missingness[column_name].all()
+        is_empty: bool = self.missingness[column_name].all()
+        return is_empty
 
     def get_non_empty_index(self, required_columns: Optional[List[str]] = None) -> pd.Index:
         """Returns the non-empty data."""
