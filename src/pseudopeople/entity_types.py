@@ -57,7 +57,7 @@ class RowNoiseType(NoiseType):
     ] = _noise_function_not_implemented
     get_noise_level: Callable[
         ["Dataset", LayeredConfigTree], float
-    ] = lambda _, config: config[Keys.ROW_PROBABILITY]
+    ] = lambda _, config: float(config[Keys.ROW_PROBABILITY])
 
     @property
     def probability_key(self) -> str:
