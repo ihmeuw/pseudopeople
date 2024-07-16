@@ -104,7 +104,7 @@ def get_configuration(
         is_no_noise = False
     noising_configuration = _generate_configuration(is_no_noise)
     if overrides is not None:
-        overrides_dict: Dict = overrides
+        validate_overrides(overrides, noising_configuration)
         add_overrides(noising_configuration, overrides_dict, dataset_schema, user_filters)
 
     return noising_configuration
@@ -182,7 +182,6 @@ def add_overrides(
     dataset_schema: DatasetSchema = None,
     user_filters: list[tuple[str, str, Union[str, int, pd.Timestamp]]] = None,
 ) -> None:
-    validate_overrides(overrides, noising_configuration)
     overrides = _format_overrides(noising_configuration, overrides)
     noising_configuration.update(overrides, layer="user")
     # Note: dataset and user_filters should both be None when using the get_config wrapper
