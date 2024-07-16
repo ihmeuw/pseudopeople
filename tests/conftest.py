@@ -2,7 +2,7 @@ import os
 import warnings
 from functools import cache
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -300,15 +300,19 @@ class FuzzyChecker:
         with np.errstate(under="ignore"):
             actual_quantile = dist.cdf(value)
 
+        # Type hint
+        error: float
         if 0 < actual_quantile < 1:
-            return (
+            error = (
                 scipy.special.logit(actual_quantile) - scipy.special.logit(intended_quantile)
             ) ** 2
         else:
             # In this case, we were so far off that the actual quantile can't even be
             # precisely calculated.
             # We return an arbitrarily large penalty to ensure this is never selected as the minimum.
-            return np.finfo(float).max
+            error = np.finfo(float).max
+
+        return error
 
     def save_diagnostic_output(self) -> None:
         """
