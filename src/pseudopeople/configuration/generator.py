@@ -84,7 +84,7 @@ DEFAULT_NOISE_VALUES: NestedDict = {
 def get_configuration(
     overrides: Optional[Union[Path, str, Dict]] = None,
     dataset_schema: DatasetSchema = None,
-    user_filters: Optional[list[tuple[str, str, Union[str, int, pd.Timestamp]]]] = None,
+    user_filters: list[tuple[str, str, Union[str, int, pd.Timestamp]]] = None,
 ) -> LayeredConfigTree:
     """
     Gets a noising configuration LayeredConfigTree, optionally overridden by a user-provided YAML.
