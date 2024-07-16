@@ -47,7 +47,7 @@ class Dataset:
     def __bool__(self):
         return not self.data.empty
 
-    def is_empty(self, column_name: str) -> bool:
+    def is_empty(self, column_name: str) -> Any:
         """Returns whether the column is empty."""
         is_empty: bool = self.missingness[column_name].all()
         return is_empty
