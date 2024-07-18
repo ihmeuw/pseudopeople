@@ -84,7 +84,7 @@ DEFAULT_NOISE_VALUES: NestedDict = {
 def get_configuration(
     overrides: Optional[Union[Path, str, Dict]] = None,
     dataset_schema: DatasetSchema = None,
-    user_filters: list[tuple[str, str, Union[str, int, pd.Timestamp]]] = None,
+    user_filters: list[tuple[str, str, Union[str, int, pd.Timestamp]]] = [],
 ) -> LayeredConfigTree:
     """
     Gets a noising configuration LayeredConfigTree, optionally overridden by a user-provided YAML.
@@ -180,13 +180,13 @@ def add_overrides(
     noising_configuration: LayeredConfigTree,
     overrides: Dict,
     dataset_schema: DatasetSchema = None,
-    user_filters: list[tuple[str, str, Union[str, int, pd.Timestamp]]] = None,
+    user_filters: list[tuple[str, str, Union[str, int, pd.Timestamp]]] = [],
 ) -> None:
     overrides = _format_overrides(noising_configuration, overrides)
     noising_configuration.update(overrides, layer="user")
     # Note: dataset and user_filters should both be None when using the get_config wrapper
     # or both be inputs from generate_XXX functions.
-    if (dataset_schema is not None) and (user_filters is not None):
+    if (dataset_schema is not None) and user_filters:
         # TODO: refactor validate_noise_level_proportions to take overrides as arg and live in validate overrides
         # Note: validate_noise_level_proportions must happen after user layer configuration update
         validate_noise_level_proportions(noising_configuration, dataset_schema, user_filters)
