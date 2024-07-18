@@ -29,14 +29,11 @@ disable_error_code = [
     "method-assign",
     "misc",
     "name-defined",
-    "no-any-return",
     "no-untyped-call",
     "no-untyped-def",
     "operator",
     "override",
-    "return-value",
     "type-arg",
-    "union-attr",
     "var-annotated",
 ]
 

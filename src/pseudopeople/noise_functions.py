@@ -419,7 +419,8 @@ def misreport_ages(
     """
 
     column = dataset.data.loc[to_noise_index, column_name]
-    possible_perturbations = configuration[Keys.POSSIBLE_AGE_DIFFERENCES].to_dict()
+    possible_perturbations: LayeredConfigTree = configuration[Keys.POSSIBLE_AGE_DIFFERENCES]
+    possible_perturbations = possible_perturbations.to_dict()
     perturbations = vectorized_choice(
         options=list(possible_perturbations.keys()),
         weights=list(possible_perturbations.values()),

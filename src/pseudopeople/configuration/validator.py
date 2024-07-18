@@ -110,7 +110,7 @@ def validate_overrides(overrides: Any, default_config: LayeredConfigTree) -> Non
 
 
 def _validate_noise_type_config(
-    noise_type_config: Union[Dict, List],
+    noise_type_config: dict,
     default_noise_type_config: LayeredConfigTree,
     dataset_name: str,
     noise_type: str,
@@ -154,7 +154,8 @@ def _get_default_config_node(
     configuration.
     """
     try:
-        return default_config[key]
+        config_node: LayeredConfigTree = default_config[key]
+        return config_node
     except ConfigurationKeyError:
         dataset_context = "" if dataset_name is None else f" for dataset '{dataset_name}'"
         column_context = "" if column is None else f" for column '{column}'"

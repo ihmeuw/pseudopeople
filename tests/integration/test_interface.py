@@ -782,12 +782,12 @@ def _validate_column_noise_level(
     and calculates the expected noise level for each. It then accumulates the expected
     noise level as we layer more noise types on top of each other.
     """
-    tmp_config = config[dataset_name][Keys.COLUMN_NOISE][col.name]
+    tmp_config: LayeredConfigTree = config[dataset_name][Keys.COLUMN_NOISE][col.name]
     includes_token_noising = [
-        c
-        for c in tmp_config
-        for k in [Keys.TOKEN_PROBABILITY, Keys.ZIPCODE_DIGIT_PROBABILITIES]
-        if k in tmp_config[c].keys()
+        noise_type
+        for noise_type in tmp_config
+        if Keys.TOKEN_PROBABILITY in tmp_config[noise_type]
+        or Keys.ZIPCODE_DIGIT_PROBABILITIES in tmp_config[noise_type]
     ]
 
     # Calculate expected noise (target proportion for fuzzy checker)
@@ -807,7 +807,7 @@ def _validate_column_noise_level(
             tokens_per_string = tokens_per_string_getter(check_data.loc[check_idx, col.name])
 
             # Calculate probability no token is noised
-            if col_noise_type.name == NOISE_TYPES.write_wrong_zipcode_digits.name:
+            if isinstance(token_probability, list):
                 # Calculate write wrong zipcode average digits probability any token is noise
                 avg_probability_any_token_noised = 1 - math.prod(
                     [1 - p for p in token_probability]

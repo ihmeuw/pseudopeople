@@ -451,7 +451,7 @@ def test_write_wrong_zipcode_digits(dataset, fuzzy_checker: FuzzyChecker):
 
     # Get configuration values for each piece of 5 digit zipcode
     cell_probability: float = config[Keys.CELL_PROBABILITY]
-    token_probability: float = config[Keys.ZIPCODE_DIGIT_PROBABILITIES]
+    token_probability: list[float] = config[Keys.ZIPCODE_DIGIT_PROBABILITIES]
     data = dataset.data["zipcode"].copy()
     NOISE_TYPES.write_wrong_zipcode_digits(dataset, config, "zipcode")
     noised_data = dataset.data["zipcode"]

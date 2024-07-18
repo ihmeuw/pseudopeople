@@ -1,10 +1,8 @@
-import numpy as np
-import pandas as pd
 import pytest
 from layered_config_tree import LayeredConfigTree
 
 from pseudopeople.configuration import Keys, get_configuration
-from pseudopeople.entity_types import ColumnNoiseType, NoiseType, RowNoiseType
+from pseudopeople.entity_types import RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASET_SCHEMAS
 from tests.integration.conftest import _initialize_dataset_with_sample
@@ -43,11 +41,11 @@ def test_dataset_missingness(dataset_name: str):
                 # Check missingness is synced with data
                 assert dataset.missingness.equals(dataset.is_missing(dataset.data))
         else:
+            column_noise_config: LayeredConfigTree = dataset_config[Keys.COLUMN_NOISE]
             columns_to_noise = [
                 col
-                for col in dataset_config[Keys.COLUMN_NOISE]
-                if col in dataset.data.columns
-                and noise_type.name in dataset_config[Keys.COLUMN_NOISE][col]
+                for col in column_noise_config
+                if col in dataset.data.columns and noise_type.name in column_noise_config[col]
             ]
             for column in columns_to_noise:
                 column_noise_config: LayeredConfigTree = dataset_config[Keys.COLUMN_NOISE][
@@ -55,7 +53,7 @@ def test_dataset_missingness(dataset_name: str):
                 ][noise_type.name]
                 noise_type(
                     dataset,
-                    column_noise_config,
+                    column_noise_config[column][noise_type.name],
                     column,
                 )
                 # Check missingness is synced with data
