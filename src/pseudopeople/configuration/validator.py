@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Tuple, Union
+from typing import Any, Callable, Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -13,7 +13,7 @@ from pseudopeople.noise_scaling import get_options_for_column
 from pseudopeople.schema_entities import DatasetSchema
 
 
-def validate_overrides(overrides: Dict, default_config: LayeredConfigTree) -> None:
+def validate_overrides(overrides: Any, default_config: LayeredConfigTree) -> None:
     """
     Validates the user-provided overrides. Confirms that all user-provided
     keys exist in the default configuration. Confirms that all user-provided
