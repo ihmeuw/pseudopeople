@@ -220,7 +220,7 @@ def test_guardian_duplication():
     config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][
         Keys.ROW_NOISE
     ][NOISE_TYPES.duplicate_with_guardian.name]
-    overrides = {key: 1 for key in config}
+    overrides = LayeredConfigTree({key: 1 for key in config})
     census = Dataset(DATASET_SCHEMAS.census, dummy_data, 0)
     NOISE_TYPES.duplicate_with_guardian(census, overrides)
     noised = census.data
