@@ -1,8 +1,7 @@
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Dict, Literal, Optional, Union
 
 import pandas as pd
-from layered_config_tree import LayeredConfigTree
 from loguru import logger
 from packaging.version import parse
 from tqdm import tqdm
@@ -29,10 +28,10 @@ def _generate_dataset(
     source: Union[Path, str],
     seed: int,
     config: Union[Path, str, Dict],
-    user_filters: List[tuple],
+    user_filters: list[tuple],
     verbose: bool = False,
     engine_name: Literal["pandas", "dask"] = "pandas",
-) -> DataFrame:
+) -> pd.DataFrame:
     """
     Helper for generating noised datasets.
 
@@ -204,7 +203,7 @@ def generate_decennial_census(
     state: Optional[str] = None,
     verbose: bool = False,
     engine: Literal["pandas", "dask"] = "pandas",
-) -> DataFrame:
+) -> pd.DataFrame:
     """
     Generates a pseudopeople decennial census dataset which represents
     simulated responses to the US Census Bureau's Census of Population
@@ -277,13 +276,12 @@ def generate_decennial_census(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    user_filters = []
+    user_filters: list[tuple[str, str, Union[str, int]]] = []
     if year is not None:
         user_filters.append((DATASET_SCHEMAS.census.date_column_name, "==", year))
     if state is not None:
-        user_filters.append(
-            (DATASET_SCHEMAS.census.state_column_name, "==", get_state_abbreviation(state))
-        )
+        state_column_name: str = DATASET_SCHEMAS.census.state_column_name
+        user_filters.append((state_column_name, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.census,
         source,
@@ -303,7 +301,7 @@ def generate_american_community_survey(
     state: Optional[str] = None,
     verbose: bool = False,
     engine: Literal["pandas", "dask"] = "pandas",
-) -> DataFrame:
+) -> pd.DataFrame:
     """
     Generates a pseudopeople ACS dataset which represents simulated
     responses to the ACS survey.
@@ -420,7 +418,7 @@ def generate_current_population_survey(
     state: Optional[str] = None,
     verbose: bool = False,
     engine: Literal["pandas", "dask"] = "pandas",
-) -> DataFrame:
+) -> pd.DataFrame:
     """
     Generates a pseudopeople CPS dataset which represents simulated
     responses to the CPS survey.
@@ -538,7 +536,7 @@ def generate_taxes_w2_and_1099(
     state: Optional[str] = None,
     verbose: bool = False,
     engine: Literal["pandas", "dask"] = "pandas",
-) -> DataFrame:
+) -> pd.DataFrame:
     """
     Generates a pseudopeople W2 and 1099 tax dataset which represents
     simulated tax form data.
@@ -610,14 +608,15 @@ def generate_taxes_w2_and_1099(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    user_filters = []
+    user_filters: list[tuple[str, str, Union[str, int]]] = []
     if year is not None:
         user_filters.append((DATASET_SCHEMAS.tax_w2_1099.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state is not None:
+        state_column_name: str = DATASET_SCHEMAS.tax_w2_1099.state_column_name
         user_filters.append(
             (
-                DATASET_SCHEMAS.tax_w2_1099.state_column_name,
+                state_column_name,
                 "==",
                 get_state_abbreviation(state),
             )
@@ -641,7 +640,7 @@ def generate_women_infants_and_children(
     state: Optional[str] = None,
     verbose: bool = False,
     engine: Literal["pandas", "dask"] = "pandas",
-) -> DataFrame:
+) -> pd.DataFrame:
     """
     Generates a pseudopeople WIC dataset which represents a simulated
     version of the administrative data that would be recorded by WIC.
@@ -724,14 +723,13 @@ def generate_women_infants_and_children(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    user_filters = []
+    user_filters: list[tuple[str, str, Union[str, int]]] = []
     if year is not None:
         user_filters.append((DATASET_SCHEMAS.wic.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state is not None:
-        user_filters.append(
-            (DATASET_SCHEMAS.wic.state_column_name, "==", get_state_abbreviation(state))
-        )
+        state_column_name: str = DATASET_SCHEMAS.wic.state_column_name
+        user_filters.append((state_column_name, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.wic, source, seed, config, user_filters, verbose, engine_name=engine
     )
@@ -744,7 +742,7 @@ def generate_social_security(
     year: Optional[int] = 2020,
     verbose: bool = False,
     engine: Literal["pandas", "dask"] = "pandas",
-) -> DataFrame:
+) -> pd.DataFrame:
     """
     Generates a pseudopeople SSA dataset which represents simulated
     Social Security Administration (SSA) data.
@@ -833,7 +831,7 @@ def generate_taxes_1040(
     state: Optional[str] = None,
     verbose: bool = False,
     engine: Literal["pandas", "dask"] = "pandas",
-) -> DataFrame:
+) -> pd.DataFrame:
     """
     Generates a pseudopeople 1040 tax dataset which represents simulated
     tax form data.
@@ -905,14 +903,13 @@ def generate_taxes_1040(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    user_filters = []
+    user_filters: list[tuple[str, str, Union[str, int]]] = []
     if year is not None:
         user_filters.append((DATASET_SCHEMAS.tax_1040.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state is not None:
-        user_filters.append(
-            (DATASET_SCHEMAS.tax_1040.state_column_name, "==", get_state_abbreviation(state))
-        )
+        state_column_name: str = DATASET_SCHEMAS.tax_1040.state_column_name
+        user_filters.append((state_column_name, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.tax_1040,
         source,
@@ -935,7 +932,7 @@ def validate_data_path_suffix(data_paths) -> None:
     return None
 
 
-def get_dataset_filepaths(source: Path, dataset_name: str) -> List[Path]:
+def get_dataset_filepaths(source: Path, dataset_name: str) -> list[Path]:
     directory = source / dataset_name
     dataset_paths = [x for x in directory.glob(f"{dataset_name}*")]
     sorted_dataset_paths = sorted(dataset_paths)
