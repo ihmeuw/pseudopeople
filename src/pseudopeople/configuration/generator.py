@@ -104,7 +104,12 @@ def get_configuration(
     noising_configuration = _generate_configuration(is_no_noise)
     if overrides is not None:
         validate_overrides(overrides, noising_configuration)
-        add_overrides(noising_configuration, overrides, dataset_schema, user_filters)
+        add_overrides(
+            noising_configuration,
+            overrides,  # type: ignore [arg-type]
+            dataset_schema,
+            user_filters,
+        )
 
     return noising_configuration
 
