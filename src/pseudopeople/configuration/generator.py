@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, Optional, Union
 
 import pandas as pd
 import yaml
@@ -17,7 +17,7 @@ from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS, DatasetSchema
 
 # Define non-baseline default items
 # NOTE: default values are defined in entity_types.RowNoiseType and entity_types.ColumnNoiseType
-DEFAULT_NOISE_VALUES = {
+DEFAULT_NOISE_VALUES: dict = {
     DATASET_SCHEMAS.census.name: {
         Keys.ROW_NOISE: {
             NOISE_TYPES.do_not_respond.name: {
@@ -83,7 +83,7 @@ DEFAULT_NOISE_VALUES = {
 def get_configuration(
     overrides: Optional[Union[Path, str, Dict]] = None,
     dataset_schema: DatasetSchema = None,
-    user_filters: List[Tuple[Union[str, int, pd.Timestamp]]] = None,
+    user_filters: list[tuple[str, str, Union[str, int, pd.Timestamp]]] = [],
 ) -> LayeredConfigTree:
     """
     Gets a noising configuration LayeredConfigTree, optionally overridden by a user-provided YAML.
@@ -103,7 +103,13 @@ def get_configuration(
         is_no_noise = False
     noising_configuration = _generate_configuration(is_no_noise)
     if overrides is not None:
-        add_overrides(noising_configuration, overrides, dataset_schema, user_filters)
+        validate_overrides(overrides, noising_configuration)
+        add_overrides(
+            noising_configuration,
+            overrides,  # type: ignore [arg-type]
+            dataset_schema,
+            user_filters,
+        )
 
     return noising_configuration
 
@@ -178,14 +184,13 @@ def add_overrides(
     noising_configuration: LayeredConfigTree,
     overrides: Dict,
     dataset_schema: DatasetSchema = None,
-    user_filters: List[Tuple[Union[str, int, pd.Timestamp]]] = None,
+    user_filters: list[tuple[str, str, Union[str, int, pd.Timestamp]]] = [],
 ) -> None:
-    validate_overrides(overrides, noising_configuration)
     overrides = _format_overrides(noising_configuration, overrides)
     noising_configuration.update(overrides, layer="user")
     # Note: dataset and user_filters should both be None when using the get_config wrapper
     # or both be inputs from generate_XXX functions.
-    if (dataset_schema is not None) and (user_filters is not None):
+    if (dataset_schema is not None) and user_filters:
         # TODO: refactor validate_noise_level_proportions to take overrides as arg and live in validate overrides
         # Note: validate_noise_level_proportions must happen after user layer configuration update
         validate_noise_level_proportions(noising_configuration, dataset_schema, user_filters)
