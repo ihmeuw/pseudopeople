@@ -34,7 +34,7 @@ def dummy_data():
 
 
 def test_omit_row(dummy_data, fuzzy_checker: FuzzyChecker):
-    config = get_configuration()[DATASET_SCHEMAS.tax_w2_1099.name][Keys.ROW_NOISE][
+    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.tax_w2_1099.name][Keys.ROW_NOISE][
         NOISE_TYPES.omit_row.name
     ]
     dataset = Dataset(DATASET_SCHEMAS.tax_w2_1099, dummy_data, 0)
@@ -53,7 +53,7 @@ def test_omit_row(dummy_data, fuzzy_checker: FuzzyChecker):
 
 
 def test_do_not_respond(mocker, dummy_data, fuzzy_checker: FuzzyChecker):
-    config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
+    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
         NOISE_TYPES.do_not_respond.name
     ]
     mocker.patch(
@@ -71,13 +71,14 @@ def test_do_not_respond(mocker, dummy_data, fuzzy_checker: FuzzyChecker):
     NOISE_TYPES.do_not_respond(acs, config)
     noised_census = census.data
     noised_acs = acs.data
+    target_proportion: float = config[Keys.ROW_PROBABILITY]
 
     # Test that noising affects expected proportion with expected types
     fuzzy_checker.fuzzy_assert_proportion(
         name="test_do_not_respond",
         observed_numerator=len(my_dummy_data) - len(noised_census),
         observed_denominator=len(my_dummy_data),
-        target_proportion=config[Keys.ROW_PROBABILITY],
+        target_proportion=target_proportion,
         name_additional=f"noised_data1",
     )
     assert set(noised_census.columns) == set(my_dummy_data.columns)
@@ -119,7 +120,7 @@ def test__get_census_omission_noise_levels(age, race_ethnicity, sex, expected_le
 
 def test_do_not_respond_missing_columns(dummy_data):
     """Test do_not_respond raises error when missing required columns."""
-    config = get_configuration()[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
+    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
         NOISE_TYPES.do_not_respond.name
     ]
     census = Dataset(DATASET_SCHEMAS.census, dummy_data, 0)
@@ -219,7 +220,7 @@ def test_guardian_duplication():
     config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][
         Keys.ROW_NOISE
     ][NOISE_TYPES.duplicate_with_guardian.name]
-    overrides = {key: 1 for key in config}
+    overrides = LayeredConfigTree({key: 1 for key in config})
     census = Dataset(DATASET_SCHEMAS.census, dummy_data, 0)
     NOISE_TYPES.duplicate_with_guardian(census, overrides)
     noised = census.data

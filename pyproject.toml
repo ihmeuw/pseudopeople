@@ -17,7 +17,6 @@ exclude = [
 # ignore error codes (to allow for gradual typing)
 # extract unique error codes thrown with `mypy . | grep -oP " [ \K[^\] ]+" | sort | uniq`
 disable_error_code = [
-    "arg-type",
     "assignment",
     "attr-defined",
     "call-arg",

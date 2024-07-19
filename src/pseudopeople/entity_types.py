@@ -15,6 +15,11 @@ def _noise_function_not_implemented(*args, **kwargs):
     pass
 
 
+def default_noise_level_getter(dataset: "Dataset", configuration: LayeredConfigTree) -> float:
+    noise_level: float = configuration[Keys.ROW_PROBABILITY]
+    return noise_level
+
+
 if TYPE_CHECKING:
     from pseudopeople.dataset import Dataset
 
@@ -57,7 +62,7 @@ class RowNoiseType(NoiseType):
     ] = _noise_function_not_implemented
     get_noise_level: Callable[
         ["Dataset", LayeredConfigTree], float
-    ] = lambda _, config: float(config[Keys.ROW_PROBABILITY])
+    ] = default_noise_level_getter
 
     @property
     def probability_key(self) -> str:
