@@ -13,7 +13,7 @@ from pseudopeople.noise_scaling import get_options_for_column
 from pseudopeople.schema_entities import DatasetSchema
 
 
-def validate_overrides(overrides: Any, default_config: LayeredConfigTree) -> dict:
+def validate_overrides(overrides: Any, default_config: LayeredConfigTree) -> None:
     """
     Validates the user-provided overrides. Confirms that all user-provided
     keys exist in the default configuration. Confirms that all user-provided
@@ -107,7 +107,6 @@ def validate_overrides(overrides: Any, default_config: LayeredConfigTree) -> dic
                     parameter_config_validator_map,
                     column,
                 )
-    return overrides
 
 
 def _validate_noise_type_config(
