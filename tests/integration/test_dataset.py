@@ -45,10 +45,13 @@ def test_dataset_missingness(dataset_name: str):
             columns_to_noise = [
                 col
                 for col in all_columns_noise_config
-                if col in dataset.data.columns and noise_type.name in all_columns_noise_config[col]
+                if col in dataset.data.columns
+                and noise_type.name in all_columns_noise_config[col]
             ]
             for column in columns_to_noise:
-                column_noise_config: LayeredConfigTree = all_columns_noise_config[column][noise_type.name]
+                column_noise_config: LayeredConfigTree = all_columns_noise_config[column][
+                    noise_type.name
+                ]
                 noise_type(
                     dataset,
                     column_noise_config,
