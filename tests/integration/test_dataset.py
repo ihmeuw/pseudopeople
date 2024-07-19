@@ -34,20 +34,27 @@ def test_dataset_missingness(dataset_name: str):
             if noise_type.name not in dataset_config[Keys.ROW_NOISE]:
                 continue
             else:
-                noise_type(dataset, dataset_config[Keys.ROW_NOISE][noise_type.name])
+                row_noise_config: LayeredConfigTree = dataset_config[Keys.ROW_NOISE][
+                    noise_type.name
+                ]
+                noise_type(dataset, row_noise_config)
                 # Check missingness is synced with data
                 assert dataset.missingness.equals(dataset.is_missing(dataset.data))
         else:
-            column_noise_config: LayeredConfigTree = dataset_config[Keys.COLUMN_NOISE]
+            all_columns_noise_config: LayeredConfigTree = dataset_config[Keys.COLUMN_NOISE]
             columns_to_noise = [
                 col
-                for col in column_noise_config
-                if col in dataset.data.columns and noise_type.name in column_noise_config[col]
+                for col in all_columns_noise_config
+                if col in dataset.data.columns
+                and noise_type.name in all_columns_noise_config[col]
             ]
             for column in columns_to_noise:
+                column_noise_config: LayeredConfigTree = all_columns_noise_config[column][
+                    noise_type.name
+                ]
                 noise_type(
                     dataset,
-                    column_noise_config[column][noise_type.name],
+                    column_noise_config,
                     column,
                 )
                 # Check missingness is synced with data

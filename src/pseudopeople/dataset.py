@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import Any, List, Optional, Tuple
 
 import numpy as np
@@ -65,9 +66,9 @@ class Dataset:
     def get_noised_data(
         self,
         configuration: LayeredConfigTree,
-        noise_types: List[NoiseType],
+        noise_types: Sequence[NoiseType],
         progress_bar: bool = True,
-    ) -> DataFrame:
+    ) -> pd.DataFrame:
         """Returns the noised dataset data."""
         self._clean_input_data()
         self._reformat_dates_for_noising()
@@ -79,7 +80,7 @@ class Dataset:
     def _noise_dataset(
         self,
         configuration: LayeredConfigTree,
-        noise_types: List[NoiseType],
+        noise_types: Sequence[NoiseType],
         progress_bar: bool = True,
     ) -> None:
         """
@@ -109,7 +110,10 @@ class Dataset:
                     and noise_type.name in noise_configuration.row_noise
                 ):
                     # Apply row noise
-                    noise_type(self, noise_configuration[Keys.ROW_NOISE][noise_type.name])
+                    row_noise_configuration: LayeredConfigTree = noise_configuration[
+                        Keys.ROW_NOISE
+                    ][noise_type.name]
+                    noise_type(self, row_noise_configuration)
 
             elif isinstance(noise_type, ColumnNoiseType):
                 if Keys.COLUMN_NOISE in noise_configuration:
@@ -121,9 +125,12 @@ class Dataset:
                     ]
                     # Apply column noise to each column as appropriate
                     for column in columns_to_noise:
+                        column_noise_configuration: LayeredConfigTree = (
+                            noise_configuration.column_noise[column][noise_type.name]
+                        )
                         noise_type(
                             self,
-                            noise_configuration.column_noise[column][noise_type.name],
+                            column_noise_configuration,
                             column,
                         )
 

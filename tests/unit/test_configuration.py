@@ -1,4 +1,5 @@
 import itertools
+from typing import Union
 
 import pytest
 import yaml
@@ -550,9 +551,10 @@ def test_validate_noise_level_proportions(caplog, column, noise_type, noise_leve
     than the calculated metadata proportions for that column noise type pairing.
     """
     census = DATASET_SCHEMAS.get_dataset_schema("decennial_census")
-    user_filters = [
+    state_column_name: str = census.state_column_name
+    user_filters: list[tuple[str, str, Union[str, int]]] = [
         (census.date_column_name, "==", 2020),
-        (census.state_column_name, "==", "WA"),
+        (state_column_name, "==", "WA"),
     ]
     # Making guardian duplication 0.0 so that we can test the other noise types only
     get_configuration(
