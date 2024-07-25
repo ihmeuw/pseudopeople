@@ -21,7 +21,6 @@ disable_error_code = [
     "attr-defined",
     "call-arg",
     "call-overload",
-    "dict-item",
     "has-type",
     "import-untyped",
     "index",
