@@ -38,6 +38,7 @@ class NoiseType(ABC):
                 f"No noise_function provided to NoiseType {self.name}."
             )
 
+    @property
     @abstractmethod
     def probability_key(self) -> str:
         pass
