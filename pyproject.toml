@@ -20,7 +20,6 @@ disable_error_code = [
     "assignment",
     "attr-defined",
     "call-overload",
-    "dict-item",
     "has-type",
     "import-untyped",
     "index",
