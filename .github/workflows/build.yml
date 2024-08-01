@@ -46,10 +46,11 @@ jobs:
         if: env.upstream_exist == 'true'
         run: |
           echo "Cloning upstream branch: ${branch_name}"
+          pushd ..
           git clone --branch=${branch_name} https://github.com/ihmeuw/layered_config_tree.git
           pushd layered_config_tree
           pip install .
-          popd
+          popd && popd
       - name: Install dependencies
         run: |
           pip install .[dev]
