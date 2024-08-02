@@ -37,4 +37,3 @@ jobs:
     secrets:
       notify_email: ${{ secrets.NOTIFY_EMAIL }}
       NOTIFY_PASSWORD: ${{ secrets.NOTIFY_PASSWORD }}
-    
