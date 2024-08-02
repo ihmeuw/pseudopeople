@@ -6,11 +6,15 @@ line_length = 94
 
 [tool.isort]
 profile = "black"
+known_third_party = [
+    "layered_config_tree",
+]
 
 [tool.mypy]
 # This is the global mypy configuration.
 strict = true  # See all the enabled flags `mypy --help | grep -A 10 'Strict mode'`
 disallow_any_unimported = false
+implicit_reexport = true
 exclude = [
     "build",
 ]
@@ -18,7 +22,6 @@ exclude = [
 # extract unique error codes thrown with `mypy . | grep -oP " [ \K[^\] ]+" | sort | uniq`
 disable_error_code = [
     "assignment",
-    "attr-defined",
     "call-overload",
     "has-type",
     "import-untyped",
