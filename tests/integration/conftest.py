@@ -198,51 +198,6 @@ def noised_sample_data_taxes_1040(config):
     return generate_taxes_1040(seed=SEED, year=None, config=config)
 
 
-# Raw sample datasets with half from a specific state, for state filtering
-@pytest.fixture(scope="module")
-def sample_data_decennial_census_state_edit():
-    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.census.name)
-    # Set half of the entries to the state we'll filter on
-    data.loc[
-        data.reset_index().index % 2 == 0, DATASET_SCHEMAS.census.state_column_name
-    ] = STATE
-    return data
-
-
-@pytest.fixture(scope="module")
-def sample_data_american_community_survey_state_edit():
-    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.acs.name)
-    # Set half of the entries to the state we'll filter on
-    data.loc[data.reset_index().index % 2 == 0, DATASET_SCHEMAS.acs.state_column_name] = STATE
-    return data
-
-
-@pytest.fixture(scope="module")
-def sample_data_current_population_survey_state_edit():
-    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.cps.name)
-    # Set half of the entries to the state we'll filter on
-    data.loc[data.reset_index().index % 2 == 0, DATASET_SCHEMAS.cps.state_column_name] = STATE
-    return data
-
-
-@pytest.fixture(scope="module")
-def sample_data_women_infants_and_children_state_edit():
-    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.wic.name)
-    # Set half of the entries to the state we'll filter on
-    data.loc[data.reset_index().index % 2 == 0, DATASET_SCHEMAS.wic.state_column_name] = STATE
-    return data
-
-
-@pytest.fixture(scope="module")
-def sample_data_taxes_w2_and_1099_state_edit():
-    data = _initialize_dataset_with_sample(DATASET_SCHEMAS.tax_w2_1099.name)
-    # Set half of the entries to the state we'll filter on
-    data.loc[
-        data.reset_index().index % 2 == 0, DATASET_SCHEMAS.tax_w2_1099.state_column_name
-    ] = STATE
-    return data
-
-
 ####################
 # HELPER FUNCTIONS #
 ####################

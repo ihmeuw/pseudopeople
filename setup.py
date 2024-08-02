@@ -4,14 +4,12 @@ from pathlib import Path
 from packaging.version import parse
 from setuptools import find_packages, setup
 
-min_version, max_version = ("3.9", "3.11")
+version_range = ("3.9", "3.11")
+min_version = parse(version_range[0])
+max_version = parse(version_range[1])
+active_version = parse(".".join([str(v) for v in sys.version_info[:2]]))
 
-min_version = parse(min_version)
-max_version = parse(max_version)
-
-if not (
-    min_version <= parse(".".join([str(v) for v in sys.version_info[:2]])) <= max_version
-):
+if not (min_version <= active_version <= max_version):
     # Python 3.5 does not support f-strings
     py_version = ".".join([str(v) for v in sys.version_info[:3]])
     error = (
