@@ -12,10 +12,9 @@ f.close()
 python_versions = [parse(v) for v in supported_python_versions]
 min_version = min(python_versions)
 max_version = max(python_versions)
+active_version = parse(".".join([str(v) for v in sys.version_info[:2]]))
 
-if not (
-    min_version <= parse(".".join([str(v) for v in sys.version_info[:2]])) <= max_version
-):
+if not (min_version <= active_version <= max_version):
     py_version = ".".join([str(v) for v in sys.version_info[:3]])
     # Python 3.5 does not support f-strings
     error = (
