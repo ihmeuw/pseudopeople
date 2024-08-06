@@ -19,7 +19,7 @@ def load_standard_dataset(
         )
 
     if engine == PANDAS_ENGINE:
-        if len(user_filters) == 0:
+        if not user_filters:
             # pyarrow.parquet.read_table doesn't accept an empty list
             user_filters = None
         data = pq.read_table(data_path, filters=user_filters).to_pandas()
