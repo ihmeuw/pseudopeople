@@ -219,28 +219,28 @@ def duplicate_with_guardian(
             duplicated_rows.append(noised_group_df)
 
     if duplicated_rows:
-        duplicated_rows = pd.concat(duplicated_rows)
+        duplicated_rows_df: pd.DataFrame = pd.concat(duplicated_rows)
         # Update relationship to reference person for duplicated simulants based on housing type
-        duplicated_rows["relationship_to_reference_person"] = duplicated_rows[
+        duplicated_rows_df["relationship_to_reference_person"] = duplicated_rows_df[
             "housing_type"
         ].map(HOUSING_TYPE_GUARDIAN_DUPLICATION_RELATONSHIP_MAP)
 
         # Clean columns
-        duplicated_rows = duplicated_rows[dataset.data.columns]
+        duplicated_rows_df = duplicated_rows_df[dataset.data.columns]
 
         # Add duplicated rows to the original data and make sure that households
         # are grouped together by sorting by date and household_id
         # todo if this index is a RangeIndex, we can do concat with ignore_index=True
         index_start_value = dataset.data.index.max() + 1
-        duplicated_rows.index = range(
-            index_start_value, index_start_value + len(duplicated_rows)
+        duplicated_rows_df.index = range(
+            index_start_value, index_start_value + len(duplicated_rows_df)
         )
         # Note: This is where we would sort the data by year and household_id but
         # we ran into runtime issues. It may be sufficient to do it here since this
         # would be sorting at the shard level and not the entire dataset.
-        data_with_duplicates = pd.concat([dataset.data, duplicated_rows])
+        data_with_duplicates = pd.concat([dataset.data, duplicated_rows_df])
 
-        duplicated_rows_missing = dataset.is_missing(duplicated_rows)
+        duplicated_rows_missing = dataset.is_missing(duplicated_rows_df)
         missingess_with_duplicates = pd.concat(
             [dataset.missingness, duplicated_rows_missing]
         ).reindex(data_with_duplicates.index)
