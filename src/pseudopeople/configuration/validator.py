@@ -115,7 +115,7 @@ def _validate_noise_type_config(
     dataset_name: str,
     noise_type: str,
     parameter_config_validator_map: Dict[str, Callable],
-    column: Optional[str],
+    column: Optional[str] = None,
 ) -> None:
     """
     Validates that all parameters are allowed for this noise function.
