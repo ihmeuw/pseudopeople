@@ -29,7 +29,7 @@ class NoiseType(ABC):
     name: str
     noise_function: Callable = _noise_function_not_implemented
     probability: Optional[float] = 0.0
-    additional_parameters: Dict[str, Any] = None
+    additional_parameters: Optional[Dict[str, Any]] = None
 
     def __post_init__(self):
         if self.noise_function == _noise_function_not_implemented:

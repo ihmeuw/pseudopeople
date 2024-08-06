@@ -82,7 +82,7 @@ DEFAULT_NOISE_VALUES: dict = {
 
 def get_configuration(
     overrides: Optional[Union[Path, str, Dict]] = None,
-    dataset_schema: DatasetSchema = None,
+    dataset_schema: Optional[DatasetSchema] = None,
     user_filters: list[tuple[str, str, Union[str, int, pd.Timestamp]]] = [],
 ) -> LayeredConfigTree:
     """
@@ -183,7 +183,7 @@ def get_noise_type_dict(noise_type, is_no_noise: bool) -> Dict:
 def add_overrides(
     noising_configuration: LayeredConfigTree,
     overrides: Dict,
-    dataset_schema: DatasetSchema = None,
+    dataset_schema: Optional[DatasetSchema] = None,
     user_filters: list[tuple[str, str, Union[str, int, pd.Timestamp]]] = [],
 ) -> None:
     overrides = _format_overrides(noising_configuration, overrides)
@@ -224,7 +224,7 @@ def _format_misreport_age_perturbations(
         ]["age"][NOISE_TYPES.misreport_age.name][Keys.POSSIBLE_AGE_DIFFERENCES]
         # Replace default configuration with 0 probabilities
         for perturbation in default_perturbations:
-            formatted[perturbation] = 0
+            formatted[perturbation] = 0.0
         if isinstance(user_perturbations, list):
             # Add user perturbations with uniform probabilities
             uniform_prob = 1 / len(user_perturbations)
