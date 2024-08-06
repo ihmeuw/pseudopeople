@@ -196,9 +196,9 @@ def _get_data_changelog_version(changelog):
 
 
 def generate_decennial_census(
-    source: Union[Path, str] = None,
+    source: Optional[Union[Path, str]] = None,
     seed: int = 0,
-    config: Union[Path, str, Dict[str, Dict]] = None,
+    config: Optional[Union[Path, str, Dict[str, Dict]]] = None,
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
@@ -280,7 +280,7 @@ def generate_decennial_census(
     if year is not None:
         user_filters.append((DATASET_SCHEMAS.census.date_column_name, "==", year))
     if state is not None:
-        state_column_name: str = DATASET_SCHEMAS.census.state_column_name
+        state_column_name: Optional[str] = DATASET_SCHEMAS.census.state_column_name
         user_filters.append((state_column_name, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.census,
@@ -294,9 +294,9 @@ def generate_decennial_census(
 
 
 def generate_american_community_survey(
-    source: Union[Path, str] = None,
+    source: Optional[Union[Path, str]] = None,
     seed: int = 0,
-    config: Union[Path, str, Dict[str, Dict]] = None,
+    config: Optional[Union[Path, str, Dict[str, Dict]]] = None,
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
@@ -411,9 +411,9 @@ def generate_american_community_survey(
 
 
 def generate_current_population_survey(
-    source: Union[Path, str] = None,
+    source: Optional[Union[Path, str]] = None,
     seed: int = 0,
-    config: Union[Path, str, Dict[str, Dict]] = None,
+    config: Optional[Union[Path, str, Dict[str, Dict]]] = None,
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
@@ -529,9 +529,9 @@ def generate_current_population_survey(
 
 
 def generate_taxes_w2_and_1099(
-    source: Union[Path, str] = None,
+    source: Optional[Union[Path, str]] = None,
     seed: int = 0,
-    config: Union[Path, str, Dict[str, Dict]] = None,
+    config: Optional[Union[Path, str, Dict[str, Dict]]] = None,
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
@@ -613,7 +613,7 @@ def generate_taxes_w2_and_1099(
         user_filters.append((DATASET_SCHEMAS.tax_w2_1099.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state is not None:
-        state_column_name: str = DATASET_SCHEMAS.tax_w2_1099.state_column_name
+        state_column_name: Optional[str] = DATASET_SCHEMAS.tax_w2_1099.state_column_name
         user_filters.append(
             (
                 state_column_name,
@@ -633,9 +633,9 @@ def generate_taxes_w2_and_1099(
 
 
 def generate_women_infants_and_children(
-    source: Union[Path, str] = None,
+    source: Optional[Union[Path, str]] = None,
     seed: int = 0,
-    config: Union[Path, str, Dict[str, Dict]] = None,
+    config: Optional[Union[Path, str, Dict[str, Dict]]] = None,
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
@@ -728,7 +728,7 @@ def generate_women_infants_and_children(
         user_filters.append((DATASET_SCHEMAS.wic.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state is not None:
-        state_column_name: str = DATASET_SCHEMAS.wic.state_column_name
+        state_column_name: Optional[str] = DATASET_SCHEMAS.wic.state_column_name
         user_filters.append((state_column_name, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.wic, source, seed, config, user_filters, verbose, engine_name=engine
@@ -736,9 +736,9 @@ def generate_women_infants_and_children(
 
 
 def generate_social_security(
-    source: Union[Path, str] = None,
+    source: Optional[Union[Path, str]] = None,
     seed: int = 0,
-    config: Union[Path, str, Dict[str, Dict]] = None,
+    config: Optional[Union[Path, str, Dict[str, Dict]]] = None,
     year: Optional[int] = 2020,
     verbose: bool = False,
     engine: Literal["pandas", "dask"] = "pandas",
@@ -824,9 +824,9 @@ def generate_social_security(
 
 
 def generate_taxes_1040(
-    source: Union[Path, str] = None,
+    source: Optional[Union[Path, str]] = None,
     seed: int = 0,
-    config: Union[Path, str, Dict[str, Dict]] = None,
+    config: Optional[Union[Path, str, Dict[str, Dict]]] = None,
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
@@ -908,7 +908,7 @@ def generate_taxes_1040(
         user_filters.append((DATASET_SCHEMAS.tax_1040.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state is not None:
-        state_column_name: str = DATASET_SCHEMAS.tax_1040.state_column_name
+        state_column_name: Optional[str] = DATASET_SCHEMAS.tax_1040.state_column_name
         user_filters.append((state_column_name, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.tax_1040,
