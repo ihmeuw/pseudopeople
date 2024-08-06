@@ -232,9 +232,9 @@ def duplicate_with_guardian(
         # are grouped together by sorting by date and household_id
         # todo if this index is a RangeIndex, we can do concat with ignore_index=True
         index_start_value = dataset.data.index.max() + 1
-        duplicated_rows.index = range(
+        duplicated_rows.index = pd.Index(range(
             index_start_value, index_start_value + len(duplicated_rows)
-        )
+        ))
         # Note: This is where we would sort the data by year and household_id but
         # we ran into runtime issues. It may be sufficient to do it here since this
         # would be sorting at the shard level and not the entire dataset.
