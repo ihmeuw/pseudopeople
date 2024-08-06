@@ -83,7 +83,7 @@ DEFAULT_NOISE_VALUES: dict = {
 def get_configuration(
     overrides: Optional[Union[Path, str, Dict]] = None,
     dataset_schema: Optional[DatasetSchema] = None,
-    user_filters: list[tuple[str, str, Union[str, int, pd.Timestamp]]] = [],
+    user_filters: Optional[list[tuple[str, str, Union[str, int, pd.Timestamp]]]] = [],
 ) -> LayeredConfigTree:
     """
     Gets a noising configuration LayeredConfigTree, optionally overridden by a user-provided YAML.
@@ -184,7 +184,7 @@ def add_overrides(
     noising_configuration: LayeredConfigTree,
     overrides: Dict,
     dataset_schema: Optional[DatasetSchema] = None,
-    user_filters: list[tuple[str, str, Union[str, int, pd.Timestamp]]] = [],
+    user_filters: Optional[list[tuple[str, str, Union[str, int, pd.Timestamp]]]] = [],
 ) -> None:
     overrides = _format_overrides(noising_configuration, overrides)
     noising_configuration.update(overrides, layer="user")

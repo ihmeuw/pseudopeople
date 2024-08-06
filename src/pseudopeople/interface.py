@@ -25,10 +25,10 @@ from pseudopeople.utilities import (
 
 def _generate_dataset(
     dataset_schema: DatasetSchema,
-    source: Union[Path, str],
+    source: Optional[Union[Path, str]],
     seed: int,
-    config: Union[Path, str, Dict],
-    user_filters: list[tuple],
+    config: Optional[Union[Path, str, Dict]],
+    user_filters: Optional[list[tuple]],
     verbose: bool = False,
     engine_name: Literal["pandas", "dask"] = "pandas",
 ) -> pd.DataFrame:
@@ -276,7 +276,7 @@ def generate_decennial_census(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    user_filters: list[tuple[str, str, Union[str, int]]] = []
+    user_filters: list[tuple[Optional[str], str, Union[str, int]]] = []
     if year is not None:
         user_filters.append((DATASET_SCHEMAS.census.date_column_name, "==", year))
     if state is not None:
@@ -608,7 +608,7 @@ def generate_taxes_w2_and_1099(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    user_filters: list[tuple[str, str, Union[str, int]]] = []
+    user_filters: list[tuple[Optional[str], str, Union[str, int]]] = []
     if year is not None:
         user_filters.append((DATASET_SCHEMAS.tax_w2_1099.date_column_name, "==", year))
         seed = seed * 10_000 + year
@@ -723,7 +723,7 @@ def generate_women_infants_and_children(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    user_filters: list[tuple[str, str, Union[str, int]]] = []
+    user_filters: list[tuple[Optional[str], str, Union[str, int]]] = []
     if year is not None:
         user_filters.append((DATASET_SCHEMAS.wic.date_column_name, "==", year))
         seed = seed * 10_000 + year
@@ -903,7 +903,7 @@ def generate_taxes_1040(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    user_filters: list[tuple[str, str, Union[str, int]]] = []
+    user_filters: list[tuple[Optional[str], str, Union[str, int]]] = []
     if year is not None:
         user_filters.append((DATASET_SCHEMAS.tax_1040.date_column_name, "==", year))
         seed = seed * 10_000 + year
