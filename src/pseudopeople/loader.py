@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import pyarrow.parquet as pq
 
@@ -9,7 +9,7 @@ from pseudopeople.utilities import PANDAS_ENGINE, DataFrame, Engine
 
 def load_standard_dataset(
     data_path: Path,
-    user_filters: List[Tuple],
+    user_filters: Optional[list[Tuple]],
     engine: Engine = PANDAS_ENGINE,
     is_file: bool = True,
 ) -> DataFrame:
