@@ -219,7 +219,7 @@ def duplicate_with_guardian(
             duplicated_rows.append(noised_group_df)
 
     if duplicated_rows:
-        duplicated_rows = pd.concat(duplicated_rows)
+        duplicated_rows: pd.DataFrame = pd.concat(duplicated_rows)
         # Update relationship to reference person for duplicated simulants based on housing type
         duplicated_rows["relationship_to_reference_person"] = duplicated_rows[
             "housing_type"
