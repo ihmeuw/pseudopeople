@@ -28,7 +28,7 @@ def _generate_dataset(
     source: Optional[Union[Path, str]],
     seed: int,
     config: Optional[Union[Path, str, Dict]],
-    user_filters: Optional[list[tuple]],
+    user_filters: list[tuple] = [],
     verbose: bool = False,
     engine_name: Literal["pandas", "dask"] = "pandas",
 ) -> pd.DataFrame:
