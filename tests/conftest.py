@@ -310,7 +310,7 @@ class FuzzyChecker:
             # In this case, we were so far off that the actual quantile can't even be
             # precisely calculated.
             # We return an arbitrarily large penalty to ensure this is never selected as the minimum.
-            error = np.finfo(float).max
+            error = np.finfo(float).max.astype(float)
 
         return error
 
