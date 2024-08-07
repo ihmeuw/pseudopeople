@@ -21,11 +21,14 @@ exclude = [
 # ignore error codes (to allow for gradual typing)
 # extract unique error codes thrown with `mypy . | grep -oP " [ \K[^\] ]+" | sort | uniq`
 disable_error_code = [
-    #"assignment",
-    "attr-defined",
-    # Call overload is still being ignored because all of these issues stem from LayeredConfigTree
-    # usage and we want to make a schema object that is typed which should hopefully resolve most 
+    # assignment is still being ignored because all of these issues stem from LayeredConfigTree
+    # usage and we want to make a schema object that is typed which should hopefully resolve most
     # of these issues.
+    # TODO: remove "assignment" once typed object is implemented
+    "assignment",
+    "attr-defined",
+    # Call overload is still being ignored because of the same issue mentioned above
+    # for assignment
     # TODO: remove "call-overload" once typed object is implemented
     "call-overload",
     "has-type",
