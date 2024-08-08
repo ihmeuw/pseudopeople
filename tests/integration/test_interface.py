@@ -791,7 +791,7 @@ def _validate_column_noise_level(
     ]
 
     # Calculate expected noise (target proportion for fuzzy checker)
-    not_noised = 1
+    not_noised = 1.0
     for col_noise_type in col.noise_types:
         if col_noise_type.name not in includes_token_noising:
             not_noised = not_noised * (1 - CELL_PROBABILITY)
