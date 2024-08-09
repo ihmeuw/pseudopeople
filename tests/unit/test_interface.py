@@ -51,7 +51,7 @@ def test__get_data_changelog_version(simulated_data_changelog_path):
     ) == parse("1.4.2")
 
 
-def mock_data_version(version: str, mocker: MockerFixture):
+def mock_data_version(version: str, mocker: MockerFixture) -> None:
     mocker.patch(
         "pseudopeople.interface._get_data_changelog_version", return_value=parse(version)
     )
