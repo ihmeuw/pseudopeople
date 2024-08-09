@@ -118,4 +118,4 @@ class __NoiseTypes(NamedTuple):
     )
 
 
-NOISE_TYPES = __NoiseTypes()
+NOISE_TYPES: __NoiseTypes = __NoiseTypes()
