@@ -36,7 +36,6 @@ disable_error_code = [
     "index",
     "list-item",
     "misc",
-    "name-defined",
     "no-untyped-call",
     "no-untyped-def",
     "operator",
