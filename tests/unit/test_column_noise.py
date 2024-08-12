@@ -459,7 +459,7 @@ def test_write_wrong_zipcode_digits(dataset, fuzzy_checker: FuzzyChecker):
     assert (noised_data[orig_missing] == "").all()
     # Check noise for each digits position matches expected noise
     for i in range(5):
-        digit_prob = config["digit_probabilities"][i]
+        digit_prob: float = config["digit_probabilities"][i]
         actual_noise = (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).sum()
         expected_noise = digit_prob * cell_probability
         fuzzy_checker.fuzzy_assert_proportion(
@@ -541,7 +541,8 @@ def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker):
     dataset = Dataset(DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, 0)
     NOISE_TYPES.misreport_age(dataset, config, "age")
     noised_data = dataset.data["age"]
-    expected_noise = (1 / len(perturbations)) * config[Keys.CELL_PROBABILITY]
+    cell_probability: float = config[Keys.CELL_PROBABILITY]
+    expected_noise = (1 / len(perturbations)) * cell_probability
     for perturbation in perturbations:
         actual_noise = (noised_data.astype(int) - original_age == perturbation).sum()
         fuzzy_checker.fuzzy_assert_proportion(
@@ -579,8 +580,9 @@ def test_miswrite_ages_provided_probabilities(dataset, fuzzy_checker: FuzzyCheck
     dataset = Dataset(DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name), df, 0)
     NOISE_TYPES.misreport_age(dataset, config, "age")
     noised_data = dataset.data["age"]
+    cell_probability: float = config[Keys.CELL_PROBABILITY]
     for perturbation in perturbations:
-        expected_noise = perturbations[perturbation] * config[Keys.CELL_PROBABILITY]
+        expected_noise = perturbations[perturbation] * cell_probability
         actual_noise = (noised_data.astype(int) - original_age == perturbation).sum()
         fuzzy_checker.fuzzy_assert_proportion(
             name="misreport_age_provided_probabilities",
@@ -816,7 +818,7 @@ def test_write_wrong_digits(dataset, fuzzy_checker: FuzzyChecker):
         NOISE_TYPES.write_wrong_digits.name
     ]
     expected_cell_noise = config[Keys.CELL_PROBABILITY]
-    expected_token_noise = config[Keys.TOKEN_PROBABILITY]
+    expected_token_noise: float = config[Keys.TOKEN_PROBABILITY]
     data = dataset.data["street_number"].copy()
     # Note: I changed this column from string_series to street number. It has several string formats
     # containing both numeric and alphabetically string characters.
@@ -1101,7 +1103,7 @@ def test_generate_ocr_errors(dataset, column, fuzzy_checker: FuzzyChecker):
     assert (data[missing_mask] == noised_data[missing_mask]).all()
 
     # Check expected noise level
-    token_probability = config[Keys.TOKEN_PROBABILITY]
+    token_probability: float = config[Keys.TOKEN_PROBABILITY]
     cell_probability = config[Keys.CELL_PROBABILITY]
     # We need to calculate the expected noise. We need to get the average number of tokens per string
     # that can be noised since not all tokens can be noised for OCR errors.
