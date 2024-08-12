@@ -113,9 +113,10 @@ class ColumnNoiseType(NoiseType):
         if dataset.is_empty(column_name):
             return
 
-        noise_level = configuration[
-            Keys.CELL_PROBABILITY
-        ] * self.noise_level_scaling_function(dataset.data, column_name)
+        cell_probability: float = configuration[Keys.CELL_PROBABILITY]
+        noise_level = cell_probability * self.noise_level_scaling_function(
+            dataset.data, column_name
+        )
 
         # Certain columns have their noise level scaled so we must check to make
         # sure the noise level is within the allowed range between 0 and 1 for

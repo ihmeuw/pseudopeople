@@ -60,7 +60,7 @@ def get_apply_do_not_respond_noise_level(
         noise_levels += 0.276
 
     # Apply user-configured noise level
-    configured_noise_level = configuration[Keys.ROW_PROBABILITY]
+    configured_noise_level: float = configuration[Keys.ROW_PROBABILITY]
     default_noise_level = data_values.DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY[dataset_name]
     noise_levels = noise_levels * (configured_noise_level / default_noise_level)
 
