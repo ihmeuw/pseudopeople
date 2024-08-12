@@ -203,7 +203,7 @@ def noised_sample_data_taxes_1040(config):
 ####################
 
 
-def get_unnoised_data(dataset_name):
+def get_unnoised_data(dataset_name: str) -> Dataset:
     result = _initialize_dataset_with_sample(dataset_name)
     result.data = coerce_dtypes(result.data, result.dataset_schema)
     return result
@@ -217,7 +217,9 @@ def _initialize_dataset_with_sample(dataset_name) -> Dataset:
     return dataset
 
 
-def _get_common_datasets(unnoised_dataset, noised_dataset):
+def _get_common_datasets(
+    unnoised_dataset: Dataset, noised_dataset: Dataset
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.Index]:
     """Use unique columns to determine shared non-NA rows between noised and
     unnoised data. Note that we cannot use the original index because that
     gets reset after noising, i.e. the unique columns must NOT be noised.
