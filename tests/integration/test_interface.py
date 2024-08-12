@@ -1,6 +1,6 @@
 import math
 from functools import partial
-from typing import Callable, Iterable
+from typing import Callable, Iterable, Union
 
 import numpy as np
 import pandas as pd
