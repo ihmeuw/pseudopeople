@@ -989,8 +989,8 @@ def test_generate_phonetic_errors(dataset, column, fuzzy_checker: FuzzyChecker):
     assert (noised_data[missing_mask] == "").all()
 
     # Check expected noise level
-    cell_probability = config[Keys.CELL_PROBABILITY]
-    token_probability = config[Keys.TOKEN_PROBABILITY]
+    cell_probability: float = config[Keys.CELL_PROBABILITY]
+    token_probability: float = config[Keys.TOKEN_PROBABILITY]
     check_original = data[~missing_mask]
     check_noised = noised_data[~missing_mask]
     actual_noise = (check_original != check_noised).sum()
@@ -1212,8 +1212,8 @@ def test_make_typos(dataset, column, fuzzy_checker: FuzzyChecker):
     check_noised = noised_data.loc[not_missing_idx]
 
     # Check for expected noise level
-    cell_probability = config[Keys.CELL_PROBABILITY]
-    token_probability = config[Keys.TOKEN_PROBABILITY]
+    cell_probability: float = config[Keys.CELL_PROBABILITY]
+    token_probability: float = config[Keys.TOKEN_PROBABILITY]
     qwerty_tokens = pd.Series(load_qwerty_errors_data().index)
     data_series = (
         pd.Series(INTEGERS_LIST) if column == "numbers" else pd.Series(CHARACTERS_LIST)
@@ -1354,8 +1354,8 @@ def test_age_write_wrong_digits(dataset, fuzzy_checker: FuzzyChecker):
     check_original = data[~missing_mask]
     check_noised = noised_data[~missing_mask]
     expected_noise = (check_original != check_noised).sum()
-    cell_probability = config[Keys.CELL_PROBABILITY]
-    token_probability = config[Keys.TOKEN_PROBABILITY]
+    cell_probability: float = config[Keys.CELL_PROBABILITY]
+    token_probability: float = config[Keys.TOKEN_PROBABILITY]
     tokens_per_string = check_original.astype(str).str.len()
     avg_probability_any_token_noised = (
         1 - (1 - token_probability) ** tokens_per_string
