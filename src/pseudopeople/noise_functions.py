@@ -455,7 +455,8 @@ def write_wrong_digits(
     """
     column = dataset.data.loc[to_noise_index, column_name]
     # This is a fix to not replacing the original token for noise options
-    token_noise_level = configuration[Keys.TOKEN_PROBABILITY] / 0.9
+    token_probability: float = configuration[Keys.TOKEN_PROBABILITY]
+    token_noise_level = token_probability / 0.9
 
     max_str_length = column.str.len().max()
 
