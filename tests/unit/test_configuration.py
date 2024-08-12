@@ -1,5 +1,5 @@
 import itertools
-from typing import Union
+from typing import Optional, Union
 
 import pytest
 import yaml
@@ -9,9 +9,9 @@ from pseudopeople.configuration import NO_NOISE, Keys, get_configuration
 from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
 from pseudopeople.configuration.interface import get_config
 from pseudopeople.configuration.validator import ConfigurationError
-from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
+from pseudopeople.entity_types import ColumnNoiseType, NoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
+from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS, Column, DatasetSchema
 
 PROBABILITY_VALUE_LOGS = [
     ("a", "must be floats or ints"),
@@ -43,17 +43,17 @@ def test_default_configuration_structure():
     for dataset_schema in DATASET_SCHEMAS:
         # Check row noise
         for row_noise in dataset_schema.row_noise_types:
-            config_probability = config[dataset_schema.name][Keys.ROW_NOISE][row_noise.name]
+            config_probability: LayeredConfigTree = config[dataset_schema.name][Keys.ROW_NOISE][row_noise.name]
             validate_noise_type_config(dataset_schema, row_noise, config_probability)
         for col in dataset_schema.columns:
             for noise_type in col.noise_types:
-                config_level = config[dataset_schema.name][Keys.COLUMN_NOISE][col.name][
+                config_level: LayeredConfigTree = config[dataset_schema.name][Keys.COLUMN_NOISE][col.name][
                     noise_type.name
                 ]
                 validate_noise_type_config(dataset_schema, noise_type, config_level, col)
 
 
-def validate_noise_type_config(dataset_schema, noise_type, config_level, column=None):
+def validate_noise_type_config(dataset_schema: DatasetSchema, noise_type: NoiseType, config_level: LayeredConfigTree, column: Optional[Column]=None) -> None:
     # FIXME: Is there a way to allow for adding new keys when they
     #  don't exist in baseline? eg the for/if loops below depend on their
     #  being row_noise, token_noise, and additional parameters at the
@@ -70,6 +70,7 @@ def validate_noise_type_config(dataset_schema, noise_type, config_level, column=
                 .get(noise_type.probability_key, "no default")
             )
         else:
+            assert column
             default_probability = (
                 DEFAULT_NOISE_VALUES.get(dataset_schema.name, {})
                 .get(noise_key, {})
@@ -92,6 +93,7 @@ def validate_noise_type_config(dataset_schema, noise_type, config_level, column=
                 .get(noise_type.name, {})
             )
         else:
+            assert column
             default_additional_parameters = (
                 DEFAULT_NOISE_VALUES.get(dataset_schema.name, {})
                 .get(noise_key, {})

@@ -4,7 +4,7 @@ import hashlib
 import sys
 from dataclasses import dataclass
 from functools import cache
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, TextIO, Union
 
 import numpy as np
 import pandas as pd
@@ -97,12 +97,14 @@ def get_index_to_noise(
     return to_noise_idx
 
 
-def configure_logging_to_terminal(verbose: bool = False):
+def configure_logging_to_terminal(verbose: bool = False) -> None:
     logger.remove()  # Clear default configuration
     add_logging_sink(sys.stdout, verbose, colorize=True)
 
 
-def add_logging_sink(sink, verbose, colorize=False, serialize=False):
+def add_logging_sink(
+    sink: TextIO, verbose: bool, colorize: bool = False, serialize: bool = False
+) -> None:
     message_format = (
         "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
         "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> "
@@ -228,7 +230,7 @@ def count_number_of_tokens_per_string(s1: pd.Series, s2: pd.Series) -> pd.Series
 
 
 # https://stackoverflow.com/a/2970542/
-def count_occurrences(string, sub):
+def count_occurrences(string: str, sub: str) -> int:
     count = start = 0
     while True:
         start = string.find(sub, start) + 1
