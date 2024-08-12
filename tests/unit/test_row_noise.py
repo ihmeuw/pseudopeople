@@ -34,14 +34,14 @@ def dummy_data():
 
 
 def test_omit_row(dummy_data, fuzzy_checker: FuzzyChecker):
-    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.tax_w2_1099.name][Keys.ROW_NOISE][
-        NOISE_TYPES.omit_row.name
-    ]
+    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.tax_w2_1099.name][
+        Keys.ROW_NOISE
+    ][NOISE_TYPES.omit_row.name]
     dataset = Dataset(DATASET_SCHEMAS.tax_w2_1099, dummy_data, 0)
     NOISE_TYPES.omit_row(dataset, config)
     noised_data1 = dataset.data
 
-    expected_noise_1 = config[Keys.ROW_PROBABILITY]
+    expected_noise_1: float = config[Keys.ROW_PROBABILITY]
     fuzzy_checker.fuzzy_assert_proportion(
         name="test_omit_row",
         observed_numerator=len(noised_data1),
@@ -53,9 +53,9 @@ def test_omit_row(dummy_data, fuzzy_checker: FuzzyChecker):
 
 
 def test_do_not_respond(mocker, dummy_data, fuzzy_checker: FuzzyChecker):
-    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
-        NOISE_TYPES.do_not_respond.name
-    ]
+    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][
+        Keys.ROW_NOISE
+    ][NOISE_TYPES.do_not_respond.name]
     mocker.patch(
         "pseudopeople.noise_level._get_census_omission_noise_levels",
         side_effect=(lambda *_: config[Keys.ROW_PROBABILITY]),
@@ -85,7 +85,8 @@ def test_do_not_respond(mocker, dummy_data, fuzzy_checker: FuzzyChecker):
     assert (noised_census.dtypes == my_dummy_data.dtypes).all()
 
     # Check ACS data is scaled properly due to oversampling
-    expected_noise = 0.5 + config[Keys.ROW_PROBABILITY] / 2
+    row_probability: float = config[Keys.ROW_PROBABILITY]
+    expected_noise = 0.5 + row_probability / 2
     fuzzy_checker.fuzzy_assert_proportion(
         name="test_do_not_respond",
         observed_numerator=len(my_dummy_data) - len(noised_acs),
@@ -120,9 +121,9 @@ def test__get_census_omission_noise_levels(age, race_ethnicity, sex, expected_le
 
 def test_do_not_respond_missing_columns(dummy_data):
     """Test do_not_respond raises error when missing required columns."""
-    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
-        NOISE_TYPES.do_not_respond.name
-    ]
+    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][
+        Keys.ROW_NOISE
+    ][NOISE_TYPES.do_not_respond.name]
     census = Dataset(DATASET_SCHEMAS.census, dummy_data, 0)
     with pytest.raises(KeyError, match="race_ethnicity"):
         NOISE_TYPES.do_not_respond(census, config)
