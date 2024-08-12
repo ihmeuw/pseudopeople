@@ -36,6 +36,10 @@ disable_error_code = [
     "list-item",
     "misc",
     "no-untyped-def",
+    # operator is still being ignored because of issues with checking containment in
+    # LayeredConfigTree objects which should be resolved by changes mentioned above
+    # TODO: remove "operator" once typed object is implemented
+    "operator",
     "type-arg",
     "var-annotated",
 ]
