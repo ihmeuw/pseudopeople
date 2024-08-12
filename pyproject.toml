@@ -46,5 +46,6 @@ disable_error_code = [
 module = [
     # "scipy.*",
     # "sklearn.*",
+    "distributed.*",
 ]
 ignore_missing_imports = true
