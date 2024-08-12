@@ -20,7 +20,7 @@ from pseudopeople.interface import (
     generate_women_infants_and_children,
 )
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import DATASET_SCHEMAS
+from pseudopeople.schema_entities import DATASET_SCHEMAS, DatasetSchema
 from tests.conftest import FuzzyChecker
 
 
@@ -40,7 +40,7 @@ def dummy_data():
     )
 
 
-def get_dummy_config_noise_numbers(dataset_schema):
+def get_dummy_config_noise_numbers(dataset_schema: DatasetSchema) -> LayeredConfigTree:
     """Create a dummy configuration that applies all noise functions to a single
     column in the dummy_data fixture. All noise function specs are defined in
     reverse order here compared to how they are to be applied.

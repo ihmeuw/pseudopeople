@@ -3,7 +3,7 @@ from typing import Dict, Literal, Optional, Union
 
 import pandas as pd
 from loguru import logger
-from packaging.version import parse
+from packaging.version import Version, parse
 from tqdm import tqdm
 
 from pseudopeople import __version__ as psp_version
@@ -111,7 +111,7 @@ def _generate_dataset(
         try:
             from distributed.client import default_client
 
-            default_client().run(lambda: configure_logging_to_terminal(verbose))
+            default_client().run(lambda: configure_logging_to_terminal(verbose))  # type: ignore [no-untyped-call]
         except (ImportError, ValueError):
             # Not using a distributed cluster, so the configure_logging_to_terminal call above already did everything
             pass
@@ -188,7 +188,7 @@ def validate_source_compatibility(source: Path, dataset_schema: DatasetSchema):
         )
 
 
-def _get_data_changelog_version(changelog):
+def _get_data_changelog_version(changelog: Path) -> Version:
     with open(changelog, "r") as file:
         first_line = file.readline()
     version = parse(first_line.split("**")[1].split("-")[0].strip())
