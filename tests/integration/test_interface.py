@@ -38,7 +38,7 @@ from tests.integration.conftest import (
     get_unnoised_data,
 )
 
-DATASET_GENERATION_FUNCS = {
+DATASET_GENERATION_FUNCS: dict[str, Callable] = {
     DATASET_SCHEMAS.census.name: generate_decennial_census,
     DATASET_SCHEMAS.acs.name: generate_american_community_survey,
     DATASET_SCHEMAS.cps.name: generate_current_population_survey,
