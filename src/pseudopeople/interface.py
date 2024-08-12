@@ -111,7 +111,7 @@ def _generate_dataset(
         try:
             from distributed.client import default_client
 
-            default_client().run(lambda: configure_logging_to_terminal(verbose))
+            default_client().run(lambda: configure_logging_to_terminal(verbose)) # type: ignore [no-untyped-call]
         except (ImportError, ValueError):
             # Not using a distributed cluster, so the configure_logging_to_terminal call above already did everything
             pass
