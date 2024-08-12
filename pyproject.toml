@@ -31,12 +31,10 @@ disable_error_code = [
     # for assignment
     # TODO: remove "call-overload" once typed object is implemented
     "call-overload",
-    "has-type",
     "import-untyped",
     "index",
     "list-item",
     "misc",
-    "name-defined",
     "no-untyped-def",
     "operator",
     "type-arg",
