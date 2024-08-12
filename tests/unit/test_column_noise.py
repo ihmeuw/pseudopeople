@@ -1371,7 +1371,7 @@ def test_age_write_wrong_digits(dataset, fuzzy_checker: FuzzyChecker):
 ################
 
 
-def number_of_tokens_per_string(s1, s2):
+def number_of_tokens_per_string(s1: pd.Series, s2: pd.Series) -> pd.Series:
     """
     Calculates the number of tokens in each string of a series.
     s1 is a pd.Series of tokens and we want to see how many tokens exist in each
@@ -1389,7 +1389,7 @@ def number_of_tokens_per_string(s1, s2):
 
 
 # https://stackoverflow.com/a/2970542/
-def occurrences(string, sub):
+def occurrences(string: str, sub: str) -> int:
     count = start = 0
     while True:
         start = string.find(sub, start) + 1
