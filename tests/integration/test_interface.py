@@ -800,9 +800,9 @@ def _validate_column_noise_level(
             token_probability_key = {
                 NOISE_TYPES.write_wrong_zipcode_digits.name: Keys.ZIPCODE_DIGIT_PROBABILITIES,
             }.get(col_noise_type.name, Keys.TOKEN_PROBABILITY)
-            token_probability: Union[list[float], float] = tmp_config[
-                col_noise_type.name
-            ][token_probability_key]
+            token_probability: Union[list[float], float] = tmp_config[col_noise_type.name][
+                token_probability_key
+            ]
             # Get number of tokens per string to calculate expected proportion
             tokens_per_string_getter: Callable = TOKENS_PER_STRING_MAPPER.get(
                 col_noise_type.name, lambda x: x.astype(str).str.len()
