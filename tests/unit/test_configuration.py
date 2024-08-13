@@ -10,6 +10,7 @@ from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
 from pseudopeople.configuration.interface import get_config
 from pseudopeople.configuration.validator import ConfigurationError
 from pseudopeople.entity_types import ColumnNoiseType, NoiseType, RowNoiseType
+from pseudopeople.filter import DataFilter
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS, Column, DatasetSchema
 
@@ -554,9 +555,9 @@ def test_validate_noise_level_proportions(caplog, column, noise_type, noise_leve
     """
     census = DATASET_SCHEMAS.get_dataset_schema("decennial_census")
     state_column_name: str = census.state_column_name
-    user_filters: list[tuple[str, str, Union[str, int]]] = [
-        (census.date_column_name, "==", 2020),
-        (state_column_name, "==", "WA"),
+    filters = [
+        DataFilter(census.date_column_name, "==", 2020),
+        DataFilter(state_column_name, "==", "WA"),
     ]
     # Making guardian duplication 0.0 so that we can test the other noise types only
     get_configuration(
@@ -572,7 +573,7 @@ def test_validate_noise_level_proportions(caplog, column, noise_type, noise_leve
             },
         },
         census,
-        user_filters,
+        filters,
     )
     if noise_level < 0.5:
         assert not caplog.records

@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Dict, Optional, Union
 
-import pandas as pd
 import yaml
 from layered_config_tree import LayeredConfigTree
 
@@ -12,6 +11,7 @@ from pseudopeople.configuration.validator import (
 )
 from pseudopeople.constants.data_values import DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY
 from pseudopeople.entity_types import RowNoiseType
+from pseudopeople.filter import DataFilter
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS, DatasetSchema
 
@@ -83,7 +83,7 @@ DEFAULT_NOISE_VALUES: dict = {
 def get_configuration(
     overrides: Optional[Union[Path, str, Dict]] = None,
     dataset_schema: Optional[DatasetSchema] = None,
-    user_filters: list[tuple[str, str, Union[str, int, pd.Timestamp]]] = [],
+    filters: list[DataFilter] = [],
 ) -> LayeredConfigTree:
     """
     Gets a noising configuration LayeredConfigTree, optionally overridden by a user-provided YAML.
@@ -108,7 +108,7 @@ def get_configuration(
             noising_configuration,
             overrides,  # type: ignore [arg-type]
             dataset_schema,
-            user_filters,
+            filters,
         )
 
     return noising_configuration
@@ -184,16 +184,16 @@ def add_overrides(
     noising_configuration: LayeredConfigTree,
     overrides: Dict,
     dataset_schema: Optional[DatasetSchema] = None,
-    user_filters: list[tuple[str, str, Union[str, int, pd.Timestamp]]] = [],
+    filters: list[DataFilter] = [],
 ) -> None:
     overrides = _format_overrides(noising_configuration, overrides)
     noising_configuration.update(overrides, layer="user")
     # Note: dataset and user_filters should both be None when using the get_config wrapper
     # or both be inputs from generate_XXX functions.
-    if (dataset_schema is not None) and user_filters:
+    if (dataset_schema is not None) and filters:
         # TODO: refactor validate_noise_level_proportions to take overrides as arg and live in validate overrides
         # Note: validate_noise_level_proportions must happen after user layer configuration update
-        validate_noise_level_proportions(noising_configuration, dataset_schema, user_filters)
+        validate_noise_level_proportions(noising_configuration, dataset_schema, filters)
 
 
 def _format_overrides(default_config: LayeredConfigTree, user_dict: Dict) -> Dict:

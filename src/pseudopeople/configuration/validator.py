@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -8,6 +8,7 @@ from loguru import logger
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import metadata, paths
 from pseudopeople.exceptions import ConfigurationError
+from pseudopeople.filter import DataFilter
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.noise_scaling import get_options_for_column
 from pseudopeople.schema_entities import DatasetSchema
@@ -270,7 +271,7 @@ def _validate_choose_wrong_option_probability(
 def validate_noise_level_proportions(
     configuration_tree: LayeredConfigTree,
     dataset_schema: DatasetSchema,
-    user_filters: List[Tuple],
+    filters: List[DataFilter],
 ) -> None:
     """
     Validates that the noise levels provided do not exceed the allowable proportions from the
@@ -296,16 +297,17 @@ def validate_noise_level_proportions(
             state = "USA"
     year = metadata.YEAR_AGGREGATION_VALUE
     # Get the state and year from the user filters
-    for i in range(len(user_filters)):
-        if user_filters[i][0] == dataset_schema.state_column_name:
-            state = user_filters[i][2]
+    for state_filter in filters:
+        if state_filter.column_name == dataset_schema.state_column_name:
+            state = state_filter.value
             break
-    for i in range(len(user_filters)):
-        if user_filters[i][0] == dataset_schema.date_column_name:
-            if isinstance(user_filters[i][2], pd.Timestamp):
-                year = user_filters[i][2].year
-            else:
-                year = user_filters[i][2]
+    for date_filter in filters:
+        if date_filter.column_name == dataset_schema.date_column_name:
+            year = (
+                date_filter.value.year
+                if isinstance(date_filter.value, pd.Timestamp)
+                else date_filter.value
+            )
             break
 
     # Subset the metadata proportions to the state and year that the user is querying
