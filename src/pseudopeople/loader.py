@@ -1,15 +1,16 @@
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 import pyarrow.parquet as pq
 
 from pseudopeople.exceptions import DataSourceError
+from pseudopeople.filter import DataFilter
 from pseudopeople.utilities import PANDAS_ENGINE, DataFrame, Engine
 
 
 def load_standard_dataset(
     data_path: Path,
-    user_filters: Optional[list[Tuple]],
+    user_filters: Optional[list[DataFilter]],
     engine: Engine = PANDAS_ENGINE,
     is_file: bool = True,
 ) -> DataFrame:
@@ -18,11 +19,12 @@ def load_standard_dataset(
             f"Source path must be a .parquet file. Provided {data_path.suffix}"
         )
 
+    parquet_filters = [filter.to_tuple() for filter in user_filters] if user_filters else None
     if engine == PANDAS_ENGINE:
-        if not user_filters:
+        if not parquet_filters:
             # pyarrow.parquet.read_table doesn't accept an empty list
-            user_filters = None
-        data = pq.read_table(data_path, filters=user_filters).to_pandas()
+            parquet_filters = None
+        data = pq.read_table(data_path, filters=parquet_filters).to_pandas()
 
         # TODO: The index in our simulated population files is never meaningful.
         # For some reason, the 1040 dataset is currently saved with a non-RangeIndex
@@ -35,7 +37,7 @@ def load_standard_dataset(
         # Dask
         import dask.dataframe as dd
 
-        data = dd.read_parquet(str(data_path), filters=user_filters)
+        data = dd.read_parquet(str(data_path), filters=parquet_filters)
         # See TODO above.
         data = data.reset_index(drop=True)
 
