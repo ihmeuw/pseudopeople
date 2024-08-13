@@ -35,7 +35,6 @@ disable_error_code = [
     "index",
     "list-item",
     "misc",
-    "no-untyped-def",
     "operator",
     "type-arg",
     "var-annotated",

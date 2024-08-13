@@ -1,14 +1,20 @@
+from __future__ import annotations
+
 import math
+from collections.abc import Iterable
+from typing import Union
 
 import numpy as np
 import pandas as pd
 import pytest
 from layered_config_tree import LayeredConfigTree
+from layered_config_tree.types import NestedDict, NodeValue
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COLS
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.dataset import Dataset
+from pseudopeople.entity_types import ColumnNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASET_SCHEMAS
 from pseudopeople.utilities import (
@@ -16,7 +22,6 @@ from pseudopeople.utilities import (
     load_phonetic_errors,
     load_qwerty_errors_data,
     to_string,
-    to_string_as_integer,
 )
 from tests.conftest import FuzzyChecker
 
@@ -172,7 +177,7 @@ STRING_LIST = [
 
 
 @pytest.fixture(scope="module")
-def dummy_dataset():
+def dummy_dataset() -> pd.DataFrame:
     num_simulants = 1_000_000
     dummy_idx = pd.Index(range(num_simulants))
 
@@ -246,14 +251,14 @@ def dummy_dataset():
 
 
 @pytest.fixture(scope="module")
-def categorical_series():
+def categorical_series() -> pd.Series[str]:
     return pd.Series(
         ["CA", "WA", "FL", "OR", "CO", "TX", "NY", "VA", "AZ", "''"] * 100_000, name="state"
     )
 
 
 @pytest.fixture(scope="module")
-def string_series():
+def string_series() -> pd.Series[str]:
     return pd.Series(
         ["Unit 1A", "1234", "12/31/2020", "a1b2c3", "100000.00", "123-45-6789", ""] * 100_000,
         name="random_strings",
@@ -261,7 +266,7 @@ def string_series():
 
 
 @pytest.fixture()
-def dataset(dummy_dataset):
+def dataset(dummy_dataset: pd.DataFrame) -> Dataset:
     # We can't have this be a session scope because then we will be operating on the same object
     # across unit tests. We need to be able to modify the original data in each test.
     df = dummy_dataset.copy()
@@ -272,7 +277,7 @@ def dataset(dummy_dataset):
 
 
 @pytest.fixture()
-def dataset_same_seed(dummy_dataset):
+def dataset_same_seed(dummy_dataset: pd.DataFrame) -> Dataset:
     df = dummy_dataset.copy()
     census = DATASET_SCHEMAS.get_dataset_schema(DATASET_SCHEMAS.census.name)
     dataset = Dataset(census, df, 0)
@@ -281,7 +286,7 @@ def dataset_same_seed(dummy_dataset):
 
 
 @pytest.fixture()
-def dataset_different_seed(dummy_dataset):
+def dataset_different_seed(dummy_dataset: pd.DataFrame) -> Dataset:
     # We can't have this be a session scope because then we will be operating on the same object
     # across unit tests. We need to be able to modify the original data in each test.
     df = dummy_dataset.copy()
@@ -291,7 +296,7 @@ def dataset_different_seed(dummy_dataset):
     return dataset
 
 
-def test_leave_blank(dataset, fuzzy_checker: FuzzyChecker):
+def test_leave_blank(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     config: LayeredConfigTree = get_configuration(
         {
             DATASET_SCHEMAS.census.name: {
@@ -331,7 +336,7 @@ def test_leave_blank(dataset, fuzzy_checker: FuzzyChecker):
     assert (data[not_noised_idx] == noised_data[not_noised_idx]).all()
 
 
-def test_choose_wrong_option(dataset, fuzzy_checker: FuzzyChecker):
+def test_choose_wrong_option(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][
         Keys.COLUMN_NOISE
     ]["state"][NOISE_TYPES.choose_wrong_option.name]
@@ -355,7 +360,9 @@ def test_choose_wrong_option(dataset, fuzzy_checker: FuzzyChecker):
     pd.testing.assert_index_equal(original_empty_idx, noised_empty_idx)
 
 
-def test_generate_copy_from_household_member(dataset, fuzzy_checker: FuzzyChecker):
+def test_generate_copy_from_household_member(
+    dataset: Dataset, fuzzy_checker: FuzzyChecker
+) -> None:
     config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][
         Keys.COLUMN_NOISE
     ]["age"][NOISE_TYPES.copy_from_household_member.name]
@@ -387,7 +394,7 @@ def test_generate_copy_from_household_member(dataset, fuzzy_checker: FuzzyChecke
     assert noised_data.loc[original_missing_idx].isnull().all()
 
 
-def test_swap_months_and_days(dataset, fuzzy_checker: FuzzyChecker):
+def test_swap_months_and_days(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     for col in ["event_date", "date_of_birth"]:
         data = dataset.data[col].copy()
         if col == "event_date":
@@ -428,7 +435,7 @@ def test_swap_months_and_days(dataset, fuzzy_checker: FuzzyChecker):
         )
 
 
-def test_write_wrong_zipcode_digits(dataset, fuzzy_checker: FuzzyChecker):
+def test_write_wrong_zipcode_digits(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     config: LayeredConfigTree = get_configuration()
     config.update(
         {
@@ -482,7 +489,7 @@ def test_write_wrong_zipcode_digits(dataset, fuzzy_checker: FuzzyChecker):
     )
 
 
-def test_miswrite_ages_default_config(dataset, fuzzy_checker: FuzzyChecker):
+def test_miswrite_ages_default_config(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     """Test that miswritten ages are appropriately handled, including
     no perturbation probabilities defaults to uniform distribution,
     perturbation probabilities"""
@@ -515,7 +522,7 @@ def test_miswrite_ages_default_config(dataset, fuzzy_checker: FuzzyChecker):
     assert noised_data[not_missing_idx].astype(int).min() >= 0
 
 
-def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker):
+def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker) -> None:
     """Test that a list of perturbations passed in results in uniform probabilities"""
     num_rows = 100_000
     original_age = 25
@@ -528,7 +535,7 @@ def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker):
                     "age": {
                         NOISE_TYPES.misreport_age.name: {
                             Keys.CELL_PROBABILITY: 0.4,
-                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,  # type: ignore [dict-item]
                         },
                     },
                 },
@@ -553,7 +560,9 @@ def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker):
         )
 
 
-def test_miswrite_ages_provided_probabilities(dataset, fuzzy_checker: FuzzyChecker):
+def test_miswrite_ages_provided_probabilities(
+    dataset: Dataset, fuzzy_checker: FuzzyChecker
+) -> None:
     """Test that provided age perturation probabilites are handled"""
     num_rows = 100_000
     original_age = 25
@@ -566,7 +575,7 @@ def test_miswrite_ages_provided_probabilities(dataset, fuzzy_checker: FuzzyCheck
                     "age": {
                         NOISE_TYPES.misreport_age.name: {
                             Keys.CELL_PROBABILITY: 0.6,
-                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,  # type: ignore [dict-item]
                         },
                     },
                 },
@@ -590,7 +599,7 @@ def test_miswrite_ages_provided_probabilities(dataset, fuzzy_checker: FuzzyCheck
         )
 
 
-def test_miswrite_ages_handles_perturbation_to_same_age():
+def test_miswrite_ages_handles_perturbation_to_same_age() -> None:
     """Tests an edge case. It's possible that after an age is perturbed it ends
     up being the original age. In that case, subtract 1. eg, an age of 1 that is
     perturbed -2 becomes -1. But we cannot have negative so we flip the sign to +1.
@@ -607,7 +616,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
                     "age": {
                         NOISE_TYPES.misreport_age.name: {
                             Keys.CELL_PROBABILITY: 0.3,
-                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,  # type: ignore [dict-item]
                         },
                     },
                 },
@@ -624,7 +633,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age():
     assert (noised_data[noised_mask] == 0).all()
 
 
-def test_miswrite_ages_flips_negative_to_positive():
+def test_miswrite_ages_flips_negative_to_positive() -> None:
     """Test that any ages perturbed to <0 are reflected to positive values"""
     num_rows = 100
     age = 3.0
@@ -637,7 +646,7 @@ def test_miswrite_ages_flips_negative_to_positive():
                     "age": {
                         NOISE_TYPES.misreport_age.name: {
                             Keys.CELL_PROBABILITY: 0.6,
-                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,  # type: ignore [dict-item]
                         },
                     },
                 },
@@ -655,7 +664,7 @@ def test_miswrite_ages_flips_negative_to_positive():
 
 
 @pytest.mark.slow
-def test_write_wrong_digits_robust(dataset, fuzzy_checker: FuzzyChecker):
+def test_write_wrong_digits_robust(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     """
     Validates that only numeric characters are noised in a series at a provided noise level.
     """
@@ -793,7 +802,7 @@ def test_write_wrong_digits_robust(dataset, fuzzy_checker: FuzzyChecker):
             assert (noised_data[ssn].str[i].str.isdigit()).all()
 
 
-def test_write_wrong_digits(dataset, fuzzy_checker: FuzzyChecker):
+def test_write_wrong_digits(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     # This is a quicker (less robust) version of the test above.
     # It only checks that numeric characters are noised at the correct level as
     # a sanity check our noise is of the right magnitude
@@ -845,7 +854,7 @@ def test_write_wrong_digits(dataset, fuzzy_checker: FuzzyChecker):
     )
 
 
-def test_use_nickname(dataset, fuzzy_checker: FuzzyChecker):
+def test_use_nickname(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][
         Keys.COLUMN_NOISE
     ]["first_name"][NOISE_TYPES.use_nickname.name]
@@ -900,7 +909,7 @@ def test_use_nickname(dataset, fuzzy_checker: FuzzyChecker):
 
 
 @pytest.mark.parametrize("column", ["first_name", "last_name"])
-def test_use_fake_name(dataset, column, fuzzy_checker: FuzzyChecker):
+def test_use_fake_name(dataset: Dataset, column: str, fuzzy_checker: FuzzyChecker) -> None:
     """
     Function to test that fake names are noised and replace raw values at a configured percentage
     """
@@ -957,7 +966,9 @@ def test_use_fake_name(dataset, column, fuzzy_checker: FuzzyChecker):
         "phonetic_stress_test",
     ],
 )
-def test_generate_phonetic_errors(dataset, column, fuzzy_checker: FuzzyChecker):
+def test_generate_phonetic_errors(
+    dataset: Dataset, column: str, fuzzy_checker: FuzzyChecker
+) -> None:
     data = dataset.data[column].copy()
 
     config = get_configuration()
@@ -1024,7 +1035,7 @@ def test_generate_phonetic_errors(dataset, column, fuzzy_checker: FuzzyChecker):
     "pair",
     PHONETIC_STRESS_TEST_PATHWAYS.items(),
 )
-def test_phonetic_error_values(pair, fuzzy_checker: FuzzyChecker):
+def test_phonetic_error_values(pair: tuple[int, int], fuzzy_checker: FuzzyChecker) -> None:
     string, pathways = pair
 
     data = pd.Series([string] * 100_000, name="column")
@@ -1072,7 +1083,9 @@ def test_phonetic_error_values(pair, fuzzy_checker: FuzzyChecker):
         "ocr_stress_test",
     ],
 )
-def test_generate_ocr_errors(dataset, column, fuzzy_checker: FuzzyChecker):
+def test_generate_ocr_errors(
+    dataset: Dataset, column: str, fuzzy_checker: FuzzyChecker
+) -> None:
     config: LayeredConfigTree = get_configuration()
     config.update(
         {
@@ -1137,7 +1150,7 @@ def test_generate_ocr_errors(dataset, column, fuzzy_checker: FuzzyChecker):
     "pair",
     OCR_STRESS_TEST_PATHWAYS.items(),
 )
-def test_ocr_replacement_values(pair, fuzzy_checker: FuzzyChecker):
+def test_ocr_replacement_values(pair: tuple[int, int], fuzzy_checker: FuzzyChecker) -> None:
     string, pathways = pair
 
     data = pd.Series([string] * 100_000, name="column")
@@ -1182,7 +1195,7 @@ def test_ocr_replacement_values(pair, fuzzy_checker: FuzzyChecker):
         "characters",
     ],
 )
-def test_make_typos(dataset, column, fuzzy_checker: FuzzyChecker):
+def test_make_typos(dataset: Dataset, column: str, fuzzy_checker: FuzzyChecker) -> None:
     config = get_configuration()
     config.update(
         {
@@ -1279,21 +1292,23 @@ def test_make_typos(dataset, column, fuzzy_checker: FuzzyChecker):
     ],
 )
 def test_seeds_behave_as_expected(
-    noise_type,
-    data_col,
-    dataset_name,
-    dataset_col,
-    dataset,
-    dataset_same_seed,
-    dataset_different_seed,
-):
+    noise_type: ColumnNoiseType,
+    data_col: str,
+    dataset_name: str,
+    dataset_col: str,
+    dataset: Dataset,
+    dataset_same_seed: Dataset,
+    dataset_different_seed: Dataset,
+) -> None:
     """Tests that different seeds produce different results and the same seed
     produces the same results
     """
     if data_col == "todo":
         pytest.skip(reason=f"TODO: implement for {noise_type}")
     noise = noise_type.name
-    config = get_configuration()[dataset_name][Keys.COLUMN_NOISE][dataset_col][noise]
+    config: LayeredConfigTree = get_configuration()[dataset_name][Keys.COLUMN_NOISE][
+        dataset_col
+    ][noise]
     if noise == NOISE_TYPES.copy_from_household_member.name:
         data = dataset.data[[data_col, COPY_HOUSEHOLD_MEMBER_COLS[data_col]]].copy()
     else:
@@ -1324,7 +1339,7 @@ def test_seeds_behave_as_expected(
     assert (noised.iloc[:shortest] != noised_different_seed.iloc[:shortest]).any()
 
 
-def test_age_write_wrong_digits(dataset, fuzzy_checker: FuzzyChecker):
+def test_age_write_wrong_digits(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     # Tests write wrong digits is now applied to age column - albrja(10/23/23)
     config = get_configuration()
     config.update(
@@ -1371,7 +1386,7 @@ def test_age_write_wrong_digits(dataset, fuzzy_checker: FuzzyChecker):
 ################
 
 
-def number_of_tokens_per_string(s1: pd.Series, s2: pd.Series) -> pd.Series:
+def number_of_tokens_per_string(s1: Iterable[str], s2: Iterable[str]) -> pd.Series[int]:
     """
     Calculates the number of tokens in each string of a series.
     s1 is a pd.Series of tokens and we want to see how many tokens exist in each

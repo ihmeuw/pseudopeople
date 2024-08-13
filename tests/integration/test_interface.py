@@ -1,11 +1,15 @@
 import math
 from functools import partial
+from pathlib import Path
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
 import pytest
+from _pytest.fixtures import FixtureRequest
 from layered_config_tree import LayeredConfigTree
 from pandas.api.types import is_datetime64_any_dtype as is_datetime
+from pytest_mock import MockerFixture
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.interface import (
@@ -86,12 +90,12 @@ TOKENS_PER_STRING_MAPPER = {
 def test_generate_dataset_from_multiple_shards(
     dataset_name: str,
     engine: str,
-    config,
-    request,
-    split_sample_data_dir,
-    mocker,
+    config: dict,
+    request: FixtureRequest,
+    split_sample_data_dir: Path,
+    mocker: MockerFixture,
     fuzzy_checker: FuzzyChecker,
-):
+) -> None:
     """Tests that the amount of noising is approximately the same whether we
     noise a single sample dataset or we concatenate and noise multiple datasets
     """
@@ -125,7 +129,7 @@ def test_generate_dataset_from_multiple_shards(
         original, noised_dataset
     )
 
-    config = get_configuration(config)
+    config_tree = get_configuration(config)
     for col_name in check_noised_dataset.columns:
         col = COLUMNS.get_column(col_name)
         if col.noise_types:
@@ -143,7 +147,7 @@ def test_generate_dataset_from_multiple_shards(
                 check_idx=to_compare_dataset_idx,
                 noise_level=noise_level_dataset,
                 col=col,
-                config=config,
+                config=config_tree,
                 fuzzy_name="test_generate_dataset_from_sample_and_source_dataset",
                 validator=fuzzy_checker,
             )
@@ -168,7 +172,9 @@ def test_generate_dataset_from_multiple_shards(
         "dask",
     ],
 )
-def test_seed_behavior(dataset_name: str, engine: str, config, request):
+def test_seed_behavior(
+    dataset_name: str, engine: str, config: dict, request: FixtureRequest
+) -> None:
     """Tests seed behavior"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -227,7 +233,9 @@ def test_seed_behavior(dataset_name: str, engine: str, config, request):
         "dask",
     ],
 )
-def test_column_dtypes(dataset_name: str, engine: str, config, request):
+def test_column_dtypes(
+    dataset_name: str, engine: str, config: dict, request: FixtureRequest
+) -> None:
     """Tests that column dtypes are as expected"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -275,8 +283,12 @@ def test_column_dtypes(dataset_name: str, engine: str, config, request):
     ],
 )
 def test_column_noising(
-    dataset_name: str, engine: str, config, request, fuzzy_checker: FuzzyChecker
-):
+    dataset_name: str,
+    engine: str,
+    config: dict,
+    request: FixtureRequest,
+    fuzzy_checker: FuzzyChecker,
+) -> None:
     """Tests that columns are noised as expected"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -293,7 +305,7 @@ def test_column_noising(
         noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
     check_noised, check_original, shared_idx = _get_common_datasets(original, noised_data)
 
-    config = get_configuration(config)
+    config_tree = get_configuration(config)
     for col_name in check_noised.columns:
         col = COLUMNS.get_column(col_name)
 
@@ -321,7 +333,7 @@ def test_column_noising(
                 check_idx=to_compare_idx,
                 noise_level=noise_level,
                 col=col,
-                config=config,
+                config=config_tree,
                 fuzzy_name="test_column_noising",
                 validator=fuzzy_checker,
             )
@@ -352,8 +364,8 @@ def test_column_noising(
     ],
 )
 def test_row_noising_omit_row_or_do_not_respond(
-    dataset_name: str, engine: str, config, request
-):
+    dataset_name: str, engine: str, config: dict, request: FixtureRequest
+) -> None:
     """Tests that omit_row and do_not_respond row noising are being applied"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -371,9 +383,9 @@ def test_row_noising_omit_row_or_do_not_respond(
     else:
         noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
     noised_data = noised_data.set_index(idx_cols)
-    config = get_configuration(config)[dataset_name][Keys.ROW_NOISE]
+    config_tree = get_configuration(config)[dataset_name][Keys.ROW_NOISE]
     noise_type = [
-        n for n in config if n in [NOISE_TYPES.omit_row.name, NOISE_TYPES.do_not_respond.name]
+        n for n in config_tree if n in [NOISE_TYPES.omit_row.name, NOISE_TYPES.do_not_respond.name]  # type: ignore [union-attr]
     ]
     if dataset_name in [
         DATASET_SCHEMAS.census.name,
@@ -406,7 +418,7 @@ def test_row_noising_omit_row_or_do_not_respond(
         DATASET_SCHEMAS.tax_1040.name,
     ],
 )
-def test_row_noising_duplication(dataset_name: str, config, request):
+def test_row_noising_duplication(dataset_name: str) -> None:
     """Tests that duplication row noising is being applied"""
     ...
 
@@ -430,7 +442,7 @@ def test_row_noising_duplication(dataset_name: str, config, request):
         "dask",
     ],
 )
-def test_generate_dataset_with_year(dataset_name: str, engine: str, request):
+def test_generate_dataset_with_year(dataset_name: str, engine: str) -> None:
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     year = 2030  # not default 2020
@@ -459,7 +471,9 @@ def test_generate_dataset_with_year(dataset_name: str, engine: str, request):
         "dask",
     ],
 )
-def test_dataset_filter_by_year(mocker, dataset_name: str, engine: str):
+def test_dataset_filter_by_year(
+    mocker: MockerFixture, dataset_name: str, engine: str
+) -> None:
     """Mock the noising function so that it returns the date column of interest
     with the original (unnoised) values to ensure filtering is happening
     """
@@ -494,7 +508,9 @@ def test_dataset_filter_by_year(mocker, dataset_name: str, engine: str):
         "dask",
     ],
 )
-def test_dataset_filter_by_year_with_full_dates(mocker, dataset_name: str, engine: str):
+def test_dataset_filter_by_year_with_full_dates(
+    mocker: MockerFixture, dataset_name: str, engine: str
+) -> None:
     """Mock the noising function so that it returns the date column of interest
     with the original (unnoised) values to ensure filtering is happening
     """
@@ -540,8 +556,11 @@ def test_dataset_filter_by_year_with_full_dates(mocker, dataset_name: str, engin
     ],
 )
 def test_generate_dataset_with_state_filtered(
-    dataset_name: str, engine: str, split_sample_data_dir_state_edit, mocker
-):
+    dataset_name: str,
+    engine: str,
+    split_sample_data_dir_state_edit: Path,
+    mocker: MockerFixture,
+) -> None:
     """Test that values returned by dataset generators are only for the specified state"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -579,8 +598,11 @@ def test_generate_dataset_with_state_filtered(
     ],
 )
 def test_generate_dataset_with_state_unfiltered(
-    dataset_name: str, engine: str, split_sample_data_dir_state_edit, mocker
-):
+    dataset_name: str,
+    engine: str,
+    split_sample_data_dir_state_edit: Path,
+    mocker: MockerFixture,
+) -> None:
     # Important note: Currently the way this test is working is we have a fixture where we have
     # edited the sample data so half of it has a state to filter to. However, when we split the
     # sample data and do this, all the 2020 data (the year we default to for all generate_xxx functions)
@@ -618,8 +640,11 @@ def test_generate_dataset_with_state_unfiltered(
     ],
 )
 def test_dataset_filter_by_state_and_year(
-    mocker, split_sample_data_dir_state_edit, dataset_name: str, engine: str
-):
+    mocker: MockerFixture,
+    split_sample_data_dir_state_edit: Path,
+    dataset_name: str,
+    engine: str,
+) -> None:
     """Test that dataset generation works with state and year filters in conjunction"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -652,8 +677,11 @@ def test_dataset_filter_by_state_and_year(
     ],
 )
 def test_dataset_filter_by_state_and_year_with_full_dates(
-    mocker, split_sample_data_dir_state_edit, dataset_name: str, engine: str
-):
+    mocker: MockerFixture,
+    split_sample_data_dir_state_edit: Path,
+    dataset_name: str,
+    engine: str,
+) -> None:
     """Test that dataset generation works with state and year filters in conjunction"""
     year = 2030  # not default 2020
     mocker.patch("pseudopeople.interface.validate_source_compatibility")
@@ -698,8 +726,11 @@ def test_dataset_filter_by_state_and_year_with_full_dates(
     ],
 )
 def test_generate_dataset_with_bad_state(
-    dataset_name: str, engine: str, split_sample_data_dir_state_edit, mocker
-):
+    dataset_name: str,
+    engine: str,
+    split_sample_data_dir_state_edit: Path,
+    mocker: MockerFixture,
+) -> None:
     """Test that bad state values result in informative ValueErrors"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -735,8 +766,8 @@ def test_generate_dataset_with_bad_state(
     ],
 )
 def test_generate_dataset_with_bad_year(
-    dataset_name: str, engine: str, split_sample_data_dir, mocker
-):
+    dataset_name: str, engine: str, split_sample_data_dir: Path, mocker: MockerFixture
+) -> None:
     """Test that a ValueError is raised both for a bad year and a year that has no data"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
@@ -776,7 +807,7 @@ def _validate_column_noise_level(
     config: LayeredConfigTree,
     fuzzy_name: str,
     validator: FuzzyChecker,
-):
+) -> None:
     """
     This helper function iterates through all column noise types for a particular column
     and calculates the expected noise level for each. It then accumulates the expected

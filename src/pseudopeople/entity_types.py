@@ -11,11 +11,13 @@ from pseudopeople.configuration import Keys
 from pseudopeople.utilities import ensure_dtype, get_index_to_noise
 
 
-def _noise_function_not_implemented(*args, **kwargs):
+def _noise_function_not_implemented(*_args: Any, **_kwargs: Any) -> None:
     pass
 
 
-def default_noise_level_getter(dataset: "Dataset", configuration: LayeredConfigTree) -> float:
+def default_noise_level_getter(
+    _dataset: "Dataset", configuration: LayeredConfigTree
+) -> float:
     noise_level: float = configuration[Keys.ROW_PROBABILITY]
     return noise_level
 
@@ -31,7 +33,7 @@ class NoiseType(ABC):
     probability: Optional[float] = 0.0
     additional_parameters: Optional[Dict[str, Any]] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.noise_function == _noise_function_not_implemented:
             raise NotImplementedError(
                 "You must pass a noise_function when creating a NoiseType. "

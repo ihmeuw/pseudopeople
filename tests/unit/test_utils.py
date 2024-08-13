@@ -16,10 +16,11 @@ from tests.conftest import FuzzyChecker
 
 
 @pytest.fixture()
-def randomness0():
+def randomness0() -> np.random.Generator:
     return np.random.default_rng(get_hash("test_utils_0"))
 
-CORRUPT_TOKENS_TEST_CASES = {
+
+CORRUPT_TOKENS_TEST_CASES: dict[str, dict[str, tuple[int, int]]] = {
     # Possible tokens to noise: abc, ab, a, c
     # Tuples of (token noised, token not noised)
     # Example: "abc" can be noised to "heybsee". This means "a" becomes "hey"
@@ -52,7 +53,7 @@ CORRUPT_TOKENS_TEST_CASES = {
 }
 
 
-def test_to_string_as_integer():
+def test_to_string_as_integer() -> None:
     # This tests that object columns return only strings.
     # This is to handle dtype issues we were having with int/float/strings in
     # age, wages, and po box columns.
@@ -67,7 +68,11 @@ def test_to_string_as_integer():
 
 
 @pytest.mark.parametrize("pair", CORRUPT_TOKENS_TEST_CASES.items())
-def test__corrupt_tokens(pair, randomness0, fuzzy_checker: FuzzyChecker):
+def test__corrupt_tokens(
+    pair: tuple[str, dict[str, tuple[int, int]]],
+    randomness0: np.random.Generator,
+    fuzzy_checker: FuzzyChecker,
+) -> None:
     """
     Unit test for _corrupt_tokens. We want to test that the noise level is correct, that the
     correct tokens are noised, and that the correct behavior happens (meaning the longer tokens
@@ -99,7 +104,7 @@ def test__corrupt_tokens(pair, randomness0, fuzzy_checker: FuzzyChecker):
     # Assert our noised data is one of our possible strings. This also checks that
     # the tokens are noised in the correct order (longer tokens first) because if
     # a longer token overlaps a shorter token and the longer token is noised, we
-    # do not count the shorter token as a possiblility of being noised.
+    # do not count the shorter token as a possibility of being noised.
     assert noised.isin(pathways.keys()).all()
     for result, (num_noised, num_not_noised) in pathways.items():
         pathway_probability = (
@@ -120,6 +125,8 @@ def test__corrupt_tokens(pair, randomness0, fuzzy_checker: FuzzyChecker):
         tokens_per_string = 3
     elif string == "jkl":
         tokens_per_string = 0
+    else:
+        raise ValueError("Invalid test case")
 
     any_token_noised = 1 - (1 - token_probability) ** tokens_per_string
     fuzzy_checker.fuzzy_assert_proportion(
@@ -130,7 +137,9 @@ def test__corrupt_tokens(pair, randomness0, fuzzy_checker: FuzzyChecker):
     )
 
 
-def test__corrupt_tokens_multiple_options(randomness0, fuzzy_checker: FuzzyChecker):
+def test__corrupt_tokens_multiple_options(
+    randomness0: np.random.Generator, fuzzy_checker: FuzzyChecker
+) -> None:
     """
     Tests that multiple options can be chosen for a token
     """
@@ -165,7 +174,7 @@ def test__corrupt_tokens_multiple_options(randomness0, fuzzy_checker: FuzzyCheck
         )
 
 
-def test_get_index_to_noise(fuzzy_checker: FuzzyChecker):
+def test_get_index_to_noise(fuzzy_checker: FuzzyChecker) -> None:
     """
     Tests that the index length we will noise validates to expected noise level
     """
@@ -186,7 +195,9 @@ def test_get_index_to_noise(fuzzy_checker: FuzzyChecker):
     )
 
 
-def test_vectorized_choice(randomness0, fuzzy_checker: FuzzyChecker):
+def test_vectorized_choice(
+    randomness0: np.random.Generator, fuzzy_checker: FuzzyChecker
+) -> None:
 
     options = ["Supersonics", "Mariners", "Kraken"]
     num_choices = 50_000
@@ -211,7 +222,9 @@ def test_vectorized_choice(randomness0, fuzzy_checker: FuzzyChecker):
         )
 
 
-def test_two_d_array_choice(randomness0, fuzzy_checker: FuzzyChecker):
+def test_two_d_array_choice(
+    randomness0: np.random.Generator, fuzzy_checker: FuzzyChecker
+) -> None:
 
     best_sports = ["Basketball", "Baseball", "Football"]
     sports = pd.Series(best_sports * 10_000)
