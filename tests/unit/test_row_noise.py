@@ -42,7 +42,7 @@ def test_omit_row(dummy_data: pd.DataFrame, fuzzy_checker: FuzzyChecker) -> None
     NOISE_TYPES.omit_row(dataset, config)
     noised_data1 = dataset.data
 
-    expected_noise_1 = config[Keys.ROW_PROBABILITY]
+    expected_noise_1: float = config[Keys.ROW_PROBABILITY]
     fuzzy_checker.fuzzy_assert_proportion(
         name="test_omit_row",
         observed_numerator=len(noised_data1),
@@ -88,7 +88,8 @@ def test_do_not_respond(
     assert (noised_census.dtypes == my_dummy_data.dtypes).all()
 
     # Check ACS data is scaled properly due to oversampling
-    expected_noise = 0.5 + config[Keys.ROW_PROBABILITY] / 2
+    row_probability: float = config[Keys.ROW_PROBABILITY]
+    expected_noise = 0.5 + row_probability / 2
     fuzzy_checker.fuzzy_assert_proportion(
         name="test_do_not_respond",
         observed_numerator=len(my_dummy_data) - len(noised_acs),

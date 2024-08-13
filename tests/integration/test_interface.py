@@ -1,7 +1,6 @@
 import math
 from functools import partial
-from pathlib import Path
-from typing import Optional, Union
+from typing import Callable, Union
 
 import numpy as np
 import pandas as pd
@@ -41,7 +40,7 @@ from tests.integration.conftest import (
     get_unnoised_data,
 )
 
-DATASET_GENERATION_FUNCS = {
+DATASET_GENERATION_FUNCS: dict[str, Callable] = {
     DATASET_SCHEMAS.census.name: generate_decennial_census,
     DATASET_SCHEMAS.acs.name: generate_american_community_survey,
     DATASET_SCHEMAS.cps.name: generate_current_population_survey,
@@ -830,9 +829,11 @@ def _validate_column_noise_level(
             token_probability_key = {
                 NOISE_TYPES.write_wrong_zipcode_digits.name: Keys.ZIPCODE_DIGIT_PROBABILITIES,
             }.get(col_noise_type.name, Keys.TOKEN_PROBABILITY)
-            token_probability = tmp_config[col_noise_type.name][token_probability_key]
+            token_probability: Union[list[float], float] = tmp_config[col_noise_type.name][
+                token_probability_key
+            ]
             # Get number of tokens per string to calculate expected proportion
-            tokens_per_string_getter = TOKENS_PER_STRING_MAPPER.get(
+            tokens_per_string_getter: Callable = TOKENS_PER_STRING_MAPPER.get(
                 col_noise_type.name, lambda x: x.astype(str).str.len()
             )
             tokens_per_string = tokens_per_string_getter(check_data.loc[check_idx, col.name])
