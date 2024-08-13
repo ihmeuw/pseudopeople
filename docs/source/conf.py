@@ -16,6 +16,7 @@ import sys
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 from pathlib import Path
+from typing import Optional
 
 from docutils import nodes
 from docutils.nodes import Text
@@ -250,7 +251,7 @@ def setup(app: Sphinx) -> None:
 
 def __sphinx_issue_8127(
     app: Sphinx, env: BuildEnvironment, node: pending_xref, contnode: literal_emphasis
-) -> nodes.reference | None:
+) -> Optional[nodes.reference]:
     reftarget = node.get("reftarget", None)
     if reftarget == "..":
         node["reftype"] = "data"
