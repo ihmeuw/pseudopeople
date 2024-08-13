@@ -10,3 +10,6 @@ py:class pandas.core.generic.PandasObject
 # pseudopeople
 py:exc ConfigurationError
 py:exc DataSourceError
+
+# layered_config_tree
+py:class NestedDict
