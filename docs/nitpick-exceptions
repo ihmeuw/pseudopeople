@@ -13,3 +13,4 @@ py:exc DataSourceError
 
 # layered_config_tree
 py:class NestedDict
+py:class NestedDictValue
