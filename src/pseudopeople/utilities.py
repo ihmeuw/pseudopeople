@@ -4,7 +4,7 @@ import hashlib
 import sys
 from dataclasses import dataclass
 from functools import cache
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, TextIO, Union
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, TextIO, Type, Union
 
 import numpy as np
 import pandas as pd
@@ -124,7 +124,7 @@ def two_d_array_choice(
     data: pd.Series,
     options: pd.DataFrame,
     random_generator: np.random.Generator,
-):
+) -> pd.Series:
     """
     Makes vectorized choice for 2D array options.
     :param data: pd.Series which should be a subset of options.index
@@ -201,7 +201,7 @@ def to_string(column: pd.Series) -> pd.Series:
         return to_string_preserve_nans(column)
 
 
-def ensure_dtype(data: pd.Series, dtype: np.dtype):
+def ensure_dtype(data: pd.Series, dtype: np.dtype) -> pd.Series:
     if dtype.name == DtypeNames.OBJECT:
         return to_string(data)
     else:
@@ -262,17 +262,17 @@ def coerce_dtypes(
 @dataclass
 class Engine:
     name: str
-    dataframe_class_getter: Callable
+    dataframe_class_getter: Callable[[], Type[DataFrame]]
 
     @property
-    def dataframe_class(self):
+    def dataframe_class(self) -> Type[DataFrame]:
         return self.dataframe_class_getter()
 
 
 PANDAS_ENGINE = Engine("pandas", lambda: pd.DataFrame)
 
 
-def get_dask_dataframe():
+def get_dask_dataframe() -> Type[DataFrame]:
     import dask.dataframe as dd
 
     return dd.DataFrame
@@ -305,7 +305,7 @@ except ImportError:
 
 
 @cache
-def load_ocr_errors():
+def load_ocr_errors() -> pd.DataFrame:
     ocr_errors = pd.read_csv(
         paths.OCR_ERRORS_DATA, skiprows=[0, 1], header=None, names=["ocr_true", "ocr_err"]
     )
@@ -319,7 +319,7 @@ def load_ocr_errors():
 
 
 @cache
-def load_phonetic_errors():
+def load_phonetic_errors() -> pd.DataFrame:
     phonetic_errors = pd.read_csv(
         paths.PHONETIC_ERRORS_DATA,
         skiprows=[0, 1],

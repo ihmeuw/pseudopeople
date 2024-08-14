@@ -1,4 +1,5 @@
 import pytest
+from _pytest.fixtures import FixtureRequest
 
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
 from tests.integration.conftest import (
@@ -19,7 +20,7 @@ from tests.integration.conftest import (
         DATASET_SCHEMAS.tax_1040.name,
     ],
 )
-def test_unnoised_id_cols(dataset_name: str, request):
+def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
     """Tests that all datasets retain unnoised simulant_id and household_id
     (except for SSA which does not include household_id)
     """

@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import numpy as np
@@ -252,7 +253,7 @@ def _validate_probability(
 
 def _validate_choose_wrong_option_probability(
     noise_type_config: Union[int, float], parameter: str, base_error_message: str, column: str
-):
+) -> None:
     _validate_probability(noise_type_config, parameter, base_error_message)
     num_options = len(get_options_for_column(column))
     # The maximum: if the cell *selection* probability were set to 1, and every cell
@@ -271,7 +272,7 @@ def _validate_choose_wrong_option_probability(
 def validate_noise_level_proportions(
     configuration_tree: LayeredConfigTree,
     dataset_schema: DatasetSchema,
-    filters: List[DataFilter],
+    filters: Sequence[DataFilter],
 ) -> None:
     """
     Validates that the noise levels provided do not exceed the allowable proportions from the
