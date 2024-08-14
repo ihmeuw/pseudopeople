@@ -1,8 +1,10 @@
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Dict, Optional, Union
 
 import yaml
 from layered_config_tree import LayeredConfigTree
+from layered_config_tree.types import NestedDict
 
 from pseudopeople.configuration import NO_NOISE, Keys
 from pseudopeople.configuration.validator import (
@@ -10,7 +12,7 @@ from pseudopeople.configuration.validator import (
     validate_overrides,
 )
 from pseudopeople.constants.data_values import DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY
-from pseudopeople.entity_types import RowNoiseType
+from pseudopeople.entity_types import NoiseType, RowNoiseType
 from pseudopeople.filter import DataFilter
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS, DatasetSchema
@@ -81,9 +83,9 @@ DEFAULT_NOISE_VALUES: dict = {
 
 
 def get_configuration(
-    overrides: Optional[Union[Path, str, Dict]] = None,
+    overrides: Optional[Union[Path, str, NestedDict]] = None,
     dataset_schema: Optional[DatasetSchema] = None,
-    filters: list[DataFilter] = [],
+    filters: Sequence[DataFilter] = (),
 ) -> LayeredConfigTree:
     """
     Gets a noising configuration LayeredConfigTree, optionally overridden by a user-provided YAML.
@@ -163,7 +165,7 @@ def _generate_configuration(is_no_noise: bool) -> LayeredConfigTree:
     return noising_configuration
 
 
-def get_noise_type_dict(noise_type, is_no_noise: bool) -> Dict:
+def get_noise_type_dict(noise_type: NoiseType, is_no_noise: bool) -> dict[str, float]:
     noise_type_dict = {}
     if noise_type.probability is not None:
         noise_level = 0.0 if is_no_noise else noise_type.probability
@@ -184,7 +186,7 @@ def add_overrides(
     noising_configuration: LayeredConfigTree,
     overrides: Dict,
     dataset_schema: Optional[DatasetSchema] = None,
-    filters: list[DataFilter] = [],
+    filters: Sequence[DataFilter] = (),
 ) -> None:
     overrides = _format_overrides(noising_configuration, overrides)
     noising_configuration.update(overrides, layer="user")
