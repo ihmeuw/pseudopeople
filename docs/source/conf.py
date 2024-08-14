@@ -16,8 +16,13 @@ import sys
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 from pathlib import Path
+from typing import Optional
 
+from docutils import nodes
 from docutils.nodes import Text
+from sphinx.addnodes import literal_emphasis, pending_xref
+from sphinx.application import Sphinx
+from sphinx.environment import BuildEnvironment
 from sphinx.ext.intersphinx import missing_reference
 
 import pseudopeople
@@ -239,12 +244,14 @@ for line in open("../nitpick-exceptions"):
     nitpick_ignore.append((dtype, target))
 
 
-# Fix sphinx warnings when for literal Ellipses in type hints.
-def setup(app):
+# Fix sphinx warnings for literal Ellipses in type hints.
+def setup(app: Sphinx) -> None:
     app.connect("missing-reference", __sphinx_issue_8127)
 
 
-def __sphinx_issue_8127(app, env, node, contnode):
+def __sphinx_issue_8127(
+    app: Sphinx, env: BuildEnvironment, node: pending_xref, contnode: literal_emphasis
+) -> Optional[nodes.reference]:
     reftarget = node.get("reftarget", None)
     if reftarget == "..":
         node["reftype"] = "data"
@@ -256,3 +263,4 @@ def __sphinx_issue_8127(app, env, node, contnode):
         else:  # e.g. happens in rtype fields
             contnode = replacement_node
         return missing_reference(app, env, node, contnode)
+    return None

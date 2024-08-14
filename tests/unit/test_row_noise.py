@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from layered_config_tree import LayeredConfigTree
+from pytest_mock import MockerFixture
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants.noise_type_metadata import (
@@ -15,7 +16,7 @@ from tests.conftest import FuzzyChecker
 
 
 @pytest.fixture()
-def dummy_data():
+def dummy_data() -> pd.DataFrame:
     num_simulants = 1_000_000
     dummy_idx = pd.Index(range(num_simulants))
 
@@ -33,7 +34,7 @@ def dummy_data():
     )
 
 
-def test_omit_row(dummy_data, fuzzy_checker: FuzzyChecker):
+def test_omit_row(dummy_data: pd.DataFrame, fuzzy_checker: FuzzyChecker) -> None:
     config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.tax_w2_1099.name][
         Keys.ROW_NOISE
     ][NOISE_TYPES.omit_row.name]
@@ -52,7 +53,9 @@ def test_omit_row(dummy_data, fuzzy_checker: FuzzyChecker):
     assert (noised_data1.dtypes == dummy_data.dtypes).all()
 
 
-def test_do_not_respond(mocker, dummy_data, fuzzy_checker: FuzzyChecker):
+def test_do_not_respond(
+    mocker: MockerFixture, dummy_data: pd.DataFrame, fuzzy_checker: FuzzyChecker
+) -> None:
     config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][
         Keys.ROW_NOISE
     ][NOISE_TYPES.do_not_respond.name]
@@ -105,10 +108,12 @@ def test_do_not_respond(mocker, dummy_data, fuzzy_checker: FuzzyChecker):
     [
         (3, "White", "Female", 0.0091),
         (35, "Black", "Male", 0.0611),
-        (55, "Asian", "Female", 0),
+        (55, "Asian", "Female", 0.0),
     ],
 )
-def test__get_census_omission_noise_levels(age, race_ethnicity, sex, expected_level):
+def test__get_census_omission_noise_levels(
+    age: int, race_ethnicity: str, sex: str, expected_level: float
+) -> None:
     """Test helper function for do_not_respond noising based on demography of age, race/ethnicity, and sex"""
     pop = pd.DataFrame(
         [[age, race_ethnicity, sex] for i in range(10)],
@@ -119,7 +124,7 @@ def test__get_census_omission_noise_levels(age, race_ethnicity, sex, expected_le
     assert (np.isclose(result, expected_level, rtol=0.0001)).all()
 
 
-def test_do_not_respond_missing_columns(dummy_data):
+def test_do_not_respond_missing_columns(dummy_data: pd.DataFrame) -> None:
     """Test do_not_respond raises error when missing required columns."""
     config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][
         Keys.ROW_NOISE
@@ -129,7 +134,7 @@ def test_do_not_respond_missing_columns(dummy_data):
         NOISE_TYPES.do_not_respond(census, config)
 
 
-def test_guardian_duplication():
+def test_guardian_duplication() -> None:
     # We are going to make a small dataframe and update the configuration to noise 100% of the
     # available rows. We will then check that the correct rows were copied with the correct
     # information.

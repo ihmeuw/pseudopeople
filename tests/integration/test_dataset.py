@@ -20,7 +20,7 @@ from tests.integration.conftest import _initialize_dataset_with_sample
         DATASET_SCHEMAS.tax_1040.name,
     ],
 )
-def test_dataset_missingness(dataset_name: str):
+def test_dataset_missingness(dataset_name: str) -> None:
     """Tests that missingness is accurate with dataset.data."""
     dataset = _initialize_dataset_with_sample(dataset_name)
     # We must manually clean the data for noising since we are recreating our main noising loop

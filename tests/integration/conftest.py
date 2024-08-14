@@ -2,9 +2,10 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
+from _pytest.legacypath import TempdirFactory
+from layered_config_tree.types import NestedDict
 
 from pseudopeople.configuration import Keys, get_configuration
-from pseudopeople.configuration.entities import NO_NOISE
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.dataset import Dataset
@@ -46,7 +47,7 @@ IDX_COLS = {
 
 
 @pytest.fixture(scope="session")
-def split_sample_data_dir(tmpdir_factory):
+def split_sample_data_dir(tmpdir_factory: TempdirFactory) -> Path:
     datasets = [
         DatasetNames.CENSUS,
         DatasetNames.ACS,
@@ -84,8 +85,10 @@ def split_sample_data_dir(tmpdir_factory):
 
 
 @pytest.fixture(scope="session")
-def split_sample_data_dir_state_edit(tmpdir_factory, split_sample_data_dir):
-    # This replace our old tmpdir fixture we were using because this more accurately
+def split_sample_data_dir_state_edit(
+    tmpdir_factory: TempdirFactory, split_sample_data_dir: Path
+) -> Path:
+    # This replaces our old tmpdir fixture we were using because this more accurately
     # represents our sample data directory structure with a subdirectory for each
     # dataset and storing all files in the fixture.
     datasets = [
@@ -117,7 +120,7 @@ def split_sample_data_dir_state_edit(tmpdir_factory, split_sample_data_dir):
 
 
 @pytest.fixture(scope="module")
-def config():
+def config() -> NestedDict:
     """Returns a custom configuration dict to be used in noising"""
     config = get_configuration().to_dict()  # default config
 
@@ -164,37 +167,37 @@ def config():
 
 # Noised sample datasets
 @pytest.fixture(scope="module")
-def noised_sample_data_decennial_census(config):
+def noised_sample_data_decennial_census(config: NestedDict) -> pd.DataFrame:
     return generate_decennial_census(seed=SEED, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_american_community_survey(config):
+def noised_sample_data_american_community_survey(config: NestedDict) -> pd.DataFrame:
     return generate_american_community_survey(seed=SEED, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_current_population_survey(config):
+def noised_sample_data_current_population_survey(config: NestedDict) -> pd.DataFrame:
     return generate_current_population_survey(seed=SEED, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_women_infants_and_children(config):
+def noised_sample_data_women_infants_and_children(config: NestedDict) -> pd.DataFrame:
     return generate_women_infants_and_children(seed=SEED, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_social_security(config):
+def noised_sample_data_social_security(config: NestedDict) -> pd.DataFrame:
     return generate_social_security(seed=SEED, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_taxes_w2_and_1099(config):
+def noised_sample_data_taxes_w2_and_1099(config: NestedDict) -> pd.DataFrame:
     return generate_taxes_w2_and_1099(seed=SEED, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_taxes_1040(config):
+def noised_sample_data_taxes_1040(config: NestedDict) -> pd.DataFrame:
     return generate_taxes_1040(seed=SEED, year=None, config=config)
 
 
@@ -209,7 +212,7 @@ def get_unnoised_data(dataset_name: str) -> Dataset:
     return result
 
 
-def _initialize_dataset_with_sample(dataset_name) -> Dataset:
+def _initialize_dataset_with_sample(dataset_name: str) -> Dataset:
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     data_path = paths.SAMPLE_DATA_ROOT / dataset_name / f"{dataset_name}.parquet"
     dataset = Dataset(dataset_schema, pd.read_parquet(data_path), SEED)
@@ -218,7 +221,7 @@ def _initialize_dataset_with_sample(dataset_name) -> Dataset:
 
 
 def _get_common_datasets(
-    unnoised_dataset: Dataset, noised_dataset: Dataset
+    unnoised_dataset: Dataset, noised_dataset: pd.DataFrame
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.Index]:
     """Use unique columns to determine shared non-NA rows between noised and
     unnoised data. Note that we cannot use the original index because that
