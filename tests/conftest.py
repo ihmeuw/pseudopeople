@@ -8,11 +8,13 @@ import numpy as np
 import pandas as pd
 import pytest
 import scipy.stats
+from _pytest.config import Config, argparsing
 from _pytest.logging import LogCaptureFixture
+from _pytest.python import Function
 from loguru import logger
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: argparsing.Parser) -> None:
     parser.addoption("--runslow", action="store_true", default=False, help="run slow tests")
     parser.addoption(
         "--limit",
@@ -23,18 +25,18 @@ def pytest_addoption(parser):
     )
 
 
-def pytest_configure(config):
+def pytest_configure(config: Config) -> None:
     config.addinivalue_line("markers", "slow: mark test as slow to run")
 
 
-def pytest_collection_modifyitems(config, items):
+def pytest_collection_modifyitems(config: Config, items: list[Function]) -> None:
     if config.getoption("--runslow"):
         # --runslow given in cli: do not skip slow tests
         return
     skip_slow = pytest.mark.skip(reason="need --runslow option to run")
     for item in items:
         # Automatically tag all tests in the tests/integration dir as slow
-        if Path(item.parent.path).parent.stem == "integration":
+        if item.parent and Path(item.parent.path).parent.stem == "integration":
             item.add_marker(pytest.mark.slow)
         if "slow" in item.keywords:
             item.add_marker(skip_slow)
@@ -53,7 +55,7 @@ def pytest_collection_modifyitems(config, items):
 
 
 @pytest.fixture
-def caplog(caplog: LogCaptureFixture):
+def caplog(caplog: LogCaptureFixture) -> LogCaptureFixture:
     handler_id = logger.add(
         caplog.handler,
         format="{message}",
@@ -257,7 +259,7 @@ class FuzzyChecker:
         assert lower_bound > 0 and upper_bound < 1
 
         # Inspired by https://stats.stackexchange.com/a/112671/
-        def objective(x):
+        def objective(x: np.ndarray) -> float:
             # np.exp ensures they are always positive
             a, b = np.exp(x)
             dist = scipy.stats.beta(a=a, b=b)
@@ -268,7 +270,7 @@ class FuzzyChecker:
             try:
                 return squared_error_lower + squared_error_upper
             except FloatingPointError:
-                return np.finfo(float).max
+                return float(np.finfo(float).max)
 
         # It is quite important to start with a reasonable guess.
         uncertainty_interval_midpoint = (lower_bound + upper_bound) / 2

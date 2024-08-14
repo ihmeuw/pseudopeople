@@ -1,11 +1,12 @@
 import random
+from collections.abc import Callable
 from string import ascii_lowercase
 from typing import NamedTuple
 
-import numpy as np
 import pandas as pd
 import pytest
 from layered_config_tree import LayeredConfigTree
+from pytest_mock import MockerFixture
 
 from pseudopeople.configuration import Keys
 from pseudopeople.dataset import Dataset
@@ -25,7 +26,7 @@ from tests.conftest import FuzzyChecker
 
 
 @pytest.fixture(scope="module")
-def dummy_data():
+def dummy_data() -> pd.DataFrame:
     """Create a two-column dummy dataset"""
     random.seed(0)
     num_rows = 1_000_000
@@ -108,7 +109,9 @@ def get_dummy_config_noise_numbers(dataset_schema: DatasetSchema) -> LayeredConf
     "dataset_schema",
     list(DATASET_SCHEMAS),
 )
-def test_noise_order(mocker, dummy_data, dataset_schema):
+def test_noise_order(
+    mocker: MockerFixture, dummy_data: pd.DataFrame, dataset_schema: DatasetSchema
+) -> None:
     """From docs: "Noising should be applied in the following order: omit_row,
     do_not_respond, duplicate_row, leave_blank, choose_wrong_option,
     copy_from_household_member, swap_month_and_day, write_wrong_zipcode_digits,
@@ -208,7 +211,7 @@ def test_noise_order(mocker, dummy_data, dataset_schema):
 
 
 # TODO: beef this function up
-def test_columns_noised(dummy_data):
+def test_columns_noised(dummy_data: pd.DataFrame) -> None:
     """Test that the noise functions are only applied to the numbers column
     (as specified in the dummy config)
     """
@@ -244,17 +247,17 @@ def test_columns_noised(dummy_data):
         (generate_taxes_1040, DATASET_SCHEMAS.tax_1040),
     ],
 )
-def test_correct_datasets_are_used(func, dataset_schema, mocker):
+def test_correct_datasets_are_used(
+    func: Callable, dataset_schema: DatasetSchema, mocker: MockerFixture
+) -> None:
     """Test that each interface noise function uses the correct dataset"""
-    if func == "todo":
-        pytest.skip(reason=f"TODO: implement function for dataset {dataset_schema}")
     mock = mocker.patch("pseudopeople.interface._generate_dataset")
     _ = func()
 
     assert mock.call_args[0][0] == dataset_schema
 
 
-def test_two_noise_functions_are_independent(mocker, fuzzy_checker: FuzzyChecker):
+def test_two_noise_functions_are_independent(fuzzy_checker: FuzzyChecker) -> None:
     # Make simple config tree to test 2 noise functions work together
     config_tree = LayeredConfigTree(
         {
@@ -275,14 +278,20 @@ def test_two_noise_functions_are_independent(mocker, fuzzy_checker: FuzzyChecker
 
     # Mock objects for testing
     def alpha_noise_function(
-        dataset: Dataset, config: LayeredConfigTree, to_noise_idx: pd.Index, column_name: str
-    ):
-        dataset.data.loc[to_noise_idx, column_name] += "abc"
+        dataset_: Dataset,
+        _config: LayeredConfigTree,
+        to_noise_idx: pd.Index,
+        column_name: str,
+    ) -> None:
+        dataset_.data.loc[to_noise_idx, column_name] += "abc"
 
     def beta_noise_function(
-        dataset: Dataset, config: LayeredConfigTree, to_noise_idx: pd.Index, column_name: str
-    ):
-        dataset.data.loc[to_noise_idx, column_name] += "123"
+        dataset_: Dataset,
+        _config: LayeredConfigTree,
+        to_noise_idx: pd.Index,
+        column_name: str,
+    ) -> None:
+        dataset_.data.loc[to_noise_idx, column_name] += "123"
 
     class MockNoiseTypes(NamedTuple):
         ALPHA: ColumnNoiseType = ColumnNoiseType("alpha", alpha_noise_function)

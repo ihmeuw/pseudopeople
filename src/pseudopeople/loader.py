@@ -1,5 +1,5 @@
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Optional, Tuple
 
 import pyarrow.parquet as pq
 
@@ -10,7 +10,7 @@ from pseudopeople.utilities import PANDAS_ENGINE, DataFrame, Engine
 
 def load_standard_dataset(
     data_path: Path,
-    user_filters: Optional[list[DataFilter]],
+    filters: Sequence[DataFilter],
     engine: Engine = PANDAS_ENGINE,
     is_file: bool = True,
 ) -> DataFrame:
@@ -19,7 +19,7 @@ def load_standard_dataset(
             f"Source path must be a .parquet file. Provided {data_path.suffix}"
         )
 
-    parquet_filters = [filter.to_tuple() for filter in user_filters] if user_filters else None
+    parquet_filters = [filter.to_tuple() for filter in filters] if filters else None
     if engine == PANDAS_ENGINE:
         if not parquet_filters:
             # pyarrow.parquet.read_table doesn't accept an empty list
