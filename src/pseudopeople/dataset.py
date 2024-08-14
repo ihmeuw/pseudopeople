@@ -45,7 +45,7 @@ class Dataset:
         self.randomness = get_random_generator(self.dataset_schema.name, seed)
         self.missingness = self.is_missing(self.data)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return not self.data.empty
 
     def is_empty(self, column_name: str) -> Any:

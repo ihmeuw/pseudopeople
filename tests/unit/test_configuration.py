@@ -1,9 +1,13 @@
 import itertools
-from typing import Optional, Union
+from collections.abc import Sequence
+from pathlib import Path
+from typing import Any, Optional, Union
 
 import pytest
 import yaml
+from _pytest.logging import LogCaptureFixture
 from layered_config_tree import LayeredConfigTree
+from pytest_mock import MockerFixture
 
 from pseudopeople.configuration import NO_NOISE, Keys, get_configuration
 from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
@@ -29,14 +33,14 @@ ROW_NOISE_TYPES = [
 ]
 
 
-def test_get_default_configuration(mocker):
+def test_get_default_configuration(mocker: MockerFixture) -> None:
     """Tests that the default configuration can be retrieved."""
     mock = mocker.patch("pseudopeople.configuration.generator.LayeredConfigTree")
     _ = get_configuration()
     mock.assert_called_once_with(layers=["baseline", "default", "user"])
 
 
-def test_default_configuration_structure():
+def test_default_configuration_structure() -> None:
     """Test that the default configuration structure is correct"""
     config = get_configuration()
     # Check datasets
@@ -44,17 +48,24 @@ def test_default_configuration_structure():
     for dataset_schema in DATASET_SCHEMAS:
         # Check row noise
         for row_noise in dataset_schema.row_noise_types:
-            config_probability: LayeredConfigTree = config[dataset_schema.name][Keys.ROW_NOISE][row_noise.name]
+            config_probability: LayeredConfigTree = config[dataset_schema.name][
+                Keys.ROW_NOISE
+            ][row_noise.name]
             validate_noise_type_config(dataset_schema, row_noise, config_probability)
         for col in dataset_schema.columns:
             for noise_type in col.noise_types:
-                config_level: LayeredConfigTree = config[dataset_schema.name][Keys.COLUMN_NOISE][col.name][
-                    noise_type.name
-                ]
+                config_level: LayeredConfigTree = config[dataset_schema.name][
+                    Keys.COLUMN_NOISE
+                ][col.name][noise_type.name]
                 validate_noise_type_config(dataset_schema, noise_type, config_level, col)
 
 
-def validate_noise_type_config(dataset_schema: DatasetSchema, noise_type: NoiseType, config_level: LayeredConfigTree, column: Optional[Column]=None) -> None:
+def validate_noise_type_config(
+    dataset_schema: DatasetSchema,
+    noise_type: NoiseType,
+    config_level: LayeredConfigTree,
+    column: Optional[Column] = None,
+) -> None:
     # FIXME: Is there a way to allow for adding new keys when they
     #  don't exist in baseline? eg the for/if loops below depend on their
     #  being row_noise, token_noise, and additional parameters at the
@@ -63,7 +74,7 @@ def validate_noise_type_config(dataset_schema: DatasetSchema, noise_type: NoiseT
     noise_key = Keys.ROW_NOISE if isinstance(noise_type, RowNoiseType) else Keys.COLUMN_NOISE
     if noise_type.probability:
         config_probability = config_level[Keys.CELL_PROBABILITY]
-        if isinstance(noise_type, RowNoiseType):
+        if not column:
             default_probability = (
                 DEFAULT_NOISE_VALUES.get(dataset_schema.name, {})
                 .get(noise_key, {})
@@ -87,7 +98,7 @@ def validate_noise_type_config(dataset_schema: DatasetSchema, noise_type: NoiseT
         config_additional_parameters = {
             k: v for k, v in config_level.to_dict().items() if k != noise_type.probability_key
         }
-        if isinstance(noise_type, RowNoiseType):
+        if not column:
             default_additional_parameters = (
                 DEFAULT_NOISE_VALUES.get(dataset_schema.name, {})
                 .get(noise_key, {})
@@ -124,7 +135,7 @@ def validate_noise_type_config(dataset_schema: DatasetSchema, noise_type: NoiseT
                 assert noise_type.additional_parameters[key] == value
 
 
-def test_get_configuration_with_user_override(mocker):
+def test_get_configuration_with_user_override(mocker: MockerFixture) -> None:
     """Tests that the default configuration get updated when a user configuration is supplied."""
     mock = mocker.patch("pseudopeople.configuration.generator.LayeredConfigTree")
     config = {
@@ -135,7 +146,7 @@ def test_get_configuration_with_user_override(mocker):
             },
         }
     }
-    _ = get_configuration(config)
+    _ = get_configuration(config)  # type: ignore [arg-type]
     mock.assert_called_once_with(layers=["baseline", "default", "user"])
     update_calls = [
         call
@@ -145,7 +156,7 @@ def test_get_configuration_with_user_override(mocker):
     assert len(update_calls) == 1
 
 
-def test_loading_from_yaml(tmp_path):
+def test_loading_from_yaml(tmp_path: Path) -> None:
     overrides = {
         DATASET_SCHEMAS.census.name: {
             Keys.COLUMN_NOISE: {
@@ -186,25 +197,29 @@ def test_loading_from_yaml(tmp_path):
     ],
     ids=["list", "dict"],
 )
-def test_format_miswrite_ages(age_differences, expected):
+def test_format_miswrite_ages(
+    age_differences: Union[list[int], dict[int, float]], expected: dict[int, float]
+) -> None:
     """Test that user-supplied dictionary properly updates LayeredConfigTree object.
     This includes zero-ing out default values that don't exist in the user config
     """
-    overrides = {
-        DATASET_SCHEMAS.census.name: {
-            Keys.COLUMN_NOISE: {
-                COLUMNS.age.name: {
-                    NOISE_TYPES.misreport_age.name: {
-                        Keys.POSSIBLE_AGE_DIFFERENCES: age_differences,
+    config: LayeredConfigTree = get_configuration(
+        {
+            DATASET_SCHEMAS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    COLUMNS.age.name: {
+                        NOISE_TYPES.misreport_age.name: {
+                            Keys.POSSIBLE_AGE_DIFFERENCES: age_differences,  # type: ignore [dict-item]
+                        },
                     },
                 },
             },
-        },
-    }
-
-    config: LayeredConfigTree = get_configuration(overrides)[DATASET_SCHEMAS.census.name][
-        Keys.COLUMN_NOISE
-    ][COLUMNS.age.name][NOISE_TYPES.misreport_age.name][Keys.POSSIBLE_AGE_DIFFERENCES]
+        }
+    )[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][COLUMNS.age.name][
+        NOISE_TYPES.misreport_age.name
+    ][
+        Keys.POSSIBLE_AGE_DIFFERENCES
+    ]
     config = config.to_dict()
 
     assert config == expected
@@ -220,7 +235,7 @@ def test_format_miswrite_ages(age_differences, expected):
         5.5,
     ],
 )
-def test_type_checking_all_levels(object_bad_type):
+def test_type_checking_all_levels(object_bad_type: Any) -> None:
     # At the top level only:
     # - A string can be passed, in which case it is interpreted as a file path
     # - None can be passed, in which case the defaults will be used
@@ -320,12 +335,14 @@ def test_type_checking_all_levels(object_bad_type):
         "Invalid column noise type parameter",
     ],
 )
-def test_overriding_nonexistent_keys_fails(config, match):
+def test_overriding_nonexistent_keys_fails(config: dict, match: str) -> None:
     with pytest.raises(ConfigurationError, match=match):
         get_configuration(config)
 
 
-def get_noise_type_configs(noise_names: list):
+def get_noise_type_configs(
+    noise_names: Sequence[NoiseType],
+) -> list[tuple[RowNoiseType, Union[str, float], str]]:
     configs = list(itertools.product(noise_names, PROBABILITY_VALUE_LOGS))
     return [(x[0], x[1][0], x[1][1]) for x in configs]
 
@@ -334,7 +351,9 @@ def get_noise_type_configs(noise_names: list):
     "row_noise_type, value, match",
     get_noise_type_configs(ROW_NOISE_TYPES),
 )
-def test_validate_standard_parameters_failures_row_noise(row_noise_type, value, match):
+def test_validate_standard_parameters_failures_row_noise(
+    row_noise_type: NoiseType, value: Union[str, float], match: str
+) -> None:
     """
     Tests valid configuration values for probability for row noise types.
     """
@@ -359,7 +378,9 @@ def test_validate_standard_parameters_failures_row_noise(row_noise_type, value, 
     "column_noise_type, value, match",
     get_noise_type_configs(COLUMN_NOISE_TYPES),
 )
-def test_validate_standard_parameters_failures_column_noise(column_noise_type, value, match):
+def test_validate_standard_parameters_failures_column_noise(
+    column_noise_type: NoiseType, value: Union[str, float], match: str
+) -> None:
     """Test that a runtime error is thrown if a user provides bad standard
     probability values
 
@@ -415,7 +436,9 @@ def test_validate_standard_parameters_failures_column_noise(column_noise_type, v
         "out of range",
     ],
 )
-def test_validate_miswrite_ages_failures(perturbations, match):
+def test_validate_miswrite_ages_failures(
+    perturbations: Union[int, dict, list], match: str
+) -> None:
     """Test that a runtime error is thrown if the user provides bad possible_age_differences"""
     with pytest.raises(ConfigurationError, match=match):
         get_configuration(
@@ -444,7 +467,9 @@ def test_validate_miswrite_ages_failures(perturbations, match):
         ([1.01, 0.2, 0.2, 0.2, 0.2], "must be between 0 and 1"),
     ],
 )
-def test_validate_miswrite_zipcode_digit_probabilities_failures(probabilities, match):
+def test_validate_miswrite_zipcode_digit_probabilities_failures(
+    probabilities: float, match: str
+) -> None:
     """Test that a runtime error is thrown if the user provides bad zipcode_digit_probabilities"""
     with pytest.raises(ConfigurationError, match=match):
         get_configuration(
@@ -463,7 +488,7 @@ def test_validate_miswrite_zipcode_digit_probabilities_failures(probabilities, m
         )
 
 
-def test_get_config(caplog):
+def test_get_config(caplog: LogCaptureFixture) -> None:
     config_1 = get_config()
     assert isinstance(config_1, dict)
     assert not caplog.records
@@ -484,7 +509,7 @@ def test_get_config(caplog):
                 assert column_noise_dict[column_noise][Keys.CELL_PROBABILITY] == 0.0
 
 
-def test_validate_choose_wrong_option_configuration(caplog):
+def test_validate_choose_wrong_option_configuration(caplog: LogCaptureFixture) -> None:
     """
     Tests that warning is thrown if cell probability is higher than possible given the
     number of options.
@@ -518,7 +543,7 @@ def test_validate_choose_wrong_option_configuration(caplog):
                 )
 
 
-def test_no_noise():
+def test_no_noise() -> None:
     # Tests that passing the sentinal no noise value results in a configuration
     # where all noise levels are 0.0
     no_noise_config = get_configuration("no_noise")
@@ -548,7 +573,9 @@ def test_no_noise():
         ("date_of_birth", "copy_from_household_member", 0.90),
     ],
 )
-def test_validate_noise_level_proportions(caplog, column, noise_type, noise_level):
+def test_validate_noise_level_proportions(
+    caplog: LogCaptureFixture, column: str, noise_type: str, noise_level: float
+) -> None:
     """
     Tests that a warning is thrown when a user provides configuration overrides that are higher
     than the calculated metadata proportions for that column noise type pairing.
@@ -589,7 +616,7 @@ def test_validate_noise_level_proportions(caplog, column, noise_type, noise_leve
         (0.5, 0.8),
     ],
 )
-def test_duplicate_with_guardian_configuration(value_1, value_2):
+def test_duplicate_with_guardian_configuration(value_1: float, value_2: float) -> None:
     """
     Tests config is set correctly for each group in guardian duplication.
     """
@@ -621,7 +648,7 @@ def test_duplicate_with_guardian_configuration(value_1, value_2):
         ("over_24_in_group_quarters"),
     ],
 )
-def test_bad_duplicate_with_guardian_config(key):
+def test_bad_duplicate_with_guardian_config(key: str) -> None:
     # Tests error is thrown for keys that are not a valid configuration for duplicate with guardian
     with pytest.raises(ConfigurationError, match=f"Invalid parameter '{key}' provided"):
         get_configuration(
