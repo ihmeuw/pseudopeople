@@ -2,7 +2,7 @@ import os
 import warnings
 from functools import cache
 from pathlib import Path
-from typing import Tuple, Union
+from typing import Any, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -84,7 +84,7 @@ class FuzzyChecker:
     """
 
     def __init__(self) -> None:
-        self.proportion_test_diagnostics: list = []
+        self.proportion_test_diagnostics: list[dict[str, Any]] = []
 
     def fuzzy_assert_proportion(
         self,
