@@ -84,7 +84,7 @@ class FuzzyChecker:
     """
 
     def __init__(self) -> None:
-        self.proportion_test_diagnostics = []
+        self.proportion_test_diagnostics: list = []
 
     def fuzzy_assert_proportion(
         self,
