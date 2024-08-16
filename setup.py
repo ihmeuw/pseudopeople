@@ -33,7 +33,7 @@ if __name__ == "__main__":
     base_dir = Path(__file__).parent
     src_dir = base_dir / "src"
 
-    about = {}
+    about: dict = {}
     with (src_dir / "pseudopeople" / "__about__.py").open() as f:
         exec(f.read(), about)
 
