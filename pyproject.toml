@@ -40,7 +40,6 @@ disable_error_code = [
     # TODO: remove "operator" once typed object is implemented
     "operator",
     "type-arg",
-    "var-annotated",
 ]
 
 # handle mypy errors when 3rd party packages are not typed.
