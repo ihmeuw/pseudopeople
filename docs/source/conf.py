@@ -29,7 +29,7 @@ import pseudopeople
 
 base_dir = Path(pseudopeople.__file__).parent
 
-about = {}
+about: dict = {}
 with (base_dir / "__about__.py").open() as f:
     exec(f.read(), about)
 
@@ -92,7 +92,7 @@ language = "en"
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = []
+exclude_patterns: list = []
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
@@ -145,7 +145,7 @@ htmlhelp_basename = f'{about["__title__"]}doc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
-latex_elements = {
+latex_elements: dict = {
     # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',
