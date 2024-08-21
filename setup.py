@@ -40,6 +40,13 @@ if __name__ == "__main__":
         "tqdm",
         "layered_config_tree>=1.0.1",
         "loguru",
+        # type stubs
+        "pandas-stubs",
+        "types-PyYAML",
+        "types-docutils",
+        "types-tqdm",
+        "types-setuptools",
+        "pyarrow-stubs",
     ]
 
     setup_requires = ["setuptools_scm"]
