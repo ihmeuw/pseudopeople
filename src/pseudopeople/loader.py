@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 import pyarrow.parquet as pq
-
+from typing import Optional
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.filter import DataFilter
 from pseudopeople.utilities import PANDAS_ENGINE, DataFrame, Engine
@@ -24,7 +24,10 @@ def load_standard_dataset(
         if not parquet_filters:
             # pyarrow.parquet.read_table doesn't accept an empty list
             parquet_filters = None
-        data = pq.read_table(data_path, filters=parquet_filters).to_pandas()
+        data = pq.read_table(
+            str(data_path),
+            filters=parquet_filters,  # type: ignore [arg-type]
+        ).to_pandas()
 
         # TODO: The index in our simulated population files is never meaningful.
         # For some reason, the 1040 dataset is currently saved with a non-RangeIndex

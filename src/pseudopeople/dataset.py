@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -14,7 +14,6 @@ from pseudopeople.entity_types import ColumnNoiseType, NoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DatasetSchema
 from pseudopeople.utilities import (
-    DataFrame,
     coerce_dtypes,
     get_random_generator,
     to_string,
@@ -195,18 +194,6 @@ class Dataset:
         the data attribute. Boolean dataframe is True if a cell is missing, False otherwise.
         """
         return (data == "") | (data.isna())
-
-    def _filter_data(
-        self, input_data: pd.DataFrame, user_filters: List[Tuple]
-    ) -> pd.DataFrame:
-        if len(user_filters) > 0:
-            for filter in user_filters:
-                column_name = filter[0]
-                compare_operator = filter[1]  # "==" or "<"
-                value = filter[2]
-                input_data = input_data.query(f"{column_name} {compare_operator} '{value}'")
-
-        return input_data
 
 
 def _zfill_fast(col: pd.Series, desired_length: int) -> pd.Series:

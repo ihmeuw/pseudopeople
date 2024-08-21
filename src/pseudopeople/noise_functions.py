@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 import numpy as np
 import pandas as pd
@@ -13,7 +13,6 @@ from pseudopeople.constants.noise_type_metadata import (
     HOUSING_TYPE_GUARDIAN_DUPLICATION_RELATONSHIP_MAP,
 )
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
-from pseudopeople.dtypes import DtypeNames
 from pseudopeople.noise_scaling import (
     load_incorrect_select_options,
     load_nicknames_data,
@@ -198,9 +197,10 @@ def duplicate_with_guardian(
         # Noise data
         # TODO: Mic-4876 Can we only operate on the index eligible for noise and
         # not the entire dataset?
+        noise_level: Union[float, int] = configuration[group]
         to_noise_index = get_index_to_noise(
             dataset,
-            configuration[group],
+            noise_level,
         ).intersection(group_df.index)
 
         # Copy over address information from guardian to dependent
@@ -442,7 +442,7 @@ def misreport_ages(
 def write_wrong_digits(
     dataset: "Dataset",
     configuration: LayeredConfigTree,
-    to_noise_index: str,
+    to_noise_index: pd.Index,
     column_name: str,
 ) -> None:
     """

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional, TextIO, Type, U
 
 import numpy as np
 import pandas as pd
+from pandas._typing import DtypeObj as pd_dtype
 import yaml
 from loguru import logger
 
@@ -69,7 +70,7 @@ def vectorized_choice(
 
 def get_index_to_noise(
     dataset: "Dataset",
-    noise_level: Union[float, pd.Series],
+    noise_level: Union[int, float, pd.Series],
     required_columns: Optional[List[str]] = None,
 ) -> pd.Index:
     """
@@ -200,7 +201,7 @@ def to_string(column: pd.Series) -> pd.Series:
         return to_string_preserve_nans(column)
 
 
-def ensure_dtype(data: pd.Series, dtype: np.dtype) -> pd.Series:
+def ensure_dtype(data: pd.Series, dtype: pd_dtype) -> pd.Series:
     if dtype.name == DtypeNames.OBJECT:
         return to_string(data)
     else:
@@ -292,10 +293,15 @@ def get_engine_from_string(engine: str) -> Engine:
 try:
     # Optional dependency
     import dask.dataframe as dd
-
-    DataFrame = Union[dd.DataFrame, pd.DataFrame]
 except ImportError:
-    DataFrame = pd.DataFrame
+    # HACK: Linting throws warnings when we try and define DataFrame in try/except
+    # or loops b/c it is then considered a variable which shouldn't be used for
+    # type hints. This is a workaround so that DataFrame is only defined once.
+    # It simply sets "dd" to the pandas "pd" so that if dask is not installed, then
+    # the union of two pandas DataFrames is a pandas DataFrame.
+    dd = pd
+
+DataFrame = Union[dd.DataFrame, pd.DataFrame]
 
 
 ##########################

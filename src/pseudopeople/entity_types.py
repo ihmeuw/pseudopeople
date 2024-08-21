@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 
-import numpy as np
 import pandas as pd
+from pandas._typing import DtypeObj as pd_dtype
 from layered_config_tree import LayeredConfigTree
 from loguru import logger
 
@@ -60,12 +60,12 @@ class RowNoiseType(NoiseType):
     returns the modified DataFrame.
     """
 
-    noise_function: Callable[
-        ["Dataset", LayeredConfigTree, pd.Index], None
-    ] = _noise_function_not_implemented
-    get_noise_level: Callable[
-        ["Dataset", LayeredConfigTree], float
-    ] = default_noise_level_getter
+    noise_function: Callable[["Dataset", LayeredConfigTree, pd.Index], None] = (
+        _noise_function_not_implemented
+    )
+    get_noise_level: Callable[["Dataset", LayeredConfigTree], Union[float, pd.Series]] = (
+        default_noise_level_getter
+    )
 
     @property
     def probability_key(self) -> str:
@@ -94,13 +94,13 @@ class ColumnNoiseType(NoiseType):
     and an Index of which items in the Series were selected for noise.
     """
 
-    noise_function: Callable[
-        ["Dataset", LayeredConfigTree, pd.Index, str], None
-    ] = _noise_function_not_implemented
+    noise_function: Callable[["Dataset", LayeredConfigTree, pd.Index, str], None] = (
+        _noise_function_not_implemented
+    )
     probability: Optional[float] = 0.01
     noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0
     additional_column_getter: Callable[[str], List[str]] = lambda column_name: []
-    output_dtype_getter: Callable[[np.dtype], np.dtype] = lambda dtype: dtype
+    output_dtype_getter: Callable[[pd_dtype], pd_dtype] = lambda dtype: dtype
 
     @property
     def probability_key(self) -> str:
