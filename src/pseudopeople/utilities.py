@@ -35,7 +35,7 @@ def vectorized_choice(
     options: Union[list, pd.Series],
     n_to_choose: int,
     random_generator: np.random.Generator,
-    weights: Union[list, pd.Series] = None,
+    weights: Optional[Union[list, pd.Series]] = None,
 ) -> Any:
     """
     Function that takes a list of options and uses Vivarium common random numbers framework to make a given number
@@ -55,10 +55,9 @@ def vectorized_choice(
     if weights is None:
         chosen_indices = np.floor(probs * len(options)).astype(int)
     else:
-        if isinstance(weights, list):
-            weights = np.array(weights)
+        weights_array: np.ndarray = np.array(weights)
         # build cdf based on weights
-        pmf = weights / weights.sum()
+        pmf = weights_array / weights_array.sum()
         cdf = np.cumsum(pmf)
 
         # for each p_i in probs, count how many elements of cdf for which p_i >= cdf_i

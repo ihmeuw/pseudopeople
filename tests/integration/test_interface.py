@@ -316,15 +316,13 @@ def test_column_noising(
         # Check for noising where applicable
         to_compare_idx = shared_idx.difference(originally_missing_idx)
         if col.noise_types:
-            assert (
+            different_check: np.ndarray = (
                 check_original.loc[to_compare_idx, col.name].values
                 != check_noised.loc[to_compare_idx, col.name].values
-            ).any()
+            )
+            assert different_check.any()
 
-            noise_level = (
-                check_original.loc[to_compare_idx, col.name].values
-                != check_noised.loc[to_compare_idx, col.name].values
-            ).sum()
+            noise_level = different_check.sum()
 
             # Validate column noise level
             _validate_column_noise_level(
@@ -338,10 +336,12 @@ def test_column_noising(
                 validator=fuzzy_checker,
             )
         else:  # No noising - should be identical
-            assert (
+            same_check: np.ndarray = (
                 check_original.loc[to_compare_idx, col.name].values
                 == check_noised.loc[to_compare_idx, col.name].values
-            ).all()
+            )
+
+            assert same_check.all()
 
 
 @pytest.mark.parametrize(
@@ -880,10 +880,9 @@ def _get_column_noise_level(
 
     # Check for noising where applicable
     to_compare_sample_idx = common_idx.difference(originally_missing_sample_idx)
-
-    noise_level = (
+    different_check: np.ndarray = (
         unnoised_data.loc[to_compare_sample_idx, column.name].values
         != noised_data.loc[to_compare_sample_idx, column.name].values
-    ).sum()
+    )
 
-    return noise_level, to_compare_sample_idx
+    return different_check.sum(), to_compare_sample_idx
