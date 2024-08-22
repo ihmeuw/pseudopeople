@@ -224,8 +224,8 @@ def count_number_of_tokens_per_string(s1: pd.Series, s2: pd.Series) -> pd.Series
         index=strings,
     )
 
-    number_of_tokens = s2.map(tokens_per_string)
-    number_of_tokens.index = s2
+    number_of_tokens: pd.Series = s2.map(tokens_per_string)
+    number_of_tokens.index = pd.Index(s2)
     return number_of_tokens
 
 
