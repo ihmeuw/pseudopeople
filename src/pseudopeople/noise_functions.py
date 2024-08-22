@@ -875,4 +875,5 @@ def _corrupt_tokens(
         next_due[use_original_char] = i + 1
 
     # "Un-explode" (re-concatenate) each string from its pieces.
-    return pd.Series(result.sum(axis=1), index=column.index)
+    results: pd.Series = pd.Series(result.sum(axis=1), index=column.index)
+    return results

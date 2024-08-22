@@ -155,7 +155,7 @@ def two_d_array_choice(
     options["choice_index"] = choice_index
     idx, cols = pd.factorize(options["choice_index"])
     # 2D array lookup to make an array for the series value
-    new = pd.Series(
+    new: pd.Series = pd.Series(
         options.reindex(cols, axis=1).to_numpy()[np.arange(len(options)), idx],
         index=data.index,
     )
@@ -182,7 +182,7 @@ def get_state_abbreviation(state: str) -> str:
 def to_string_preserve_nans(s: pd.Series) -> pd.Series:
     # NOTE: In newer versions of pandas, astype(str) will use the *pandas*
     # string type, which we haven't adopted yet.
-    result = s.astype(str).astype(DtypeNames.OBJECT)
+    result: pd.Series = s.astype(str).astype(DtypeNames.OBJECT)
     result[s.isna()] = np.nan
     return result
 
