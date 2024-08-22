@@ -1,8 +1,9 @@
 from collections.abc import Sequence
 from pathlib import Path
+from typing import Optional
 
 import pyarrow.parquet as pq
-from typing import Optional
+
 from pseudopeople.exceptions import DataSourceError
 from pseudopeople.filter import DataFilter
 from pseudopeople.utilities import PANDAS_ENGINE, DataFrame, Engine

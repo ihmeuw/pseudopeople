@@ -1,5 +1,4 @@
 import numpy as np
-
 from pandas._typing import DtypeObj as pd_dtype
 
 from pseudopeople.dtypes import DtypeNames

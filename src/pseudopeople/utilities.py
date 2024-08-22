@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional, TextIO, Type, U
 
 import numpy as np
 import pandas as pd
-from pandas._typing import DtypeObj as pd_dtype
 import yaml
 from loguru import logger
+from pandas._typing import DtypeObj as pd_dtype
 
 from pseudopeople.constants import metadata, paths
 from pseudopeople.constants.noise_type_metadata import INT_TO_STRING_COLUMNS

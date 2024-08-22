@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 from pathlib import Path
-from typing import cast, Literal, Optional, Union
+from typing import Literal, Optional, Union, cast
 
 import pandas as pd
 from layered_config_tree.types import NestedDict

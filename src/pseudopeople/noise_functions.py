@@ -154,12 +154,12 @@ def duplicate_with_guardian(
     ]
 
     # Merge dependents with their guardians
-    formatted_group_data[Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18] = (
-        _merge_dependents_and_guardians(in_households_under_18, dataset.data)
-    )
-    formatted_group_data[Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24] = (
-        _merge_dependents_and_guardians(in_college_under_24, dataset.data)
-    )
+    formatted_group_data[
+        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18
+    ] = _merge_dependents_and_guardians(in_households_under_18, dataset.data)
+    formatted_group_data[
+        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24
+    ] = _merge_dependents_and_guardians(in_college_under_24, dataset.data)
     # Note: We have two dicts (configuration and formatted_group_data) at this point that have
     # the key for the group and then a dataframe for that group or the group and the configured
     # noise level

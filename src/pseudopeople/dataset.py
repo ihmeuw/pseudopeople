@@ -13,11 +13,7 @@ from pseudopeople.dtypes import DtypeNames
 from pseudopeople.entity_types import ColumnNoiseType, NoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DatasetSchema
-from pseudopeople.utilities import (
-    coerce_dtypes,
-    get_random_generator,
-    to_string,
-)
+from pseudopeople.utilities import coerce_dtypes, get_random_generator, to_string
 
 
 def noise_data(
