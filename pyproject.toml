@@ -33,7 +33,6 @@ disable_error_code = [
     "call-overload",
     "import-untyped",
     "index",
-    "list-item",
     "misc",
     # operator is still being ignored because of issues with checking containment in
     # LayeredConfigTree objects which should be resolved by changes mentioned above
