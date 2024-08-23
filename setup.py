@@ -49,6 +49,13 @@ if __name__ == "__main__":
         "tqdm",
         "layered_config_tree>=1.0.1",
         "loguru",
+        # type stubs
+        "pandas-stubs",
+        "types-PyYAML",
+        "types-docutils",
+        "types-tqdm",
+        "types-setuptools",
+        "pyarrow-stubs",
     ]
 
     setup_requires = ["setuptools_scm"]
@@ -75,7 +82,7 @@ if __name__ == "__main__":
     doc_requirements = [
         "docutils",
         "sphinx>=4.0",
-        "sphinx-rtd-theme",
+        "sphinx-rtd-theme>=0.6",
         "sphinx-click",
         "IPython",
         "matplotlib",

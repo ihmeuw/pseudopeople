@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Literal, Optional, Union
+from typing import Literal, Optional, Union, cast
 
 import pandas as pd
 from layered_config_tree.types import NestedDict
@@ -66,6 +66,7 @@ def _generate_dataset(
 
     engine = get_engine_from_string(engine_name)
 
+    noised_dataset: pd.DataFrame
     if engine == PANDAS_ENGINE:
         # We process shards serially
         data_file_paths = get_dataset_filepaths(source, dataset_schema.name)
@@ -78,16 +79,18 @@ def _generate_dataset(
         validate_data_path_suffix(data_file_paths)
 
         # Iterate sequentially
-        noised_dataset = []
-        iterator = (
+        iterator: Union[list[Path], tqdm] = (
             tqdm(data_file_paths, desc="Noising data", leave=False)
             if len(data_file_paths) > 1
             else data_file_paths
         )
-
+        noised_datasets_list = []
         for data_file_index, data_file_path in enumerate(iterator):
             logger.debug(f"Loading data from {data_file_path}.")
-            data = load_standard_dataset(data_file_path, filters, engine=engine, is_file=True)
+            data = cast(
+                pd.DataFrame,
+                load_standard_dataset(data_file_path, filters, engine=engine, is_file=True),
+            )
             if len(data) == 0:
                 continue
             # Use a different seed for each data file/shard, otherwise the randomness will duplicate
@@ -96,15 +99,15 @@ def _generate_dataset(
             noised_data = noise_data(
                 dataset_schema, data, configuration=configuration_tree, seed=data_path_seed
             )
-            noised_dataset.append(noised_data)
+            noised_datasets_list.append(noised_data)
 
         # Check if all shards for the dataset are empty
-        if len(noised_dataset) == 0:
+        if len(noised_datasets_list) == 0:
             raise ValueError(
                 "Invalid value provided for 'state' or 'year'. No data found with "
                 f"the user provided 'state' or 'year' filters at {source / dataset_schema.name}."
             )
-        noised_dataset = pd.concat(noised_dataset, ignore_index=True)
+        noised_dataset = pd.concat(noised_datasets_list, ignore_index=True)
 
         noised_dataset = coerce_dtypes(noised_dataset, dataset_schema)
     else:
@@ -120,18 +123,22 @@ def _generate_dataset(
         # entire directory containing the parquet files
         data_directory_path = source / dataset_schema.name
         import dask
+        import dask.dataframe as dd
 
         # Our work depends on the particulars of how dtypes work, and is only
         # built to work with NumPy dtypes, so we turn off the Dask default behavior
         # of using PyArrow dtypes.
         with dask.config.set({"dataframe.convert-string": False}):
-            dask_data = load_standard_dataset(
-                data_directory_path, filters, engine=engine, is_file=False
+            dask_data = cast(
+                dd.DataFrame,
+                load_standard_dataset(
+                    data_directory_path, filters, engine=engine, is_file=False
+                ),
             )
 
             # We are about to check the length, which requires computation anyway, so we cache
             # that computation
-            dask_data = dask_data.persist()
+            dask_data = dask_data.persist()  # type: ignore [no-untyped-call]
 
             # Check if all shards for the dataset are empty
             if len(dask_data) == 0:
@@ -140,7 +147,7 @@ def _generate_dataset(
                     f"the user provided 'state' or 'year' filters at {data_directory_path}."
                 )
 
-            noised_dataset = dask_data.map_partitions(
+            noised_dataset = dask_data.map_partitions(  # type: ignore [no-untyped-call]
                 lambda data, partition_info=None: noise_data(
                     dataset_schema,
                     data,
@@ -280,7 +287,7 @@ def generate_decennial_census(
     if year is not None:
         filters.append(DataFilter(DATASET_SCHEMAS.census.date_column_name, "==", year))
     if state is not None:
-        state_column_name: Optional[str] = DATASET_SCHEMAS.census.state_column_name
+        state_column_name = cast(str, DATASET_SCHEMAS.census.state_column_name)
         filters.append(DataFilter(state_column_name, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.census,
@@ -399,7 +406,7 @@ def generate_american_community_survey(
             raise ValueError(f"Invalid year provided: '{year}'")
         seed = seed * 10_000 + year
     if state is not None:
-        state_column = DATASET_SCHEMAS.acs.state_column_name
+        state_column = cast(str, DATASET_SCHEMAS.acs.state_column_name)
         filters.append(DataFilter(state_column, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.acs, source, seed, config, filters, verbose, engine_name=engine
@@ -513,7 +520,7 @@ def generate_current_population_survey(
             raise ValueError(f"Invalid year provided: '{year}'")
         seed = seed * 10_000 + year
     if state is not None:
-        state_column = DATASET_SCHEMAS.cps.state_column_name
+        state_column = cast(str, DATASET_SCHEMAS.cps.state_column_name)
         filters.append(DataFilter(state_column, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.cps, source, seed, config, filters, verbose, engine_name=engine
@@ -605,7 +612,7 @@ def generate_taxes_w2_and_1099(
         filters.append(DataFilter(DATASET_SCHEMAS.tax_w2_1099.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state is not None:
-        state_column = DATASET_SCHEMAS.tax_w2_1099.state_column_name
+        state_column = cast(str, DATASET_SCHEMAS.tax_w2_1099.state_column_name)
         filters.append(DataFilter(state_column, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.tax_w2_1099,
@@ -714,7 +721,7 @@ def generate_women_infants_and_children(
         filters.append(DataFilter(DATASET_SCHEMAS.wic.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state is not None:
-        state_column = DATASET_SCHEMAS.wic.state_column_name
+        state_column = cast(str, DATASET_SCHEMAS.wic.state_column_name)
         filters.append(DataFilter(state_column, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.wic, source, seed, config, filters, verbose, engine_name=engine
@@ -894,7 +901,7 @@ def generate_taxes_1040(
         filters.append(DataFilter(DATASET_SCHEMAS.tax_1040.date_column_name, "==", year))
         seed = seed * 10_000 + year
     if state is not None:
-        state_column = DATASET_SCHEMAS.tax_1040.state_column_name
+        state_column = cast(str, DATASET_SCHEMAS.tax_1040.state_column_name)
         filters.append(DataFilter(state_column, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.tax_1040,
