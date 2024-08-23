@@ -31,7 +31,6 @@ disable_error_code = [
     # for assignment
     # TODO: remove "call-overload" once typed object is implemented
     "call-overload",
-    "import-untyped",
     "index",
     "misc",
     # operator is still being ignored because of issues with checking containment in
@@ -44,7 +43,6 @@ disable_error_code = [
 # handle mypy errors when 3rd party packages are not typed.
 [[tool.mypy.overrides]]
 module = [
-    # "scipy.*",
-    # "sklearn.*",
+    "scipy.*",
 ]
 ignore_missing_imports = true
