@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import yaml
 from loguru import logger
+from pandas._typing import DtypeObj as pd_dtype
 
 from pseudopeople.constants import metadata, paths
 from pseudopeople.constants.noise_type_metadata import INT_TO_STRING_COLUMNS
@@ -35,7 +36,7 @@ def vectorized_choice(
     options: Union[list, pd.Series],
     n_to_choose: int,
     random_generator: np.random.Generator,
-    weights: Union[list, pd.Series] = None,
+    weights: Optional[Union[list, pd.Series]] = None,
 ) -> Any:
     """
     Function that takes a list of options and uses Vivarium common random numbers framework to make a given number
@@ -55,10 +56,9 @@ def vectorized_choice(
     if weights is None:
         chosen_indices = np.floor(probs * len(options)).astype(int)
     else:
-        if isinstance(weights, list):
-            weights = np.array(weights)
+        weights_array: np.ndarray = np.array(weights)
         # build cdf based on weights
-        pmf = weights / weights.sum()
+        pmf = weights_array / weights_array.sum()
         cdf = np.cumsum(pmf)
 
         # for each p_i in probs, count how many elements of cdf for which p_i >= cdf_i
@@ -70,7 +70,7 @@ def vectorized_choice(
 
 def get_index_to_noise(
     dataset: "Dataset",
-    noise_level: Union[float, pd.Series],
+    noise_level: Union[int, float, pd.Series],
     required_columns: Optional[List[str]] = None,
 ) -> pd.Index:
     """
@@ -155,7 +155,7 @@ def two_d_array_choice(
     options["choice_index"] = choice_index
     idx, cols = pd.factorize(options["choice_index"])
     # 2D array lookup to make an array for the series value
-    new = pd.Series(
+    new: pd.Series = pd.Series(
         options.reindex(cols, axis=1).to_numpy()[np.arange(len(options)), idx],
         index=data.index,
     )
@@ -182,7 +182,7 @@ def get_state_abbreviation(state: str) -> str:
 def to_string_preserve_nans(s: pd.Series) -> pd.Series:
     # NOTE: In newer versions of pandas, astype(str) will use the *pandas*
     # string type, which we haven't adopted yet.
-    result = s.astype(str).astype(DtypeNames.OBJECT)
+    result: pd.Series = s.astype(str).astype(DtypeNames.OBJECT)
     result[s.isna()] = np.nan
     return result
 
@@ -201,7 +201,7 @@ def to_string(column: pd.Series) -> pd.Series:
         return to_string_preserve_nans(column)
 
 
-def ensure_dtype(data: pd.Series, dtype: np.dtype) -> pd.Series:
+def ensure_dtype(data: pd.Series, dtype: pd_dtype) -> pd.Series:
     if dtype.name == DtypeNames.OBJECT:
         return to_string(data)
     else:
@@ -224,8 +224,8 @@ def count_number_of_tokens_per_string(s1: pd.Series, s2: pd.Series) -> pd.Series
         index=strings,
     )
 
-    number_of_tokens = s2.map(tokens_per_string)
-    number_of_tokens.index = s2
+    number_of_tokens: pd.Series = s2.map(tokens_per_string)
+    number_of_tokens.index = pd.Index(s2)
     return number_of_tokens
 
 
@@ -293,10 +293,15 @@ def get_engine_from_string(engine: str) -> Engine:
 try:
     # Optional dependency
     import dask.dataframe as dd
-
-    DataFrame = Union[dd.DataFrame, pd.DataFrame]
 except ImportError:
-    DataFrame = pd.DataFrame
+    # HACK: Linting throws warnings when we try and define DataFrame in try/except
+    # or loops b/c it is then considered a variable which shouldn't be used for
+    # type hints. This is a workaround so that DataFrame is only defined once.
+    # It simply sets "dd" to the pandas "pd" so that if dask is not installed, then
+    # the union of two pandas DataFrames is a pandas DataFrame.
+    dd = pd
+
+DataFrame = Union[dd.DataFrame, pd.DataFrame]
 
 
 ##########################

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 import numpy as np
 import pandas as pd
@@ -13,7 +13,6 @@ from pseudopeople.constants.noise_type_metadata import (
     HOUSING_TYPE_GUARDIAN_DUPLICATION_RELATONSHIP_MAP,
 )
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
-from pseudopeople.dtypes import DtypeNames
 from pseudopeople.noise_scaling import (
     load_incorrect_select_options,
     load_nicknames_data,
@@ -198,9 +197,10 @@ def duplicate_with_guardian(
         # Noise data
         # TODO: Mic-4876 Can we only operate on the index eligible for noise and
         # not the entire dataset?
+        noise_level: Union[float, int] = configuration[group]
         to_noise_index = get_index_to_noise(
             dataset,
-            configuration[group],
+            noise_level,
         ).intersection(group_df.index)
 
         # Copy over address information from guardian to dependent
@@ -442,7 +442,7 @@ def misreport_ages(
 def write_wrong_digits(
     dataset: "Dataset",
     configuration: LayeredConfigTree,
-    to_noise_index: str,
+    to_noise_index: pd.Index,
     column_name: str,
 ) -> None:
     """
@@ -453,7 +453,7 @@ def write_wrong_digits(
     :param to_noise_index: pd.Index of rows to be noised
     :param column_name: String for column that will be noised
     """
-    column = dataset.data.loc[to_noise_index, column_name]
+    column: pd.Series = dataset.data.loc[to_noise_index, column_name]
     # This is a fix to not replacing the original token for noise options
     token_probability: float = configuration[Keys.TOKEN_PROBABILITY]
     token_noise_level = token_probability / 0.9
@@ -772,7 +772,7 @@ def _corrupt_tokens(
         len(errors.columns) * np.array(range(len(errors))), index=errors.index
     )
 
-    lengths = column.str.len().values
+    lengths: np.ndarray = column.str.len().values
 
     same_len_col_exploded = (
         column
@@ -875,4 +875,5 @@ def _corrupt_tokens(
         next_due[use_original_char] = i + 1
 
     # "Un-explode" (re-concatenate) each string from its pieces.
-    return pd.Series(result.sum(axis=1), index=column.index)
+    results: pd.Series = pd.Series(result.sum(axis=1), index=column.index)
+    return results
