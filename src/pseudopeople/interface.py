@@ -66,6 +66,7 @@ def _generate_dataset(
 
     engine = get_engine_from_string(engine_name)
 
+    noised_dataset: pd.DataFrame
     if engine == PANDAS_ENGINE:
         # We process shards serially
         data_file_paths = get_dataset_filepaths(source, dataset_schema.name)
@@ -155,7 +156,7 @@ def _generate_dataset(
                     progress_bar=False,
                 ),
                 meta=[(c.name, c.dtype_name) for c in dataset_schema.columns],
-            )  # pd.DataFrame
+            )
 
     logger.debug("*** Finished ***")
 
