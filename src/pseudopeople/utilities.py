@@ -4,7 +4,6 @@ import hashlib
 import sys
 from dataclasses import dataclass
 from functools import cache
-from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, TextIO, Type, Union
 
 import numpy as np
