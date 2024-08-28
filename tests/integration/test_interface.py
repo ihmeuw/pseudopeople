@@ -28,7 +28,6 @@ from pseudopeople.utilities import (
     load_ocr_errors,
     load_phonetic_errors,
     load_qwerty_errors_data,
-    to_string_as_integer,
 )
 from tests.conftest import FuzzyChecker
 from tests.integration.conftest import (
@@ -102,7 +101,7 @@ def test_generate_dataset_from_multiple_shards(
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     mocker.patch("pseudopeople.interface.validate_source_compatibility")
-    generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
+    generation_function = DATASET_GENERATION_FUNCS[dataset_name]
     original = _initialize_dataset_with_sample(dataset_name)
     noised_sample = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
 
@@ -178,7 +177,7 @@ def test_seed_behavior(
     """Tests seed behavior"""
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
-    generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
+    generation_function = DATASET_GENERATION_FUNCS[dataset_name]
     original = get_unnoised_data(dataset_name)
     if engine == "dask":
         noised_data = generation_function(
@@ -241,7 +240,7 @@ def test_column_dtypes(
         pytest.skip(reason=dataset_name)
 
     if engine == "dask":
-        generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
+        generation_function = DATASET_GENERATION_FUNCS[dataset_name]
         noised_data = generation_function(
             seed=SEED,
             year=None,
@@ -294,7 +293,7 @@ def test_column_noising(
         pytest.skip(reason=dataset_name)
     original = _initialize_dataset_with_sample(dataset_name)
     if engine == "dask":
-        generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
+        generation_function = DATASET_GENERATION_FUNCS[dataset_name]
         noised_data = generation_function(
             seed=SEED,
             year=None,
@@ -373,7 +372,7 @@ def test_row_noising_omit_row_or_do_not_respond(
     original = get_unnoised_data(dataset_name)
     original_data = original.data.set_index(idx_cols)
     if engine == "dask":
-        generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
+        generation_function = DATASET_GENERATION_FUNCS[dataset_name]
         noised_data = generation_function(
             seed=SEED,
             year=None,
@@ -446,7 +445,7 @@ def test_generate_dataset_with_year(dataset_name: str, engine: str) -> None:
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
     year = 2030  # not default 2020
-    generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
+    generation_function = DATASET_GENERATION_FUNCS[dataset_name]
     original = get_unnoised_data(dataset_name)
     # Generate a new (non-fixture) noised dataset for a single year
     noised_data = generation_function(year=year, engine=engine)
@@ -566,7 +565,7 @@ def test_generate_dataset_with_state_filtered(
         pytest.skip(reason=dataset_name)
     mocker.patch("pseudopeople.interface.validate_source_compatibility")
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
-    generation_function = DATASET_GENERATION_FUNCS.get(dataset_name)
+    generation_function = DATASET_GENERATION_FUNCS[dataset_name]
 
     # Skip noising (noising can incorrect select another state)
     mocker.patch("pseudopeople.dataset.Dataset._noise_dataset")

@@ -1,5 +1,6 @@
 import os
 import warnings
+from collections.abc import Generator
 from functools import cache
 from pathlib import Path
 from typing import Any, Tuple, Union
@@ -55,7 +56,7 @@ def pytest_collection_modifyitems(config: Config, items: list[Function]) -> None
 
 
 @pytest.fixture
-def caplog(caplog: LogCaptureFixture) -> LogCaptureFixture:
+def caplog(caplog: LogCaptureFixture) -> Generator[LogCaptureFixture, None, None]:
     handler_id = logger.add(
         caplog.handler,
         format="{message}",
@@ -331,7 +332,7 @@ class FuzzyChecker:
 
 
 @pytest.fixture(scope="session")
-def fuzzy_checker() -> FuzzyChecker:
+def fuzzy_checker() -> Generator[FuzzyChecker, None, None]:
     checker = FuzzyChecker()
 
     yield checker

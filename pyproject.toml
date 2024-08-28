@@ -32,7 +32,7 @@ disable_error_code = [
     # TODO: remove "call-overload" once typed object is implemented
     "call-overload",
     "index",
-    "misc",
+#    "misc",
     # operator is still being ignored because of issues with checking containment in
     # LayeredConfigTree objects which should be resolved by changes mentioned above
     # TODO: remove "operator" once typed object is implemented
