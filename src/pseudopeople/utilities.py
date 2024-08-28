@@ -296,7 +296,7 @@ try:
 
     DataFrame = Union[dd.DataFrame, pd.DataFrame]
 except ImportError:
-    DataFrame = pd.DataFrame    # type: ignore [misc]
+    DataFrame = pd.DataFrame  # type: ignore [misc]
 
 
 ##########################
