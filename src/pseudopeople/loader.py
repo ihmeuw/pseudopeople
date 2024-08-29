@@ -24,25 +24,23 @@ def load_standard_dataset(
         if not parquet_filters:
             # pyarrow.parquet.read_table doesn't accept an empty list
             parquet_filters = None
-        data = pq.read_table(
+        data: DataFrame = pq.read_table(
             str(data_path),
-            filters=parquet_filters,  # type: ignore [arg-type]
+            filters=parquet_filters,
         ).to_pandas()
-
-        # TODO: The index in our simulated population files is never meaningful.
-        # For some reason, the 1040 dataset is currently saved with a non-RangeIndex
-        # in the large data, and all datasets have a non-RangeIndex in the sample data.
-        # If we don't drop these here, our index can have duplicates when we load multiple
-        # shards at once. Having duplicates in the index breaks much of
-        # our noising logic.
-        data.reset_index(drop=True, inplace=True)
     else:
         # Dask
         import dask.dataframe as dd
 
         data = dd.read_parquet(str(data_path), filters=parquet_filters)
-        # See TODO above.
-        data = data.reset_index(drop=True)
+
+    # TODO: The index in our simulated population files is never meaningful.
+    # For some reason, the 1040 dataset is currently saved with a non-RangeIndex
+    # in the large data, and all datasets have a non-RangeIndex in the sample data.
+    # If we don't drop these here, our index can have duplicates when we load multiple
+    # shards at once. Having duplicates in the index breaks much of
+    # our noising logic.
+    data = data.reset_index(drop=True)
 
     if not isinstance(data, engine.dataframe_class):
         raise DataSourceError(
