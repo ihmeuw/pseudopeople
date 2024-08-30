@@ -18,7 +18,7 @@ from pseudopeople.filter import DataFilter
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS, Column, DatasetSchema
 
-PROBABILITY_VALUE_LOGS = [
+PROBABILITY_VALUE_LOGS: list[tuple[Union[str, float], str]] = [
     ("a", "must be floats or ints"),
     (-0.01, "must be between 0 and 1"),
     (1.01, "must be between 0 and 1"),
@@ -342,7 +342,7 @@ def test_overriding_nonexistent_keys_fails(config: dict, match: str) -> None:
 
 def get_noise_type_configs(
     noise_names: Sequence[NoiseType],
-) -> list[tuple[RowNoiseType, Union[str, float], str]]:
+) -> list[tuple[NoiseType, Union[str, float], str]]:
     configs = list(itertools.product(noise_names, PROBABILITY_VALUE_LOGS))
     return [(x[0], x[1][0], x[1][1]) for x in configs]
 

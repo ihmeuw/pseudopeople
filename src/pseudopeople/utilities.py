@@ -293,15 +293,10 @@ def get_engine_from_string(engine: str) -> Engine:
 try:
     # Optional dependency
     import dask.dataframe as dd
-except ImportError:
-    # HACK: Linting throws warnings when we try and define DataFrame in try/except
-    # or loops b/c it is then considered a variable which shouldn't be used for
-    # type hints. This is a workaround so that DataFrame is only defined once.
-    # It simply sets "dd" to the pandas "pd" so that if dask is not installed, then
-    # the union of two pandas DataFrames is a pandas DataFrame.
-    dd = pd
 
-DataFrame = Union[dd.DataFrame, pd.DataFrame]
+    DataFrame = Union[dd.DataFrame, pd.DataFrame]
+except ImportError:
+    DataFrame = pd.DataFrame  # type: ignore [misc]
 
 
 ##########################
