@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Protocol
 
 import numpy as np
 import pandas as pd
@@ -13,6 +13,13 @@ from pseudopeople.filter import DataFilter
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.noise_scaling import get_options_for_column
 from pseudopeople.schema_entities import DatasetSchema
+
+
+class ParameterConfigValidator(Protocol):
+    def __call__(
+        self, noise_type_config: Any, parameter: str, base_error_message: str, *_: Any
+    ) -> None:
+        ...
 
 
 def validate_overrides(overrides: Any, default_config: LayeredConfigTree) -> None:
@@ -94,11 +101,9 @@ def validate_overrides(overrides: Any, default_config: LayeredConfigTree) -> Non
                 default_noise_type_config = _get_default_config_node(
                     default_column_config, noise_type, "noise type", dataset_name, column
                 )
-                parameter_config_validator_map = {
+                parameter_config_validator_map: dict[str, ParameterConfigValidator] = {
                     NOISE_TYPES.choose_wrong_option.name: {
-                        Keys.CELL_PROBABILITY: lambda *args, **kwargs: _validate_choose_wrong_option_probability(
-                            *args, **kwargs, column=column
-                        )
+                        Keys.CELL_PROBABILITY: _validate_choose_wrong_option_probability
                     },
                 }.get(noise_type, DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP)
                 _validate_noise_type_config(
@@ -116,7 +121,7 @@ def _validate_noise_type_config(
     default_noise_type_config: LayeredConfigTree,
     dataset_name: str,
     noise_type: str,
-    parameter_config_validator_map: Dict[str, Callable],
+    parameter_config_validator_map: Dict[str, ParameterConfigValidator],
     column: Optional[str] = None,
 ) -> None:
     """
@@ -140,7 +145,7 @@ def _validate_noise_type_config(
             f"Invalid '{parameter}' provided for dataset '{dataset_name}' for "
             f"column '{column}' and noise type '{noise_type}'. "
         )
-        parameter_config_validator(parameter_config, parameter, base_error_message)
+        parameter_config_validator(parameter_config, parameter, base_error_message, column)
 
 
 def _get_default_config_node(
@@ -170,9 +175,10 @@ def _get_default_config_node(
 
 
 def _validate_possible_age_differences(
-    noise_type_config: Union[Dict, List],
+    noise_type_config: Any,
     parameter: str,
     base_error_message: str,
+    *_: Any,
 ) -> None:
     """
     Validates the user-provided values for the age-miswriting permutations
@@ -218,7 +224,7 @@ def _validate_possible_age_differences(
 
 
 def _validate_zipcode_digit_probabilities(
-    noise_type_config: List, parameter: str, base_error_message: str
+    noise_type_config: Any, parameter: str, base_error_message: str, *_: Any
 ) -> None:
     """Validates the user-provided values for the zipcode digit noising probabilities"""
     if not isinstance(noise_type_config, List):
@@ -236,7 +242,7 @@ def _validate_zipcode_digit_probabilities(
 
 
 def _validate_probability(
-    noise_type_config: Union[int, float], parameter: str, base_error_message: str
+    noise_type_config: Any, parameter: str, base_error_message: str, *_: Any
 ) -> None:
     if not isinstance(noise_type_config, (float, int)):
         raise ConfigurationError(
@@ -252,7 +258,7 @@ def _validate_probability(
 
 
 def _validate_choose_wrong_option_probability(
-    noise_type_config: Union[int, float], parameter: str, base_error_message: str, column: str
+    noise_type_config: Any, parameter: str, base_error_message: str, column: str
 ) -> None:
     _validate_probability(noise_type_config, parameter, base_error_message)
     num_options = len(get_options_for_column(column))
@@ -353,7 +359,7 @@ def validate_noise_level_proportions(
                 )
 
 
-DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP = {
+DEFAULT_PARAMETER_CONFIG_VALIDATOR_MAP: dict[str, ParameterConfigValidator] = {
     Keys.POSSIBLE_AGE_DIFFERENCES: _validate_possible_age_differences,
     Keys.ZIPCODE_DIGIT_PROBABILITIES: _validate_zipcode_digit_probabilities,
 }
