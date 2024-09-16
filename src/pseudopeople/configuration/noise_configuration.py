@@ -38,7 +38,9 @@ class NoiseConfiguration:
                 f"Available datasets are {list(config.keys())}"
             )
 
-        def _get_value_without_parameter_name(config: LayeredConfigTree, noise_type: str) -> Union[int, float]:
+        def _get_value_without_parameter_name(
+            config: LayeredConfigTree, noise_type: str
+        ) -> Union[int, float]:
             parameters: LayeredConfigTree = config[noise_type]
             if len(parameters) > 1:
                 available_parameters = list(parameters.keys())
@@ -59,7 +61,7 @@ class NoiseConfiguration:
                 )
 
             if parameter_name:
-                row_parameters: LayeredConfigTree = dataset_config['row_noise'][noise_type]
+                row_parameters: LayeredConfigTree = dataset_config["row_noise"][noise_type]
                 try:
                     row_noise_value: Union[int, float] = row_parameters[parameter_name]
                     return row_noise_value
@@ -81,7 +83,7 @@ class NoiseConfiguration:
                 raise ValueError(
                     f"You must provide a column name when using a column noise type ({noise_type} in your case)."
                 )
-            all_column_configs: LayeredConfigTree = dataset_config['column_noise']
+            all_column_configs: LayeredConfigTree = dataset_config["column_noise"]
             try:
                 column_config: LayeredConfigTree = all_column_configs[column_name]
             except KeyError:
@@ -110,13 +112,23 @@ class NoiseConfiguration:
             )
 
     def get_row_probability(self, dataset: str, noise_type: str) -> Union[int, float]:
-        value: Union[int, float] = self.get_parameter_value(dataset, noise_type, parameter_name='row_probability')
+        value: Union[int, float] = self.get_parameter_value(
+            dataset, noise_type, parameter_name="row_probability"
+        )
         return value
 
-    def get_cell_probability(self, dataset: str, noise_type: str, column_name: str) -> Union[int, float]:
-        value: Union[int, float] = self.get_parameter_value(dataset, noise_type, column_name=column_name, parameter_name='cell_probability')
+    def get_cell_probability(
+        self, dataset: str, noise_type: str, column_name: str
+    ) -> Union[int, float]:
+        value: Union[int, float] = self.get_parameter_value(
+            dataset, noise_type, column_name=column_name, parameter_name="cell_probability"
+        )
         return value
 
-    def get_token_probability(self, dataset: str, noise_type: str, column_name: str) -> Union[int, float]:
-        value: Union[int, float] = self.get_parameter_value(dataset, noise_type, column_name=column_name, parameter_name='token_probability')
+    def get_token_probability(
+        self, dataset: str, noise_type: str, column_name: str
+    ) -> Union[int, float]:
+        value: Union[int, float] = self.get_parameter_value(
+            dataset, noise_type, column_name=column_name, parameter_name="token_probability"
+        )
         return value
