@@ -88,7 +88,7 @@ class Dataset:
         :param configuration:
             Object to configure noise levels
         """
-
+        # we have entire config before this line
         noise_configuration: LayeredConfigTree = configuration[self.dataset_schema.name]
 
         if progress_bar:
@@ -105,10 +105,7 @@ class Dataset:
                     and noise_type.name in noise_configuration.row_noise
                 ):
                     # Apply row noise
-                    row_noise_configuration: LayeredConfigTree = noise_configuration[
-                        Keys.ROW_NOISE
-                    ][noise_type.name]
-                    noise_type(self, row_noise_configuration)
+                    noise_type(self, configuration)
 
             elif isinstance(noise_type, ColumnNoiseType):
                 if Keys.COLUMN_NOISE in noise_configuration:
@@ -120,14 +117,15 @@ class Dataset:
                     ]
                     # Apply column noise to each column as appropriate
                     for column in columns_to_noise:
-                        column_noise_configuration: LayeredConfigTree = (
-                            noise_configuration.column_noise[column][noise_type.name]
-                        )
-                        noise_type(
-                            self,
-                            column_noise_configuration,
-                            column,
-                        )
+                        # column_noise_configuration: LayeredConfigTree = (
+                        #    noise_configuration.column_noise[column][noise_type.name]
+                        # )
+                        # noise_type(
+                        #     self,
+                        #     configuration,
+                        #     column,
+                        # )
+                        pass
 
             else:
                 raise TypeError(

@@ -16,9 +16,12 @@ def _noise_function_not_implemented(*_args: Any, **_kwargs: Any) -> None:
 
 
 def default_noise_level_getter(
-    _dataset: "Dataset", configuration: LayeredConfigTree
+    noise_type: str, _dataset: "Dataset", configuration: LayeredConfigTree
 ) -> float:
-    noise_level: float = configuration[Keys.ROW_PROBABILITY]
+    # TODO: use NoiseConfiguration throughout repo instead of proximally
+    from pseudopeople.configuration.noise_configuration import NoiseConfiguration
+    new_config = NoiseConfiguration(configuration)
+    noise_level: float = new_config.get_parameter_value(_dataset.dataset_schema.name, noise_type, parameter_name='row_probability')
     return noise_level
 
 
@@ -72,7 +75,7 @@ class RowNoiseType(NoiseType):
         return Keys.ROW_PROBABILITY
 
     def __call__(self, dataset: "Dataset", configuration: LayeredConfigTree) -> None:
-        noise_level = self.get_noise_level(dataset, configuration)
+        noise_level = self.get_noise_level(self.name, dataset, configuration)
         to_noise_idx = get_index_to_noise(dataset, noise_level)
         self.noise_function(dataset, configuration, to_noise_idx)
 
