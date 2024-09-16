@@ -1,4 +1,4 @@
-# type: ignore[unused-ignore]
+# mypy: disable-error-code="unused-ignore"
 
 from collections.abc import Sequence
 from pathlib import Path
