@@ -26,7 +26,7 @@ def load_standard_dataset(
             parquet_filters = None
         data: DataFrame = pq.read_table(
             str(data_path),
-            filters=parquet_filters, # type: ignore [arg-type]
+            filters=parquet_filters,  # type: ignore [arg-type]
         ).to_pandas()
     else:
         # Dask
