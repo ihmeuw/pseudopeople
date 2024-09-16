@@ -7,7 +7,6 @@ from layered_config_tree import LayeredConfigTree
 from layered_config_tree.types import NestedDict
 
 from pseudopeople.configuration import NO_NOISE, Keys
-from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.configuration.validator import (
     validate_noise_level_proportions,
     validate_overrides,
@@ -87,12 +86,12 @@ def get_configuration(
     overrides: Optional[Union[Path, str, NestedDict]] = None,
     dataset_schema: Optional[DatasetSchema] = None,
     filters: Sequence[DataFilter] = (),
-) -> NoiseConfiguration:
+) -> LayeredConfigTree:
     """
-    Gets a noising configuration NoiseConfiguration, optionally overridden by a user-provided YAML.
+    Gets a noising configuration LayeredConfigTree, optionally overridden by a user-provided YAML.
 
     :param overrides: A path to the YAML file or a dictionary defining user overrides for the defaults
-    :return: a NoiseConfiguration object of the noising configuration
+    :return: a LayeredConfigTree object of the noising configuration
     """
 
     if overrides == NO_NOISE:
@@ -114,7 +113,7 @@ def get_configuration(
             filters,
         )
 
-    return NoiseConfiguration(noising_configuration)
+    return noising_configuration
 
 
 def _generate_configuration(is_no_noise: bool) -> LayeredConfigTree:

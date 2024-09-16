@@ -48,5 +48,5 @@ def get_config(overrides: Optional[Union[Path, str, dict]] = None) -> dict:
         An invalid configuration is passed with `overrides`.
 
     """
-    config: dict = get_configuration(overrides).config.to_dict()
+    config: dict = get_configuration(overrides).to_dict()
     return config

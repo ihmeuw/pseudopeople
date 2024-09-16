@@ -128,7 +128,7 @@ def _generate_dataset(
         # Our work depends on the particulars of how dtypes work, and is only
         # built to work with NumPy dtypes, so we turn off the Dask default behavior
         # of using PyArrow dtypes.
-        with dask.config.set({"dataframe.convert-string": False}):
+        with dask._config.set({"dataframe.convert-string": False}):
             dask_data = cast(
                 dd.DataFrame,
                 load_standard_dataset(

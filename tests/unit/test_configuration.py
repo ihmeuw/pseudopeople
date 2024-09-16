@@ -12,6 +12,7 @@ from pytest_mock import MockerFixture
 from pseudopeople.configuration import NO_NOISE, Keys, get_configuration
 from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
 from pseudopeople.configuration.interface import get_config
+from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.configuration.validator import ConfigurationError
 from pseudopeople.entity_types import ColumnNoiseType, NoiseType, RowNoiseType
 from pseudopeople.filter import DataFilter
@@ -662,3 +663,96 @@ def test_bad_duplicate_with_guardian_config(key: str) -> None:
                 },
             },
         )
+
+
+@pytest.mark.parametrize(
+    "noise_type, column, parameter, expected_value",
+    [
+        ("do_not_respond", None, None, 0.0145),
+        ("do_not_respond", None, "row_probability", 0.0145),
+        ("duplicate_with_guardian", None, "row_probability_in_households_under_18", 0.02),
+        ("leave_blank", "first_name", None, 0.01),
+        ("make_phonetic_errors", "first_name", "cell_probability", 0.01),
+        ("make_phonetic_errors", "first_name", "token_probability", 0.1),
+    ],
+)
+def test_working_general_noise_config_method(
+    noise_type: str, column: Optional[str], parameter: Optional[str], expected_value: float
+) -> None:
+    config = get_configuration()
+    noise_config = NoiseConfiguration(config)
+
+    value = noise_config.get_parameter_value(
+        "decennial_census", noise_type, column, parameter
+    )
+    assert value == expected_value
+
+
+@pytest.mark.parametrize(
+    "dataset, noise_type, column, parameter, error_msg",
+    [
+        ("fake_dataset", "noise_type", None, None, "fake_dataset was not found"),
+        (
+            "decennial_census",
+            "fake_noise_type",
+            None,
+            None,
+            "noise type fake_noise_type was not found",
+        ),
+        ("decennial_census", "duplicate_with_guardian", None, None, "multiple parameters"),
+        ("decennial_census", "do_not_respond", "fake_column", None, "cannot provide both"),
+        ("decennial_census", "leave_blank", None, None, "must provide a column name"),
+        ("decennial_census", "leave_blank", "fake_column", None, "fake_column was not found"),
+        (
+            "decennial_census",
+            "leave_blank",
+            "first_name",
+            "fake_parameter",
+            "fake_parameter was not found",
+        ),
+    ],
+)
+def test_breaking_general_noise_config_method(
+    dataset: str,
+    noise_type: str,
+    column: Optional[str],
+    parameter: Optional[str],
+    error_msg: str,
+) -> None:
+    config = get_configuration()
+    noise_config = NoiseConfiguration(config)
+
+    with pytest.raises(ValueError, match=error_msg):
+        value = noise_config.get_parameter_value(dataset, noise_type, column, parameter)
+
+
+@pytest.mark.parametrize("noise_type, expected_value", [("do_not_respond", 0.0145)])
+def test_get_row_probability(noise_type: str, expected_value: float) -> None:
+    config = get_configuration()
+    noise_config = NoiseConfiguration(config)
+
+    value = noise_config.get_row_probability("decennial_census", noise_type)
+    assert value == expected_value
+
+
+@pytest.mark.parametrize(
+    "noise_type, column, expected_value",
+    [("leave_blank", "first_name", 0.01), ("make_phonetic_errors", "first_name", 0.01)],
+)
+def test_get_cell_probability(noise_type: str, column: str, expected_value: float) -> None:
+    config = get_configuration()
+    noise_config = NoiseConfiguration(config)
+
+    value = noise_config.get_cell_probability("decennial_census", noise_type, column)
+    assert value == expected_value
+
+
+@pytest.mark.parametrize(
+    "noise_type, column, expected_value", [("make_phonetic_errors", "first_name", 0.1)]
+)
+def test_get_token_probability(noise_type: str, column: str, expected_value: float) -> None:
+    config = get_configuration()
+    noise_config = NoiseConfiguration(config)
+
+    value = noise_config.get_token_probability("decennial_census", noise_type, column)
+    assert value == expected_value
