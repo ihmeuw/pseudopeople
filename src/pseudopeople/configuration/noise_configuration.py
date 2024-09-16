@@ -39,18 +39,17 @@ class NoiseConfiguration:
             )
 
         def _get_value_without_parameter_name(
-            config: LayeredConfigTree, noise_type: str
+            parameter_tree: LayeredConfigTree,
         ) -> Union[int, float]:
-            parameters: LayeredConfigTree = config[noise_type]
-            if len(parameters) > 1:
-                available_parameters = list(parameters.keys())
+            if len(parameter_tree) > 1:
+                available_parameters = list(parameter_tree.keys())
                 raise ValueError(
-                    f"Your noising configuration has multiple parameters for the {dataset} dataset and noise type {noise_type}, so you must provide a parameter. "
+                    f"Your noising configuration has multiple parameters, so you must specify a parameter. "
                     f"The available parameters are {available_parameters}"
                 )
             else:
-                parameter_name = list(parameters.keys())[0]
-                value: Union[int, float] = config[noise_type][parameter_name]
+                parameter_name = list(parameter_tree.keys())[0]
+                value: Union[int, float] = parameter_tree[parameter_name]
                 return value
 
         # row noise
@@ -59,24 +58,7 @@ class NoiseConfiguration:
                 raise ValueError(
                     f"You cannot provide both a row noise type ({noise_type}) and a column name ({column_name}) simultaneously."
                 )
-
-            if parameter_name:
-                row_parameters: LayeredConfigTree = dataset_config["row_noise"][noise_type]
-                try:
-                    row_noise_value: Union[int, float] = row_parameters[parameter_name]
-                    return row_noise_value
-                except KeyError:
-                    raise ValueError(
-                        f"The parameter {parameter_name} was not found for {noise_type} in the configuration. "
-                        f"Available parameters are {list(row_parameters.keys())}."
-                    )
-            else:
-                row_noise_config: LayeredConfigTree = dataset_config["row_noise"]
-                parameter_value = _get_value_without_parameter_name(
-                    row_noise_config, noise_type
-                )
-                return parameter_value
-
+            config = dataset_config["row_noise"]
         # column noise
         elif noise_type in COLUMN_NOISE_TYPES:
             if not column_name:
@@ -84,32 +66,32 @@ class NoiseConfiguration:
                     f"You must provide a column name when using a column noise type ({noise_type} in your case)."
                 )
             all_column_configs: LayeredConfigTree = dataset_config["column_noise"]
-            try:
-                column_config: LayeredConfigTree = all_column_configs[column_name]
-            except KeyError:
+            if column_name not in all_column_configs:
                 raise ValueError(
                     f"The column name {column_name} was not found in your config. "
                     f"Available columns are {list(all_column_configs.keys())}."
                 )
-            if parameter_name:
-                column_parameters: LayeredConfigTree = column_config[noise_type]
-                try:
-                    column_noise_value: Union[int, float] = column_parameters[parameter_name]
-                    return column_noise_value
-                except KeyError:
-                    raise ValueError(
-                        f"The parameter {parameter_name} was not found for {noise_type} in the configuration. "
-                        f"Available parameters are {list(column_parameters.keys())}."
-                    )
-            else:
-                parameter_value = _get_value_without_parameter_name(column_config, noise_type)
-                return parameter_value
+            config = all_column_configs[column_name]
+        # unknown noise type
         else:
             raise ValueError(
                 f"Your noise type {noise_type} was not found in row noise types or column noise types. "
                 f"Available row noise types are {ROW_NOISE_TYPES}. "
                 f"Available column noise types are {COLUMN_NOISE_TYPES}."
             )
+        # get value
+        parameter_tree: LayeredConfigTree = config[noise_type]
+        if parameter_name:
+            if parameter_name not in parameter_tree:
+                raise ValueError(
+                    f"The parameter {parameter_name} was not found for {noise_type} in the configuration. "
+                    f"Available parameters are {list(parameter_tree.keys())}."
+                )
+            noise_value: Union[int, float] = parameter_tree[parameter_name]
+            return noise_value
+        else:
+            parameter_value = _get_value_without_parameter_name(parameter_tree)
+            return parameter_value
 
     def get_row_probability(self, dataset: str, noise_type: str) -> Union[int, float]:
         value: Union[int, float] = self.get_parameter_value(

@@ -34,6 +34,12 @@ ROW_NOISE_TYPES = [
 ]
 
 
+@pytest.fixture(scope="module")
+def noise_config() -> NoiseConfiguration:
+    config = get_configuration()
+    return NoiseConfiguration(config)
+
+
 def test_get_default_configuration(mocker: MockerFixture) -> None:
     """Tests that the default configuration can be retrieved."""
     mock = mocker.patch("pseudopeople.configuration.generator.LayeredConfigTree")
@@ -677,11 +683,12 @@ def test_bad_duplicate_with_guardian_config(key: str) -> None:
     ],
 )
 def test_working_general_noise_config_method(
-    noise_type: str, column: Optional[str], parameter: Optional[str], expected_value: float
+    noise_type: str,
+    column: Optional[str],
+    parameter: Optional[str],
+    expected_value: float,
+    noise_config: NoiseConfiguration,
 ) -> None:
-    config = get_configuration()
-    noise_config = NoiseConfiguration(config)
-
     value = noise_config.get_parameter_value(
         "decennial_census", noise_type, column, parameter
     )
@@ -718,19 +725,16 @@ def test_breaking_general_noise_config_method(
     column: Optional[str],
     parameter: Optional[str],
     error_msg: str,
+    noise_config: NoiseConfiguration,
 ) -> None:
-    config = get_configuration()
-    noise_config = NoiseConfiguration(config)
-
     with pytest.raises(ValueError, match=error_msg):
-        value = noise_config.get_parameter_value(dataset, noise_type, column, parameter)
+        noise_config.get_parameter_value(dataset, noise_type, column, parameter)
 
 
 @pytest.mark.parametrize("noise_type, expected_value", [("do_not_respond", 0.0145)])
-def test_get_row_probability(noise_type: str, expected_value: float) -> None:
-    config = get_configuration()
-    noise_config = NoiseConfiguration(config)
-
+def test_get_row_probability(
+    noise_type: str, expected_value: float, noise_config: NoiseConfiguration
+) -> None:
     value = noise_config.get_row_probability("decennial_census", noise_type)
     assert value == expected_value
 
@@ -739,10 +743,9 @@ def test_get_row_probability(noise_type: str, expected_value: float) -> None:
     "noise_type, column, expected_value",
     [("leave_blank", "first_name", 0.01), ("make_phonetic_errors", "first_name", 0.01)],
 )
-def test_get_cell_probability(noise_type: str, column: str, expected_value: float) -> None:
-    config = get_configuration()
-    noise_config = NoiseConfiguration(config)
-
+def test_get_cell_probability(
+    noise_type: str, column: str, expected_value: float, noise_config: NoiseConfiguration
+) -> None:
     value = noise_config.get_cell_probability("decennial_census", noise_type, column)
     assert value == expected_value
 
@@ -750,9 +753,8 @@ def test_get_cell_probability(noise_type: str, column: str, expected_value: floa
 @pytest.mark.parametrize(
     "noise_type, column, expected_value", [("make_phonetic_errors", "first_name", 0.1)]
 )
-def test_get_token_probability(noise_type: str, column: str, expected_value: float) -> None:
-    config = get_configuration()
-    noise_config = NoiseConfiguration(config)
-
+def test_get_token_probability(
+    noise_type: str, column: str, expected_value: float, noise_config: NoiseConfiguration
+) -> None:
     value = noise_config.get_token_probability("decennial_census", noise_type, column)
     assert value == expected_value
