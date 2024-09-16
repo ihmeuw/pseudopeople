@@ -1,3 +1,5 @@
+# type: ignore[unused-ignore]
+
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -24,9 +26,9 @@ def load_standard_dataset(
         if not parquet_filters:
             # pyarrow.parquet.read_table doesn't accept an empty list
             parquet_filters = None
-        data: DataFrame = pq.read_table(  # type: ignore [arg-type]
+        data: DataFrame = pq.read_table(
             str(data_path),
-            filters=parquet_filters,
+            filters=parquet_filters,  # type: ignore [arg-type]
         ).to_pandas()
     else:
         # Dask
