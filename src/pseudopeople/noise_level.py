@@ -63,7 +63,7 @@ def get_apply_do_not_respond_noise_level(
     # TODO: use NoiseConfiguration throughout repo instead of proximally
     from pseudopeople.configuration.noise_configuration import NoiseConfiguration
     new_config = NoiseConfiguration(configuration)
-    configured_noise_level: float = new_config.get_parameter_value(dataset.dataset_schema.name, 'do_not_respond', parameter_name='row_probability')
+    configured_noise_level: float = new_config.get_value(dataset.dataset_schema.name, 'do_not_respond', parameter_name='row_probability')
     default_noise_level = data_values.DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY[dataset_name]
     noise_levels = noise_levels * (configured_noise_level / default_noise_level)
 

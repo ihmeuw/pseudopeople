@@ -200,7 +200,7 @@ def duplicate_with_guardian(
         # TODO: use NoiseConfiguration throughout repo instead of proximally
         from pseudopeople.configuration.noise_configuration import NoiseConfiguration
         new_config = NoiseConfiguration(configuration)
-        noise_level: Union[float, int] = new_config.get_parameter_value(dataset.dataset_schema.name, 'duplicate_with_guardian', parameter_name=group)
+        noise_level: Union[float, int] = new_config.get_value(dataset.dataset_schema.name, 'duplicate_with_guardian', parameter_name=group)
         to_noise_index = get_index_to_noise(
             dataset,
             noise_level,

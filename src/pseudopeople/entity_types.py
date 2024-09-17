@@ -21,7 +21,7 @@ def default_noise_level_getter(
     # TODO: use NoiseConfiguration throughout repo instead of proximally
     from pseudopeople.configuration.noise_configuration import NoiseConfiguration
     new_config = NoiseConfiguration(configuration)
-    noise_level: float = new_config.get_parameter_value(_dataset.dataset_schema.name, noise_type, parameter_name='row_probability')
+    noise_level: float = new_config.get_value(_dataset.dataset_schema.name, noise_type, parameter_name='row_probability')
     return noise_level
 
 
