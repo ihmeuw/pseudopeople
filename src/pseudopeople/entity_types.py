@@ -120,8 +120,11 @@ class ColumnNoiseType(NoiseType):
     ) -> None:
         if dataset.is_empty(column_name):
             return
+        # TODO: use NoiseConfiguration throughout repo instead of proximally
+        from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 
-        cell_probability: float = configuration[Keys.CELL_PROBABILITY]
+        new_config = NoiseConfiguration(configuration)
+        cell_probability: float = new_config.get_value(dataset.dataset_schema.name, self.name, column_name, 'cell_probability')
         noise_level = cell_probability * self.noise_level_scaling_function(
             dataset.data, column_name
         )

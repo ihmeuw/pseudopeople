@@ -117,15 +117,14 @@ class Dataset:
                     ]
                     # Apply column noise to each column as appropriate
                     for column in columns_to_noise:
-                        # column_noise_configuration: LayeredConfigTree = (
-                        #    noise_configuration.column_noise[column][noise_type.name]
-                        # )
-                        # noise_type(
-                        #     self,
-                        #     configuration,
-                        #     column,
-                        # )
-                        pass
+                        column_noise_configuration: LayeredConfigTree = (
+                           noise_configuration.column_noise[column][noise_type.name]
+                        )
+                        noise_type(
+                            self,
+                            configuration,
+                            column,
+                        )
 
             else:
                 raise TypeError(

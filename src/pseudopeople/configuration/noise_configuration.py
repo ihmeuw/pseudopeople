@@ -22,7 +22,7 @@ class NoiseConfiguration:
         config_dict: dict = self._config.to_dict()
         return config_dict
 
-    def get_parameter_value(
+    def get_value(
         self,
         dataset: str,
         noise_type: str,
@@ -94,7 +94,7 @@ class NoiseConfiguration:
             return parameter_value
 
     def get_row_probability(self, dataset: str, noise_type: str) -> Union[int, float]:
-        value: Union[int, float] = self.get_parameter_value(
+        value: Union[int, float] = self.get_value(
             dataset, noise_type, parameter_name="row_probability"
         )
         return value
@@ -102,7 +102,7 @@ class NoiseConfiguration:
     def get_cell_probability(
         self, dataset: str, noise_type: str, column_name: str
     ) -> Union[int, float]:
-        value: Union[int, float] = self.get_parameter_value(
+        value: Union[int, float] = self.get_value(
             dataset, noise_type, column_name=column_name, parameter_name="cell_probability"
         )
         return value
@@ -110,7 +110,7 @@ class NoiseConfiguration:
     def get_token_probability(
         self, dataset: str, noise_type: str, column_name: str
     ) -> Union[int, float]:
-        value: Union[int, float] = self.get_parameter_value(
+        value: Union[int, float] = self.get_value(
             dataset, noise_type, column_name=column_name, parameter_name="token_probability"
         )
         return value

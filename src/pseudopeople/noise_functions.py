@@ -386,8 +386,12 @@ def write_wrong_zipcode_digits(
     # Scale up noise levels to adjust for inclusive sampling with all numbers
     scaleup_factor = 1 / (1 - (1 / len(possible_replacements)))
     # Get configuration values for each piece of 5 digit zipcode
+    # TODO: use NoiseConfiguration throughout repo instead of proximally
+    from pseudopeople.configuration.noise_configuration import NoiseConfiguration
+
+    new_config = NoiseConfiguration(configuration)
     digit_probabilities = scaleup_factor * np.array(
-        configuration[Keys.ZIPCODE_DIGIT_PROBABILITIES]
+        new_config.get_value(dataset.dataset_schema.name, 'write_wrong_zipcode_digits', column_name, Keys.ZIPCODE_DIGIT_PROBABILITIES)
     )
     replace = dataset.randomness.random(shape) < digit_probabilities
     num_to_replace = replace.sum()

@@ -689,7 +689,7 @@ def test_working_general_noise_config_method(
     expected_value: float,
     noise_config: NoiseConfiguration,
 ) -> None:
-    value = noise_config.get_parameter_value(
+    value = noise_config.get_value(
         "decennial_census", noise_type, column, parameter
     )
     assert value == expected_value
@@ -728,7 +728,7 @@ def test_breaking_general_noise_config_method(
     noise_config: NoiseConfiguration,
 ) -> None:
     with pytest.raises(ValueError, match=error_msg):
-        noise_config.get_parameter_value(dataset, noise_type, column, parameter)
+        noise_config.get_value(dataset, noise_type, column, parameter)
 
 
 @pytest.mark.parametrize("noise_type, expected_value", [("do_not_respond", 0.0145)])
