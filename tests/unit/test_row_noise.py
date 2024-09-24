@@ -141,6 +141,7 @@ def test_do_not_respond_missing_columns(dummy_data: pd.DataFrame) -> None:
         NOISE_TYPES.do_not_respond(census, config)
 
 
+# TODO: [MIC-5307] use config setter
 @pytest.mark.skip(reason="needs config setter to be defined")
 def test_guardian_duplication() -> None:
     # We are going to make a small dataframe and update the configuration to noise 100% of the
