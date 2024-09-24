@@ -97,7 +97,9 @@ class NoiseConfiguration:
         )
         return value
 
-    def has_row_noise_type(self, dataset_name: str, noise_type: str) -> bool:
+    def has_noise_type(
+        self, dataset_name: str, noise_type: str, column: str | None = None
+    ) -> bool:
         dataset_config = self.to_dict()[dataset_name]
         has_row_noise_type = (
             "row_noise" in dataset_config and noise_type in dataset_config["row_noise"]
