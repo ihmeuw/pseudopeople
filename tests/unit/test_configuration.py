@@ -36,8 +36,7 @@ ROW_NOISE_TYPES = [
 
 @pytest.fixture(scope="module")
 def noise_config() -> NoiseConfiguration:
-    config = get_configuration()
-    return NoiseConfiguration(config)
+    return get_configuration()
 
 
 def test_get_default_configuration(mocker: MockerFixture) -> None:
@@ -51,26 +50,26 @@ def test_default_configuration_structure() -> None:
     """Test that the default configuration structure is correct"""
     config = get_configuration()
     # Check datasets
-    assert set(f.name for f in DATASET_SCHEMAS) == set(config.keys())
+    assert set(f.name for f in DATASET_SCHEMAS) == set(config.to_dict().keys())
     for dataset_schema in DATASET_SCHEMAS:
         # Check row noise
         for row_noise in dataset_schema.row_noise_types:
-            config_probability: LayeredConfigTree = config[dataset_schema.name][
-                Keys.ROW_NOISE
-            ][row_noise.name]
+            config_probability: dict = config.to_dict()[dataset_schema.name][Keys.ROW_NOISE][
+                row_noise.name
+            ]
             validate_noise_type_config(dataset_schema, row_noise, config_probability)
         for col in dataset_schema.columns:
             for noise_type in col.noise_types:
-                config_level: LayeredConfigTree = config[dataset_schema.name][
-                    Keys.COLUMN_NOISE
-                ][col.name][noise_type.name]
+                config_level: dict = config.to_dict()[dataset_schema.name][Keys.COLUMN_NOISE][
+                    col.name
+                ][noise_type.name]
                 validate_noise_type_config(dataset_schema, noise_type, config_level, col)
 
 
 def validate_noise_type_config(
     dataset_schema: DatasetSchema,
     noise_type: NoiseType,
-    config_level: LayeredConfigTree,
+    config_level: dict,
     column: Optional[Column] = None,
 ) -> None:
     # FIXME: Is there a way to allow for adding new keys when they
@@ -103,7 +102,7 @@ def validate_noise_type_config(
             assert config_probability == default_probability
     if noise_type.additional_parameters:
         config_additional_parameters = {
-            k: v for k, v in config_level.to_dict().items() if k != noise_type.probability_key
+            k: v for k, v in config_level.items() if k != noise_type.probability_key
         }
         if not column:
             default_additional_parameters = (
@@ -179,14 +178,12 @@ def test_loading_from_yaml(tmp_path: Path) -> None:
     with open(filepath, "w") as file:
         yaml.dump(overrides, file)
 
-    default_config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][
-        Keys.COLUMN_NOISE
-    ][COLUMNS.age.name][NOISE_TYPES.misreport_age.name]
-    default_config = default_config.to_dict()
-    updated_config: LayeredConfigTree = get_configuration(filepath)[
+    default_config: LayeredConfigTree = get_configuration().to_dict()[
         DATASET_SCHEMAS.census.name
     ][Keys.COLUMN_NOISE][COLUMNS.age.name][NOISE_TYPES.misreport_age.name]
-    updated_config = updated_config.to_dict()
+    updated_config: LayeredConfigTree = get_configuration(filepath).to_dict()[
+        DATASET_SCHEMAS.census.name
+    ][Keys.COLUMN_NOISE][COLUMNS.age.name][NOISE_TYPES.misreport_age.name]
 
     assert (
         default_config[Keys.POSSIBLE_AGE_DIFFERENCES]
@@ -210,7 +207,7 @@ def test_format_miswrite_ages(
     """Test that user-supplied dictionary properly updates LayeredConfigTree object.
     This includes zero-ing out default values that don't exist in the user config
     """
-    config: LayeredConfigTree = get_configuration(
+    config: NoiseConfiguration = get_configuration(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -222,14 +219,13 @@ def test_format_miswrite_ages(
                 },
             },
         }
-    )[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][COLUMNS.age.name][
-        NOISE_TYPES.misreport_age.name
-    ][
-        Keys.POSSIBLE_AGE_DIFFERENCES
-    ]
-    config = config.to_dict()
+    )
+    config_dict = config.to_dict()
+    config_dict = config_dict[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][
+        COLUMNS.age.name
+    ][NOISE_TYPES.misreport_age.name][Keys.POSSIBLE_AGE_DIFFERENCES]
 
-    assert config == expected
+    assert config_dict == expected
 
 
 @pytest.mark.parametrize(
@@ -553,18 +549,18 @@ def test_validate_choose_wrong_option_configuration(caplog: LogCaptureFixture) -
 def test_no_noise() -> None:
     # Tests that passing the sentinal no noise value results in a configuration
     # where all noise levels are 0.0
-    no_noise_config = get_configuration("no_noise")
+    no_noise_config = get_configuration("no_noise").to_dict()
 
     for dataset in no_noise_config.keys():
-        dataset_dict: LayeredConfigTree = no_noise_config[dataset]
-        dataset_row_noise_dict: LayeredConfigTree = dataset_dict[Keys.ROW_NOISE]
-        dataset_column_dict: LayeredConfigTree = dataset_dict[Keys.COLUMN_NOISE]
+        dataset_dict: dict = no_noise_config[dataset]
+        dataset_row_noise_dict: dict = dataset_dict[Keys.ROW_NOISE]
+        dataset_column_dict: dict = dataset_dict[Keys.COLUMN_NOISE]
         for row_noise_type in dataset_row_noise_dict.keys():
-            noise_specific_config: LayeredConfigTree = dataset_row_noise_dict[row_noise_type]
+            noise_specific_config: dict = dataset_row_noise_dict[row_noise_type]
             for key, value in noise_specific_config.items():
                 assert dataset_row_noise_dict[row_noise_type][key] == 0.0
         for column in dataset_column_dict.keys():
-            column_noise_dict: LayeredConfigTree = dataset_column_dict[column]
+            column_noise_dict: dict = dataset_column_dict[column]
             for column_noise_type in column_noise_dict.keys():
                 assert column_noise_dict[column_noise_type][Keys.CELL_PROBABILITY] == 0.0
 
