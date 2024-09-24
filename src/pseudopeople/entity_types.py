@@ -10,15 +10,20 @@ from pandas._typing import DtypeObj as pd_dtype
 from pseudopeople.configuration import Keys
 from pseudopeople.utilities import ensure_dtype, get_index_to_noise
 
+if TYPE_CHECKING:
+    from pseudopeople.configuration.noise_configuration import NoiseConfiguration
+
 
 def _noise_function_not_implemented(*_args: Any, **_kwargs: Any) -> None:
     pass
 
 
 def default_noise_level_getter(
-    _dataset: "Dataset", configuration: LayeredConfigTree
+    noise_type: str, _dataset: "Dataset", configuration: "NoiseConfiguration"
 ) -> float:
-    noise_level: float = configuration[Keys.ROW_PROBABILITY]
+    noise_level: float = configuration.get_value(
+        _dataset.dataset_schema.name, noise_type, parameter_name="row_probability"
+    )
     return noise_level
 
 
@@ -61,18 +66,18 @@ class RowNoiseType(NoiseType):
     """
 
     noise_function: Callable[
-        ["Dataset", LayeredConfigTree, pd.Index], None
+        ["Dataset", "NoiseConfiguration", pd.Index], None
     ] = _noise_function_not_implemented
     get_noise_level: Callable[
-        ["Dataset", LayeredConfigTree], Union[float, pd.Series]
+        [str, "Dataset", "NoiseConfiguration"], Union[float, pd.Series]
     ] = default_noise_level_getter
 
     @property
     def probability_key(self) -> str:
         return Keys.ROW_PROBABILITY
 
-    def __call__(self, dataset: "Dataset", configuration: LayeredConfigTree) -> None:
-        noise_level = self.get_noise_level(dataset, configuration)
+    def __call__(self, dataset: "Dataset", configuration: "NoiseConfiguration") -> None:
+        noise_level = self.get_noise_level(self.name, dataset, configuration)
         to_noise_idx = get_index_to_noise(dataset, noise_level)
         self.noise_function(dataset, configuration, to_noise_idx)
 

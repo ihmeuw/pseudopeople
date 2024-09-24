@@ -29,11 +29,12 @@ from pseudopeople.utilities import (
 )
 
 if TYPE_CHECKING:
+    from pseudopeople.configuration.noise_configuration import NoiseConfiguration
     from pseudopeople.dataset import Dataset
 
 
 def omit_rows(
-    dataset: "Dataset", configuration: LayeredConfigTree, to_noise_index: pd.Index
+    dataset: "Dataset", configuration: "NoiseConfiguration", to_noise_index: pd.Index
 ) -> None:
     """
     Function that omits rows from a dataset and returns only the remaining rows.  Note that for the ACS and CPS datasets
@@ -50,7 +51,7 @@ def omit_rows(
 
 
 def apply_do_not_respond(
-    dataset: "Dataset", configuration: LayeredConfigTree, to_noise_index: pd.Index
+    dataset: "Dataset", configuration: "NoiseConfiguration", to_noise_index: pd.Index
 ) -> None:
     """
     Applies targeted omission based on demographic model for census and surveys.
@@ -94,7 +95,7 @@ def apply_do_not_respond(
 
 def duplicate_with_guardian(
     dataset: "Dataset",
-    configuration: LayeredConfigTree,
+    configuration: "NoiseConfiguration",
     to_noise_index: pd.Index,
 ) -> None:
     """
@@ -197,7 +198,9 @@ def duplicate_with_guardian(
         # Noise data
         # TODO: Mic-4876 Can we only operate on the index eligible for noise and
         # not the entire dataset?
-        noise_level: Union[float, int] = configuration[group]
+        noise_level: Union[float, int] = configuration.get_value(
+            dataset.dataset_schema.name, "duplicate_with_guardian", parameter_name=group
+        )
         to_noise_index = get_index_to_noise(
             dataset,
             noise_level,

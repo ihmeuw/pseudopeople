@@ -96,3 +96,10 @@ class NoiseConfiguration:
             dataset, noise_type, parameter_name="token_probability", column_name=column_name
         )
         return value
+
+    def has_row_noise_type(self, dataset_name: str, noise_type: str) -> bool:
+        dataset_config = self.to_dict()[dataset_name]
+        has_row_noise_type = (
+            "row_noise" in dataset_config and noise_type in dataset_config["row_noise"]
+        )
+        return has_row_noise_type

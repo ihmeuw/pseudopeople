@@ -56,7 +56,7 @@ def _generate_dataset(
         Noised dataset data in a dataframe
     """
     configure_logging_to_terminal(verbose)
-    configuration_tree = get_configuration(config, dataset_schema, filters)
+    noise_configuration = get_configuration(config, dataset_schema, filters)
 
     if source is None:
         source = paths.SAMPLE_DATA_ROOT
@@ -97,7 +97,7 @@ def _generate_dataset(
             # and the Nth row in each shard will get the same noise
             data_path_seed = f"{seed}_{data_file_index}"
             noised_data = noise_data(
-                dataset_schema, data, configuration=configuration_tree, seed=data_path_seed
+                dataset_schema, data, configuration=noise_configuration, seed=data_path_seed
             )
             noised_datasets_list.append(noised_data)
 
@@ -151,7 +151,7 @@ def _generate_dataset(
                 lambda data, partition_info=None: noise_data(
                     dataset_schema,
                     data,
-                    configuration=configuration_tree,
+                    configuration=noise_configuration,
                     seed=f"{seed}_{partition_info['number'] if partition_info is not None else 1}",
                     progress_bar=False,
                 ),
