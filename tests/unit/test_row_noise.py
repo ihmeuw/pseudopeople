@@ -269,4 +269,3 @@ def test_guardian_duplication() -> None:
                     guardians.loc[guardians["simulant_id"] == guardian_2, column].values[0],
                 ]
             assert dependent[column] in guardians_values
-            
