@@ -1,8 +1,8 @@
 import pytest
 from layered_config_tree import LayeredConfigTree
 
-from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.entity_types import RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASET_SCHEMAS
