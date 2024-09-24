@@ -11,6 +11,7 @@ from layered_config_tree import LayeredConfigTree
 from pandas.api.types import is_datetime64_any_dtype as is_datetime
 from pytest_mock import MockerFixture
 
+from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.interface import (
     generate_american_community_survey,
@@ -384,7 +385,7 @@ def test_row_noising_omit_row_or_do_not_respond(
     noised_data = noised_data.set_index(idx_cols)
     config_tree = get_configuration(config)[dataset_name][Keys.ROW_NOISE]
     noise_type = [
-        n for n in config_tree if n in [NOISE_TYPES.omit_row.name, NOISE_TYPES.do_not_respond.name]  # type: ignore [union-attr]
+        n for n in config_tree if n in [NOISE_TYPES.omit_row.name, NOISE_TYPES.do_not_respond.name]
     ]
     if dataset_name in [
         DATASET_SCHEMAS.census.name,
@@ -803,7 +804,8 @@ def _validate_column_noise_level(
     check_idx: pd.Index,
     noise_level: int,
     col: Column,
-    config: LayeredConfigTree,
+    # TODO: handle this type properly - this was only updated to pass typing to allow merging PRs
+    config: NoiseConfiguration,
     fuzzy_name: str,
     validator: FuzzyChecker,
 ) -> None:
