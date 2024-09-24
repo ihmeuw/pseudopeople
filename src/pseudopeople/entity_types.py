@@ -1,3 +1,4 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
@@ -19,7 +20,7 @@ def _noise_function_not_implemented(*_args: Any, **_kwargs: Any) -> None:
 
 
 def default_noise_level_getter(
-    noise_type: str, _dataset: "Dataset", configuration: "NoiseConfiguration"
+    noise_type: str, _dataset: Dataset, configuration: NoiseConfiguration
 ) -> float:
     noise_level: float = configuration.get_value(
         _dataset.dataset_schema.name, noise_type, parameter_name="row_probability"
@@ -66,17 +67,17 @@ class RowNoiseType(NoiseType):
     """
 
     noise_function: Callable[
-        ["Dataset", "NoiseConfiguration", pd.Index], None
+        [Dataset, NoiseConfiguration, pd.Index], None
     ] = _noise_function_not_implemented
     get_noise_level: Callable[
-        [str, "Dataset", "NoiseConfiguration"], Union[float, pd.Series]
+        [str, Dataset, NoiseConfiguration], Union[float, pd.Series]
     ] = default_noise_level_getter
 
     @property
     def probability_key(self) -> str:
         return Keys.ROW_PROBABILITY
 
-    def __call__(self, dataset: "Dataset", configuration: "NoiseConfiguration") -> None:
+    def __call__(self, dataset: Dataset, configuration: NoiseConfiguration) -> None:
         noise_level = self.get_noise_level(self.name, dataset, configuration)
         to_noise_idx = get_index_to_noise(dataset, noise_level)
         self.noise_function(dataset, configuration, to_noise_idx)
@@ -100,7 +101,7 @@ class ColumnNoiseType(NoiseType):
     """
 
     noise_function: Callable[
-        ["Dataset", LayeredConfigTree, pd.Index, str], None
+        [Dataset, LayeredConfigTree, pd.Index, str], None
     ] = _noise_function_not_implemented
     probability: Optional[float] = 0.01
     noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0
@@ -113,7 +114,7 @@ class ColumnNoiseType(NoiseType):
 
     def __call__(
         self,
-        dataset: "Dataset",
+        dataset: Dataset,
         configuration: LayeredConfigTree,
         column_name: str,
     ) -> None:

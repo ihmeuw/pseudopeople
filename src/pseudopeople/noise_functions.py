@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 
 def omit_rows(
-    dataset: "Dataset", configuration: "NoiseConfiguration", to_noise_index: pd.Index
+    dataset: Dataset, configuration: NoiseConfiguration, to_noise_index: pd.Index
 ) -> None:
     """
     Function that omits rows from a dataset and returns only the remaining rows.  Note that for the ACS and CPS datasets
@@ -51,7 +51,7 @@ def omit_rows(
 
 
 def apply_do_not_respond(
-    dataset: "Dataset", configuration: "NoiseConfiguration", to_noise_index: pd.Index
+    dataset: Dataset, configuration: NoiseConfiguration, to_noise_index: pd.Index
 ) -> None:
     """
     Applies targeted omission based on demographic model for census and surveys.
@@ -94,8 +94,8 @@ def apply_do_not_respond(
 
 
 def duplicate_with_guardian(
-    dataset: "Dataset",
-    configuration: "NoiseConfiguration",
+    dataset: Dataset,
+    configuration: NoiseConfiguration,
     to_noise_index: pd.Index,
 ) -> None:
     """

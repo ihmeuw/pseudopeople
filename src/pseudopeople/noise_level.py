@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+from __future__ import annotations
 
 import numpy as np
 import pandas as pd
@@ -51,7 +52,7 @@ def _get_census_omission_noise_levels(
 
 
 def get_apply_do_not_respond_noise_level(
-    noise_type: str, dataset: "Dataset", configuration: "NoiseConfiguration"
+    noise_type: str, dataset: Dataset, configuration: NoiseConfiguration
 ) -> pd.Series:
     dataset_name = dataset.dataset_schema.name
     noise_levels = _get_census_omission_noise_levels(dataset.data)
