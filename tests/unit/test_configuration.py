@@ -54,22 +54,16 @@ def test_default_configuration_structure() -> None:
     for dataset_schema in DATASET_SCHEMAS:
         # Check row noise
         for row_noise in dataset_schema.row_noise_types:
-            config_probability: dict = config.to_dict()[dataset_schema.name][Keys.ROW_NOISE][
-                row_noise.name
-            ]
-            validate_noise_type_config(dataset_schema, row_noise, config_probability)
+            validate_noise_type_config(dataset_schema, row_noise, config)
         for col in dataset_schema.columns:
             for noise_type in col.noise_types:
-                config_level: dict = config.to_dict()[dataset_schema.name][Keys.COLUMN_NOISE][
-                    col.name
-                ][noise_type.name]
-                validate_noise_type_config(dataset_schema, noise_type, config_level, col)
+                validate_noise_type_config(dataset_schema, noise_type, config, col)
 
 
 def validate_noise_type_config(
     dataset_schema: DatasetSchema,
     noise_type: NoiseType,
-    config_level: dict,
+    config: NoiseConfiguration,
     column: Optional[Column] = None,
 ) -> None:
     # FIXME: Is there a way to allow for adding new keys when they
@@ -77,9 +71,19 @@ def validate_noise_type_config(
     #  being row_noise, token_noise, and additional parameters at the
     #  baseline level ('noise_type in col.noise_types')
     #  Would we ever want to allow for adding non-baseline default noise?
-    noise_key = Keys.ROW_NOISE if isinstance(noise_type, RowNoiseType) else Keys.COLUMN_NOISE
-    if noise_type.probability:
-        config_probability = config_level[Keys.CELL_PROBABILITY]
+    if isinstance(noise_type, RowNoiseType):
+        noise_key = Keys.ROW_NOISE
+        probability_parameter = Keys.ROW_PROBABILITY
+        column_name = None
+    else:
+        noise_key = Keys.COLUMN_NOISE
+        probability_parameter = Keys.CELL_PROBABILITY
+    if column:
+        column_name = column.name
+    if noise_type.probability is not None:
+        config_probability = config.get_value(
+            dataset_schema.name, noise_type.name, probability_parameter, column_name
+        )
         if not column:
             default_probability = (
                 DEFAULT_NOISE_VALUES.get(dataset_schema.name, {})
@@ -102,7 +106,11 @@ def validate_noise_type_config(
             assert config_probability == default_probability
     if noise_type.additional_parameters:
         config_additional_parameters = {
-            k: v for k, v in config_level.items() if k != noise_type.probability_key
+            parameter: config.get_value(
+                dataset_schema.name, noise_type.name, parameter, column_name
+            )
+            for parameter in noise_type.additional_parameters
+            if parameter != noise_type.probability_key
         }
         if not column:
             default_additional_parameters = (
@@ -178,19 +186,30 @@ def test_loading_from_yaml(tmp_path: Path) -> None:
     with open(filepath, "w") as file:
         yaml.dump(overrides, file)
 
-    default_config: LayeredConfigTree = get_configuration().to_dict()[
-        DATASET_SCHEMAS.census.name
-    ][Keys.COLUMN_NOISE][COLUMNS.age.name][NOISE_TYPES.misreport_age.name]
-    updated_config: LayeredConfigTree = get_configuration(filepath).to_dict()[
-        DATASET_SCHEMAS.census.name
-    ][Keys.COLUMN_NOISE][COLUMNS.age.name][NOISE_TYPES.misreport_age.name]
+    default_config: NoiseConfiguration = get_configuration()
+    updated_config: NoiseConfiguration = get_configuration(filepath)
 
-    assert (
-        default_config[Keys.POSSIBLE_AGE_DIFFERENCES]
-        == updated_config[Keys.POSSIBLE_AGE_DIFFERENCES]
+    assert default_config.get_value(
+        DATASET_SCHEMAS.census.name,
+        NOISE_TYPES.misreport_age.name,
+        Keys.POSSIBLE_AGE_DIFFERENCES,
+        COLUMNS.age.name,
+    ) == updated_config.get_value(
+        DATASET_SCHEMAS.census.name,
+        NOISE_TYPES.misreport_age.name,
+        Keys.POSSIBLE_AGE_DIFFERENCES,
+        COLUMNS.age.name,
     )
     # check that 1 got replaced with 0 probability
-    assert updated_config[Keys.CELL_PROBABILITY] == 0.5
+    assert (
+        updated_config.get_value(
+            DATASET_SCHEMAS.census.name,
+            NOISE_TYPES.misreport_age.name,
+            Keys.CELL_PROBABILITY,
+            COLUMNS.age.name,
+        )
+        == 0.5
+    )
 
 
 @pytest.mark.parametrize(
@@ -220,12 +239,14 @@ def test_format_miswrite_ages(
             },
         }
     )
-    config_dict = config.to_dict()
-    config_dict = config_dict[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][
-        COLUMNS.age.name
-    ][NOISE_TYPES.misreport_age.name][Keys.POSSIBLE_AGE_DIFFERENCES]
+    age_differences_in_config = config.get_value(
+        DATASET_SCHEMAS.census.name,
+        NOISE_TYPES.misreport_age.name,
+        Keys.POSSIBLE_AGE_DIFFERENCES,
+        COLUMNS.age.name,
+    )
 
-    assert config_dict == expected
+    assert age_differences_in_config == expected
 
 
 @pytest.mark.parametrize(
@@ -549,20 +570,32 @@ def test_validate_choose_wrong_option_configuration(caplog: LogCaptureFixture) -
 def test_no_noise() -> None:
     # Tests that passing the sentinal no noise value results in a configuration
     # where all noise levels are 0.0
-    no_noise_config = get_configuration("no_noise").to_dict()
+    no_noise_config = get_configuration("no_noise")
 
-    for dataset in no_noise_config.keys():
-        dataset_dict: dict = no_noise_config[dataset]
-        dataset_row_noise_dict: dict = dataset_dict[Keys.ROW_NOISE]
-        dataset_column_dict: dict = dataset_dict[Keys.COLUMN_NOISE]
-        for row_noise_type in dataset_row_noise_dict.keys():
-            noise_specific_config: dict = dataset_row_noise_dict[row_noise_type]
-            for key, value in noise_specific_config.items():
-                assert dataset_row_noise_dict[row_noise_type][key] == 0.0
-        for column in dataset_column_dict.keys():
-            column_noise_dict: dict = dataset_column_dict[column]
-            for column_noise_type in column_noise_dict.keys():
-                assert column_noise_dict[column_noise_type][Keys.CELL_PROBABILITY] == 0.0
+    dataset_names = [dataset.name for dataset in DATASET_SCHEMAS]
+    for dataset in dataset_names:
+        dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset)
+        for row_noise_type in dataset_schema.row_noise_types:
+            parameters = []
+            if row_noise_type.probability is not None:
+                parameters.append("row_probability")
+            if row_noise_type.additional_parameters is not None:
+                parameters.extend(list(row_noise_type.additional_parameters.keys()))
+            for parameter in parameters:
+                assert (
+                    no_noise_config.get_value(dataset, row_noise_type.name, parameter) == 0.0
+                )
+
+        dataset_columns = [column for column in dataset_schema.columns if column.noise_types]
+        for column in dataset_columns:
+            column_noise_types = [noise_type.name for noise_type in column.noise_types]
+            for column_noise_type in column_noise_types:
+                assert (
+                    no_noise_config.get_value(
+                        dataset, column_noise_type, Keys.CELL_PROBABILITY, column.name
+                    )
+                    == 0.0
+                )
 
 
 @pytest.mark.parametrize(
