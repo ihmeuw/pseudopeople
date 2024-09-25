@@ -53,7 +53,7 @@ def _get_census_omission_noise_levels(
 
 
 def get_apply_do_not_respond_noise_level(
-    noise_type: str, dataset: Dataset, configuration: NoiseConfiguration
+    configuration: NoiseConfiguration, dataset: Dataset, noise_type: str
 ) -> pd.Series:
     dataset_name = dataset.dataset_schema.name
     noise_levels = _get_census_omission_noise_levels(dataset.data)
