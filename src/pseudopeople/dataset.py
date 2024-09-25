@@ -105,6 +105,7 @@ class Dataset:
                     noise_type(self, configuration)
 
             elif isinstance(noise_type, ColumnNoiseType):
+                # TODO: [MIC-5306] update in column noising PR 
                 pass
                 # if Keys.COLUMN_NOISE in noise_configuration:
                 #     columns_to_noise = [
