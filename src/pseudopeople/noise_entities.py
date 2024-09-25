@@ -30,7 +30,7 @@ class __NoiseTypes(NamedTuple):
             Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0.02,
             Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: 0.05,
         },
-        get_noise_level=lambda _, __, ___: 1.0,
+        get_noise_level=lambda *_: 1.0,
     )
     do_not_respond: RowNoiseType = RowNoiseType(
         "do_not_respond",
