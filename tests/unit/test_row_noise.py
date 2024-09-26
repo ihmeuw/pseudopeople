@@ -62,8 +62,7 @@ def test_do_not_respond(
         "pseudopeople.noise_level._get_census_omission_noise_levels",
         side_effect=(
             lambda *_: config.get_row_probability(
-                DATASET_SCHEMAS.census.name,
-                NOISE_TYPES.do_not_respond.name,
+                DATASET_SCHEMAS.census.name, NOISE_TYPES.do_not_respond.name
             )
         ),
     )
@@ -79,8 +78,7 @@ def test_do_not_respond(
     noised_census = census.data
     noised_acs = acs.data
     target_proportion: float = config.get_row_probability(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.do_not_respond.name,
+        DATASET_SCHEMAS.census.name, NOISE_TYPES.do_not_respond.name
     )
 
     # Test that noising affects expected proportion with expected types
@@ -96,8 +94,7 @@ def test_do_not_respond(
 
     # Check ACS data is scaled properly due to oversampling
     row_probability: float = config.get_row_probability(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.do_not_respond.name,
+        DATASET_SCHEMAS.census.name, NOISE_TYPES.do_not_respond.name
     )
     expected_noise = 0.5 + row_probability / 2
     fuzzy_checker.fuzzy_assert_proportion(
