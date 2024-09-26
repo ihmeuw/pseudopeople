@@ -7,6 +7,7 @@ from layered_config_tree import LayeredConfigTree
 from tqdm import tqdm
 
 from pseudopeople.configuration import Keys
+from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.constants.metadata import DATEFORMATS
 from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COLS
 from pseudopeople.dtypes import DtypeNames
@@ -20,7 +21,7 @@ def noise_data(
     dataset_schema: DatasetSchema,
     data: pd.DataFrame,
     seed: Any,
-    configuration: LayeredConfigTree,
+    configuration: NoiseConfiguration,
     progress_bar: bool = True,
 ) -> pd.DataFrame:
     return Dataset(dataset_schema, data, seed).get_noised_data(
@@ -60,7 +61,7 @@ class Dataset:
 
     def get_noised_data(
         self,
-        configuration: LayeredConfigTree,
+        configuration: NoiseConfiguration,
         noise_types: Sequence[NoiseType],
         progress_bar: bool = True,
     ) -> pd.DataFrame:
@@ -74,7 +75,7 @@ class Dataset:
 
     def _noise_dataset(
         self,
-        configuration: LayeredConfigTree,
+        configuration: NoiseConfiguration,
         noise_types: Sequence[NoiseType],
         progress_bar: bool = True,
     ) -> None:
@@ -88,9 +89,6 @@ class Dataset:
         :param configuration:
             Object to configure noise levels
         """
-
-        noise_configuration: LayeredConfigTree = configuration[self.dataset_schema.name]
-
         if progress_bar:
             noise_type_iterator = tqdm(
                 noise_types, desc="Applying noise", unit="type", leave=False
@@ -100,34 +98,32 @@ class Dataset:
 
         for noise_type in noise_type_iterator:
             if isinstance(noise_type, RowNoiseType):
-                if (
-                    Keys.ROW_NOISE in noise_configuration
-                    and noise_type.name in noise_configuration.row_noise
+                if configuration.has_row_noise_type(
+                    self.dataset_schema.name, noise_type.name
                 ):
                     # Apply row noise
-                    row_noise_configuration: LayeredConfigTree = noise_configuration[
-                        Keys.ROW_NOISE
-                    ][noise_type.name]
-                    noise_type(self, row_noise_configuration)
+                    noise_type(self, configuration)
 
             elif isinstance(noise_type, ColumnNoiseType):
-                if Keys.COLUMN_NOISE in noise_configuration:
-                    columns_to_noise = [
-                        col
-                        for col in noise_configuration.column_noise
-                        if col in self.data.columns
-                        and noise_type.name in noise_configuration.column_noise[col]
-                    ]
-                    # Apply column noise to each column as appropriate
-                    for column in columns_to_noise:
-                        column_noise_configuration: LayeredConfigTree = (
-                            noise_configuration.column_noise[column][noise_type.name]
-                        )
-                        noise_type(
-                            self,
-                            column_noise_configuration,
-                            column,
-                        )
+                # TODO: [MIC-5306] update in column noising PR
+                pass
+                # if Keys.COLUMN_NOISE in noise_configuration:
+                #     columns_to_noise = [
+                #         col
+                #         for col in noise_configuration.column_noise
+                #         if col in self.data.columns
+                #         and noise_type.name in noise_configuration.column_noise[col]
+                #     ]
+                #     # Apply column noise to each column as appropriate
+                #     for column in columns_to_noise:
+                #         column_noise_configuration: LayeredConfigTree = (
+                #            noise_configuration.column_noise[column][noise_type.name]
+                #         )
+                #         noise_type(
+                #             self,
+                #             configuration,
+                #             column,
+                #         )
 
             else:
                 raise TypeError(

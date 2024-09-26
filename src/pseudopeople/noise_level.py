@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -9,6 +11,7 @@ from pseudopeople.constants import data_values
 from pseudopeople.constants.metadata import DatasetNames
 
 if TYPE_CHECKING:
+    from pseudopeople.configuration.noise_configuration import NoiseConfiguration
     from pseudopeople.dataset import Dataset
 
 
@@ -50,7 +53,7 @@ def _get_census_omission_noise_levels(
 
 
 def get_apply_do_not_respond_noise_level(
-    dataset: "Dataset", configuration: LayeredConfigTree
+    configuration: NoiseConfiguration, dataset: Dataset, noise_type: str
 ) -> pd.Series:
     dataset_name = dataset.dataset_schema.name
     noise_levels = _get_census_omission_noise_levels(dataset.data)
@@ -60,7 +63,9 @@ def get_apply_do_not_respond_noise_level(
         noise_levels += 0.276
 
     # Apply user-configured noise level
-    configured_noise_level: float = configuration[Keys.ROW_PROBABILITY]
+    configured_noise_level: float = configuration.get_value(
+        dataset.dataset_schema.name, "do_not_respond", parameter_name="row_probability"
+    )
     default_noise_level = data_values.DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY[dataset_name]
     noise_levels = noise_levels * (configured_noise_level / default_noise_level)
 

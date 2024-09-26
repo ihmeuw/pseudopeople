@@ -28,7 +28,7 @@ class NoiseConfiguration:
         noise_type: str,
         parameter_name: str,
         column_name: Optional[str] = None,
-    ) -> Union[float, int]:
+    ) -> Union[float, int, dict]:
         config = self._config
         try:
             dataset_config = config[dataset]
@@ -72,8 +72,14 @@ class NoiseConfiguration:
                 f"The parameter {parameter_name} was not found for {noise_type} in the configuration. "
                 f"Available parameters are {list(parameter_tree.keys())}."
             )
-        noise_value: Union[int, float] = parameter_tree[parameter_name]
-        return noise_value
+        noise_value: Union[int, float, LayeredConfigTree] = parameter_tree[parameter_name]
+        # TODO: [MIC-5238] deal with properly when updating column noising, possibly with custom getter
+        converted_noise_value: Union[int, float, dict] = (
+            noise_value.to_dict()
+            if isinstance(noise_value, LayeredConfigTree)
+            else noise_value
+        )
+        return converted_noise_value
 
     def get_row_probability(self, dataset: str, noise_type: str) -> Union[int, float]:
         value: Union[int, float] = self.get_value(
@@ -96,3 +102,12 @@ class NoiseConfiguration:
             dataset, noise_type, parameter_name="token_probability", column_name=column_name
         )
         return value
+
+    def has_noise_type(
+        self, dataset_name: str, noise_type: str, column: str | None = None
+    ) -> bool:
+        dataset_config = self.to_dict()[dataset_name]
+        has_row_noise_type = (
+            "row_noise" in dataset_config and noise_type in dataset_config["row_noise"]
+        )
+        return has_row_noise_type

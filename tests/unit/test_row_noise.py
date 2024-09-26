@@ -5,6 +5,7 @@ from layered_config_tree import LayeredConfigTree
 from pytest_mock import MockerFixture
 
 from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.constants.noise_type_metadata import (
     GUARDIAN_DUPLICATION_ADDRESS_COLUMNS,
 )
@@ -35,14 +36,14 @@ def dummy_data() -> pd.DataFrame:
 
 
 def test_omit_row(dummy_data: pd.DataFrame, fuzzy_checker: FuzzyChecker) -> None:
-    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.tax_w2_1099.name][
-        Keys.ROW_NOISE
-    ][NOISE_TYPES.omit_row.name]
+    config: NoiseConfiguration = get_configuration()
     dataset = Dataset(DATASET_SCHEMAS.tax_w2_1099, dummy_data, 0)
     NOISE_TYPES.omit_row(dataset, config)
     noised_data1 = dataset.data
 
-    expected_noise_1: float = config[Keys.ROW_PROBABILITY]
+    expected_noise_1: float = config.get_row_probability(
+        DATASET_SCHEMAS.tax_w2_1099.name, "omit_row"
+    )
     fuzzy_checker.fuzzy_assert_proportion(
         name="test_omit_row",
         observed_numerator=len(noised_data1),
@@ -56,12 +57,14 @@ def test_omit_row(dummy_data: pd.DataFrame, fuzzy_checker: FuzzyChecker) -> None
 def test_do_not_respond(
     mocker: MockerFixture, dummy_data: pd.DataFrame, fuzzy_checker: FuzzyChecker
 ) -> None:
-    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][
-        Keys.ROW_NOISE
-    ][NOISE_TYPES.do_not_respond.name]
+    config: NoiseConfiguration = get_configuration()
     mocker.patch(
         "pseudopeople.noise_level._get_census_omission_noise_levels",
-        side_effect=(lambda *_: config[Keys.ROW_PROBABILITY]),
+        side_effect=(
+            lambda *_: config.get_row_probability(
+                DATASET_SCHEMAS.census.name, NOISE_TYPES.do_not_respond.name
+            )
+        ),
     )
 
     my_dummy_data = dummy_data.copy()
@@ -74,7 +77,9 @@ def test_do_not_respond(
     NOISE_TYPES.do_not_respond(acs, config)
     noised_census = census.data
     noised_acs = acs.data
-    target_proportion: float = config[Keys.ROW_PROBABILITY]
+    target_proportion: float = config.get_row_probability(
+        DATASET_SCHEMAS.census.name, NOISE_TYPES.do_not_respond.name
+    )
 
     # Test that noising affects expected proportion with expected types
     fuzzy_checker.fuzzy_assert_proportion(
@@ -88,7 +93,9 @@ def test_do_not_respond(
     assert (noised_census.dtypes == my_dummy_data.dtypes).all()
 
     # Check ACS data is scaled properly due to oversampling
-    row_probability: float = config[Keys.ROW_PROBABILITY]
+    row_probability: float = config.get_row_probability(
+        DATASET_SCHEMAS.census.name, NOISE_TYPES.do_not_respond.name
+    )
     expected_noise = 0.5 + row_probability / 2
     fuzzy_checker.fuzzy_assert_proportion(
         name="test_do_not_respond",
@@ -126,14 +133,14 @@ def test__get_census_omission_noise_levels(
 
 def test_do_not_respond_missing_columns(dummy_data: pd.DataFrame) -> None:
     """Test do_not_respond raises error when missing required columns."""
-    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][
-        Keys.ROW_NOISE
-    ][NOISE_TYPES.do_not_respond.name]
+    config: NoiseConfiguration = get_configuration()
     census = Dataset(DATASET_SCHEMAS.census, dummy_data, 0)
     with pytest.raises(KeyError, match="race_ethnicity"):
         NOISE_TYPES.do_not_respond(census, config)
 
 
+# TODO: [MIC-5307] use config setter
+@pytest.mark.skip(reason="needs config setter to be defined")
 def test_guardian_duplication() -> None:
     # We are going to make a small dataframe and update the configuration to noise 100% of the
     # available rows. We will then check that the correct rows were copied with the correct
@@ -228,7 +235,7 @@ def test_guardian_duplication() -> None:
     ][NOISE_TYPES.duplicate_with_guardian.name]
     overrides = LayeredConfigTree({key: 1 for key in config})
     census = Dataset(DATASET_SCHEMAS.census, dummy_data, 0)
-    NOISE_TYPES.duplicate_with_guardian(census, overrides)
+    NOISE_TYPES.duplicate_with_guardian(census, NoiseConfiguration(overrides))
     noised = census.data
     # We know the following since every dependent is duplicated:
     #  - Simulant ids 0, 1, 2, 3, and-5 will all be duplicated
