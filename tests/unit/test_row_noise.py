@@ -41,8 +41,8 @@ def test_omit_row(dummy_data: pd.DataFrame, fuzzy_checker: FuzzyChecker) -> None
     NOISE_TYPES.omit_row(dataset, config)
     noised_data1 = dataset.data
 
-    expected_noise_1: float = config.get_value(
-        DATASET_SCHEMAS.tax_w2_1099.name, "omit_row", parameter_name="row_probability"
+    expected_noise_1: float = config.get_row_probability(
+        DATASET_SCHEMAS.tax_w2_1099.name, "omit_row"
     )
     fuzzy_checker.fuzzy_assert_proportion(
         name="test_omit_row",
@@ -61,10 +61,9 @@ def test_do_not_respond(
     mocker.patch(
         "pseudopeople.noise_level._get_census_omission_noise_levels",
         side_effect=(
-            lambda *_: config.get_value(
+            lambda *_: config.get_row_probability(
                 DATASET_SCHEMAS.census.name,
                 NOISE_TYPES.do_not_respond.name,
-                "row_probability",
             )
         ),
     )
@@ -79,8 +78,9 @@ def test_do_not_respond(
     NOISE_TYPES.do_not_respond(acs, config)
     noised_census = census.data
     noised_acs = acs.data
-    target_proportion: float = config.get_value(
-        DATASET_SCHEMAS.census.name, NOISE_TYPES.do_not_respond.name, "row_probability"
+    target_proportion: float = config.get_row_probability(
+        DATASET_SCHEMAS.census.name,
+        NOISE_TYPES.do_not_respond.name,
     )
 
     # Test that noising affects expected proportion with expected types
@@ -95,8 +95,9 @@ def test_do_not_respond(
     assert (noised_census.dtypes == my_dummy_data.dtypes).all()
 
     # Check ACS data is scaled properly due to oversampling
-    row_probability: float = config.get_value(
-        DATASET_SCHEMAS.census.name, NOISE_TYPES.do_not_respond.name, "row_probability"
+    row_probability: float = config.get_row_probability(
+        DATASET_SCHEMAS.census.name,
+        NOISE_TYPES.do_not_respond.name,
     )
     expected_noise = 0.5 + row_probability / 2
     fuzzy_checker.fuzzy_assert_proportion(

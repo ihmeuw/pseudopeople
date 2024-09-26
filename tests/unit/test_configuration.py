@@ -71,18 +71,11 @@ def validate_noise_type_config(
     #  being row_noise, token_noise, and additional parameters at the
     #  baseline level ('noise_type in col.noise_types')
     #  Would we ever want to allow for adding non-baseline default noise?
-    if isinstance(noise_type, RowNoiseType):
-        noise_key = Keys.ROW_NOISE
-        probability_parameter = Keys.ROW_PROBABILITY
-        column_name = None
-    else:
-        noise_key = Keys.COLUMN_NOISE
-        probability_parameter = Keys.CELL_PROBABILITY
-    if column:
-        column_name = column.name
+    column_name = column.name if column else None
+    noise_key = Keys.ROW_NOISE if isinstance(noise_type, RowNoiseType) else Keys.COLUMN_NOISE
     if noise_type.probability is not None:
         config_probability = config.get_value(
-            dataset_schema.name, noise_type.name, probability_parameter, column_name
+            dataset_schema.name, noise_type.name, noise_type.probability_key, column_name
         )
         if not column:
             default_probability = (
@@ -189,23 +182,26 @@ def test_loading_from_yaml(tmp_path: Path) -> None:
     default_config: NoiseConfiguration = get_configuration()
     updated_config: NoiseConfiguration = get_configuration(filepath)
 
-    assert default_config.get_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.misreport_age.name,
-        Keys.POSSIBLE_AGE_DIFFERENCES,
-        COLUMNS.age.name,
-    ) == updated_config.get_value(
+    default_probability = default_config.get_value(
         DATASET_SCHEMAS.census.name,
         NOISE_TYPES.misreport_age.name,
         Keys.POSSIBLE_AGE_DIFFERENCES,
         COLUMNS.age.name,
     )
-    # check that 1 got replaced with 0 probability
+    updated_probability = updated_config.get_value(
+        DATASET_SCHEMAS.census.name,
+        NOISE_TYPES.misreport_age.name,
+        Keys.POSSIBLE_AGE_DIFFERENCES,
+        COLUMNS.age.name,
+    )
+
+    assert default_probability == updated_probability
+
+    # check that 1 got replaced with 0.5 probability
     assert (
-        updated_config.get_value(
+        updated_config.get_cell_probability(
             DATASET_SCHEMAS.census.name,
             NOISE_TYPES.misreport_age.name,
-            Keys.CELL_PROBABILITY,
             COLUMNS.age.name,
         )
         == 0.5
@@ -572,27 +568,28 @@ def test_no_noise() -> None:
     # where all noise levels are 0.0
     no_noise_config = get_configuration("no_noise")
 
-    dataset_names = [dataset.name for dataset in DATASET_SCHEMAS]
-    for dataset in dataset_names:
-        dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset)
+    dataset_schemas = {
+        dataset_schema.name: dataset_schema for dataset_schema in DATASET_SCHEMAS
+    }
+    for dataset_name, dataset_schema in dataset_schemas.items():
         for row_noise_type in dataset_schema.row_noise_types:
             parameters = []
             if row_noise_type.probability is not None:
-                parameters.append("row_probability")
+                parameters.append(row_noise_type.probability_key)
             if row_noise_type.additional_parameters is not None:
                 parameters.extend(list(row_noise_type.additional_parameters.keys()))
             for parameter in parameters:
                 assert (
-                    no_noise_config.get_value(dataset, row_noise_type.name, parameter) == 0.0
+                    no_noise_config.get_value(dataset_name, row_noise_type.name, parameter)
+                    == 0.0
                 )
 
         dataset_columns = [column for column in dataset_schema.columns if column.noise_types]
         for column in dataset_columns:
-            column_noise_types = [noise_type.name for noise_type in column.noise_types]
-            for column_noise_type in column_noise_types:
+            for column_noise_type in column.noise_types:
                 assert (
-                    no_noise_config.get_value(
-                        dataset, column_noise_type, Keys.CELL_PROBABILITY, column.name
+                    no_noise_config.get_cell_probability(
+                        dataset_name, column_noise_type.name, column.name
                     )
                     == 0.0
                 )
