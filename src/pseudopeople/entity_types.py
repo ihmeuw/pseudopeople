@@ -102,7 +102,7 @@ class ColumnNoiseType(NoiseType):
     """
 
     noise_function: Callable[
-        [Dataset, LayeredConfigTree, pd.Index, str], None
+        [Dataset, NoiseConfiguration, pd.Index, str], None
     ] = _noise_function_not_implemented
     probability: Optional[float] = 0.01
     noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0
@@ -116,13 +116,14 @@ class ColumnNoiseType(NoiseType):
     def __call__(
         self,
         dataset: Dataset,
-        configuration: LayeredConfigTree,
+        configuration: NoiseConfiguration,
         column_name: str,
     ) -> None:
         if dataset.is_empty(column_name):
             return
-
-        cell_probability: float = configuration[Keys.CELL_PROBABILITY]
+        cell_probability: float = configuration.get_cell_probability(
+            dataset.dataset_schema.name, self.name, column_name
+        )
         noise_level = cell_probability * self.noise_level_scaling_function(
             dataset.data, column_name
         )

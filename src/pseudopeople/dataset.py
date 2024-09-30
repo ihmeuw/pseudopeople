@@ -98,32 +98,27 @@ class Dataset:
 
         for noise_type in noise_type_iterator:
             if isinstance(noise_type, RowNoiseType):
-                if configuration.has_row_noise_type(
-                    self.dataset_schema.name, noise_type.name
-                ):
+                if configuration.has_noise_type(self.dataset_schema.name, noise_type.name):
                     # Apply row noise
                     noise_type(self, configuration)
 
             elif isinstance(noise_type, ColumnNoiseType):
-                # TODO: [MIC-5306] update in column noising PR
-                pass
-                # if Keys.COLUMN_NOISE in noise_configuration:
-                #     columns_to_noise = [
-                #         col
-                #         for col in noise_configuration.column_noise
-                #         if col in self.data.columns
-                #         and noise_type.name in noise_configuration.column_noise[col]
-                #     ]
-                #     # Apply column noise to each column as appropriate
-                #     for column in columns_to_noise:
-                #         column_noise_configuration: LayeredConfigTree = (
-                #            noise_configuration.column_noise[column][noise_type.name]
-                #         )
-                #         noise_type(
-                #             self,
-                #             configuration,
-                #             column,
-                #         )
+                if configuration.has_column_noise(self.dataset_schema.name):
+                    columns_to_noise = [
+                        col
+                        for col in configuration.get_noise_columns(self.dataset_schema.name)
+                        if col in self.data.columns
+                        and configuration.has_noise_type(
+                            self.dataset_schema.name, noise_type.name, col
+                        )
+                    ]
+                    # Apply column noise to each column as appropriate
+                    for column in columns_to_noise:
+                        noise_type(
+                            self,
+                            configuration,
+                            column,
+                        )
 
             else:
                 raise TypeError(

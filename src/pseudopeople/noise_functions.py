@@ -253,8 +253,8 @@ def duplicate_with_guardian(
 
 
 def choose_wrong_options(
-    dataset: "Dataset",
-    _: LayeredConfigTree,
+    dataset: Dataset,
+    _: NoiseConfiguration,
     to_noise_index: pd.Index,
     column_name: str,
 ) -> None:
@@ -291,8 +291,8 @@ def choose_wrong_options(
 
 
 def copy_from_household_member(
-    dataset: "Dataset",
-    configuration: LayeredConfigTree,
+    dataset: Dataset,
+    configuration: NoiseConfiguration,
     to_noise_index: pd.Index,
     column_name: str,
 ) -> None:
@@ -313,8 +313,8 @@ def copy_from_household_member(
 
 
 def swap_months_and_days(
-    dataset: "Dataset",
-    _: LayeredConfigTree,
+    dataset: Dataset,
+    _: NoiseConfiguration,
     to_noise_index: pd.Index,
     column_name: str,
 ) -> None:
@@ -356,8 +356,8 @@ def swap_months_and_days(
 
 
 def write_wrong_zipcode_digits(
-    dataset: "Dataset",
-    configuration: LayeredConfigTree,
+    dataset: Dataset,
+    configuration: NoiseConfiguration,
     to_noise_index: pd.Index,
     column_name: str,
 ) -> None:
@@ -387,7 +387,12 @@ def write_wrong_zipcode_digits(
     scaleup_factor = 1 / (1 - (1 / len(possible_replacements)))
     # Get configuration values for each piece of 5 digit zipcode
     digit_probabilities = scaleup_factor * np.array(
-        configuration[Keys.ZIPCODE_DIGIT_PROBABILITIES]
+        configuration.get_value(
+            dataset.dataset_schema.name,
+            "write_wrong_zipcode_digits",
+            Keys.ZIPCODE_DIGIT_PROBABILITIES,
+            column_name,
+        )
     )
     replace = dataset.randomness.random(shape) < digit_probabilities
     num_to_replace = replace.sum()
@@ -407,8 +412,8 @@ def write_wrong_zipcode_digits(
 
 
 def misreport_ages(
-    dataset: "Dataset",
-    configuration: LayeredConfigTree,
+    dataset: Dataset,
+    configuration: NoiseConfiguration,
     to_noise_index: pd.Index,
     column_name: str,
 ) -> None:
@@ -422,8 +427,12 @@ def misreport_ages(
     """
 
     column = dataset.data.loc[to_noise_index, column_name]
-    possible_perturbations: LayeredConfigTree = configuration[Keys.POSSIBLE_AGE_DIFFERENCES]
-    possible_perturbations = possible_perturbations.to_dict()
+    possible_perturbations: dict = configuration.get_value(
+        dataset.dataset_schema.name,
+        "misreport_age",
+        Keys.POSSIBLE_AGE_DIFFERENCES,
+        column_name,
+    )
     perturbations = vectorized_choice(
         options=list(possible_perturbations.keys()),
         weights=list(possible_perturbations.values()),
@@ -443,8 +452,8 @@ def misreport_ages(
 
 
 def write_wrong_digits(
-    dataset: "Dataset",
-    configuration: LayeredConfigTree,
+    dataset: Dataset,
+    configuration: NoiseConfiguration,
     to_noise_index: pd.Index,
     column_name: str,
 ) -> None:
@@ -458,7 +467,9 @@ def write_wrong_digits(
     """
     column: pd.Series = dataset.data.loc[to_noise_index, column_name]
     # This is a fix to not replacing the original token for noise options
-    token_probability: float = configuration[Keys.TOKEN_PROBABILITY]
+    token_probability: float = configuration.get_token_probability(
+        dataset.dataset_schema.name, "write_wrong_digits", column_name
+    )
     token_noise_level = token_probability / 0.9
 
     max_str_length = column.str.len().max()
@@ -496,8 +507,8 @@ def write_wrong_digits(
 
 
 def use_nicknames(
-    dataset: "Dataset",
-    _: LayeredConfigTree,
+    dataset: Dataset,
+    _: NoiseConfiguration,
     to_noise_index: pd.Index,
     column_name: str,
 ) -> None:
@@ -527,8 +538,8 @@ def use_nicknames(
 
 
 def use_fake_names(
-    dataset: "Dataset",
-    _: LayeredConfigTree,
+    dataset: Dataset,
+    _: NoiseConfiguration,
     to_noise_index: pd.Index,
     column_name: str,
 ) -> None:
@@ -570,8 +581,8 @@ def use_fake_names(
 
 
 def make_phonetic_errors(
-    dataset: "Dataset",
-    configuration: LayeredConfigTree,
+    dataset: Dataset,
+    configuration: NoiseConfiguration,
     to_noise_index: pd.Index,
     column_name: str,
 ) -> None:
@@ -586,7 +597,9 @@ def make_phonetic_errors(
 
     # Load phonetic errors
     phonetic_errors = load_phonetic_errors()
-    token_probability: float = configuration[Keys.TOKEN_PROBABILITY]
+    token_probability: float = configuration.get_token_probability(
+        dataset.dataset_schema.name, "make_phonetic_errors", column_name
+    )
 
     noised_values = _corrupt_tokens(
         phonetic_errors,
@@ -602,8 +615,8 @@ def make_phonetic_errors(
 
 
 def leave_blanks(
-    dataset: "Dataset",
-    _: LayeredConfigTree,
+    dataset: Dataset,
+    _: NoiseConfiguration,
     to_noise_index: pd.Index,
     column_name: str,
 ) -> None:
@@ -624,8 +637,8 @@ def leave_blanks(
 
 
 def make_typos(
-    dataset: "Dataset",
-    configuration: LayeredConfigTree,
+    dataset: Dataset,
+    configuration: NoiseConfiguration,
     to_noise_index: pd.Index,
     column_name: str,
 ) -> None:
@@ -643,7 +656,9 @@ def make_typos(
 
     column = dataset.data.loc[to_noise_index, column_name]
     column = column.astype(str)
-    token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
+    token_noise_level = configuration.get_token_probability(
+        dataset.dataset_schema.name, "make_typos", column_name
+    )
     # TODO: remove this hard-coding
     include_token_probability_level = 0.1
 
@@ -709,8 +724,8 @@ def make_typos(
 
 
 def make_ocr_errors(
-    dataset: "Dataset",
-    configuration: LayeredConfigTree,
+    dataset: Dataset,
+    configuration: NoiseConfiguration,
     to_noise_index: pd.Index,
     column_name: str,
 ) -> None:
@@ -724,7 +739,9 @@ def make_ocr_errors(
 
     # Load OCR error dict
     ocr_errors = load_ocr_errors()
-    token_probability: float = configuration[Keys.TOKEN_PROBABILITY]
+    token_probability: float = configuration.get_token_probability(
+        dataset.dataset_schema.name, "make_ocr_errors", column_name
+    )
 
     noised_values = _corrupt_tokens(
         ocr_errors,
