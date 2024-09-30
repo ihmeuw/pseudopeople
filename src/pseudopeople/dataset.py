@@ -102,22 +102,11 @@ class Dataset:
                     noise_type(self, configuration)
 
             elif isinstance(noise_type, ColumnNoiseType):
-                if configuration.has_column_noise(self.dataset_schema.name):
-                    columns_to_noise = [
-                        col
-                        for col in configuration.get_noise_columns(self.dataset_schema.name)
-                        if col in self.data.columns
-                        and configuration.has_noise_type(
-                            self.dataset_schema.name, noise_type.name, col
-                        )
-                    ]
-                    # Apply column noise to each column as appropriate
-                    for column in columns_to_noise:
-                        noise_type(
-                            self,
-                            configuration,
-                            column,
-                        )
+                for column in self.data.columns:
+                    if configuration.has_noise_type(
+                        self.dataset_schema.name, noise_type.name, column
+                    ):
+                        noise_type(self, configuration, column)
 
             else:
                 raise TypeError(
