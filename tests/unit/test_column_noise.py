@@ -10,6 +10,7 @@ import pytest
 from layered_config_tree import LayeredConfigTree
 from layered_config_tree.types import NestedDict, NodeValue
 
+from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COLS
 from pseudopeople.data.fake_names import fake_first_names, fake_last_names
@@ -24,8 +25,6 @@ from pseudopeople.utilities import (
     to_string,
 )
 from tests.conftest import FuzzyChecker
-
-pytest.skip("skipping column noise tests", allow_module_level=True)
 
 CHARACTERS_LIST = [
     "A",
@@ -299,7 +298,7 @@ def dataset_different_seed(dummy_dataset: pd.DataFrame) -> Dataset:
 
 
 def test_leave_blank(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
-    config: LayeredConfigTree = get_configuration(
+    config: NoiseConfiguration = get_configuration(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -311,7 +310,8 @@ def test_leave_blank(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
                 },
             },
         }
-    )[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["zipcode"][NOISE_TYPES.leave_blank.name]
+    )
+    #[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE]["zipcode"][NOISE_TYPES.leave_blank.name]
 
     data = dataset.data[["numbers"]]
     NOISE_TYPES.leave_blank(dataset, config, "numbers")
@@ -325,7 +325,7 @@ def test_leave_blank(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     ]
 
     # Check for expected noise level
-    expected_noise: float = config[Keys.CELL_PROBABILITY]
+    expected_noise: float = config.get_cell_probability(dataset.dataset_schema.name, "leave_blank")
     fuzzy_checker.fuzzy_assert_proportion(
         name="leave_blank",
         observed_numerator=len(newly_missing_idx),
