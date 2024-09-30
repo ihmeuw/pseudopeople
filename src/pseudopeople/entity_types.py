@@ -92,7 +92,7 @@ class ColumnNoiseType(NoiseType):
     The name is the name of the particular noise type (e.g. use_nickname" or
     "make_phonetic_errors").
 
-    The noise function takes as input a DataFrame, the LayeredConfigTree object for this
+    The noise function takes as input a DataFrame, the NoiseConfiguration object for this
     ColumnNoise operation, a np.random.default_rng for controlling randomness.
     Optionally, it can take a pre-existing DataFrame indicating where there is missingness
     in the data (same index and columns as the main DataFrame, all boolean type) --

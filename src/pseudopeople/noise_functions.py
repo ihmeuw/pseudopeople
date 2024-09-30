@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Union
 
 import numpy as np
 import pandas as pd
-from layered_config_tree import LayeredConfigTree
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants.noise_type_metadata import (
@@ -40,7 +39,7 @@ def omit_rows(
     Function that omits rows from a dataset and returns only the remaining rows.  Note that for the ACS and CPS datasets
       we need to account for oversampling in the PRL simulation so a helper function has been added here to do so.
     :param dataset: Dataset object containing the data to be noised
-    :param configuration: LayeredConfigTree object containing noise level values
+    :param configuration: NoiseConfiguration object containing noise level values
     :param to_noise_index: pd.Index of rows to be noised
     """
     dataset.data = dataset.data.loc[dataset.data.index.difference(to_noise_index)]
@@ -57,7 +56,7 @@ def apply_do_not_respond(
     Applies targeted omission based on demographic model for census and surveys.
 
     :param dataset: Dataset object containing the data to be noised
-    :param configuration: LayeredConfigTree object containing noise level values
+    :param configuration: NoiseConfiguration object containing noise level values
     :param to_noise_index: pd.Index of rows to be noised
     """
     # todo: this validation should be done much earlier
@@ -105,7 +104,7 @@ def duplicate_with_guardian(
     be only duplicated once for a maximum of two rows per dependent. When a row is duplicated, one row will
     have the dependent's correct address and the other will have the guardian's address.
     :param dataset: Dataset object containing the data to be noised
-    :param configuration: LayeredConfigTree object containing noise level values
+    :param configuration: NoiseConfiguration object containing noise level values
     :param to_noise_index: pd.Index of rows to be noised
     """
 
@@ -263,7 +262,7 @@ def choose_wrong_options(
     a list.
 
     :param dataset: Dataset object containing the data to be noised
-    :param _: LayeredConfigTree object containing noise level values
+    :param _: NoiseConfiguration object containing noise level values
     :param to_noise_index: pd.Index of rows to be noised
     :param column_name: String for column that will be noised
     """
@@ -300,7 +299,7 @@ def copy_from_household_member(
     Function that copies the value for a column from another household member.
 
     :param dataset: Dataset object containing the data to be noised
-    :param configuration: LayeredConfigTree object containing noise level values
+    :param configuration: NoiseConfiguration object containing noise level values
     :param to_noise_index: pd.Index of rows to be noised
     :param column_name: String for column that will be noised
     """
@@ -322,7 +321,7 @@ def swap_months_and_days(
     Function that swaps month and day of dates.
 
     :param dataset: Dataset object containing the data to be noised
-    :param _: LayeredConfigTree object containing noise level values
+    :param _: NoiseConfiguration object containing noise level values
     :param to_noise_index: pd.Index of rows to be noised
     :param column_name: String for column that will be noised
     """
@@ -365,7 +364,7 @@ def write_wrong_zipcode_digits(
     Function that noises a 5 digit zipcode
 
     :param dataset: Dataset object containing the data to be noised
-    :param configuration: LayeredConfigTree object containing noise level values
+    :param configuration: NoiseConfiguration object containing noise level values
     :param to_noise_index: pd.Index of rows to be noised
     :param column_name: String for column that will be noised
     """
@@ -421,7 +420,7 @@ def misreport_ages(
     the config file.
 
     :param dataset: Dataset object containing the data to be noised
-    :param configuration: LayeredConfigTree object containing noise level values
+    :param configuration: NoiseConfiguration object containing noise level values
     :param to_noise_index: pd.Index of rows to be noised
     :param column_name: String for column that will be noised
     """
@@ -461,7 +460,7 @@ def write_wrong_digits(
     Function that noises numeric characters in a series.
 
     :param dataset: Dataset object containing the data to be noised
-    :param configuration: LayeredConfigTree object containing noise level values
+    :param configuration: NoiseConfiguration object containing noise level values
     :param to_noise_index: pd.Index of rows to be noised
     :param column_name: String for column that will be noised
     """
@@ -516,7 +515,7 @@ def use_nicknames(
     Function that replaces a name with a choice of potential nicknames.
 
     :param dataset: Dataset object containing the data to be noised
-    :param _: LayeredConfigTree object containing noise level values
+    :param _: NoiseConfiguration object containing noise level values
     :param to_noise_index: pd.Index of rows to be noised
     :param column_name: String for column that will be noised
     """
@@ -547,7 +546,7 @@ def use_fake_names(
     Function that replaces a name with a fake name from a list of options.
 
     :param dataset: Dataset object containing the data to be noised
-    :param _: LayeredConfigTree object containing noise level values
+    :param _: NoiseConfiguration object containing noise level values
     :param to_noise_index: pd.Index of rows to be noised
     :param column_name: String for column that will be noised
     """
@@ -590,7 +589,7 @@ def make_phonetic_errors(
     Function that noises a string by replacing characters with phonetically similar characters.
 
     :param dataset: Dataset object containing the data to be noised
-    :param configuration: LayeredConfigTree object containing noise level values
+    :param configuration: NoiseConfiguration object containing noise level values
     :param to_noise_index: pd.Index of rows to be noised
     :param column_name: String for column that will be noised
     """
@@ -624,7 +623,7 @@ def leave_blanks(
     Function that takes a column and blanks out all values.
 
     :param dataset: Dataset object containing the data to be noised
-    :param _: LayeredConfigTree object containing noise level values
+    :param _: NoiseConfiguration object containing noise level values
     :param to_noise_index: pd.Index of rows to be noised
     :param column_name: String for column that will be noised
     """
@@ -646,7 +645,7 @@ def make_typos(
     representative of keyboard mistyping.
 
     :param dataset: Dataset object containing the data to be noised
-    :param configuration: LayeredConfigTree object containing noise level values
+    :param configuration: NoiseConfiguration object containing noise level values
     :param to_noise_index: pd.Index of rows to be noised
     :param column_name: String for column that will be noised
     """
@@ -732,7 +731,7 @@ def make_ocr_errors(
     """
     Function that noises strings by replace characters with similar looking characters.
     :param dataset: Dataset object containing the data to be noised
-    :param configuration: LayeredConfigTree object containing noise level values
+    :param configuration: NoiseConfiguration object containing noise level values
     :param to_noise_index: pd.Index of rows to be noised
     :param column_name: String for column that will be noised
     """
