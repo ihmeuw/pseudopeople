@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any, Optional, Union
 
 from layered_config_tree import LayeredConfigTree
@@ -108,18 +110,10 @@ class NoiseConfiguration:
         self, dataset_name: str, noise_type: str, column: str | None = None
     ) -> bool:
         dataset_config = self.to_dict()[dataset_name]
-        if column:
-            has_noise_type = noise_type in dataset_config["column_noise"][column]
-        else:
-            has_noise_type = (
-                "row_noise" in dataset_config and noise_type in dataset_config["row_noise"]
+        if column is not None:
+            has_noise_type = noise_type in dataset_config.get("column_noise", {}).get(
+                column, {}
             )
+        else:
+            has_noise_type = noise_type in dataset_config.get("row_noise", {})
         return has_noise_type
-
-    def has_column_noise(self, dataset_name: str) -> bool:
-        has_column_noise = Keys.COLUMN_NOISE in self.to_dict()[dataset_name]
-        return has_column_noise
-
-    def get_noise_columns(self, dataset_name: str) -> list[str]:
-        columns_in_config = list(self.to_dict()[dataset_name]["column_noise"].keys())
-        return columns_in_config
