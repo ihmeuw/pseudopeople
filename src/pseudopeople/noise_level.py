@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
-from layered_config_tree import LayeredConfigTree
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import data_values

@@ -89,10 +89,10 @@ def get_configuration(
     filters: Sequence[DataFilter] = (),
 ) -> NoiseConfiguration:
     """
-    Gets a noising configuration LayeredConfigTree, optionally overridden by a user-provided YAML.
+    Gets a NoiseConfiguration, optionally overridden by a user-provided YAML.
 
     :param overrides: A path to the YAML file or a dictionary defining user overrides for the defaults
-    :return: a LayeredConfigTree object of the noising configuration
+    :return: a NoiseConfiguration object of the noising configuration
     """
 
     if overrides == NO_NOISE:

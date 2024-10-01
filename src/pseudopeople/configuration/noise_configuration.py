@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 from typing import Any, Optional, Union
 
 from layered_config_tree import LayeredConfigTree
 
+from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, NoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASET_SCHEMAS
@@ -107,7 +110,10 @@ class NoiseConfiguration:
         self, dataset_name: str, noise_type: str, column: str | None = None
     ) -> bool:
         dataset_config = self.to_dict()[dataset_name]
-        has_row_noise_type = (
-            "row_noise" in dataset_config and noise_type in dataset_config["row_noise"]
-        )
-        return has_row_noise_type
+        if column is not None:
+            has_noise_type = noise_type in dataset_config.get("column_noise", {}).get(
+                column, {}
+            )
+        else:
+            has_noise_type = noise_type in dataset_config.get("row_noise", {})
+        return has_noise_type

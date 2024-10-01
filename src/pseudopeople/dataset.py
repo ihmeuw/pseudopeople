@@ -3,7 +3,6 @@ from typing import Any, List, Optional
 
 import numpy as np
 import pandas as pd
-from layered_config_tree import LayeredConfigTree
 from tqdm import tqdm
 
 from pseudopeople.configuration import Keys
@@ -98,32 +97,16 @@ class Dataset:
 
         for noise_type in noise_type_iterator:
             if isinstance(noise_type, RowNoiseType):
-                if configuration.has_row_noise_type(
-                    self.dataset_schema.name, noise_type.name
-                ):
+                if configuration.has_noise_type(self.dataset_schema.name, noise_type.name):
                     # Apply row noise
                     noise_type(self, configuration)
 
             elif isinstance(noise_type, ColumnNoiseType):
-                # TODO: [MIC-5306] update in column noising PR
-                pass
-                # if Keys.COLUMN_NOISE in noise_configuration:
-                #     columns_to_noise = [
-                #         col
-                #         for col in noise_configuration.column_noise
-                #         if col in self.data.columns
-                #         and noise_type.name in noise_configuration.column_noise[col]
-                #     ]
-                #     # Apply column noise to each column as appropriate
-                #     for column in columns_to_noise:
-                #         column_noise_configuration: LayeredConfigTree = (
-                #            noise_configuration.column_noise[column][noise_type.name]
-                #         )
-                #         noise_type(
-                #             self,
-                #             configuration,
-                #             column,
-                #         )
+                for column in self.data.columns:
+                    if configuration.has_noise_type(
+                        self.dataset_schema.name, noise_type.name, column
+                    ):
+                        noise_type(self, configuration, column)
 
             else:
                 raise TypeError(

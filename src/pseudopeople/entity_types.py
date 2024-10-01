@@ -92,7 +92,7 @@ class ColumnNoiseType(NoiseType):
     The name is the name of the particular noise type (e.g. use_nickname" or
     "make_phonetic_errors").
 
-    The noise function takes as input a DataFrame, the LayeredConfigTree object for this
+    The noise function takes as input a DataFrame, the NoiseConfiguration object for this
     ColumnNoise operation, a np.random.default_rng for controlling randomness.
     Optionally, it can take a pre-existing DataFrame indicating where there is missingness
     in the data (same index and columns as the main DataFrame, all boolean type) --
@@ -102,7 +102,7 @@ class ColumnNoiseType(NoiseType):
     """
 
     noise_function: Callable[
-        [Dataset, LayeredConfigTree, pd.Index, str], None
+        [Dataset, NoiseConfiguration, pd.Index, str], None
     ] = _noise_function_not_implemented
     probability: Optional[float] = 0.01
     noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0
@@ -116,13 +116,14 @@ class ColumnNoiseType(NoiseType):
     def __call__(
         self,
         dataset: Dataset,
-        configuration: LayeredConfigTree,
+        configuration: NoiseConfiguration,
         column_name: str,
     ) -> None:
         if dataset.is_empty(column_name):
             return
-
-        cell_probability: float = configuration[Keys.CELL_PROBABILITY]
+        cell_probability: float = configuration.get_cell_probability(
+            dataset.dataset_schema.name, self.name, column_name
+        )
         noise_level = cell_probability * self.noise_level_scaling_function(
             dataset.data, column_name
         )
