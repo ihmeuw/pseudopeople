@@ -286,7 +286,7 @@ def test_two_noise_functions_are_independent(fuzzy_checker: FuzzyChecker) -> Non
     # Mock objects for testing
     def alpha_noise_function(
         dataset_: Dataset,
-        _config: LayeredConfigTree,
+        _config: NoiseConfiguration,
         to_noise_idx: pd.Index,
         column_name: str,
     ) -> None:
@@ -294,7 +294,7 @@ def test_two_noise_functions_are_independent(fuzzy_checker: FuzzyChecker) -> Non
 
     def beta_noise_function(
         dataset_: Dataset,
-        _config: LayeredConfigTree,
+        _config: NoiseConfiguration,
         to_noise_idx: pd.Index,
         column_name: str,
     ) -> None:

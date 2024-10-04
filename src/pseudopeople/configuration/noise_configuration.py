@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Optional, Union
 
 from layered_config_tree import LayeredConfigTree
+from layered_config_tree.types import InputData
 
 from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, NoiseType, RowNoiseType
@@ -31,7 +32,7 @@ class NoiseConfiguration:
         noise_type: str,
         parameter_name: str,
         column_name: Optional[str] = None,
-    ) -> Union[float, int, dict]:
+    ) -> Union[float, int, list, dict]:
         config = self._config
         try:
             dataset_config = config[dataset]
@@ -84,6 +85,37 @@ class NoiseConfiguration:
         )
         return converted_noise_value
 
+    def set_value(
+        self,
+        dataset: str,
+        noise_type: str,
+        parameter_name: str,
+        new_value: Union[float, int, list, dict],
+        column_name: Optional[str] = None,
+    ) -> None:
+        if parameter_name == Keys.POSSIBLE_AGE_DIFFERENCES:
+            if isinstance(new_value, dict) or isinstance(new_value, list):
+                new_value = self._format_misreport_age_perturbations(dataset, new_value)
+        if column_name is not None:
+            updated_tree = LayeredConfigTree(
+                {
+                    dataset: {
+                        "column_noise": {
+                            column_name: {noise_type: {parameter_name: new_value}}
+                        }
+                    }
+                }
+            )
+        else:
+            updated_tree = LayeredConfigTree(
+                {dataset: {"row_noise": {noise_type: {parameter_name: new_value}}}}
+            )
+
+        self._config.update(updated_tree)
+
+    def update(self, data: InputData) -> None:
+        self._config.update(data)
+
     def get_row_probability(self, dataset: str, noise_type: str) -> Union[int, float]:
         value: Union[int, float] = self.get_value(
             dataset, noise_type, parameter_name="row_probability"
@@ -117,3 +149,25 @@ class NoiseConfiguration:
         else:
             has_noise_type = noise_type in dataset_config.get("row_noise", {})
         return has_noise_type
+
+    def _format_misreport_age_perturbations(
+        self, dataset: str, perturbations: Union[list[int], dict[int, float]]
+    ) -> dict[int, float]:
+        # Format any age perturbation lists as a dictionary with uniform probabilities
+        formatted = {}
+        default_perturbations: dict[int, float] = self.get_value(
+            dataset, NOISE_TYPES.misreport_age.name, Keys.POSSIBLE_AGE_DIFFERENCES, "age"
+        )
+        # Replace default configuration with 0 probabilities
+        for perturbation in default_perturbations:
+            formatted[perturbation] = 0.0
+        if isinstance(perturbations, list):
+            # Add user perturbations with uniform probabilities
+            uniform_prob = 1 / len(perturbations)
+            for perturbation in perturbations:
+                formatted[perturbation] = uniform_prob
+        else:
+            for perturbation, prob in perturbations.items():
+                formatted[perturbation] = prob
+
+        return formatted
