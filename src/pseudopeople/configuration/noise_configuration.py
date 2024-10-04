@@ -77,7 +77,6 @@ class NoiseConfiguration:
                 f"Available parameters are {list(parameter_tree.keys())}."
             )
         noise_value: Union[int, float, LayeredConfigTree] = parameter_tree[parameter_name]
-        # TODO: [MIC-5238] deal with properly when updating column noising, possibly with custom getter
         converted_noise_value: Union[int, float, dict] = (
             noise_value.to_dict()
             if isinstance(noise_value, LayeredConfigTree)
@@ -95,7 +94,11 @@ class NoiseConfiguration:
     ) -> None:
         if parameter_name == Keys.POSSIBLE_AGE_DIFFERENCES:
             if isinstance(new_value, dict) or isinstance(new_value, list):
-                new_value = self._format_misreport_age_perturbations(dataset, new_value)
+                new_value = self.format_misreport_age_perturbations(dataset, new_value)
+            else:
+                raise ValueError(
+                    f"possible_age_differences must be a dictionary or list. You provided a {type(new_value)}"
+                )
         if column_name is not None:
             updated_tree = LayeredConfigTree(
                 {
@@ -112,9 +115,6 @@ class NoiseConfiguration:
             )
 
         self._config.update(updated_tree)
-
-    def update(self, data: InputData) -> None:
-        self._config.update(data)
 
     def get_row_probability(self, dataset: str, noise_type: str) -> Union[int, float]:
         value: Union[int, float] = self.get_value(
@@ -150,7 +150,7 @@ class NoiseConfiguration:
             has_noise_type = noise_type in dataset_config.get("row_noise", {})
         return has_noise_type
 
-    def _format_misreport_age_perturbations(
+    def format_misreport_age_perturbations(
         self, dataset: str, perturbations: Union[list[int], dict[int, float]]
     ) -> dict[int, float]:
         # Format any age perturbation lists as a dictionary with uniform probabilities
