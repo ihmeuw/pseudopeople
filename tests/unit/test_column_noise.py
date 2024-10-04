@@ -1396,19 +1396,20 @@ def test_seeds_behave_as_expected(
 
 def test_age_write_wrong_digits(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     # Tests write wrong digits is now applied to age column - albrja(10/23/23)
-    config = get_configuration(
-        {
-            DATASET_SCHEMAS.census.name: {
-                Keys.COLUMN_NOISE: {
-                    "age": {
-                        NOISE_TYPES.write_wrong_digits.name: {
-                            Keys.CELL_PROBABILITY: 0.4,
-                            Keys.TOKEN_PROBABILITY: 0.5,
-                        },
-                    },
-                },
-            },
-        }
+    config = get_configuration()
+    config.set_value(
+        DATASET_SCHEMAS.census.name,
+        NOISE_TYPES.write_wrong_digits.name,
+        Keys.CELL_PROBABILITY,
+        0.4,
+        "age",
+    )
+    config.set_value(
+        DATASET_SCHEMAS.census.name,
+        NOISE_TYPES.write_wrong_digits.name,
+        Keys.TOKEN_PROBABILITY,
+        0.5,
+        "age",
     )
 
     data = to_string(dataset.data["age"].copy())
