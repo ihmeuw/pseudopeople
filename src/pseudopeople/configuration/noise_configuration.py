@@ -84,38 +84,6 @@ class NoiseConfiguration:
         )
         return converted_noise_value
 
-    def set_value(
-        self,
-        dataset: str,
-        noise_type: str,
-        parameter_name: str,
-        new_value: Union[float, int, list, dict],
-        column_name: Optional[str] = None,
-    ) -> None:
-        if parameter_name == Keys.POSSIBLE_AGE_DIFFERENCES:
-            if isinstance(new_value, dict) or isinstance(new_value, list):
-                new_value = self.format_misreport_age_perturbations(dataset, new_value)
-            else:
-                raise ValueError(
-                    f"possible_age_differences must be a dictionary or list. You provided a {type(new_value)}"
-                )
-        if column_name is not None:
-            updated_tree = LayeredConfigTree(
-                {
-                    dataset: {
-                        "column_noise": {
-                            column_name: {noise_type: {parameter_name: new_value}}
-                        }
-                    }
-                }
-            )
-        else:
-            updated_tree = LayeredConfigTree(
-                {dataset: {"row_noise": {noise_type: {parameter_name: new_value}}}}
-            )
-
-        self._config.update(updated_tree)
-
     def get_row_probability(self, dataset: str, noise_type: str) -> Union[int, float]:
         value: Union[int, float] = self.get_value(
             dataset, noise_type, parameter_name="row_probability"
@@ -171,3 +139,6 @@ class NoiseConfiguration:
                 formatted[perturbation] = prob
 
         return formatted
+
+    def update(self, data: InputData) -> None:
+        self._config.update(data)

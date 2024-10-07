@@ -300,12 +300,18 @@ def dataset_different_seed(dummy_dataset: pd.DataFrame) -> Dataset:
 def test_leave_blank(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     column_name = "zipcode"
     config: NoiseConfiguration = get_configuration()
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.leave_blank.name,
-        Keys.CELL_PROBABILITY,
-        0.25,
-        column_name,
+    config.update(
+        {
+            DATASET_SCHEMAS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    "zipcode": {
+                        NOISE_TYPES.leave_blank.name: {
+                            Keys.CELL_PROBABILITY: 0.25,
+                        },
+                    },
+                },
+            },
+        }
     )
 
     data = dataset.data[[column_name]]
@@ -397,12 +403,18 @@ def test_swap_months_and_day(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> N
     for col in ["event_date", "date_of_birth"]:
         data = dataset.data[col].copy()
         config: NoiseConfiguration = get_configuration()
-        config.set_value(
-            DATASET_SCHEMAS.census.name,
-            NOISE_TYPES.swap_month_and_day.name,
-            Keys.CELL_PROBABILITY,
-            0.25,
-            col,
+        config.update(
+            {
+                DATASET_SCHEMAS.census.name: {
+                    Keys.COLUMN_NOISE: {
+                        col: {
+                            NOISE_TYPES.swap_month_and_day.name: {
+                                Keys.CELL_PROBABILITY: 0.25,
+                            },
+                        },
+                    },
+                },
+            }
         )
         expected_noise: float = config.get_cell_probability(
             dataset.dataset_schema.name, NOISE_TYPES.swap_month_and_day.name, col
@@ -425,19 +437,19 @@ def test_swap_months_and_day(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> N
 def test_write_wrong_zipcode_digits(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     column_name: str = "zipcode"
     config: NoiseConfiguration = get_configuration()
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.write_wrong_zipcode_digits.name,
-        Keys.CELL_PROBABILITY,
-        0.5,
-        column_name,
-    )
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.write_wrong_zipcode_digits.name,
-        Keys.ZIPCODE_DIGIT_PROBABILITIES,
-        [0.3, 0.3, 0.4, 0.5, 0.5],
-        column_name,
+    config.update(
+        {
+            DATASET_SCHEMAS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    "zipcode": {
+                        NOISE_TYPES.write_wrong_zipcode_digits.name: {
+                            Keys.CELL_PROBABILITY: 0.5,
+                            Keys.ZIPCODE_DIGIT_PROBABILITIES: [0.3, 0.3, 0.4, 0.5, 0.5],
+                        },
+                    },
+                },
+            },
+        }
     )
 
     # Get configuration values for each piece of 5 digit zipcode
@@ -525,20 +537,19 @@ def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker) -> Non
     original_age = 25
     perturbations = [-2, -1, 1]
 
-    config: NoiseConfiguration = get_configuration()
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.misreport_age.name,
-        Keys.CELL_PROBABILITY,
-        0.4,
-        "age",
-    )
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.misreport_age.name,
-        Keys.POSSIBLE_AGE_DIFFERENCES,
-        perturbations,
-        "age",
+    config: NoiseConfiguration = get_configuration(
+        {
+            DATASET_SCHEMAS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    "age": {
+                        NOISE_TYPES.misreport_age.name: {
+                            Keys.CELL_PROBABILITY: 0.4,
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
+                        },
+                    },
+                },
+            },
+        }
     )
 
     data = pd.Series([str(original_age)] * num_rows, name="age")
@@ -569,20 +580,19 @@ def test_miswrite_ages_provided_probabilities(
     original_age = 25
     perturbations = {-1: 0.1, 1: 0.9}
 
-    config: NoiseConfiguration = get_configuration()
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.misreport_age.name,
-        Keys.CELL_PROBABILITY,
-        0.6,
-        "age",
-    )
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.misreport_age.name,
-        Keys.POSSIBLE_AGE_DIFFERENCES,
-        perturbations,
-        "age",
+    config: NoiseConfiguration = get_configuration(
+        {
+            DATASET_SCHEMAS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    "age": {
+                        NOISE_TYPES.misreport_age.name: {
+                            Keys.CELL_PROBABILITY: 0.6,
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
+                        },
+                    },
+                },
+            },
+        },
     )
 
     data = pd.Series([str(original_age)] * num_rows, name="age")
@@ -614,20 +624,19 @@ def test_miswrite_ages_handles_perturbation_to_same_age() -> None:
     age = 1.0
     perturbations = [-2]  # This will cause -1 which will be flipped to +1
 
-    config: NoiseConfiguration = get_configuration()
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.misreport_age.name,
-        Keys.CELL_PROBABILITY,
-        0.3,
-        "age",
-    )
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.misreport_age.name,
-        Keys.POSSIBLE_AGE_DIFFERENCES,
-        perturbations,
-        "age",
+    config: NoiseConfiguration = get_configuration(
+        {
+            DATASET_SCHEMAS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    "age": {
+                        NOISE_TYPES.misreport_age.name: {
+                            Keys.CELL_PROBABILITY: 0.3,
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
+                        },
+                    },
+                },
+            },
+        },
     )
 
     data = pd.Series([age] * num_rows, name="age")
@@ -645,20 +654,19 @@ def test_miswrite_ages_flips_negative_to_positive() -> None:
     age = 3.0
     perturbations = [-7]  # This will cause -4 and should flip to +4
 
-    config: NoiseConfiguration = get_configuration()
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.misreport_age.name,
-        Keys.CELL_PROBABILITY,
-        0.6,
-        "age",
-    )
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.misreport_age.name,
-        Keys.POSSIBLE_AGE_DIFFERENCES,
-        perturbations,
-        "age",
+    config: NoiseConfiguration = get_configuration(
+        {
+            DATASET_SCHEMAS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    "age": {
+                        NOISE_TYPES.misreport_age.name: {
+                            Keys.CELL_PROBABILITY: 0.6,
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
+                        },
+                    },
+                },
+            },
+        },
     )
 
     data = pd.Series([age] * num_rows, name="age")
@@ -675,19 +683,19 @@ def test_write_wrong_digits_robust(dataset: Dataset, fuzzy_checker: FuzzyChecker
     Validates that only numeric characters are noised in a series at a provided noise level.
     """
     config: NoiseConfiguration = get_configuration()
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.misreport_age.name,
-        Keys.CELL_PROBABILITY,
-        0.4,
-        "street_number",
-    )
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.misreport_age.name,
-        Keys.TOKEN_PROBABILITY,
-        0.5,
-        "street_number",
+    config.update(
+        {
+            DATASET_SCHEMAS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    "street_number": {
+                        NOISE_TYPES.write_wrong_digits.name: {
+                            Keys.CELL_PROBABILITY: 0.4,
+                            Keys.TOKEN_PROBABILITY: 0.5,
+                        },
+                    },
+                },
+            },
+        }
     )
 
     p_row_noise: float = config.get_cell_probability(
@@ -813,19 +821,19 @@ def test_write_wrong_digits(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> No
     # It only checks that numeric characters are noised at the correct level as
     # a sanity check our noise is of the right magnitude
     config: NoiseConfiguration = get_configuration()
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.write_wrong_digits.name,
-        Keys.CELL_PROBABILITY,
-        0.4,
-        "street_number",
-    )
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.write_wrong_digits.name,
-        Keys.TOKEN_PROBABILITY,
-        0.5,
-        "street_number",
+    config.update(
+        {
+            DATASET_SCHEMAS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    "street_number": {
+                        NOISE_TYPES.write_wrong_digits.name: {
+                            Keys.CELL_PROBABILITY: 0.4,
+                            Keys.TOKEN_PROBABILITY: 0.5,
+                        },
+                    },
+                },
+            },
+        }
     )
 
     expected_cell_noise = config.get_cell_probability(
@@ -922,12 +930,18 @@ def test_use_fake_name(dataset: Dataset, column: str, fuzzy_checker: FuzzyChecke
     Function to test that fake names are noised and replace raw values at a configured percentage
     """
     config: NoiseConfiguration = get_configuration()
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.use_fake_name.name,
-        Keys.CELL_PROBABILITY,
-        0.4,
-        column,
+    config.update(
+        {
+            DATASET_SCHEMAS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    column: {
+                        NOISE_TYPES.use_fake_name.name: {
+                            Keys.CELL_PROBABILITY: 0.4,
+                        },
+                    },
+                },
+            },
+        }
     )
 
     data = dataset.data[column].copy()
@@ -973,19 +987,19 @@ def test_generate_phonetic_errors(
     data = dataset.data[column].copy()
 
     config = get_configuration()
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.make_phonetic_errors.name,
-        Keys.CELL_PROBABILITY,
-        0.1,
-        column,
-    )
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.make_phonetic_errors.name,
-        Keys.TOKEN_PROBABILITY,
-        0.5,
-        column,
+    config.update(
+        {
+            DATASET_SCHEMAS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    column: {
+                        NOISE_TYPES.make_phonetic_errors.name: {
+                            Keys.CELL_PROBABILITY: 0.1,
+                            Keys.TOKEN_PROBABILITY: 0.5,
+                        },
+                    }
+                },
+            },
+        }
     )
     NOISE_TYPES.make_phonetic_errors(dataset, config, column)
     noised_data = dataset.data[column]
@@ -1046,19 +1060,19 @@ def test_phonetic_error_values(pair: tuple[int, int], fuzzy_checker: FuzzyChecke
     cell_probability = 0.9
     token_probability = 0.3
 
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.make_phonetic_errors.name,
-        Keys.CELL_PROBABILITY,
-        cell_probability,
-        column_name,
-    )
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.make_phonetic_errors.name,
-        Keys.TOKEN_PROBABILITY,
-        token_probability,
-        column_name,
+    config.update(
+        {
+            DATASET_SCHEMAS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    column_name: {
+                        NOISE_TYPES.make_phonetic_errors.name: {
+                            Keys.CELL_PROBABILITY: cell_probability,
+                            Keys.TOKEN_PROBABILITY: token_probability,
+                        },
+                    }
+                },
+            },
+        }
     )
 
     df = pd.DataFrame({column_name: data})
@@ -1102,19 +1116,19 @@ def test_generate_ocr_errors(
 ) -> None:
     config: NoiseConfiguration = get_configuration()
 
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.make_ocr_errors.name,
-        Keys.CELL_PROBABILITY,
-        0.1,
-        column,
-    )
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.make_ocr_errors.name,
-        Keys.TOKEN_PROBABILITY,
-        0.1,
-        column,
+    config.update(
+        {
+            DATASET_SCHEMAS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    column: {
+                        NOISE_TYPES.make_ocr_errors.name: {
+                            Keys.CELL_PROBABILITY: 0.1,
+                            Keys.TOKEN_PROBABILITY: 0.1,
+                        },
+                    }
+                },
+            },
+        }
     )
 
     # Get node
@@ -1175,19 +1189,19 @@ def test_ocr_replacement_values(pair: tuple[int, int], fuzzy_checker: FuzzyCheck
     cell_probability = 0.9
     token_probability = 0.3
     config: NoiseConfiguration = get_configuration()
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.make_ocr_errors.name,
-        Keys.CELL_PROBABILITY,
-        cell_probability,
-        column_name,
-    )
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.make_ocr_errors.name,
-        Keys.TOKEN_PROBABILITY,
-        token_probability,
-        column_name,
+    config.update(
+        {
+            DATASET_SCHEMAS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    column_name: {
+                        NOISE_TYPES.make_ocr_errors.name: {
+                            Keys.CELL_PROBABILITY: cell_probability,
+                            Keys.TOKEN_PROBABILITY: token_probability,
+                        },
+                    }
+                },
+            },
+        }
     )
 
     df = pd.DataFrame({column_name: data})
@@ -1225,19 +1239,19 @@ def test_ocr_replacement_values(pair: tuple[int, int], fuzzy_checker: FuzzyCheck
 )
 def test_make_typos(dataset: Dataset, column: str, fuzzy_checker: FuzzyChecker) -> None:
     config: NoiseConfiguration = get_configuration()
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.make_typos.name,
-        Keys.CELL_PROBABILITY,
-        0.1,
-        column,
-    )
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.make_typos.name,
-        Keys.TOKEN_PROBABILITY,
-        0.1,
-        column,
+    config.update(
+        {
+            DATASET_SCHEMAS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    column: {
+                        NOISE_TYPES.make_typos.name: {
+                            Keys.CELL_PROBABILITY: 0.1,
+                            Keys.TOKEN_PROBABILITY: 0.1,
+                        },
+                    },
+                },
+            },
+        }
     )
 
     print(dataset.dataset_schema.name)
@@ -1343,25 +1357,24 @@ def test_seeds_behave_as_expected(
 
     if data_col in COLS_MISSING_FROM_CONFIG:
         cell_probability = config.get_cell_probability(dataset_name, noise, dataset_col)
-        token_probability = 0.0
         # if we have token probability:
         try:
             token_probability = config.get_token_probability(dataset_name, noise, dataset_col)
         except:
-            pass
-        config.set_value(
-            dataset.dataset_schema.name,
-            noise,
-            Keys.CELL_PROBABILITY,
-            cell_probability,
-            data_col,
-        )
-        config.set_value(
-            dataset.dataset_schema.name,
-            noise,
-            Keys.TOKEN_PROBABILITY,
-            token_probability,
-            data_col,
+            token_probability = 0.0
+        config.update(
+            {
+                dataset.dataset_schema.name: {
+                    Keys.COLUMN_NOISE: {
+                        data_col: {
+                            noise: {
+                                Keys.CELL_PROBABILITY: cell_probability,
+                                Keys.TOKEN_PROBABILITY: token_probability,
+                            },
+                        },
+                    },
+                },
+            }
         )
 
     if noise == NOISE_TYPES.copy_from_household_member.name:
@@ -1397,19 +1410,19 @@ def test_seeds_behave_as_expected(
 def test_age_write_wrong_digits(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     # Tests write wrong digits is now applied to age column - albrja(10/23/23)
     config = get_configuration()
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.write_wrong_digits.name,
-        Keys.CELL_PROBABILITY,
-        0.4,
-        "age",
-    )
-    config.set_value(
-        DATASET_SCHEMAS.census.name,
-        NOISE_TYPES.write_wrong_digits.name,
-        Keys.TOKEN_PROBABILITY,
-        0.5,
-        "age",
+    config.update(
+        {
+            DATASET_SCHEMAS.census.name: {
+                Keys.COLUMN_NOISE: {
+                    "age": {
+                        NOISE_TYPES.write_wrong_digits.name: {
+                            Keys.CELL_PROBABILITY: 0.4,
+                            Keys.TOKEN_PROBABILITY: 0.5,
+                        },
+                    },
+                },
+            },
+        }
     )
 
     data = to_string(dataset.data["age"].copy())
