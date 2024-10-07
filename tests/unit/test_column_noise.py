@@ -1,3 +1,4 @@
+# mypy: disable-error-code="unused-ignore"
 from __future__ import annotations
 
 import math
@@ -304,7 +305,7 @@ def test_leave_blank(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
-                    "zipcode": {
+                    column_name: {
                         NOISE_TYPES.leave_blank.name: {
                             Keys.CELL_PROBABILITY: 0.25,
                         },
@@ -403,13 +404,16 @@ def test_swap_months_and_days(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> 
     for col in ["event_date", "date_of_birth"]:
         data = dataset.data[col].copy()
         config: NoiseConfiguration = get_configuration()
+
+        cell_probability = {"event_date": 0.25, "date_of_birth": 0.01}[col]
+
         config._update(
             {
                 DATASET_SCHEMAS.census.name: {
                     Keys.COLUMN_NOISE: {
                         col: {
                             NOISE_TYPES.swap_month_and_day.name: {
-                                Keys.CELL_PROBABILITY: 0.25,
+                                Keys.CELL_PROBABILITY: cell_probability,
                             },
                         },
                     },
@@ -417,8 +421,9 @@ def test_swap_months_and_days(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> 
             }
         )
         expected_noise: float = config.get_cell_probability(
-            dataset.dataset_schema.name, NOISE_TYPES.swap_month_and_day.name, col
+            DATASET_SCHEMAS.census.name, NOISE_TYPES.swap_month_and_day.name, col
         )
+
         NOISE_TYPES.swap_month_and_day(dataset, config, col)
         noised_data = dataset.data[col]
         # Confirm missing data remains missing
@@ -535,7 +540,7 @@ def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker) -> Non
     """Test that a list of perturbations passed in results in uniform probabilities"""
     num_rows = 100_000
     original_age = 25
-    perturbations = [-2, -1, 1]
+    perturbations: list = [-2, -1, 1]
 
     config: NoiseConfiguration = get_configuration(
         {
@@ -575,10 +580,10 @@ def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker) -> Non
 def test_miswrite_ages_provided_probabilities(
     dataset: Dataset, fuzzy_checker: FuzzyChecker
 ) -> None:
-    """Test that provided age perturation probabilites are handled"""
+    """Test that provided age perturbation probabilites are handled"""
     num_rows = 100_000
     original_age = 25
-    perturbations = {-1: 0.1, 1: 0.9}
+    perturbations: dict = {-1: 0.1, 1: 0.9}
 
     config: NoiseConfiguration = get_configuration(
         {
@@ -587,7 +592,7 @@ def test_miswrite_ages_provided_probabilities(
                     "age": {
                         NOISE_TYPES.misreport_age.name: {
                             Keys.CELL_PROBABILITY: 0.6,
-                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,  # type: ignore [dict-item]
                         },
                     },
                 },
@@ -622,7 +627,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age() -> None:
     """
     num_rows = 100
     age = 1.0
-    perturbations = [-2]  # This will cause -1 which will be flipped to +1
+    perturbations: list = [-2]  # This will cause -1 which will be flipped to +1
 
     config: NoiseConfiguration = get_configuration(
         {
@@ -652,7 +657,7 @@ def test_miswrite_ages_flips_negative_to_positive() -> None:
     """Test that any ages perturbed to <0 are reflected to positive values"""
     num_rows = 100
     age = 3.0
-    perturbations = [-7]  # This will cause -4 and should flip to +4
+    perturbations: list = [-7]  # This will cause -4 and should flip to +4
 
     config: NoiseConfiguration = get_configuration(
         {

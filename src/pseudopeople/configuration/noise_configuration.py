@@ -32,7 +32,7 @@ class NoiseConfiguration:
         noise_type: str,
         parameter_name: str,
         column_name: Optional[str] = None,
-    ) -> Union[float, int, list, dict]:
+    ) -> float | int | list | dict:
         config = self._config
         try:
             dataset_config = config[dataset]
