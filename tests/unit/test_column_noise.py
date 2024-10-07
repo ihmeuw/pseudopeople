@@ -1254,7 +1254,6 @@ def test_make_typos(dataset: Dataset, column: str, fuzzy_checker: FuzzyChecker) 
         }
     )
 
-    print(dataset.dataset_schema.name)
     data = dataset.data[column].copy()
     NOISE_TYPES.make_typos(dataset, config, column)
     noised_data = dataset.data[column]
