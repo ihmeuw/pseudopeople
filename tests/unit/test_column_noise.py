@@ -399,7 +399,7 @@ def test_generate_copy_from_household_member(
     assert noised_data.loc[original_missing_idx].isnull().all()
 
 
-def test_swap_months_and_day(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
+def test_swap_months_and_days(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     for col in ["event_date", "date_of_birth"]:
         data = dataset.data[col].copy()
         config: NoiseConfiguration = get_configuration()
