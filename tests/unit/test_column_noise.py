@@ -300,7 +300,7 @@ def dataset_different_seed(dummy_dataset: pd.DataFrame) -> Dataset:
 def test_leave_blank(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     column_name = "zipcode"
     config: NoiseConfiguration = get_configuration()
-    config.update(
+    config._update(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -403,7 +403,7 @@ def test_swap_months_and_days(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> 
     for col in ["event_date", "date_of_birth"]:
         data = dataset.data[col].copy()
         config: NoiseConfiguration = get_configuration()
-        config.update(
+        config._update(
             {
                 DATASET_SCHEMAS.census.name: {
                     Keys.COLUMN_NOISE: {
@@ -437,7 +437,7 @@ def test_swap_months_and_days(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> 
 def test_write_wrong_zipcode_digits(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     column_name: str = "zipcode"
     config: NoiseConfiguration = get_configuration()
-    config.update(
+    config._update(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -683,7 +683,7 @@ def test_write_wrong_digits_robust(dataset: Dataset, fuzzy_checker: FuzzyChecker
     Validates that only numeric characters are noised in a series at a provided noise level.
     """
     config: NoiseConfiguration = get_configuration()
-    config.update(
+    config._update(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -821,7 +821,7 @@ def test_write_wrong_digits(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> No
     # It only checks that numeric characters are noised at the correct level as
     # a sanity check our noise is of the right magnitude
     config: NoiseConfiguration = get_configuration()
-    config.update(
+    config._update(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -930,7 +930,7 @@ def test_use_fake_name(dataset: Dataset, column: str, fuzzy_checker: FuzzyChecke
     Function to test that fake names are noised and replace raw values at a configured percentage
     """
     config: NoiseConfiguration = get_configuration()
-    config.update(
+    config._update(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -987,7 +987,7 @@ def test_generate_phonetic_errors(
     data = dataset.data[column].copy()
 
     config = get_configuration()
-    config.update(
+    config._update(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -1060,7 +1060,7 @@ def test_phonetic_error_values(pair: tuple[int, int], fuzzy_checker: FuzzyChecke
     cell_probability = 0.9
     token_probability = 0.3
 
-    config.update(
+    config._update(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -1116,7 +1116,7 @@ def test_generate_ocr_errors(
 ) -> None:
     config: NoiseConfiguration = get_configuration()
 
-    config.update(
+    config._update(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -1189,7 +1189,7 @@ def test_ocr_replacement_values(pair: tuple[int, int], fuzzy_checker: FuzzyCheck
     cell_probability = 0.9
     token_probability = 0.3
     config: NoiseConfiguration = get_configuration()
-    config.update(
+    config._update(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -1239,7 +1239,7 @@ def test_ocr_replacement_values(pair: tuple[int, int], fuzzy_checker: FuzzyCheck
 )
 def test_make_typos(dataset: Dataset, column: str, fuzzy_checker: FuzzyChecker) -> None:
     config: NoiseConfiguration = get_configuration()
-    config.update(
+    config._update(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -1361,7 +1361,7 @@ def test_seeds_behave_as_expected(
             token_probability = config.get_token_probability(dataset_name, noise, dataset_col)
         except:
             token_probability = 0.0
-        config.update(
+        config._update(
             {
                 dataset.dataset_schema.name: {
                     Keys.COLUMN_NOISE: {
@@ -1409,7 +1409,7 @@ def test_seeds_behave_as_expected(
 def test_age_write_wrong_digits(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     # Tests write wrong digits is now applied to age column - albrja(10/23/23)
     config = get_configuration()
-    config.update(
+    config._update(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {

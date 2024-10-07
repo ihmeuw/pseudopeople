@@ -118,5 +118,5 @@ class NoiseConfiguration:
             has_noise_type = noise_type in dataset_config.get("row_noise", {})
         return has_noise_type
 
-    def update(self, data: InputData) -> None:
+    def _update(self, data: InputData) -> None:
         self._config.update(data)
