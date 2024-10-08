@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Optional, Union
 
 from layered_config_tree import LayeredConfigTree
+from layered_config_tree.types import InputData
 
 from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, NoiseType, RowNoiseType
@@ -31,7 +32,7 @@ class NoiseConfiguration:
         noise_type: str,
         parameter_name: str,
         column_name: Optional[str] = None,
-    ) -> Union[float, int, dict]:
+    ) -> float | int | list | dict:
         config = self._config
         try:
             dataset_config = config[dataset]
@@ -76,7 +77,6 @@ class NoiseConfiguration:
                 f"Available parameters are {list(parameter_tree.keys())}."
             )
         noise_value: Union[int, float, LayeredConfigTree] = parameter_tree[parameter_name]
-        # TODO: [MIC-5238] deal with properly when updating column noising, possibly with custom getter
         converted_noise_value: Union[int, float, dict] = (
             noise_value.to_dict()
             if isinstance(noise_value, LayeredConfigTree)
@@ -117,3 +117,6 @@ class NoiseConfiguration:
         else:
             has_noise_type = noise_type in dataset_config.get("row_noise", {})
         return has_noise_type
+
+    def _update(self, data: InputData) -> None:
+        self._config.update(data)
