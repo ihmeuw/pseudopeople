@@ -6,6 +6,7 @@ from typing import NamedTuple
 import pandas as pd
 import pytest
 from layered_config_tree import LayeredConfigTree
+from pytest import MonkeyPatch
 from pytest_mock import MockerFixture
 
 from pseudopeople.configuration import Keys
@@ -107,7 +108,6 @@ def get_dummy_config_noise_numbers(dataset_schema: DatasetSchema) -> NoiseConfig
     return NoiseConfiguration(config)
 
 
-@pytest.mark.skip(reason="needs column noising to be updated")
 @pytest.mark.parametrize(
     "dataset_schema",
     list(DATASET_SCHEMAS),
@@ -213,7 +213,6 @@ def test_noise_order(
     assert expected_call_order == call_order
 
 
-@pytest.mark.skip(reason="needs column noising to be updated")
 # TODO: beef this function up
 def test_columns_noised(dummy_data: pd.DataFrame) -> None:
     """Test that the noise functions are only applied to the numbers column
@@ -262,9 +261,13 @@ def test_correct_datasets_are_used(
     assert mock.call_args[0][0] == dataset_schema
 
 
-@pytest.mark.skip(reason="needs column noising to be updated")
-def test_two_noise_functions_are_independent(fuzzy_checker: FuzzyChecker) -> None:
+def test_two_noise_functions_are_independent(
+    fuzzy_checker: FuzzyChecker, monkeypatch: MonkeyPatch
+) -> None:
     # Make simple config tree to test 2 noise functions work together
+    monkeypatch.setattr(
+        "pseudopeople.configuration.noise_configuration.COLUMN_NOISE_TYPES", ["alpha", "beta"]
+    )
     config_tree = LayeredConfigTree(
         {
             DATASET_SCHEMAS.census.name: {

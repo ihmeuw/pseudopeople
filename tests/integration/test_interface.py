@@ -12,6 +12,8 @@ from pandas.api.types import is_datetime64_any_dtype as is_datetime
 from pytest_mock import MockerFixture
 
 from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.configuration.noise_configuration import NoiseConfiguration
+from pseudopeople.entity_types import ColumnNoiseType, NoiseType, RowNoiseType
 from pseudopeople.interface import (
     generate_american_community_survey,
     generate_current_population_survey,
@@ -39,6 +41,7 @@ from tests.integration.conftest import (
     _initialize_dataset_with_sample,
     get_unnoised_data,
 )
+from tests.unit.test_configuration import COLUMN_NOISE_TYPES
 
 DATASET_GENERATION_FUNCS: dict[str, Callable] = {
     DATASET_SCHEMAS.census.name: generate_decennial_census,
@@ -382,10 +385,13 @@ def test_row_noising_omit_row_or_do_not_respond(
     else:
         noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
     noised_data = noised_data.set_index(idx_cols)
-    config_tree = get_configuration(config)[dataset_name][Keys.ROW_NOISE]
-    noise_type = [
-        n for n in config_tree if n in [NOISE_TYPES.omit_row.name, NOISE_TYPES.do_not_respond.name]  # type: ignore [union-attr]
+    noise_config: NoiseConfiguration = get_configuration(config)
+    noise_types = [
+        noise_type
+        for noise_type in [NOISE_TYPES.omit_row.name, NOISE_TYPES.do_not_respond.name]
+        if noise_config.has_noise_type(dataset_name, noise_type)
     ]
+
     if dataset_name in [
         DATASET_SCHEMAS.census.name,
         DATASET_SCHEMAS.acs.name,
@@ -393,10 +399,10 @@ def test_row_noising_omit_row_or_do_not_respond(
     ]:
         # Census and household surveys have do_not_respond and omit_row.
         # For all other datasets they are mutually exclusive
-        assert len(noise_type) == 2
+        assert len(noise_types) == 2
     else:
-        assert len(noise_type) < 2
-    if not noise_type:  # Check that there are no missing indexes
+        assert len(noise_types) < 2
+    if not noise_types:  # Check that there are no missing indexes
         assert noised_data.index.symmetric_difference(original_data.index).empty
     else:  # Check that there are some omissions
         # TODO: assert levels are as expected
@@ -803,7 +809,7 @@ def _validate_column_noise_level(
     check_idx: pd.Index,
     noise_level: int,
     col: Column,
-    config: LayeredConfigTree,
+    config: NoiseConfiguration,
     fuzzy_name: str,
     validator: FuzzyChecker,
 ) -> None:
@@ -812,12 +818,15 @@ def _validate_column_noise_level(
     and calculates the expected noise level for each. It then accumulates the expected
     noise level as we layer more noise types on top of each other.
     """
-    tmp_config: LayeredConfigTree = config[dataset_name][Keys.COLUMN_NOISE][col.name]
     includes_token_noising = [
-        noise_type
-        for noise_type in tmp_config
-        if Keys.TOKEN_PROBABILITY in tmp_config[noise_type]
-        or Keys.ZIPCODE_DIGIT_PROBABILITIES in tmp_config[noise_type]
+        noise_type.name
+        for noise_type in COLUMN_NOISE_TYPES
+        if config.has_parameter(
+            dataset_name, noise_type.name, Keys.TOKEN_PROBABILITY, col.name
+        )
+        or config.has_parameter(
+            dataset_name, noise_type.name, Keys.ZIPCODE_DIGIT_PROBABILITIES, col.name
+        )
     ]
 
     # Calculate expected noise (target proportion for fuzzy checker)
@@ -829,9 +838,9 @@ def _validate_column_noise_level(
             token_probability_key = {
                 NOISE_TYPES.write_wrong_zipcode_digits.name: Keys.ZIPCODE_DIGIT_PROBABILITIES,
             }.get(col_noise_type.name, Keys.TOKEN_PROBABILITY)
-            token_probability: Union[list[float], float] = tmp_config[col_noise_type.name][
-                token_probability_key
-            ]
+            token_probability: Union[list[float], float] = config.get_value(
+                dataset_name, col_noise_type.name, token_probability_key, col.name
+            )
             # Get number of tokens per string to calculate expected proportion
             tokens_per_string_getter: Callable = TOKENS_PER_STRING_MAPPER.get(
                 col_noise_type.name, lambda x: x.astype(str).str.len()
