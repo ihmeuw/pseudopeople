@@ -118,5 +118,23 @@ class NoiseConfiguration:
             has_noise_type = noise_type in dataset_config.get("row_noise", {})
         return has_noise_type
 
+    def has_parameter(
+        self,
+        dataset: str,
+        noise_type: str,
+        parameter_name: str,
+        column_name: Optional[str] = None,
+    ) -> bool:
+        if column_name:
+            has_parameter = parameter_name in self.to_dict().get(dataset, {}).get(
+                "column_noise", {}
+            ).get(column_name, {}).get(noise_type, {})
+        else:
+            has_parameter = parameter_name in self.to_dict().get(dataset, {}).get(
+                "row_noise", {}
+            ).get(noise_type, {})
+
+        return has_parameter
+
     def _update(self, data: InputData) -> None:
         self._config.update(data)

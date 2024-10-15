@@ -139,8 +139,6 @@ def test_do_not_respond_missing_columns(dummy_data: pd.DataFrame) -> None:
         NOISE_TYPES.do_not_respond(census, config)
 
 
-# TODO: [MIC-5307] use config setter
-@pytest.mark.skip(reason="needs config setter to be defined")
 def test_guardian_duplication() -> None:
     # We are going to make a small dataframe and update the configuration to noise 100% of the
     # available rows. We will then check that the correct rows were copied with the correct
@@ -230,12 +228,21 @@ def test_guardian_duplication() -> None:
         }
     )
     # Noise 100% of rows
-    config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][
-        Keys.ROW_NOISE
-    ][NOISE_TYPES.duplicate_with_guardian.name]
-    overrides = LayeredConfigTree({key: 1 for key in config})
+    config: NoiseConfiguration = get_configuration()
+    config._update(
+        {
+            DATASET_SCHEMAS.census.name: {
+                Keys.ROW_NOISE: {
+                    NOISE_TYPES.duplicate_with_guardian.name: {
+                        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 1,
+                        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: 1,
+                    },
+                },
+            }
+        }
+    )
     census = Dataset(DATASET_SCHEMAS.census, dummy_data, 0)
-    NOISE_TYPES.duplicate_with_guardian(census, NoiseConfiguration(overrides))
+    NOISE_TYPES.duplicate_with_guardian(census, config)
     noised = census.data
     # We know the following since every dependent is duplicated:
     #  - Simulant ids 0, 1, 2, 3, and-5 will all be duplicated
