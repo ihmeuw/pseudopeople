@@ -123,7 +123,7 @@ class NoiseConfiguration:
         dataset: str,
         noise_type: str,
         parameter_name: str,
-        column_name: Optional[str] = None,
+        column_name: str | None = None,
     ) -> bool:
         if column_name:
             has_parameter = parameter_name in self.to_dict().get(dataset, {}).get(
