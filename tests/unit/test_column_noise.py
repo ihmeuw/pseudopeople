@@ -1278,6 +1278,7 @@ def test_make_typos(dataset: Dataset, column: str, fuzzy_checker: FuzzyChecker) 
     data_series = (
         pd.Series(INTEGERS_LIST) if column == "numbers" else pd.Series(CHARACTERS_LIST)
     )
+    data_series = data_series.astype(str)
     tokens_per_string = number_of_tokens_per_string(qwerty_tokens, data_series)
     avg_probability_any_token_noised = (
         1 - (1 - token_probability) ** tokens_per_string
