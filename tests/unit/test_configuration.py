@@ -12,6 +12,7 @@ from pytest_mock import MockerFixture
 from pseudopeople.configuration import NO_NOISE, Keys, get_configuration
 from pseudopeople.configuration.generator import DEFAULT_NOISE_VALUES
 from pseudopeople.configuration.interface import get_config
+from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.configuration.validator import ConfigurationError
 from pseudopeople.entity_types import ColumnNoiseType, NoiseType, RowNoiseType
 from pseudopeople.filter import DataFilter
@@ -33,6 +34,11 @@ ROW_NOISE_TYPES = [
 ]
 
 
+@pytest.fixture(scope="module")
+def noise_config() -> NoiseConfiguration:
+    return get_configuration()
+
+
 def test_get_default_configuration(mocker: MockerFixture) -> None:
     """Tests that the default configuration can be retrieved."""
     mock = mocker.patch("pseudopeople.configuration.generator.LayeredConfigTree")
@@ -44,26 +50,20 @@ def test_default_configuration_structure() -> None:
     """Test that the default configuration structure is correct"""
     config = get_configuration()
     # Check datasets
-    assert set(f.name for f in DATASET_SCHEMAS) == set(config.keys())
+    assert set(f.name for f in DATASET_SCHEMAS) == set(config.to_dict().keys())
     for dataset_schema in DATASET_SCHEMAS:
         # Check row noise
         for row_noise in dataset_schema.row_noise_types:
-            config_probability: LayeredConfigTree = config[dataset_schema.name][
-                Keys.ROW_NOISE
-            ][row_noise.name]
-            validate_noise_type_config(dataset_schema, row_noise, config_probability)
+            validate_noise_type_config(dataset_schema, row_noise, config)
         for col in dataset_schema.columns:
             for noise_type in col.noise_types:
-                config_level: LayeredConfigTree = config[dataset_schema.name][
-                    Keys.COLUMN_NOISE
-                ][col.name][noise_type.name]
-                validate_noise_type_config(dataset_schema, noise_type, config_level, col)
+                validate_noise_type_config(dataset_schema, noise_type, config, col)
 
 
 def validate_noise_type_config(
     dataset_schema: DatasetSchema,
     noise_type: NoiseType,
-    config_level: LayeredConfigTree,
+    config: NoiseConfiguration,
     column: Optional[Column] = None,
 ) -> None:
     # FIXME: Is there a way to allow for adding new keys when they
@@ -71,9 +71,12 @@ def validate_noise_type_config(
     #  being row_noise, token_noise, and additional parameters at the
     #  baseline level ('noise_type in col.noise_types')
     #  Would we ever want to allow for adding non-baseline default noise?
+    column_name = column.name if column else None
     noise_key = Keys.ROW_NOISE if isinstance(noise_type, RowNoiseType) else Keys.COLUMN_NOISE
-    if noise_type.probability:
-        config_probability = config_level[Keys.CELL_PROBABILITY]
+    if noise_type.probability is not None:
+        config_probability = config.get_value(
+            dataset_schema.name, noise_type.name, noise_type.probability_key, column_name
+        )
         if not column:
             default_probability = (
                 DEFAULT_NOISE_VALUES.get(dataset_schema.name, {})
@@ -96,7 +99,11 @@ def validate_noise_type_config(
             assert config_probability == default_probability
     if noise_type.additional_parameters:
         config_additional_parameters = {
-            k: v for k, v in config_level.to_dict().items() if k != noise_type.probability_key
+            parameter: config.get_value(
+                dataset_schema.name, noise_type.name, parameter, column_name
+            )
+            for parameter in noise_type.additional_parameters
+            if parameter != noise_type.probability_key
         }
         if not column:
             default_additional_parameters = (
@@ -172,21 +179,33 @@ def test_loading_from_yaml(tmp_path: Path) -> None:
     with open(filepath, "w") as file:
         yaml.dump(overrides, file)
 
-    default_config: LayeredConfigTree = get_configuration()[DATASET_SCHEMAS.census.name][
-        Keys.COLUMN_NOISE
-    ][COLUMNS.age.name][NOISE_TYPES.misreport_age.name]
-    default_config = default_config.to_dict()
-    updated_config: LayeredConfigTree = get_configuration(filepath)[
-        DATASET_SCHEMAS.census.name
-    ][Keys.COLUMN_NOISE][COLUMNS.age.name][NOISE_TYPES.misreport_age.name]
-    updated_config = updated_config.to_dict()
+    default_config: NoiseConfiguration = get_configuration()
+    updated_config: NoiseConfiguration = get_configuration(filepath)
 
-    assert (
-        default_config[Keys.POSSIBLE_AGE_DIFFERENCES]
-        == updated_config[Keys.POSSIBLE_AGE_DIFFERENCES]
+    default_probability = default_config.get_value(
+        DATASET_SCHEMAS.census.name,
+        NOISE_TYPES.misreport_age.name,
+        Keys.POSSIBLE_AGE_DIFFERENCES,
+        COLUMNS.age.name,
     )
-    # check that 1 got replaced with 0 probability
-    assert updated_config[Keys.CELL_PROBABILITY] == 0.5
+    updated_probability = updated_config.get_value(
+        DATASET_SCHEMAS.census.name,
+        NOISE_TYPES.misreport_age.name,
+        Keys.POSSIBLE_AGE_DIFFERENCES,
+        COLUMNS.age.name,
+    )
+
+    assert default_probability == updated_probability
+
+    # check that 1 got replaced with 0.5 probability
+    assert (
+        updated_config.get_cell_probability(
+            DATASET_SCHEMAS.census.name,
+            NOISE_TYPES.misreport_age.name,
+            COLUMNS.age.name,
+        )
+        == 0.5
+    )
 
 
 @pytest.mark.parametrize(
@@ -203,7 +222,7 @@ def test_format_miswrite_ages(
     """Test that user-supplied dictionary properly updates LayeredConfigTree object.
     This includes zero-ing out default values that don't exist in the user config
     """
-    config: LayeredConfigTree = get_configuration(
+    config: NoiseConfiguration = get_configuration(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -215,14 +234,15 @@ def test_format_miswrite_ages(
                 },
             },
         }
-    )[DATASET_SCHEMAS.census.name][Keys.COLUMN_NOISE][COLUMNS.age.name][
-        NOISE_TYPES.misreport_age.name
-    ][
-        Keys.POSSIBLE_AGE_DIFFERENCES
-    ]
-    config = config.to_dict()
+    )
+    age_differences_in_config = config.get_value(
+        DATASET_SCHEMAS.census.name,
+        NOISE_TYPES.misreport_age.name,
+        Keys.POSSIBLE_AGE_DIFFERENCES,
+        COLUMNS.age.name,
+    )
 
-    assert config == expected
+    assert age_differences_in_config == expected
 
 
 @pytest.mark.parametrize(
@@ -548,18 +568,31 @@ def test_no_noise() -> None:
     # where all noise levels are 0.0
     no_noise_config = get_configuration("no_noise")
 
-    for dataset in no_noise_config.keys():
-        dataset_dict: LayeredConfigTree = no_noise_config[dataset]
-        dataset_row_noise_dict: LayeredConfigTree = dataset_dict[Keys.ROW_NOISE]
-        dataset_column_dict: LayeredConfigTree = dataset_dict[Keys.COLUMN_NOISE]
-        for row_noise_type in dataset_row_noise_dict.keys():
-            noise_specific_config: LayeredConfigTree = dataset_row_noise_dict[row_noise_type]
-            for key, value in noise_specific_config.items():
-                assert dataset_row_noise_dict[row_noise_type][key] == 0.0
-        for column in dataset_column_dict.keys():
-            column_noise_dict: LayeredConfigTree = dataset_column_dict[column]
-            for column_noise_type in column_noise_dict.keys():
-                assert column_noise_dict[column_noise_type][Keys.CELL_PROBABILITY] == 0.0
+    dataset_schemas = {
+        dataset_schema.name: dataset_schema for dataset_schema in DATASET_SCHEMAS
+    }
+    for dataset_name, dataset_schema in dataset_schemas.items():
+        for row_noise_type in dataset_schema.row_noise_types:
+            parameters = []
+            if row_noise_type.probability is not None:
+                parameters.append(row_noise_type.probability_key)
+            if row_noise_type.additional_parameters is not None:
+                parameters.extend(list(row_noise_type.additional_parameters.keys()))
+            for parameter in parameters:
+                assert (
+                    no_noise_config.get_value(dataset_name, row_noise_type.name, parameter)
+                    == 0.0
+                )
+
+        dataset_columns = [column for column in dataset_schema.columns if column.noise_types]
+        for column in dataset_columns:
+            for column_noise_type in column.noise_types:
+                assert (
+                    no_noise_config.get_cell_probability(
+                        dataset_name, column_noise_type.name, column.name
+                    )
+                    == 0.0
+                )
 
 
 @pytest.mark.parametrize(
@@ -662,3 +695,105 @@ def test_bad_duplicate_with_guardian_config(key: str) -> None:
                 },
             },
         )
+
+
+@pytest.mark.parametrize(
+    "noise_type, column, parameter, expected_value",
+    [
+        ("do_not_respond", None, "row_probability", 0.0145),
+        ("duplicate_with_guardian", None, "row_probability_in_households_under_18", 0.02),
+        ("make_phonetic_errors", "first_name", "cell_probability", 0.01),
+        ("make_phonetic_errors", "first_name", "token_probability", 0.1),
+    ],
+)
+def test_working_general_noise_config_method(
+    noise_type: str,
+    column: Optional[str],
+    parameter: str,
+    expected_value: float,
+    noise_config: NoiseConfiguration,
+) -> None:
+    value = noise_config.get_value("decennial_census", noise_type, parameter, column)
+    assert value == expected_value
+
+
+@pytest.mark.parametrize(
+    "dataset, noise_type, column, parameter, error_msg",
+    [
+        ("fake_dataset", "noise_type", None, "some_parameter", "fake_dataset was not found"),
+        (
+            "decennial_census",
+            "fake_noise_type",
+            None,
+            "some_parameter",
+            "noise type fake_noise_type was not found",
+        ),
+        (
+            "decennial_census",
+            "do_not_respond",
+            "fake_column",
+            "some_parameter",
+            "cannot provide both",
+        ),
+        (
+            "decennial_census",
+            "leave_blank",
+            None,
+            "some_parameter",
+            "must provide a column name",
+        ),
+        (
+            "decennial_census",
+            "leave_blank",
+            "fake_column",
+            "some_parameter",
+            "fake_column was not found",
+        ),
+        (
+            "decennial_census",
+            "leave_blank",
+            "first_name",
+            "fake_parameter",
+            "fake_parameter was not found",
+        ),
+    ],
+)
+def test_breaking_general_noise_config_method(
+    dataset: str,
+    noise_type: str,
+    column: Optional[str],
+    parameter: str,
+    error_msg: str,
+    noise_config: NoiseConfiguration,
+) -> None:
+    with pytest.raises(ValueError, match=error_msg):
+        noise_config.get_value(dataset, noise_type, parameter, column)
+
+
+@pytest.mark.parametrize("noise_type, expected_value", [("do_not_respond", 0.0145)])
+def test_get_row_probability(
+    noise_type: str, expected_value: float, noise_config: NoiseConfiguration
+) -> None:
+    value = noise_config.get_row_probability("decennial_census", noise_type)
+    assert value == expected_value
+
+
+@pytest.mark.parametrize(
+    "noise_type, column, expected_value",
+    [("leave_blank", "first_name", 0.01), ("make_phonetic_errors", "first_name", 0.01)],
+)
+def test_get_cell_probability(
+    noise_type: str, column: str, expected_value: float, noise_config: NoiseConfiguration
+) -> None:
+    value = noise_config.get_cell_probability("decennial_census", noise_type, column)
+    assert value == expected_value
+
+
+@pytest.mark.parametrize(
+    "noise_type, column, expected_value", [("make_phonetic_errors", "first_name", 0.1)]
+)
+def test_get_token_probability(
+    noise_type: str, column: str, expected_value: float, noise_config: NoiseConfiguration
+) -> None:
+    value = noise_config.get_token_probability("decennial_census", noise_type, column)
+    assert value == expected_value
