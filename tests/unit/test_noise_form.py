@@ -6,9 +6,11 @@ from typing import NamedTuple
 import pandas as pd
 import pytest
 from layered_config_tree import LayeredConfigTree
+from pytest import MonkeyPatch
 from pytest_mock import MockerFixture
 
 from pseudopeople.configuration import Keys
+from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.dataset import Dataset
 from pseudopeople.entity_types import ColumnNoiseType
 from pseudopeople.interface import (
@@ -41,7 +43,7 @@ def dummy_data() -> pd.DataFrame:
     )
 
 
-def get_dummy_config_noise_numbers(dataset_schema: DatasetSchema) -> LayeredConfigTree:
+def get_dummy_config_noise_numbers(dataset_schema: DatasetSchema) -> NoiseConfiguration:
     """Create a dummy configuration that applies all noise functions to a single
     column in the dummy_data fixture. All noise function specs are defined in
     reverse order here compared to how they are to be applied.
@@ -49,7 +51,7 @@ def get_dummy_config_noise_numbers(dataset_schema: DatasetSchema) -> LayeredConf
     NOTE: this is not a realistic scenario but allows for certain
     types of stress testing.
     """
-    return LayeredConfigTree(
+    config = LayeredConfigTree(
         {
             dataset_schema.name: {
                 Keys.COLUMN_NOISE: {
@@ -103,6 +105,7 @@ def get_dummy_config_noise_numbers(dataset_schema: DatasetSchema) -> LayeredConf
             },
         }
     )
+    return NoiseConfiguration(config)
 
 
 @pytest.mark.parametrize(
@@ -175,7 +178,7 @@ def test_noise_order(
         if len(mocked_call_arguments) < 3:
             continue
         first_arg_correct_type = isinstance(mocked_call_arguments[0], Dataset)
-        second_arg_correct_type = isinstance(mocked_call_arguments[1], LayeredConfigTree)
+        second_arg_correct_type = isinstance(mocked_call_arguments[1], NoiseConfiguration)
         third_arg_correct_type = isinstance(mocked_call_arguments[2], pd.Index)
         if first_arg_correct_type and second_arg_correct_type and third_arg_correct_type:
             call_order.append(mocked_call[0])
@@ -215,7 +218,7 @@ def test_columns_noised(dummy_data: pd.DataFrame) -> None:
     """Test that the noise functions are only applied to the numbers column
     (as specified in the dummy config)
     """
-    config = LayeredConfigTree(
+    config_tree = LayeredConfigTree(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.COLUMN_NOISE: {
@@ -226,6 +229,7 @@ def test_columns_noised(dummy_data: pd.DataFrame) -> None:
             },
         },
     )
+    config = NoiseConfiguration(config_tree)
     dataset = Dataset(DATASET_SCHEMAS.census, dummy_data, 0)
     data = dataset.data.copy()
     dataset._noise_dataset(config, [NOISE_TYPES.leave_blank])
@@ -257,8 +261,13 @@ def test_correct_datasets_are_used(
     assert mock.call_args[0][0] == dataset_schema
 
 
-def test_two_noise_functions_are_independent(fuzzy_checker: FuzzyChecker) -> None:
+def test_two_noise_functions_are_independent(
+    fuzzy_checker: FuzzyChecker, monkeypatch: MonkeyPatch
+) -> None:
     # Make simple config tree to test 2 noise functions work together
+    monkeypatch.setattr(
+        "pseudopeople.configuration.noise_configuration.COLUMN_NOISE_TYPES", ["alpha", "beta"]
+    )
     config_tree = LayeredConfigTree(
         {
             DATASET_SCHEMAS.census.name: {
@@ -275,11 +284,12 @@ def test_two_noise_functions_are_independent(fuzzy_checker: FuzzyChecker) -> Non
             }
         }
     )
+    config = NoiseConfiguration(config_tree)
 
     # Mock objects for testing
     def alpha_noise_function(
         dataset_: Dataset,
-        _config: LayeredConfigTree,
+        _config: NoiseConfiguration,
         to_noise_idx: pd.Index,
         column_name: str,
     ) -> None:
@@ -287,7 +297,7 @@ def test_two_noise_functions_are_independent(fuzzy_checker: FuzzyChecker) -> Non
 
     def beta_noise_function(
         dataset_: Dataset,
-        _config: LayeredConfigTree,
+        _config: NoiseConfiguration,
         to_noise_idx: pd.Index,
         column_name: str,
     ) -> None:
@@ -310,7 +320,7 @@ def test_two_noise_functions_are_independent(fuzzy_checker: FuzzyChecker) -> Non
     )
     dataset = Dataset(DATASET_SCHEMAS.census, dummy_dataset, 0)
     dataset._noise_dataset(
-        configuration=config_tree,
+        configuration=config,
         noise_types=mock_noise_types,
     )
     noised_data = dataset.data
