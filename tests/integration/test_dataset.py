@@ -27,35 +27,17 @@ def test_dataset_missingness(dataset_name: str) -> None:
     dataset._clean_input_data()
     dataset._reformat_dates_for_noising()
     config = get_configuration()
-    dataset_config = config[dataset_name]
     # NOTE: This is recreating Dataset._noise_dataset but adding assertions for missingness
     for noise_type in NOISE_TYPES:
         if isinstance(noise_type, RowNoiseType):
-            if noise_type.name not in dataset_config[Keys.ROW_NOISE]:
-                continue
-            else:
-                row_noise_config: LayeredConfigTree = dataset_config[Keys.ROW_NOISE][
-                    noise_type.name
-                ]
-                noise_type(dataset, row_noise_config)
+            if config.has_noise_type(dataset.dataset_schema.name, noise_type.name):
+                noise_type(dataset, config)
                 # Check missingness is synced with data
                 assert dataset.missingness.equals(dataset.is_missing(dataset.data))
         else:
-            all_columns_noise_config: LayeredConfigTree = dataset_config[Keys.COLUMN_NOISE]
-            columns_to_noise = [
-                col
-                for col in all_columns_noise_config
-                if col in dataset.data.columns
-                and noise_type.name in all_columns_noise_config[col]
-            ]
-            for column in columns_to_noise:
-                column_noise_config: LayeredConfigTree = all_columns_noise_config[column][
-                    noise_type.name
-                ]
-                noise_type(
-                    dataset,
-                    column_noise_config,
-                    column,
-                )
-                # Check missingness is synced with data
+            for column in dataset.data.columns:
+                if config.has_noise_type(
+                    dataset.dataset_schema.name, noise_type.name, column
+                ):
+                    noise_type(dataset, config, column)
                 assert dataset.missingness.equals(dataset.is_missing(dataset.data))
