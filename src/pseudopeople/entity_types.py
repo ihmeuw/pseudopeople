@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List
 
 import pandas as pd
 from layered_config_tree import LayeredConfigTree
@@ -37,8 +37,8 @@ if TYPE_CHECKING:
 class NoiseType(ABC):
     name: str
     noise_function: Callable = _noise_function_not_implemented
-    probability: Optional[float] = 0.0
-    additional_parameters: Optional[Dict[str, Any]] = None
+    probability: float | None = 0.0
+    additional_parameters: dict[str, Any] | None = None
 
     def __post_init__(self) -> None:
         if self.noise_function == _noise_function_not_implemented:
@@ -71,7 +71,7 @@ class RowNoiseType(NoiseType):
         [Dataset, NoiseConfiguration, pd.Index], None
     ] = _noise_function_not_implemented
     get_noise_level: Callable[
-        [NoiseConfiguration, Dataset, str], Union[float, pd.Series]
+        [NoiseConfiguration, Dataset, str], float | pd.Series
     ] = default_noise_level_getter
 
     @property
@@ -104,7 +104,7 @@ class ColumnNoiseType(NoiseType):
     noise_function: Callable[
         [Dataset, NoiseConfiguration, pd.Index, str], None
     ] = _noise_function_not_implemented
-    probability: Optional[float] = 0.01
+    probability: float | None = 0.01
     noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0
     additional_column_getter: Callable[[str], List[str]] = lambda column_name: []
     output_dtype_getter: Callable[[pd_dtype], pd_dtype] = lambda dtype: dtype

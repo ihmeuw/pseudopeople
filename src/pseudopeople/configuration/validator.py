@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Any, Dict, List, Optional, Protocol
+from typing import Any, Dict, List, Protocol
 
 import numpy as np
 import pandas as pd
@@ -122,7 +122,7 @@ def _validate_noise_type_config(
     dataset_name: str,
     noise_type: str,
     parameter_config_validator_map: Dict[str, ParameterConfigValidator],
-    column: Optional[str] = None,
+    column: str | None = None,
 ) -> None:
     """
     Validates that all parameters are allowed for this noise function.
@@ -152,9 +152,9 @@ def _get_default_config_node(
     default_config: LayeredConfigTree,
     key: str,
     key_type: str,
-    dataset_name: Optional[str] = None,
-    column: Optional[str] = None,
-    noise_type: Optional[str] = None,
+    dataset_name: str | None = None,
+    column: str | None = None,
+    noise_type: str | None = None,
 ) -> LayeredConfigTree:
     """
     Validate that the node the user is trying to add exists in the default

@@ -4,7 +4,7 @@ import hashlib
 import sys
 from dataclasses import dataclass
 from functools import cache
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, TextIO, Type, Union
+from typing import TYPE_CHECKING, Any, Callable, List, TextIO, Type
 
 import numpy as np
 import pandas as pd
@@ -33,10 +33,10 @@ def get_random_generator(dataset_name: str, seed: Any) -> np.random.Generator:
 
 
 def vectorized_choice(
-    options: Union[list, pd.Series],
+    options: list | pd.Series,
     n_to_choose: int,
     random_generator: np.random.Generator,
-    weights: Optional[Union[list, pd.Series]] = None,
+    weights: list | pd.Series | None = None,
 ) -> Any:
     """
     Function that takes a list of options and uses Vivarium common random numbers framework to make a given number
@@ -70,8 +70,8 @@ def vectorized_choice(
 
 def get_index_to_noise(
     dataset: "Dataset",
-    noise_level: Union[int, float, pd.Series],
-    required_columns: Optional[List[str]] = None,
+    noise_level: int | float | pd.Series,
+    required_columns: list[str] | None = None,
 ) -> pd.Index:
     """
     Function that takes a series and returns a pd.Index that chosen by Vivarium Common Random Number to be noised.
@@ -294,7 +294,7 @@ try:
     # Optional dependency
     import dask.dataframe as dd
 
-    DataFrame = Union[dd.DataFrame, pd.DataFrame]
+    DataFrame = dd.DataFrame | pd.DataFrame
 except ImportError:
     DataFrame = pd.DataFrame  # type: ignore [misc]
 

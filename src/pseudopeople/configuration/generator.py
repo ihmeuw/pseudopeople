@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import yaml
 from layered_config_tree import LayeredConfigTree
@@ -83,8 +83,8 @@ DEFAULT_NOISE_VALUES: dict = {
 
 
 def get_configuration(
-    overrides: Optional[Union[Path, str, dict[str, Any]]] = None,
-    dataset_schema: Optional[DatasetSchema] = None,
+    overrides: Path | str | dict[str, Any] | None = None,
+    dataset_schema: DatasetSchema | None = None,
     filters: Sequence[DataFilter] = (),
 ) -> NoiseConfiguration:
     """
@@ -185,7 +185,7 @@ def get_noise_type_dict(noise_type: NoiseType, is_no_noise: bool) -> dict[str, f
 def add_overrides(
     noising_configuration: LayeredConfigTree,
     overrides: dict,
-    dataset_schema: Optional[DatasetSchema] = None,
+    dataset_schema: DatasetSchema | None = None,
     filters: Sequence[DataFilter] = (),
 ) -> None:
     overrides = _format_overrides(noising_configuration, overrides)

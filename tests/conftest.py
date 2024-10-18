@@ -3,7 +3,7 @@ import warnings
 from collections.abc import Generator
 from functools import cache
 from pathlib import Path
-from typing import Any, Tuple, Union
+from typing import Any, Tuple
 
 import numpy as np
 import pandas as pd
@@ -92,7 +92,7 @@ class FuzzyChecker:
         name: str,
         observed_numerator: int,
         observed_denominator: int,
-        target_proportion: Union[Tuple[float, float], float],
+        target_proportion: Tuple[float, float] | float,
         fail_bayes_factor_cutoff: float = 100.0,
         inconclusive_bayes_factor_cutoff: float = 0.1,
         bug_issue_beta_distribution_parameters: Tuple[float, float] = (0.5, 0.5),

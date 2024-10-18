@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import NamedTuple, Optional, Tuple
+from typing import NamedTuple, Tuple
 
 from pseudopeople.constants.metadata import DATEFORMATS, DatasetNames
 from pseudopeople.dtypes import DtypeNames
@@ -587,7 +587,7 @@ class DatasetSchema:
     columns: Tuple[Column, ...]  # This defines the output column order
     date_column_name: str
     date_format: str
-    state_column_name: Optional[str]
+    state_column_name: str | None
     row_noise_types: Tuple[RowNoiseType, ...]
 
 
