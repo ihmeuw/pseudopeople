@@ -1,10 +1,9 @@
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Any, Optional, Union
 
 import yaml
 from layered_config_tree import LayeredConfigTree
-from layered_config_tree.types import NestedDict
 
 from pseudopeople.configuration import NO_NOISE, Keys
 from pseudopeople.configuration.noise_configuration import NoiseConfiguration
@@ -84,7 +83,7 @@ DEFAULT_NOISE_VALUES: dict = {
 
 
 def get_configuration(
-    overrides: Optional[Union[Path, str, NestedDict]] = None,
+    overrides: Optional[Union[Path, str, dict[str, Any]]] = None,
     dataset_schema: Optional[DatasetSchema] = None,
     filters: Sequence[DataFilter] = (),
 ) -> NoiseConfiguration:
@@ -185,7 +184,7 @@ def get_noise_type_dict(noise_type: NoiseType, is_no_noise: bool) -> dict[str, f
 
 def add_overrides(
     noising_configuration: LayeredConfigTree,
-    overrides: Dict,
+    overrides: dict,
     dataset_schema: Optional[DatasetSchema] = None,
     filters: Sequence[DataFilter] = (),
 ) -> None:
@@ -199,7 +198,7 @@ def add_overrides(
         validate_noise_level_proportions(noising_configuration, dataset_schema, filters)
 
 
-def _format_overrides(default_config: LayeredConfigTree, user_dict: Dict) -> Dict:
+def _format_overrides(default_config: LayeredConfigTree, user_dict: dict) -> dict:
     """Formats the user's configuration file as necessary, so it can properly
     update noising configuration to be used
     """
@@ -208,8 +207,8 @@ def _format_overrides(default_config: LayeredConfigTree, user_dict: Dict) -> Dic
 
 
 def _format_misreport_age_perturbations(
-    default_config: LayeredConfigTree, user_dict: Dict
-) -> Dict:
+    default_config: LayeredConfigTree, user_dict: dict
+) -> dict:
     # Format any age perturbation lists as a dictionary with uniform probabilities
     for dataset_schema in user_dict:
         user_perturbations = (
