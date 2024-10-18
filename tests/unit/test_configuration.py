@@ -153,7 +153,7 @@ def test_get_configuration_with_user_override(mocker: MockerFixture) -> None:
             },
         }
     }
-    _ = get_configuration(config)  # type: ignore [arg-type]
+    _ = get_configuration(config)
     mock.assert_called_once_with(layers=["baseline", "default", "user"])
     update_calls = [
         call
@@ -228,7 +228,7 @@ def test_format_miswrite_ages(
                 Keys.COLUMN_NOISE: {
                     COLUMNS.age.name: {
                         NOISE_TYPES.misreport_age.name: {
-                            Keys.POSSIBLE_AGE_DIFFERENCES: age_differences,  # type: ignore [dict-item]
+                            Keys.POSSIBLE_AGE_DIFFERENCES: age_differences,
                         },
                     },
                 },
