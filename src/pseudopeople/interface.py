@@ -1,9 +1,8 @@
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Literal, Optional, Union, cast
+from typing import Any, Literal, Optional, Union, cast
 
 import pandas as pd
-from layered_config_tree.types import NestedDict
 from loguru import logger
 from packaging.version import Version, parse
 from tqdm import tqdm
@@ -29,7 +28,7 @@ def _generate_dataset(
     dataset_schema: DatasetSchema,
     source: Optional[Union[Path, str]],
     seed: int,
-    config: Optional[Union[Path, str, NestedDict]],
+    config: Optional[Union[Path, str, dict[str, Any]]],
     filters: Sequence[DataFilter],
     verbose: bool = False,
     engine_name: Literal["pandas", "dask"] = "pandas",
@@ -205,7 +204,7 @@ def _get_data_changelog_version(changelog: Path) -> Version:
 def generate_decennial_census(
     source: Optional[Union[Path, str]] = None,
     seed: int = 0,
-    config: Optional[Union[Path, str, NestedDict]] = None,
+    config: Optional[Union[Path, str, dict[str, Any]]] = None,
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
@@ -303,7 +302,7 @@ def generate_decennial_census(
 def generate_american_community_survey(
     source: Optional[Union[Path, str]] = None,
     seed: int = 0,
-    config: Optional[Union[Path, str, NestedDict]] = None,
+    config: Optional[Union[Path, str, dict[str, Any]]] = None,
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
@@ -416,7 +415,7 @@ def generate_american_community_survey(
 def generate_current_population_survey(
     source: Optional[Union[Path, str]] = None,
     seed: int = 0,
-    config: Optional[Union[Path, str, NestedDict]] = None,
+    config: Optional[Union[Path, str, dict[str, Any]]] = None,
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
@@ -530,7 +529,7 @@ def generate_current_population_survey(
 def generate_taxes_w2_and_1099(
     source: Optional[Union[Path, str]] = None,
     seed: int = 0,
-    config: Optional[Union[Path, str, NestedDict]] = None,
+    config: Optional[Union[Path, str, dict[str, Any]]] = None,
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
@@ -628,7 +627,7 @@ def generate_taxes_w2_and_1099(
 def generate_women_infants_and_children(
     source: Optional[Union[Path, str]] = None,
     seed: int = 0,
-    config: Optional[Union[Path, str, NestedDict]] = None,
+    config: Optional[Union[Path, str, dict[str, Any]]] = None,
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
@@ -731,7 +730,7 @@ def generate_women_infants_and_children(
 def generate_social_security(
     source: Optional[Union[Path, str]] = None,
     seed: int = 0,
-    config: Optional[Union[Path, str, NestedDict]] = None,
+    config: Optional[Union[Path, str, dict[str, Any]]] = None,
     year: Optional[int] = 2020,
     verbose: bool = False,
     engine: Literal["pandas", "dask"] = "pandas",
@@ -819,7 +818,7 @@ def generate_social_security(
 def generate_taxes_1040(
     source: Optional[Union[Path, str]] = None,
     seed: int = 0,
-    config: Optional[Union[Path, str, NestedDict]] = None,
+    config: Optional[Union[Path, str, dict[str, Any]]] = None,
     year: Optional[int] = 2020,
     state: Optional[str] = None,
     verbose: bool = False,
