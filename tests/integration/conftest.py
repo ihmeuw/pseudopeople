@@ -1,9 +1,9 @@
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 import pytest
 from _pytest.legacypath import TempdirFactory
-from layered_config_tree.types import NestedDict
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants import paths
@@ -120,7 +120,7 @@ def split_sample_data_dir_state_edit(
 
 
 @pytest.fixture(scope="module")
-def config() -> NestedDict:
+def config() -> dict[str, Any]:
     """Returns a custom configuration dict to be used in noising"""
     config = get_configuration().to_dict()  # default config
 
@@ -167,37 +167,37 @@ def config() -> NestedDict:
 
 # Noised sample datasets
 @pytest.fixture(scope="module")
-def noised_sample_data_decennial_census(config: NestedDict) -> pd.DataFrame:
+def noised_sample_data_decennial_census(config: dict[str, Any]) -> pd.DataFrame:
     return generate_decennial_census(seed=SEED, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_american_community_survey(config: NestedDict) -> pd.DataFrame:
+def noised_sample_data_american_community_survey(config: dict[str, Any]) -> pd.DataFrame:
     return generate_american_community_survey(seed=SEED, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_current_population_survey(config: NestedDict) -> pd.DataFrame:
+def noised_sample_data_current_population_survey(config: dict[str, Any]) -> pd.DataFrame:
     return generate_current_population_survey(seed=SEED, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_women_infants_and_children(config: NestedDict) -> pd.DataFrame:
+def noised_sample_data_women_infants_and_children(config: dict[str, Any]) -> pd.DataFrame:
     return generate_women_infants_and_children(seed=SEED, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_social_security(config: NestedDict) -> pd.DataFrame:
+def noised_sample_data_social_security(config: dict[str, Any]) -> pd.DataFrame:
     return generate_social_security(seed=SEED, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_taxes_w2_and_1099(config: NestedDict) -> pd.DataFrame:
+def noised_sample_data_taxes_w2_and_1099(config: dict[str, Any]) -> pd.DataFrame:
     return generate_taxes_w2_and_1099(seed=SEED, year=None, config=config)
 
 
 @pytest.fixture(scope="module")
-def noised_sample_data_taxes_1040(config: NestedDict) -> pd.DataFrame:
+def noised_sample_data_taxes_1040(config: dict[str, Any]) -> pd.DataFrame:
     return generate_taxes_1040(seed=SEED, year=None, config=config)
 
 
