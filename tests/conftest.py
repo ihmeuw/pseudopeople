@@ -5,7 +5,7 @@ import warnings
 from collections.abc import Generator
 from functools import cache
 from pathlib import Path
-from typing import Any, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -94,10 +94,10 @@ class FuzzyChecker:
         name: str,
         observed_numerator: int,
         observed_denominator: int,
-        target_proportion: Tuple[float, float] | float,
+        target_proportion: tuple[float, float] | float,
         fail_bayes_factor_cutoff: float = 100.0,
         inconclusive_bayes_factor_cutoff: float = 0.1,
-        bug_issue_beta_distribution_parameters: Tuple[float, float] = (0.5, 0.5),
+        bug_issue_beta_distribution_parameters: tuple[float, float] = (0.5, 0.5),
         name_additional: str = "",
     ) -> None:
         """
@@ -258,7 +258,7 @@ class FuzzyChecker:
     @cache
     def _fit_beta_distribution_to_uncertainty_interval(
         self, lower_bound: float, upper_bound: float
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         assert lower_bound > 0 and upper_bound < 1
 
         # Inspired by https://stats.stackexchange.com/a/112671/

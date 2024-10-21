@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, Dict, List
+from typing import TYPE_CHECKING, Any, Callable
 
 import pandas as pd
 from layered_config_tree import LayeredConfigTree
@@ -106,7 +106,7 @@ class ColumnNoiseType(NoiseType):
     ] = _noise_function_not_implemented
     probability: float | None = 0.01
     noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0
-    additional_column_getter: Callable[[str], List[str]] = lambda column_name: []
+    additional_column_getter: Callable[[str], list[str]] = lambda column_name: []
     output_dtype_getter: Callable[[pd_dtype], pd_dtype] = lambda dtype: dtype
 
     @property

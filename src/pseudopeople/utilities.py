@@ -4,7 +4,7 @@ import hashlib
 import sys
 from dataclasses import dataclass
 from functools import cache
-from typing import TYPE_CHECKING, Any, Callable, List, TextIO, Type, Union
+from typing import TYPE_CHECKING, Any, Callable, TextIO, Type, Union
 
 import numpy as np
 import pandas as pd
