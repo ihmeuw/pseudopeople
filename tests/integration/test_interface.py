@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import math
 from functools import partial
 from pathlib import Path
-from typing import Callable, Union
+from typing import Callable
 
 import numpy as np
 import pandas as pd
@@ -838,7 +840,7 @@ def _validate_column_noise_level(
             token_probability_key = {
                 NOISE_TYPES.write_wrong_zipcode_digits.name: Keys.ZIPCODE_DIGIT_PROBABILITIES,
             }.get(col_noise_type.name, Keys.TOKEN_PROBABILITY)
-            token_probability: Union[list[float], float] = config.get_value(
+            token_probability: list[float] | float = config.get_value(
                 dataset_name, col_noise_type.name, token_probability_key, col.name
             )
             # Get number of tokens per string to calculate expected proportion

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import NamedTuple, Optional, Tuple
+from typing import NamedTuple
 
 from pseudopeople.constants.metadata import DATEFORMATS, DatasetNames
 from pseudopeople.dtypes import DtypeNames
@@ -10,7 +12,7 @@ from pseudopeople.noise_entities import NOISE_TYPES
 @dataclass
 class Column:
     name: str
-    noise_types: Tuple[ColumnNoiseType, ...] = tuple()
+    noise_types: tuple[ColumnNoiseType, ...] = tuple()
     dtype_name: str = DtypeNames.OBJECT  # string dtype is 'object'
 
 
@@ -584,11 +586,11 @@ COLUMNS = __Columns()
 @dataclass
 class DatasetSchema:
     name: str
-    columns: Tuple[Column, ...]  # This defines the output column order
+    columns: tuple[Column, ...]  # This defines the output column order
     date_column_name: str
     date_format: str
-    state_column_name: Optional[str]
-    row_noise_types: Tuple[RowNoiseType, ...]
+    state_column_name: str | None
+    row_noise_types: tuple[RowNoiseType, ...]
 
 
 class __DatasetSchemas(NamedTuple):

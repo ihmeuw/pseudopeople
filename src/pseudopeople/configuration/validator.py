@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Sequence
-from typing import Any, Dict, List, Optional, Protocol
+from typing import Any, Protocol
 
 import numpy as np
 import pandas as pd
@@ -28,10 +30,10 @@ def validate_overrides(overrides: Any, default_config: LayeredConfigTree) -> Non
     keys exist in the default configuration. Confirms that all user-provided
     values are valid for their respective noise functions.
     """
-    if not isinstance(overrides, Dict):
+    if not isinstance(overrides, dict):
         raise ConfigurationError("Invalid configuration type provided.") from None
     for dataset_name, dataset_config in overrides.items():
-        if not isinstance(dataset_config, Dict):
+        if not isinstance(dataset_config, dict):
             raise ConfigurationError(
                 f"'{dataset_name}' must be a Dict. "
                 f"Provided {dataset_config} of type {type(dataset_config)}."
@@ -51,14 +53,14 @@ def validate_overrides(overrides: Any, default_config: LayeredConfigTree) -> Non
         ]
 
         row_noise_config = dataset_config.get(Keys.ROW_NOISE, {})
-        if not isinstance(row_noise_config, Dict):
+        if not isinstance(row_noise_config, dict):
             raise ConfigurationError(
                 f"'{Keys.ROW_NOISE}' of '{dataset_name}' must be a Dict. "
                 f"Provided {row_noise_config} of type {type(row_noise_config)}."
             )
 
         for noise_type, noise_type_config in row_noise_config.items():
-            if not isinstance(noise_type_config, Dict):
+            if not isinstance(noise_type_config, dict):
                 raise ConfigurationError(
                     f"Row noise type '{noise_type}' of dataset '{dataset_name}' must be a Dict. "
                     f"Provided {noise_type_config} of type {type(noise_type_config)}."
@@ -75,14 +77,14 @@ def validate_overrides(overrides: Any, default_config: LayeredConfigTree) -> Non
             )
 
         column_noise_config = dataset_config.get(Keys.COLUMN_NOISE, {})
-        if not isinstance(column_noise_config, Dict):
+        if not isinstance(column_noise_config, dict):
             raise ConfigurationError(
                 f"'{Keys.COLUMN_NOISE}' of '{dataset_name}' must be a Dict. "
                 f"Provided {column_noise_config} of type {type(column_noise_config)}."
             )
 
         for column, column_config in column_noise_config.items():
-            if not isinstance(column_config, Dict):
+            if not isinstance(column_config, dict):
                 raise ConfigurationError(
                     f"Column '{column}' of dataset '{dataset_name}' must be a Dict. "
                     f"Provided {column_config} of type {type(column_config)}."
@@ -92,7 +94,7 @@ def validate_overrides(overrides: Any, default_config: LayeredConfigTree) -> Non
                 default_column_noise_config, column, "column", dataset_name
             )
             for noise_type, noise_type_config in column_config.items():
-                if not isinstance(noise_type_config, Dict):
+                if not isinstance(noise_type_config, dict):
                     raise ConfigurationError(
                         f"Noise type '{noise_type}' of column '{column}' in dataset '{dataset_name}' must be a Dict. "
                         f"Provided {noise_type_config} of type {type(noise_type_config)}."
@@ -121,8 +123,8 @@ def _validate_noise_type_config(
     default_noise_type_config: LayeredConfigTree,
     dataset_name: str,
     noise_type: str,
-    parameter_config_validator_map: Dict[str, ParameterConfigValidator],
-    column: Optional[str] = None,
+    parameter_config_validator_map: dict[str, ParameterConfigValidator],
+    column: str | None = None,
 ) -> None:
     """
     Validates that all parameters are allowed for this noise function.
@@ -152,9 +154,9 @@ def _get_default_config_node(
     default_config: LayeredConfigTree,
     key: str,
     key_type: str,
-    dataset_name: Optional[str] = None,
-    column: Optional[str] = None,
-    noise_type: Optional[str] = None,
+    dataset_name: str | None = None,
+    column: str | None = None,
+    noise_type: str | None = None,
 ) -> LayeredConfigTree:
     """
     Validate that the node the user is trying to add exists in the default
@@ -184,7 +186,7 @@ def _validate_possible_age_differences(
     Validates the user-provided values for the age-miswriting permutations
     parameter
     """
-    if not isinstance(noise_type_config, (Dict, List)):
+    if not isinstance(noise_type_config, (dict, list)):
         raise ConfigurationError(
             base_error_message + f"'{parameter}' must be a Dict or List. "
             f"Provided {noise_type_config} of type {type(noise_type_config)}."
@@ -202,7 +204,7 @@ def _validate_possible_age_differences(
             )
         if key == 0:
             raise ConfigurationError(base_error_message + f"'{parameter}' cannot include 0.")
-    if isinstance(noise_type_config, Dict):
+    if isinstance(noise_type_config, dict):
         for value in noise_type_config.values():
             if not isinstance(value, (float, int)):
                 raise ConfigurationError(
@@ -227,7 +229,7 @@ def _validate_zipcode_digit_probabilities(
     noise_type_config: Any, parameter: str, base_error_message: str, *_: Any
 ) -> None:
     """Validates the user-provided values for the zipcode digit noising probabilities"""
-    if not isinstance(noise_type_config, List):
+    if not isinstance(noise_type_config, list):
         raise ConfigurationError(
             base_error_message + f"'{parameter}' must be a List. "
             f"Provided {noise_type_config} of type {type(noise_type_config)}."
