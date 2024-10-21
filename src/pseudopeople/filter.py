@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Union
 
 import pandas as pd
 
@@ -8,7 +9,7 @@ import pandas as pd
 class DataFilter:
     column_name: str
     operator: str
-    value: Union[str, int, pd.Timestamp]
+    value: str | int | pd.Timestamp
 
-    def to_tuple(self) -> tuple[str, str, Union[str, int, pd.Timestamp]]:
+    def to_tuple(self) -> tuple[str, str, str | int | pd.Timestamp]:
         return self.column_name, self.operator, self.value
