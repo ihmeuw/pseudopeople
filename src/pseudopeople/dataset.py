@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Sequence
-from typing import Any, List, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -48,7 +50,7 @@ class Dataset:
         is_empty: bool = self.missingness[column_name].all()
         return is_empty
 
-    def get_non_empty_index(self, required_columns: Optional[List[str]] = None) -> pd.Index:
+    def get_non_empty_index(self, required_columns: list[str] | None = None) -> pd.Index:
         """Returns the non-empty data."""
 
         if required_columns is None:

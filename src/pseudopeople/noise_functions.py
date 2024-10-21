@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -197,7 +197,7 @@ def duplicate_with_guardian(
         # Noise data
         # TODO: Mic-4876 Can we only operate on the index eligible for noise and
         # not the entire dataset?
-        noise_level: Union[float, int] = configuration.get_value(
+        noise_level: float | int = configuration.get_value(
             dataset.dataset_schema.name, "duplicate_with_guardian", parameter_name=group
         )
         to_noise_index = get_index_to_noise(
