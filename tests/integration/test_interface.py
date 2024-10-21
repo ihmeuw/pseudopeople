@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import math
 from functools import partial
 from pathlib import Path

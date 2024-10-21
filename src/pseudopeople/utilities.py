@@ -4,7 +4,7 @@ import hashlib
 import sys
 from dataclasses import dataclass
 from functools import cache
-from typing import TYPE_CHECKING, Any, Callable, List, TextIO, Type
+from typing import TYPE_CHECKING, Any, Callable, List, TextIO, Type, Union
 
 import numpy as np
 import pandas as pd
@@ -294,7 +294,7 @@ try:
     # Optional dependency
     import dask.dataframe as dd
 
-    DataFrame = dd.DataFrame | pd.DataFrame
+    DataFrame = Union[dd.DataFrame, pd.DataFrame]
 except ImportError:
     DataFrame = pd.DataFrame  # type: ignore [misc]
 
