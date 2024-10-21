@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Optional, Union
 
 from pseudopeople.configuration.generator import get_configuration
 
 
-def get_config(overrides: Optional[Union[Path, str, dict]] = None) -> dict:
+def get_config(overrides: Path | str | dict | None = None) -> dict:
     """
     Function that returns the pseudopeople configuration containing all
     default values. To get the default probability of nonresponse in the
