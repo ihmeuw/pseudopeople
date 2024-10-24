@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, Optional, Union
+from typing import Any
 
 from layered_config_tree import LayeredConfigTree
 from layered_config_tree.types import InputData
@@ -31,7 +32,7 @@ class NoiseConfiguration:
         dataset: str,
         noise_type: str,
         parameter_name: str,
-        column_name: Optional[str] = None,
+        column_name: str | None = None,
     ) -> float | int | list | dict:
         config = self._config
         try:
@@ -76,32 +77,32 @@ class NoiseConfiguration:
                 f"The parameter {parameter_name} was not found for {noise_type} in the configuration. "
                 f"Available parameters are {list(parameter_tree.keys())}."
             )
-        noise_value: Union[int, float, LayeredConfigTree] = parameter_tree[parameter_name]
-        converted_noise_value: Union[int, float, dict] = (
+        noise_value: int | float | LayeredConfigTree = parameter_tree[parameter_name]
+        converted_noise_value: int | float | dict = (
             noise_value.to_dict()
             if isinstance(noise_value, LayeredConfigTree)
             else noise_value
         )
         return converted_noise_value
 
-    def get_row_probability(self, dataset: str, noise_type: str) -> Union[int, float]:
-        value: Union[int, float] = self.get_value(
+    def get_row_probability(self, dataset: str, noise_type: str) -> int | float:
+        value: int | float = self.get_value(
             dataset, noise_type, parameter_name="row_probability"
         )
         return value
 
     def get_cell_probability(
         self, dataset: str, noise_type: str, column_name: str
-    ) -> Union[int, float]:
-        value: Union[int, float] = self.get_value(
+    ) -> int | float:
+        value: int | float = self.get_value(
             dataset, noise_type, parameter_name="cell_probability", column_name=column_name
         )
         return value
 
     def get_token_probability(
         self, dataset: str, noise_type: str, column_name: str
-    ) -> Union[int, float]:
-        value: Union[int, float] = self.get_value(
+    ) -> int | float:
+        value: int | float = self.get_value(
             dataset, noise_type, parameter_name="token_probability", column_name=column_name
         )
         return value
@@ -123,7 +124,7 @@ class NoiseConfiguration:
         dataset: str,
         noise_type: str,
         parameter_name: str,
-        column_name: Optional[str] = None,
+        column_name: str | None = None,
     ) -> bool:
         if column_name:
             has_parameter = parameter_name in self.to_dict().get(dataset, {}).get(

@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import itertools
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import pytest
 import yaml
@@ -19,7 +21,7 @@ from pseudopeople.filter import DataFilter
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS, Column, DatasetSchema
 
-PROBABILITY_VALUE_LOGS: list[tuple[Union[str, float], str]] = [
+PROBABILITY_VALUE_LOGS: list[tuple[str | float, str]] = [
     ("a", "must be floats or ints"),
     (-0.01, "must be between 0 and 1"),
     (1.01, "must be between 0 and 1"),
@@ -64,7 +66,7 @@ def validate_noise_type_config(
     dataset_schema: DatasetSchema,
     noise_type: NoiseType,
     config: NoiseConfiguration,
-    column: Optional[Column] = None,
+    column: Column | None = None,
 ) -> None:
     # FIXME: Is there a way to allow for adding new keys when they
     #  don't exist in baseline? eg the for/if loops below depend on their
@@ -153,7 +155,7 @@ def test_get_configuration_with_user_override(mocker: MockerFixture) -> None:
             },
         }
     }
-    _ = get_configuration(config)  # type: ignore [arg-type]
+    _ = get_configuration(config)
     mock.assert_called_once_with(layers=["baseline", "default", "user"])
     update_calls = [
         call
@@ -217,7 +219,7 @@ def test_loading_from_yaml(tmp_path: Path) -> None:
     ids=["list", "dict"],
 )
 def test_format_miswrite_ages(
-    age_differences: Union[list[int], dict[int, float]], expected: dict[int, float]
+    age_differences: list[int] | dict[int, float], expected: dict[int, float]
 ) -> None:
     """Test that user-supplied dictionary properly updates LayeredConfigTree object.
     This includes zero-ing out default values that don't exist in the user config
@@ -228,7 +230,7 @@ def test_format_miswrite_ages(
                 Keys.COLUMN_NOISE: {
                     COLUMNS.age.name: {
                         NOISE_TYPES.misreport_age.name: {
-                            Keys.POSSIBLE_AGE_DIFFERENCES: age_differences,  # type: ignore [dict-item]
+                            Keys.POSSIBLE_AGE_DIFFERENCES: age_differences,
                         },
                     },
                 },
@@ -362,7 +364,7 @@ def test_overriding_nonexistent_keys_fails(config: dict, match: str) -> None:
 
 def get_noise_type_configs(
     noise_names: Sequence[NoiseType],
-) -> list[tuple[NoiseType, Union[str, float], str]]:
+) -> list[tuple[NoiseType, str | float, str]]:
     configs = list(itertools.product(noise_names, PROBABILITY_VALUE_LOGS))
     return [(x[0], x[1][0], x[1][1]) for x in configs]
 
@@ -372,7 +374,7 @@ def get_noise_type_configs(
     get_noise_type_configs(ROW_NOISE_TYPES),
 )
 def test_validate_standard_parameters_failures_row_noise(
-    row_noise_type: NoiseType, value: Union[str, float], match: str
+    row_noise_type: NoiseType, value: str | float, match: str
 ) -> None:
     """
     Tests valid configuration values for probability for row noise types.
@@ -399,7 +401,7 @@ def test_validate_standard_parameters_failures_row_noise(
     get_noise_type_configs(COLUMN_NOISE_TYPES),
 )
 def test_validate_standard_parameters_failures_column_noise(
-    column_noise_type: NoiseType, value: Union[str, float], match: str
+    column_noise_type: NoiseType, value: str | float, match: str
 ) -> None:
     """Test that a runtime error is thrown if a user provides bad standard
     probability values
@@ -457,7 +459,7 @@ def test_validate_standard_parameters_failures_column_noise(
     ],
 )
 def test_validate_miswrite_ages_failures(
-    perturbations: Union[int, dict, list], match: str
+    perturbations: int | dict | list, match: str
 ) -> None:
     """Test that a runtime error is thrown if the user provides bad possible_age_differences"""
     with pytest.raises(ConfigurationError, match=match):
@@ -708,7 +710,7 @@ def test_bad_duplicate_with_guardian_config(key: str) -> None:
 )
 def test_working_general_noise_config_method(
     noise_type: str,
-    column: Optional[str],
+    column: str | None,
     parameter: str,
     expected_value: float,
     noise_config: NoiseConfiguration,
@@ -761,7 +763,7 @@ def test_working_general_noise_config_method(
 def test_breaking_general_noise_config_method(
     dataset: str,
     noise_type: str,
-    column: Optional[str],
+    column: str | None,
     parameter: str,
     error_msg: str,
     noise_config: NoiseConfiguration,

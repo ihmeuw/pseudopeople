@@ -3,13 +3,11 @@ from __future__ import annotations
 
 import math
 from collections.abc import Iterable
-from typing import Union
 
 import numpy as np
 import pandas as pd
 import pytest
 from layered_config_tree import LayeredConfigTree
-from layered_config_tree.types import NestedDict, NodeValue
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.noise_configuration import NoiseConfiguration
