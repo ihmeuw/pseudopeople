@@ -91,7 +91,7 @@ class Dataset:
             Object to configure noise levels
         """
         if progress_bar:
-            noise_type_iterator = tqdm(
+            noise_type_iterator: Sequence[NoiseType] | tqdm[NoiseType] = tqdm(
                 noise_types, desc="Applying noise", unit="type", leave=False
             )
         else:

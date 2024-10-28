@@ -197,9 +197,7 @@ def duplicate_with_guardian(
         # Noise data
         # TODO: Mic-4876 Can we only operate on the index eligible for noise and
         # not the entire dataset?
-        noise_level: float | int = configuration.get_value(
-            dataset.dataset_schema.name, "duplicate_with_guardian", parameter_name=group
-        )
+        noise_level: int | float = configuration.get_duplicate_with_guardian_probabilities(dataset.dataset_schema.name, parameter_name=group)
         to_noise_index = get_index_to_noise(
             dataset,
             noise_level,
@@ -234,9 +232,7 @@ def duplicate_with_guardian(
         # are grouped together by sorting by date and household_id
         # todo if this index is a RangeIndex, we can do concat with ignore_index=True
         index_start_value = dataset.data.index.max() + 1
-        duplicated_rows_df.index = range(
-            index_start_value, index_start_value + len(duplicated_rows_df)
-        )
+        duplicated_rows_df.index = pd.Index(range(index_start_value, index_start_value + len(duplicated_rows_df)))
         # Note: This is where we would sort the data by year and household_id but
         # we ran into runtime issues. It may be sufficient to do it here since this
         # would be sorting at the shard level and not the entire dataset.
@@ -426,12 +422,8 @@ def misreport_ages(
     """
 
     column = dataset.data.loc[to_noise_index, column_name]
-    possible_perturbations: dict = configuration.get_value(
-        dataset.dataset_schema.name,
-        "misreport_age",
-        Keys.POSSIBLE_AGE_DIFFERENCES,
-        column_name,
-    )
+    possible_perturbations: dict = configuration.get_misreport_ages_probabilities(dataset.dataset_schema.name, column_name)
+
     perturbations = vectorized_choice(
         options=list(possible_perturbations.keys()),
         weights=list(possible_perturbations.values()),
@@ -699,12 +691,17 @@ def make_typos(
         replace_random * number_of_options.loc[to_replace].to_numpy()
     )
     originals_to_keep = same_len_col_exploded[keep_original]
+
+    qwerty_errors_stacked = qwerty_errors.stack()
+    if not isinstance(qwerty_errors_stacked, pd.Series):
+        raise ValueError("Your qwerty errors data had columns with multiple levels.")
+
     # Numpy does not have an efficient way to do this merge operation
     same_len_col_exploded[replace] = (
         pd.DataFrame({"to_replace": to_replace, "replace_option_index": replace_option_index})
         .reset_index()
         .merge(
-            qwerty_errors.stack().rename("replacement"),
+            qwerty_errors_stacked.rename("replacement"),
             left_on=["to_replace", "replace_option_index"],
             right_index=True,
         )
@@ -791,7 +788,7 @@ def _corrupt_tokens(
         len(errors.columns) * np.array(range(len(errors))), index=errors.index
     )
 
-    lengths: np.ndarray = column.str.len().values
+    lengths: np.ndarray = np.array(column.str.len().values)
 
     same_len_col_exploded = (
         column

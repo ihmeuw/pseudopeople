@@ -101,16 +101,19 @@ def get_configuration(
         overrides = None
     elif isinstance(overrides, (Path, str)):
         with open(overrides, "r") as f:
-            overrides = yaml.safe_load(f)
+            overrides_dict: dict = yaml.safe_load(f)
+        is_no_noise = False
+    elif overrides is not None:
+        overrides_dict = overrides
         is_no_noise = False
     else:
         is_no_noise = False
     noising_configuration = _generate_configuration(is_no_noise)
     if overrides is not None:
-        validate_overrides(overrides, noising_configuration)
+        validate_overrides(overrides_dict, noising_configuration)
         add_overrides(
             noising_configuration,
-            overrides,  # type: ignore [arg-type]
+            overrides_dict,
             dataset_schema,
             filters,
         )
@@ -129,7 +132,7 @@ def _generate_configuration(is_no_noise: bool) -> LayeredConfigTree:
     baseline_dict = {}
     # Loop through each dataset
     for dataset_schema in DATASET_SCHEMAS:
-        dataset_dict = {}
+        dataset_dict: dict[str, dict[str, dict]] = {}
         row_noise_dict = {}
         column_dict = {}
 

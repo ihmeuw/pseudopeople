@@ -417,7 +417,7 @@ def generate_american_community_survey(
 def generate_current_population_survey(
     source: Path | str | None = None,
     seed: int = 0,
-    config: Path | str | dict[str, Any] = None,
+    config: Path | str | dict[str, Any] | None = None,
     year: int | None = 2020,
     state: str | None = None,
     verbose: bool = False,
@@ -531,7 +531,7 @@ def generate_current_population_survey(
 def generate_taxes_w2_and_1099(
     source: Path | str | None = None,
     seed: int = 0,
-    config: Path | str | dict[str, Any] = None,
+    config: Path | str | dict[str, Any] | None = None,
     year: int | None = 2020,
     state: str | None = None,
     verbose: bool = False,
@@ -629,7 +629,7 @@ def generate_taxes_w2_and_1099(
 def generate_women_infants_and_children(
     source: Path | str | None = None,
     seed: int = 0,
-    config: Path | str | dict[str, Any] = None,
+    config: Path | str | dict[str, Any] | None = None,
     year: int | None = 2020,
     state: str | None = None,
     verbose: bool = False,
@@ -732,7 +732,7 @@ def generate_women_infants_and_children(
 def generate_social_security(
     source: Path | str | None = None,
     seed: int = 0,
-    config: Path | str | dict[str, Any] = None,
+    config: Path | str | dict[str, Any] | None = None,
     year: int | None = 2020,
     verbose: bool = False,
     engine: Literal["pandas", "dask"] = "pandas",
@@ -820,7 +820,7 @@ def generate_social_security(
 def generate_taxes_1040(
     source: Path | str | None = None,
     seed: int = 0,
-    config: Path | str | dict[str, Any] = None,
+    config: Path | str | dict[str, Any] | None = None,
     year: int | None = 2020,
     state: str | None = None,
     verbose: bool = False,

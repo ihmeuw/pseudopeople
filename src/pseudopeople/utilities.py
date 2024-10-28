@@ -134,7 +134,7 @@ def two_d_array_choice(
     """
 
     # Change columns to be integers for datawrangling later
-    options.columns = list(range(len(options.columns)))
+    options = options.rename({col: i for i, col in enumerate(options.columns)}, axis=1)
     # Get subset of options where we will choose new values
     data_idx = pd.Index(data.values)
     options = options.loc[data_idx]
@@ -182,7 +182,7 @@ def get_state_abbreviation(state: str) -> str:
 def to_string_preserve_nans(s: pd.Series) -> pd.Series:
     # NOTE: In newer versions of pandas, astype(str) will use the *pandas*
     # string type, which we haven't adopted yet.
-    result: pd.Series = s.astype(str).astype(DtypeNames.OBJECT)
+    result: pd.Series = s.astype(str).astype('object')
     result[s.isna()] = np.nan
     return result
 
@@ -220,7 +220,7 @@ def count_number_of_tokens_per_string(s1: pd.Series, s2: pd.Series) -> pd.Series
     s2 = s2.astype(str)
     strings = s2.unique()
     tokens_per_string = pd.Series(
-        (sum(count_occurrences(s, str(token)) for token in s1) for s in strings),
+        list(sum(count_occurrences(s, str(token)) for token in s1) for s in strings),
         index=strings,
     )
 
@@ -249,7 +249,7 @@ def coerce_dtypes(
             if col.dtype_name == DtypeNames.OBJECT:
                 data[col.name] = to_string(data[col.name])
             else:
-                data[col.name] = data[col.name].astype(col.dtype_name)
+                data[col.name] = data[col.name].astype(col.dtype_name) # type: ignore [call-overload]
 
     return data
 

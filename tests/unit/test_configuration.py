@@ -616,7 +616,8 @@ def test_validate_noise_level_proportions(
     than the calculated metadata proportions for that column noise type pairing.
     """
     census = DATASET_SCHEMAS.get_dataset_schema("decennial_census")
-    state_column_name: str = census.state_column_name
+    state_column_name = census.state_column_name
+    assert state_column_name is not None
     filters = [
         DataFilter(census.date_column_name, "==", 2020),
         DataFilter(state_column_name, "==", "WA"),

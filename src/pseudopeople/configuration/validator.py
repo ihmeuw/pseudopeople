@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any, Protocol
+from typing import Any, Callable, Mapping, Protocol
 
 import numpy as np
 import pandas as pd
@@ -20,6 +20,12 @@ from pseudopeople.schema_entities import DatasetSchema
 class ParameterConfigValidator(Protocol):
     def __call__(
         self, noise_type_config: Any, parameter: str, base_error_message: str, *_: Any
+    ) -> None:
+        ...
+
+class ChooseWrongOptionValidator(Protocol):
+    def __call__(
+        self, noise_type_config: Any, parameter: str, base_error_message: str, column: str
     ) -> None:
         ...
 
@@ -103,7 +109,7 @@ def validate_overrides(overrides: Any, default_config: LayeredConfigTree) -> Non
                 default_noise_type_config = _get_default_config_node(
                     default_column_config, noise_type, "noise type", dataset_name, column
                 )
-                parameter_config_validator_map: dict[str, ParameterConfigValidator] = {
+                parameter_config_validator_map: Mapping[str, ParameterConfigValidator | ChooseWrongOptionValidator] = {
                     NOISE_TYPES.choose_wrong_option.name: {
                         Keys.CELL_PROBABILITY: _validate_choose_wrong_option_probability
                     },
@@ -123,7 +129,7 @@ def _validate_noise_type_config(
     default_noise_type_config: LayeredConfigTree,
     dataset_name: str,
     noise_type: str,
-    parameter_config_validator_map: dict[str, ParameterConfigValidator],
+    parameter_config_validator_map: Mapping[str, ParameterConfigValidator | ChooseWrongOptionValidator],
     column: str | None = None,
 ) -> None:
     """
@@ -308,14 +314,14 @@ def validate_noise_level_proportions(
     # Get the state and year from the user filters
     for state_filter in filters:
         if state_filter.column_name == dataset_schema.state_column_name:
-            state = state_filter.value
+            state = str(state_filter.value)
             break
     for date_filter in filters:
         if date_filter.column_name == dataset_schema.date_column_name:
             year = (
                 date_filter.value.year
                 if isinstance(date_filter.value, pd.Timestamp)
-                else date_filter.value
+                else int(date_filter.value)
             )
             break
 

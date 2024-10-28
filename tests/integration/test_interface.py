@@ -55,7 +55,7 @@ DATASET_GENERATION_FUNCS: dict[str, Callable] = {
     DATASET_SCHEMAS.tax_1040.name: generate_taxes_1040,
 }
 
-TOKENS_PER_STRING_MAPPER = {
+TOKENS_PER_STRING_MAPPER: dict[str, Callable] = {
     NOISE_TYPES.make_ocr_errors.name: partial(
         count_number_of_tokens_per_string, pd.Series(load_ocr_errors().index)
     ),
@@ -320,7 +320,7 @@ def test_column_noising(
         # Check for noising where applicable
         to_compare_idx = shared_idx.difference(originally_missing_idx)
         if col.noise_types:
-            different_check: np.ndarray = (
+            different_check: np.ndarray = np.array(
                 check_original.loc[to_compare_idx, col.name].values
                 != check_noised.loc[to_compare_idx, col.name].values
             )
@@ -340,7 +340,7 @@ def test_column_noising(
                 validator=fuzzy_checker,
             )
         else:  # No noising - should be identical
-            same_check: np.ndarray = (
+            same_check: np.ndarray = np.array(
                 check_original.loc[to_compare_idx, col.name].values
                 == check_noised.loc[to_compare_idx, col.name].values
             )
@@ -837,17 +837,16 @@ def _validate_column_noise_level(
         if col_noise_type.name not in includes_token_noising:
             not_noised = not_noised * (1 - CELL_PROBABILITY)
         else:
-            token_probability_key = {
-                NOISE_TYPES.write_wrong_zipcode_digits.name: Keys.ZIPCODE_DIGIT_PROBABILITIES,
-            }.get(col_noise_type.name, Keys.TOKEN_PROBABILITY)
-            token_probability: list[float] | float = config.get_value(
-                dataset_name, col_noise_type.name, token_probability_key, col.name
-            )
+            if col_noise_type.name == NOISE_TYPES.write_wrong_zipcode_digits.name:
+                token_probability: list[float] | int |float = config.get_zipcode_digit_probabilities(dataset_name, col.name)
+            else:
+                token_probability = config.get_token_probability(dataset_name, col_noise_type.name, col.name)
+
             # Get number of tokens per string to calculate expected proportion
-            tokens_per_string_getter: Callable = TOKENS_PER_STRING_MAPPER.get(
+            tokens_per_string_getter: Callable[..., pd.Series | int] = TOKENS_PER_STRING_MAPPER.get(
                 col_noise_type.name, lambda x: x.astype(str).str.len()
             )
-            tokens_per_string = tokens_per_string_getter(check_data.loc[check_idx, col.name])
+            tokens_per_string: pd.Series | int = tokens_per_string_getter(check_data.loc[check_idx, col.name])
 
             # Calculate probability no token is noised
             if isinstance(token_probability, list):
@@ -856,6 +855,7 @@ def _validate_column_noise_level(
                     [1 - p for p in token_probability]
                 )
             else:
+                assert isinstance(tokens_per_string, pd.Series)
                 avg_probability_any_token_noised = (
                     1 - (1 - token_probability) ** tokens_per_string
                 ).mean()
@@ -890,7 +890,7 @@ def _get_column_noise_level(
 
     # Check for noising where applicable
     to_compare_sample_idx = common_idx.difference(originally_missing_sample_idx)
-    different_check: np.ndarray = (
+    different_check: np.ndarray = np.array(
         unnoised_data.loc[to_compare_sample_idx, column.name].values
         != noised_data.loc[to_compare_sample_idx, column.name].values
     )
