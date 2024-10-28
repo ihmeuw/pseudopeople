@@ -33,7 +33,6 @@ from pseudopeople.utilities import (
     load_phonetic_errors,
     load_qwerty_errors_data,
 )
-from tests.conftest import FuzzyChecker
 from tests.integration.conftest import (
     CELL_PROBABILITY,
     IDX_COLS,
@@ -98,7 +97,7 @@ def test_generate_dataset_from_multiple_shards(
     request: FixtureRequest,
     split_sample_data_dir: Path,
     mocker: MockerFixture,
-    fuzzy_checker: FuzzyChecker,
+    fuzzy_checker: Callable,
 ) -> None:
     """Tests that the amount of noising is approximately the same whether we
     noise a single sample dataset or we concatenate and noise multiple datasets
@@ -291,7 +290,7 @@ def test_column_noising(
     engine: str,
     config: dict,
     request: FixtureRequest,
-    fuzzy_checker: FuzzyChecker,
+    fuzzy_checker: Callable,
 ) -> None:
     """Tests that columns are noised as expected"""
     if "TODO" in dataset_name:
@@ -813,7 +812,7 @@ def _validate_column_noise_level(
     col: Column,
     config: NoiseConfiguration,
     fuzzy_name: str,
-    validator: FuzzyChecker,
+    validator: Callable,
 ) -> None:
     """
     This helper function iterates through all column noise types for a particular column
