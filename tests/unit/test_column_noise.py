@@ -2,13 +2,12 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Iterable
-from typing import Callable
+from collections.abc import Callable, Iterable
 
 import numpy as np
 import pandas as pd
 import pytest
-from layered_config_tree import LayeredConfigTree
+from vivarium_testing_utils import FuzzyChecker
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.noise_configuration import NoiseConfiguration
@@ -296,7 +295,7 @@ def dataset_different_seed(dummy_dataset: pd.DataFrame) -> Dataset:
     return dataset
 
 
-def test_leave_blank(dataset: Dataset, fuzzy_checker: Callable) -> None:
+def test_leave_blank(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     column_name = "zipcode"
     config: NoiseConfiguration = get_configuration()
     config._update(
@@ -340,7 +339,7 @@ def test_leave_blank(dataset: Dataset, fuzzy_checker: Callable) -> None:
     assert (data[not_noised_idx] == noised_data[not_noised_idx]).all()
 
 
-def test_choose_wrong_option(dataset: Dataset, fuzzy_checker: Callable) -> None:
+def test_choose_wrong_option(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     config: NoiseConfiguration = get_configuration()
     data = dataset.data["state"].copy()
     NOISE_TYPES.choose_wrong_option(dataset, config, "state")
@@ -365,7 +364,7 @@ def test_choose_wrong_option(dataset: Dataset, fuzzy_checker: Callable) -> None:
 
 
 def test_generate_copy_from_household_member(
-    dataset: Dataset, fuzzy_checker: Callable
+    dataset: Dataset, fuzzy_checker: FuzzyChecker
 ) -> None:
     config: NoiseConfiguration = get_configuration()
     original_data = dataset.data[["age", "copy_age"]]
@@ -398,7 +397,7 @@ def test_generate_copy_from_household_member(
     assert noised_data.loc[original_missing_idx].isnull().all()
 
 
-def test_swap_months_and_days(dataset: Dataset, fuzzy_checker: Callable) -> None:
+def test_swap_months_and_days(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     for col in ["event_date", "date_of_birth"]:
         data = dataset.data[col].copy()
         config: NoiseConfiguration = get_configuration()
@@ -437,7 +436,7 @@ def test_swap_months_and_days(dataset: Dataset, fuzzy_checker: Callable) -> None
         )
 
 
-def test_write_wrong_zipcode_digits(dataset: Dataset, fuzzy_checker: Callable) -> None:
+def test_write_wrong_zipcode_digits(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     column_name: str = "zipcode"
     config: NoiseConfiguration = get_configuration()
     config._update(
@@ -501,7 +500,7 @@ def test_write_wrong_zipcode_digits(dataset: Dataset, fuzzy_checker: Callable) -
     )
 
 
-def test_miswrite_ages_default_config(dataset: Dataset, fuzzy_checker: Callable) -> None:
+def test_miswrite_ages_default_config(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     """Test that miswritten ages are appropriately handled, including
     no perturbation probabilities defaults to uniform distribution,
     perturbation probabilities"""
@@ -534,7 +533,7 @@ def test_miswrite_ages_default_config(dataset: Dataset, fuzzy_checker: Callable)
     assert noised_data[not_missing_idx].astype(int).min() >= 0
 
 
-def test_miswrite_ages_uniform_probabilities(fuzzy_checker: Callable) -> None:
+def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker) -> None:
     """Test that a list of perturbations passed in results in uniform probabilities"""
     num_rows = 100_000
     original_age = 25
@@ -576,7 +575,7 @@ def test_miswrite_ages_uniform_probabilities(fuzzy_checker: Callable) -> None:
 
 
 def test_miswrite_ages_provided_probabilities(
-    dataset: Dataset, fuzzy_checker: Callable
+    dataset: Dataset, fuzzy_checker: FuzzyChecker
 ) -> None:
     """Test that provided age perturbation probabilites are handled"""
     num_rows = 100_000
@@ -681,7 +680,7 @@ def test_miswrite_ages_flips_negative_to_positive() -> None:
     assert (noised_data[noised_mask] == 4).all()
 
 
-def test_write_wrong_digits_robust(dataset: Dataset, fuzzy_checker: Callable) -> None:
+def test_write_wrong_digits_robust(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     """
     Validates that only numeric characters are noised in a series at a provided noise level.
     """
@@ -819,7 +818,7 @@ def test_write_wrong_digits_robust(dataset: Dataset, fuzzy_checker: Callable) ->
             assert (noised_data[ssn].str[i].str.isdigit()).all()
 
 
-def test_write_wrong_digits(dataset: Dataset, fuzzy_checker: Callable) -> None:
+def test_write_wrong_digits(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     # This is a quicker (less robust) version of the test above.
     # It only checks that numeric characters are noised at the correct level as
     # a sanity check our noise is of the right magnitude
@@ -873,7 +872,7 @@ def test_write_wrong_digits(dataset: Dataset, fuzzy_checker: Callable) -> None:
     )
 
 
-def test_use_nickname(dataset: Dataset, fuzzy_checker: Callable) -> None:
+def test_use_nickname(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     config: NoiseConfiguration = get_configuration()
     expected_noise: float = config.get_cell_probability(
         dataset.dataset_schema.name, NOISE_TYPES.use_nickname.name, "first_name"
@@ -928,7 +927,7 @@ def test_use_nickname(dataset: Dataset, fuzzy_checker: Callable) -> None:
 
 
 @pytest.mark.parametrize("column", ["first_name", "last_name"])
-def test_use_fake_name(dataset: Dataset, column: str, fuzzy_checker: Callable) -> None:
+def test_use_fake_name(dataset: Dataset, column: str, fuzzy_checker: FuzzyChecker) -> None:
     """
     Function to test that fake names are noised and replace raw values at a configured percentage
     """
@@ -985,7 +984,7 @@ def test_use_fake_name(dataset: Dataset, column: str, fuzzy_checker: Callable) -
     ],
 )
 def test_generate_phonetic_errors(
-    dataset: Dataset, column: str, fuzzy_checker: Callable
+    dataset: Dataset, column: str, fuzzy_checker: FuzzyChecker
 ) -> None:
     data = dataset.data[column].copy()
 
@@ -1053,7 +1052,7 @@ def test_generate_phonetic_errors(
     "pair",
     PHONETIC_STRESS_TEST_PATHWAYS.items(),
 )
-def test_phonetic_error_values(pair: tuple[int, int], fuzzy_checker: Callable) -> None:
+def test_phonetic_error_values(pair: tuple[int, int], fuzzy_checker: FuzzyChecker) -> None:
     string, pathways = pair
     column_name = "first_name"
 
@@ -1115,7 +1114,7 @@ def test_phonetic_error_values(pair: tuple[int, int], fuzzy_checker: Callable) -
     ],
 )
 def test_generate_ocr_errors(
-    dataset: Dataset, column: str, fuzzy_checker: Callable
+    dataset: Dataset, column: str, fuzzy_checker: FuzzyChecker
 ) -> None:
     config: NoiseConfiguration = get_configuration()
 
@@ -1184,7 +1183,7 @@ def test_generate_ocr_errors(
     "pair",
     OCR_STRESS_TEST_PATHWAYS.items(),
 )
-def test_ocr_replacement_values(pair: tuple[int, int], fuzzy_checker: Callable) -> None:
+def test_ocr_replacement_values(pair: tuple[int, int], fuzzy_checker: FuzzyChecker) -> None:
     string, pathways = pair
     column_name = "first_name"
 
@@ -1240,7 +1239,7 @@ def test_ocr_replacement_values(pair: tuple[int, int], fuzzy_checker: Callable) 
         "characters",
     ],
 )
-def test_make_typos(dataset: Dataset, column: str, fuzzy_checker: Callable) -> None:
+def test_make_typos(dataset: Dataset, column: str, fuzzy_checker: FuzzyChecker) -> None:
     config: NoiseConfiguration = get_configuration()
     config._update(
         {
@@ -1410,7 +1409,7 @@ def test_seeds_behave_as_expected(
     assert (noised.iloc[:shortest] != noised_different_seed.iloc[:shortest]).any()
 
 
-def test_age_write_wrong_digits(dataset: Dataset, fuzzy_checker: Callable) -> None:
+def test_age_write_wrong_digits(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     # Tests write wrong digits is now applied to age column - albrja(10/23/23)
     config = get_configuration()
     config._update(

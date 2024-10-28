@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
 from functools import partial
 from pathlib import Path
-from typing import Callable
 
 import numpy as np
 import pandas as pd
@@ -12,6 +12,7 @@ from _pytest.fixtures import FixtureRequest
 from layered_config_tree import LayeredConfigTree
 from pandas.api.types import is_datetime64_any_dtype as is_datetime
 from pytest_mock import MockerFixture
+from vivarium_testing_utils import FuzzyChecker
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.noise_configuration import NoiseConfiguration
@@ -97,7 +98,7 @@ def test_generate_dataset_from_multiple_shards(
     request: FixtureRequest,
     split_sample_data_dir: Path,
     mocker: MockerFixture,
-    fuzzy_checker: Callable,
+    fuzzy_checker: FuzzyChecker,
 ) -> None:
     """Tests that the amount of noising is approximately the same whether we
     noise a single sample dataset or we concatenate and noise multiple datasets
@@ -290,7 +291,7 @@ def test_column_noising(
     engine: str,
     config: dict,
     request: FixtureRequest,
-    fuzzy_checker: Callable,
+    fuzzy_checker: FuzzyChecker,
 ) -> None:
     """Tests that columns are noised as expected"""
     if "TODO" in dataset_name:
