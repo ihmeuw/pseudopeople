@@ -78,7 +78,7 @@ def output_directory() -> Path:
 
 
 @pytest.fixture(scope="session")
-def fuzzy_checker(output_directory: Callable) -> Generator[FuzzyChecker, None, None]:
+def fuzzy_checker(output_directory: Path) -> Generator[FuzzyChecker, None, None]:
     checker = FuzzyChecker()
 
     yield checker
