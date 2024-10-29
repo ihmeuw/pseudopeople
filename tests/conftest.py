@@ -4,10 +4,12 @@ import os
 import warnings
 from collections.abc import Generator
 from functools import cache
+from numbers import Number
 from pathlib import Path
 from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import pytest
 import scipy.stats
@@ -262,7 +264,7 @@ class FuzzyChecker:
         assert lower_bound > 0 and upper_bound < 1
 
         # Inspired by https://stats.stackexchange.com/a/112671/
-        def objective(x: np.ndarray) -> float:
+        def objective(x: npt.NDArray[np.float64 | np.int_]) -> float:
             # np.exp ensures they are always positive
             a, b = np.exp(x)
             dist = scipy.stats.beta(a=a, b=b)

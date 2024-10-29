@@ -109,7 +109,7 @@ def validate_overrides(overrides: Any, default_config: LayeredConfigTree) -> Non
                 default_noise_type_config = _get_default_config_node(
                     default_column_config, noise_type, "noise type", dataset_name, column
                 )
-                parameter_config_validator_map: Mapping[str, ParameterConfigValidator | ChooseWrongOptionValidator] = {
+                parameter_config_validator_map: dict[str, ParameterConfigValidator] = {
                     NOISE_TYPES.choose_wrong_option.name: {
                         Keys.CELL_PROBABILITY: _validate_choose_wrong_option_probability
                     },
@@ -125,11 +125,12 @@ def validate_overrides(overrides: Any, default_config: LayeredConfigTree) -> Non
 
 
 def _validate_noise_type_config(
-    noise_type_config: dict,
+    noise_type_config: dict[str, Any],
     default_noise_type_config: LayeredConfigTree,
     dataset_name: str,
     noise_type: str,
-    parameter_config_validator_map: Mapping[str, ParameterConfigValidator | ChooseWrongOptionValidator],
+    #parameter_config_validator_map: Mapping[str, ParameterConfigValidator | ChooseWrongOptionValidator],
+    parameter_config_validator_map: dict[str, ParameterConfigValidator],
     column: str | None = None,
 ) -> None:
     """
@@ -266,7 +267,7 @@ def _validate_probability(
 
 
 def _validate_choose_wrong_option_probability(
-    noise_type_config: Any, parameter: str, base_error_message: str, column: str
+    noise_type_config: Any, parameter: str, base_error_message: str, column: Any
 ) -> None:
     _validate_probability(noise_type_config, parameter, base_error_message)
     num_options = len(get_options_for_column(column))

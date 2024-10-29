@@ -258,7 +258,10 @@ def test_two_d_array_choice(
     # Assert proportions
     for sport in best_sports:
         num_choices = 3 if sport != "Baseball" else 2
-        teams = options.loc[sport, options.loc[sport].notna()].values
+        breakpoint()
+        explicit_idx = options.index == sport
+        cols_to_include = options.loc[sport].notna().index.tolist()
+        teams = options.loc[explicit_idx, cols_to_include].values
         for team in teams:
             fuzzy_checker.fuzzy_assert_proportion(
                 name="test_two_d_array_choice",

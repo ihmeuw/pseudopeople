@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import Any, Iterable, Literal, cast
 
 import pandas as pd
 from loguru import logger
@@ -80,7 +80,7 @@ def _generate_dataset(
         validate_data_path_suffix(data_file_paths)
 
         # Iterate sequentially
-        iterator: list[Path] | tqdm = (
+        iterator: list[Path] | tqdm[Path] = (
             tqdm(data_file_paths, desc="Noising data", leave=False)
             if len(data_file_paths) > 1
             else data_file_paths

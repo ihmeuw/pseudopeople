@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Iterable
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -319,7 +320,7 @@ def test_leave_blank(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     # Calculate newly missing data, ie data that didn't come in as already missing
     data = data.squeeze()
     noised_data = noised_data.squeeze() # type: ignore [assignment]
-    orig_non_missing_idx = data.index[(data.notna()) & (data != "")]
+    orig_non_missing_idx = data[(data.notna()) & (data != "")].index
     newly_missing_idx = noised_data.index[
         (noised_data.index.isin(orig_non_missing_idx)) & (noised_data.isna())
     ]
@@ -528,7 +529,7 @@ def test_miswrite_ages_uniform_probabilities(fuzzy_checker: FuzzyChecker) -> Non
     """Test that a list of perturbations passed in results in uniform probabilities"""
     num_rows = 100_000
     original_age = 25
-    perturbations: list = [-2, -1, 1]
+    perturbations: list[int] = [-2, -1, 1]
 
     config: NoiseConfiguration = get_configuration(
         {
@@ -571,7 +572,7 @@ def test_miswrite_ages_provided_probabilities(
     """Test that provided age perturbation probabilites are handled"""
     num_rows = 100_000
     original_age = 25
-    perturbations: dict = {-1: 0.1, 1: 0.9}
+    perturbations: dict[int, float] = {-1: 0.1, 1: 0.9}
 
     config: NoiseConfiguration = get_configuration(
         {
@@ -615,7 +616,7 @@ def test_miswrite_ages_handles_perturbation_to_same_age() -> None:
     """
     num_rows = 100
     age = 1.0
-    perturbations: list = [-2]  # This will cause -1 which will be flipped to +1
+    perturbations: list[int] = [-2]  # This will cause -1 which will be flipped to +1
 
     config: NoiseConfiguration = get_configuration(
         {
@@ -645,7 +646,7 @@ def test_miswrite_ages_flips_negative_to_positive() -> None:
     """Test that any ages perturbed to <0 are reflected to positive values"""
     num_rows = 100
     age = 3.0
-    perturbations: list = [-7]  # This will cause -4 and should flip to +4
+    perturbations: list[int] = [-7]  # This will cause -4 and should flip to +4
 
     config: NoiseConfiguration = get_configuration(
         {
@@ -1043,7 +1044,7 @@ def test_generate_phonetic_errors(
     "pair",
     PHONETIC_STRESS_TEST_PATHWAYS.items(),
 )
-def test_phonetic_error_values(pair: tuple[int, int], fuzzy_checker: FuzzyChecker) -> None:
+def test_phonetic_error_values(pair: tuple[str, dict[str, tuple[int, ...]]], fuzzy_checker: FuzzyChecker) -> None:
     string, pathways = pair
     column_name = "first_name"
 
@@ -1174,7 +1175,7 @@ def test_generate_ocr_errors(
     "pair",
     OCR_STRESS_TEST_PATHWAYS.items(),
 )
-def test_ocr_replacement_values(pair: tuple[int, int], fuzzy_checker: FuzzyChecker) -> None:
+def test_ocr_replacement_values(pair: tuple[str, dict[str, tuple[int, ...]]], fuzzy_checker: FuzzyChecker) -> None:
     string, pathways = pair
     column_name = "first_name"
 
@@ -1371,7 +1372,7 @@ def test_seeds_behave_as_expected(
         )
 
     if noise == NOISE_TYPES.copy_from_household_member.name:
-        data: pd.DataFrame | pd.Series = dataset.data[[data_col, COPY_HOUSEHOLD_MEMBER_COLS[data_col]]].copy()
+        data: pd.DataFrame | pd.Series[Any] = dataset.data[[data_col, COPY_HOUSEHOLD_MEMBER_COLS[data_col]]].copy()
     else:
         data = dataset.data[[data_col]].copy()
 

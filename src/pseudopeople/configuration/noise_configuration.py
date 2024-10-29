@@ -22,8 +22,8 @@ class NoiseConfiguration:
     def __init__(self, config: LayeredConfigTree):
         self._config = config
 
-    def to_dict(self) -> dict:
-        config_dict: dict = self._config.to_dict()
+    def to_dict(self) -> dict[str, Any]:
+        config_dict: dict[str, Any] = self._config.to_dict()
         return config_dict
 
     def get_value(
@@ -32,7 +32,7 @@ class NoiseConfiguration:
         noise_type: str,
         parameter_name: str,
         column_name: str | None = None,
-    ) -> float | int | list | dict:
+    ) -> float | int | list[float] | dict[int, float]:
         config = self._config
         try:
             dataset_config = config[dataset]
@@ -77,8 +77,8 @@ class NoiseConfiguration:
                 f"Available parameters are {list(parameter_tree.keys())}."
             )
         noise_value: int | float | LayeredConfigTree = parameter_tree[parameter_name]
-        converted_noise_value: int | float | dict = (
-            noise_value.to_dict()
+        converted_noise_value: int | float | dict[int, float] = (
+            noise_value.to_dict() # type: ignore [assignment]
             if isinstance(noise_value, LayeredConfigTree)
             else noise_value
         )
@@ -121,7 +121,7 @@ class NoiseConfiguration:
             raise ValueError(f"Duplicate with guardian probabilities are expected to be ints or floats. Your config returned {type(value)}.")
         return value
 
-    def get_misreport_ages_probabilities(self, dataset: str, column_name: str) -> dict:
+    def get_misreport_ages_probabilities(self, dataset: str, column_name: str) -> dict[int, float]:
         value = self.get_value(dataset, "misreport_age", Keys.POSSIBLE_AGE_DIFFERENCES, column_name)
         if not isinstance(value, dict):
             raise ValueError(f"Misreport age probabilities are expected to be a dict. Your config returned {type(value)}.")
