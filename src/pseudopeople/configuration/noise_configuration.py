@@ -87,44 +87,73 @@ class NoiseConfiguration:
     def get_row_probability(self, dataset: str, noise_type: str) -> int | float:
         value = self.get_value(dataset, noise_type, parameter_name="row_probability")
         if not isinstance(value, int) and not isinstance(value, float):
-            raise ValueError(f"Row probabilities are expected to contain ints or floats. Your config returned {type(value)}.")
+            raise ValueError(
+                f"Row probabilities are expected to contain ints or floats. Your config returned {type(value)}."
+            )
         return value
 
     def get_cell_probability(
         self, dataset: str, noise_type: str, column_name: str
     ) -> int | float:
-        value = self.get_value(dataset, noise_type, parameter_name="cell_probability", column_name=column_name)
+        value = self.get_value(
+            dataset, noise_type, parameter_name="cell_probability", column_name=column_name
+        )
         if not isinstance(value, int) and not isinstance(value, float):
-            raise ValueError(f"Cell probabilities are expected to contain ints or floats. Your config returned {type(value)}.")
+            raise ValueError(
+                f"Cell probabilities are expected to contain ints or floats. Your config returned {type(value)}."
+            )
         return value
 
     def get_token_probability(
         self, dataset: str, noise_type: str, column_name: str
     ) -> int | float:
-        value = self.get_value(dataset, noise_type, parameter_name="token_probability", column_name=column_name)
+        value = self.get_value(
+            dataset, noise_type, parameter_name="token_probability", column_name=column_name
+        )
         if not isinstance(value, int) and not isinstance(value, float):
-            raise ValueError(f"Token probabilities are expected to contain ints or floats. Your config returned {type(value)}.")
+            raise ValueError(
+                f"Token probabilities are expected to contain ints or floats. Your config returned {type(value)}."
+            )
         return value
 
     def get_zipcode_digit_probabilities(self, dataset: str, column_name: str) -> list[float]:
-        values = self.get_value(dataset, 'write_wrong_zipcode_digits', parameter_name='digit_probabilities', column_name=column_name)
-        if not isinstance(values, list) or not all(isinstance(value, float) for value in values):
+        values = self.get_value(
+            dataset,
+            "write_wrong_zipcode_digits",
+            parameter_name="digit_probabilities",
+            column_name=column_name,
+        )
+        if not isinstance(values, list) or not all(
+            isinstance(value, float) for value in values
+        ):
             raise ValueError(
-                f"Zipcode digit probabilities are expected to be a list of floats. Your config returned {type(values)}.")
+                f"Zipcode digit probabilities are expected to be a list of floats. Your config returned {type(values)}."
+            )
         return values
 
-    def get_duplicate_with_guardian_probabilities(self, dataset: str, parameter_name: str) -> int | float:
-        if parameter_name != 'row_probability_in_households_under_18' and parameter_name != 'row_probability_in_college_group_quarters_under_24':
-            raise ValueError(f"Parameter name must be 'row_probability_in_households_under_18' or 'row_probability_in_college_group_quarters_under_24' when getting duplicate with guardian probabilities. You provided {parameter_name}.")
+    def get_duplicate_with_guardian_probabilities(
+        self, dataset: str, parameter_name: str
+    ) -> int | float:
+        if (
+            parameter_name != "row_probability_in_households_under_18"
+            and parameter_name != "row_probability_in_college_group_quarters_under_24"
+        ):
+            raise ValueError(
+                f"Parameter name must be 'row_probability_in_households_under_18' or 'row_probability_in_college_group_quarters_under_24' when getting duplicate with guardian probabilities. You provided {parameter_name}."
+            )
         value = self.get_value(dataset, "duplicate_with_guardian", parameter_name)
         if not isinstance(value, int) and not isinstance(value, float):
-            raise ValueError(f"Duplicate with guardian probabilities are expected to be ints or floats. Your config returned {type(value)}.")
+            raise ValueError(
+                f"Duplicate with guardian probabilities are expected to be ints or floats. Your config returned {type(value)}."
+            )
         return value
 
     def get_misreport_ages_probabilities(self, dataset: str, column_name: str) -> dict[int, float]:
         value = self.get_value(dataset, "misreport_age", Keys.POSSIBLE_AGE_DIFFERENCES, column_name)
         if not isinstance(value, dict):
-            raise ValueError(f"Misreport age probabilities are expected to be a dict. Your config returned {type(value)}.")
+            raise ValueError(
+                f"Misreport age probabilities are expected to be a dict. Your config returned {type(value)}."
+            )
         return value
 
     def has_noise_type(

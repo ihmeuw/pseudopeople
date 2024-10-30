@@ -316,11 +316,13 @@ def test_leave_blank(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
 
     data = dataset.data[[column_name]]
     NOISE_TYPES.leave_blank(dataset, config, column_name)
-    noised_data = dataset.data[column_name]
+    noised_data: pd.Series = dataset.data[column_name]
     # Calculate newly missing data, ie data that didn't come in as already missing
     data = data.squeeze()
-    noised_data = noised_data.squeeze() # type: ignore [assignment]
-    orig_non_missing_idx = data[(data.notna()) & (data != "")].index
+    # mypy can't know that squeeze() will not produce a scalar value
+    noised_data = noised_data.squeeze()  # type: ignore [assignment]
+    is_not_missing = (data.notna()) & (data != "")
+    orig_non_missing_idx = is_not_missing[is_not_missing].index
     newly_missing_idx = noised_data.index[
         (noised_data.index.isin(orig_non_missing_idx)) & (noised_data.isna())
     ]
@@ -460,7 +462,9 @@ def test_write_wrong_zipcode_digits(dataset: Dataset, fuzzy_checker: FuzzyChecke
     cell_probability: float = config.get_cell_probability(
         dataset.dataset_schema.name, NOISE_TYPES.write_wrong_zipcode_digits.name, column_name
     )
-    token_probability: list[float] = config.get_zipcode_digit_probabilities(dataset.dataset_schema.name, column_name)
+    token_probability: list[float] = config.get_zipcode_digit_probabilities(
+        dataset.dataset_schema.name, column_name
+    )
     data = dataset.data[column_name].copy()
     NOISE_TYPES.write_wrong_zipcode_digits(dataset, config, column_name)
     noised_data = dataset.data[column_name]
@@ -469,7 +473,9 @@ def test_write_wrong_zipcode_digits(dataset: Dataset, fuzzy_checker: FuzzyChecke
     assert (noised_data[orig_missing] == "").all()
     # Check noise for each digits position matches expected noise
     for i in range(5):
-        digit_prob: float = config.get_zipcode_digit_probabilities(dataset.dataset_schema.name, column_name)[i]
+        digit_prob: float = config.get_zipcode_digit_probabilities(
+            dataset.dataset_schema.name, column_name
+        )[i]
         actual_noise = (data[~orig_missing].str[i] != noised_data[~orig_missing].str[i]).sum()
         expected_noise = digit_prob * cell_probability
         fuzzy_checker.fuzzy_assert_proportion(
@@ -581,7 +587,7 @@ def test_miswrite_ages_provided_probabilities(
                     "age": {
                         NOISE_TYPES.misreport_age.name: {
                             Keys.CELL_PROBABILITY: 0.6,
-                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,  # type: ignore [dict-item]
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                         },
                     },
                 },
@@ -1372,7 +1378,13 @@ def test_seeds_behave_as_expected(
         )
 
     if noise == NOISE_TYPES.copy_from_household_member.name:
+<<<<<<< HEAD
         data: pd.DataFrame | pd.Series[Any] = dataset.data[[data_col, COPY_HOUSEHOLD_MEMBER_COLS[data_col]]].copy()
+=======
+        data: pd.DataFrame | pd.Series = dataset.data[
+            [data_col, COPY_HOUSEHOLD_MEMBER_COLS[data_col]]
+        ].copy()
+>>>>>>> hjafari/MIC-5376_lct_typing
     else:
         data = dataset.data[[data_col]].copy()
 

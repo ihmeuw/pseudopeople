@@ -19,13 +19,7 @@ from pseudopeople.schema_entities import DatasetSchema
 
 class ParameterConfigValidator(Protocol):
     def __call__(
-        self, noise_type_config: Any, parameter: str, base_error_message: str, *_: Any
-    ) -> None:
-        ...
-
-class ChooseWrongOptionValidator(Protocol):
-    def __call__(
-        self, noise_type_config: Any, parameter: str, base_error_message: str, column: str
+        self, noise_type_config: Any, parameter: str, base_error_message: str, **_: Any
     ) -> None:
         ...
 
@@ -129,7 +123,6 @@ def _validate_noise_type_config(
     default_noise_type_config: LayeredConfigTree,
     dataset_name: str,
     noise_type: str,
-    #parameter_config_validator_map: Mapping[str, ParameterConfigValidator | ChooseWrongOptionValidator],
     parameter_config_validator_map: dict[str, ParameterConfigValidator],
     column: str | None = None,
 ) -> None:
@@ -154,7 +147,9 @@ def _validate_noise_type_config(
             f"Invalid '{parameter}' provided for dataset '{dataset_name}' for "
             f"column '{column}' and noise type '{noise_type}'. "
         )
-        parameter_config_validator(parameter_config, parameter, base_error_message, column)
+        parameter_config_validator(
+            parameter_config, parameter, base_error_message, column=column
+        )
 
 
 def _get_default_config_node(
@@ -187,7 +182,7 @@ def _validate_possible_age_differences(
     noise_type_config: Any,
     parameter: str,
     base_error_message: str,
-    *_: Any,
+    **_: Any,
 ) -> None:
     """
     Validates the user-provided values for the age-miswriting permutations
@@ -233,7 +228,7 @@ def _validate_possible_age_differences(
 
 
 def _validate_zipcode_digit_probabilities(
-    noise_type_config: Any, parameter: str, base_error_message: str, *_: Any
+    noise_type_config: Any, parameter: str, base_error_message: str, **_: Any
 ) -> None:
     """Validates the user-provided values for the zipcode digit noising probabilities"""
     if not isinstance(noise_type_config, list):
@@ -251,7 +246,7 @@ def _validate_zipcode_digit_probabilities(
 
 
 def _validate_probability(
-    noise_type_config: Any, parameter: str, base_error_message: str, *_: Any
+    noise_type_config: Any, parameter: str, base_error_message: str, **_: Any
 ) -> None:
     if not isinstance(noise_type_config, (float, int)):
         raise ConfigurationError(
@@ -267,8 +262,16 @@ def _validate_probability(
 
 
 def _validate_choose_wrong_option_probability(
-    noise_type_config: Any, parameter: str, base_error_message: str, column: Any
+    noise_type_config: Any, parameter: str, base_error_message: str, **kwargs: Any
 ) -> None:
+    column = kwargs.get("column")
+    if not column:
+        raise ValueError(
+            "You must pass in a column argument when validating choose wrong option probabilities."
+        )
+    elif not isinstance(column, str):
+        raise ConfigurationError("All the column names in your config must be strings.")
+
     _validate_probability(noise_type_config, parameter, base_error_message)
     num_options = len(get_options_for_column(column))
     # The maximum: if the cell *selection* probability were set to 1, and every cell

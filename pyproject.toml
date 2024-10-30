@@ -18,13 +18,6 @@ implicit_reexport = true
 exclude = [
     "build",
 ]
-# ignore error codes (to allow for gradual typing)
-# extract unique error codes thrown with `mypy . | grep -oP " [ \K[^\] ]+" | sort | uniq`
-disable_error_code = [
-    #"attr-defined",
-    #"index",
-    #"type-arg",
-]
 
 # handle mypy errors when 3rd party packages are not typed.
 [[tool.mypy.overrides]]

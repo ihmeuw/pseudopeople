@@ -183,7 +183,7 @@ def get_state_abbreviation(state: str) -> str:
 def to_string_preserve_nans(s: pd.Series[Any]) -> pd.Series[str]:
     # NOTE: In newer versions of pandas, astype(str) will use the *pandas*
     # string type, which we haven't adopted yet.
-    result: pd.Series[str] = s.astype(str).astype('object')
+    result: pd.Series[str] = s.astype(str).astype("object")
     result[s.isna()] = np.nan
     return result
 
@@ -250,7 +250,8 @@ def coerce_dtypes(
             if col.dtype_name == DtypeNames.OBJECT:
                 data[col.name] = to_string(data[col.name])
             else:
-                data[col.name] = data[col.name].astype(col.dtype_name) # type: ignore [call-overload]
+                # mypy doesn't like using a variable as an argument to astype
+                data[col.name] = data[col.name].astype(col.dtype_name)  # type: ignore [call-overload]
 
     return data
 
