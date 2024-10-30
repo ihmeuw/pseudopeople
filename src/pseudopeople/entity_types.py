@@ -23,7 +23,9 @@ def _noise_function_not_implemented(*_args: Any, **_kwargs: Any) -> None:
 def default_noise_level_getter(
     configuration: NoiseConfiguration, dataset: Dataset, noise_type: str
 ) -> float:
-    noise_level: float = configuration.get_row_probability(dataset.dataset_schema.name, noise_type)
+    noise_level: float = configuration.get_row_probability(
+        dataset.dataset_schema.name, noise_type
+    )
     return noise_level
 
 
