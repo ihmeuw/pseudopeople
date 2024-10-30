@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any, Callable, Mapping, Protocol
+from typing import Any, Protocol
 
 import numpy as np
 import pandas as pd
