@@ -197,7 +197,9 @@ def duplicate_with_guardian(
         # Noise data
         # TODO: Mic-4876 Can we only operate on the index eligible for noise and
         # not the entire dataset?
-        noise_level: int | float = configuration.get_duplicate_with_guardian_probabilities(dataset.dataset_schema.name, parameter_name=group)
+        noise_level: int | float = configuration.get_duplicate_with_guardian_probabilities(
+            dataset.dataset_schema.name, parameter_name=group
+        )
         to_noise_index = get_index_to_noise(
             dataset,
             noise_level,
@@ -232,7 +234,9 @@ def duplicate_with_guardian(
         # are grouped together by sorting by date and household_id
         # todo if this index is a RangeIndex, we can do concat with ignore_index=True
         index_start_value = dataset.data.index.max() + 1
-        duplicated_rows_df.index = pd.Index(range(index_start_value, index_start_value + len(duplicated_rows_df)))
+        duplicated_rows_df.index = pd.Index(
+            range(index_start_value, index_start_value + len(duplicated_rows_df))
+        )
         # Note: This is where we would sort the data by year and household_id but
         # we ran into runtime issues. It may be sufficient to do it here since this
         # would be sorting at the shard level and not the entire dataset.
@@ -422,7 +426,9 @@ def misreport_ages(
     """
 
     column = dataset.data.loc[to_noise_index, column_name]
-    possible_perturbations: dict = configuration.get_misreport_ages_probabilities(dataset.dataset_schema.name, column_name)
+    possible_perturbations: dict = configuration.get_misreport_ages_probabilities(
+        dataset.dataset_schema.name, column_name
+    )
 
     perturbations = vectorized_choice(
         options=list(possible_perturbations.keys()),

@@ -838,15 +838,25 @@ def _validate_column_noise_level(
             not_noised = not_noised * (1 - CELL_PROBABILITY)
         else:
             if col_noise_type.name == NOISE_TYPES.write_wrong_zipcode_digits.name:
-                token_probability: list[float] | int |float = config.get_zipcode_digit_probabilities(dataset_name, col.name)
+                token_probability: list[
+                    float
+                ] | int | float = config.get_zipcode_digit_probabilities(
+                    dataset_name, col.name
+                )
             else:
-                token_probability = config.get_token_probability(dataset_name, col_noise_type.name, col.name)
+                token_probability = config.get_token_probability(
+                    dataset_name, col_noise_type.name, col.name
+                )
 
             # Get number of tokens per string to calculate expected proportion
-            tokens_per_string_getter: Callable[..., pd.Series | int] = TOKENS_PER_STRING_MAPPER.get(
+            tokens_per_string_getter: Callable[
+                ..., pd.Series | int
+            ] = TOKENS_PER_STRING_MAPPER.get(
                 col_noise_type.name, lambda x: x.astype(str).str.len()
             )
-            tokens_per_string: pd.Series | int = tokens_per_string_getter(check_data.loc[check_idx, col.name])
+            tokens_per_string: pd.Series | int = tokens_per_string_getter(
+                check_data.loc[check_idx, col.name]
+            )
 
             # Calculate probability no token is noised
             if isinstance(token_probability, list):
