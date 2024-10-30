@@ -228,7 +228,14 @@ def _format_misreport_age_perturbations(
         if not user_perturbations:
             continue
         formatted = {}
-        default_perturbations: dict[int, float] = default_config.get_tree(dataset_schema).get_tree(Keys.COLUMN_NOISE).get_tree("age").get_tree(NOISE_TYPES.misreport_age.name).get(Keys.POSSIBLE_AGE_DIFFERENCES).to_dict()
+        default_perturbations: dict[int, float] = (
+            default_config.get_tree(dataset_schema)
+            .get_tree(Keys.COLUMN_NOISE)
+            .get_tree("age")
+            .get_tree(NOISE_TYPES.misreport_age.name)
+            .get(Keys.POSSIBLE_AGE_DIFFERENCES)
+            .to_dict()
+        )
         # Replace default configuration with 0 probabilities
         for perturbation in default_perturbations:
             formatted[perturbation] = 0.0
