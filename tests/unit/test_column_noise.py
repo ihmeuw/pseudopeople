@@ -316,7 +316,7 @@ def test_leave_blank(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
 
     data = dataset.data[[column_name]]
     NOISE_TYPES.leave_blank(dataset, config, column_name)
-    noised_data: pd.Series = dataset.data[column_name]
+    noised_data: pd.Series[str] = dataset.data[column_name]
     # Calculate newly missing data, ie data that didn't come in as already missing
     data = data.squeeze()
     # mypy can't know that squeeze() will not produce a scalar value
@@ -1050,7 +1050,9 @@ def test_generate_phonetic_errors(
     "pair",
     PHONETIC_STRESS_TEST_PATHWAYS.items(),
 )
-def test_phonetic_error_values(pair: tuple[str, dict[str, tuple[int, ...]]], fuzzy_checker: FuzzyChecker) -> None:
+def test_phonetic_error_values(
+    pair: tuple[str, dict[str, tuple[int, ...]]], fuzzy_checker: FuzzyChecker
+) -> None:
     string, pathways = pair
     column_name = "first_name"
 
@@ -1181,7 +1183,9 @@ def test_generate_ocr_errors(
     "pair",
     OCR_STRESS_TEST_PATHWAYS.items(),
 )
-def test_ocr_replacement_values(pair: tuple[str, dict[str, tuple[int, ...]]], fuzzy_checker: FuzzyChecker) -> None:
+def test_ocr_replacement_values(
+    pair: tuple[str, dict[str, tuple[int, ...]]], fuzzy_checker: FuzzyChecker
+) -> None:
     string, pathways = pair
     column_name = "first_name"
 
@@ -1378,13 +1382,9 @@ def test_seeds_behave_as_expected(
         )
 
     if noise == NOISE_TYPES.copy_from_household_member.name:
-<<<<<<< HEAD
-        data: pd.DataFrame | pd.Series[Any] = dataset.data[[data_col, COPY_HOUSEHOLD_MEMBER_COLS[data_col]]].copy()
-=======
-        data: pd.DataFrame | pd.Series = dataset.data[
+        data: pd.DataFrame | pd.Series[Any] = dataset.data[
             [data_col, COPY_HOUSEHOLD_MEMBER_COLS[data_col]]
         ].copy()
->>>>>>> hjafari/MIC-5376_lct_typing
     else:
         data = dataset.data[[data_col]].copy()
 

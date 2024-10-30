@@ -427,7 +427,7 @@ def misreport_ages(
     """
 
     column = dataset.data.loc[to_noise_index, column_name]
-    possible_perturbations: dict = configuration.get_misreport_ages_probabilities(
+    possible_perturbations: dict[int, float] = configuration.get_misreport_ages_probabilities(
         dataset.dataset_schema.name, column_name
     )
 
