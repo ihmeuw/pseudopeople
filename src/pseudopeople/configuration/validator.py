@@ -46,11 +46,10 @@ def validate_overrides(overrides: Any, default_config: LayeredConfigTree) -> Non
             _get_default_config_node(
                 default_dataset_config, key, "configuration key", dataset_name
             )
-
-        default_row_noise_config: LayeredConfigTree = default_dataset_config[Keys.ROW_NOISE]
-        default_column_noise_config: LayeredConfigTree = default_dataset_config[
-            Keys.COLUMN_NOISE
-        ]
+        if not default_dataset_config:
+            breakpoint()
+        default_row_noise_config: LayeredConfigTree = default_dataset_config.get_tree(Keys.ROW_NOISE)
+        default_column_noise_config: LayeredConfigTree = default_dataset_config.get_tree(Keys.COLUMN_NOISE)
 
         row_noise_config = dataset_config.get(Keys.ROW_NOISE, {})
         if not isinstance(row_noise_config, dict):
@@ -164,10 +163,8 @@ def _get_default_config_node(
     Validate that the node the user is trying to add exists in the default
     configuration.
     """
-    try:
-        config_node: LayeredConfigTree = default_config[key]
-        return config_node
-    except ConfigurationKeyError:
+    config_node: LayeredConfigTree = default_config.get(key)
+    if config_node is None:
         dataset_context = "" if dataset_name is None else f" for dataset '{dataset_name}'"
         column_context = "" if column is None else f" for column '{column}'"
         noise_type_context = "" if noise_type is None else f" and noise type '{noise_type}'"
@@ -176,6 +173,8 @@ def _get_default_config_node(
         error_message = f"Invalid {key_type} '{key}' provided{context}. "
         valid_options_message = f"Valid {key_type}s are {[k for k in default_config]}."
         raise ConfigurationError(error_message + valid_options_message) from None
+    else:
+        return config_node
 
 
 def _validate_possible_age_differences(
@@ -348,9 +347,12 @@ def validate_noise_level_proportions(
                 # Note: Using pd.isnull here and above because np.isnan does not work on strings
                 if NOISE_TYPES.duplicate_with_guardian in dataset_schema.row_noise_types:
                     # Config level for guardian duplication group
-                    config_noise_level = configuration_tree[row["dataset"]][Keys.ROW_NOISE][
+                    # config_noise_level = configuration_tree[row["dataset"]][Keys.ROW_NOISE][
+                    #     NOISE_TYPES.duplicate_with_guardian.name
+                    # ][row["noise_type"]]
+                    config_noise_level = configuration_tree.get_tree(row["dataset"]).get_tree(Keys.ROW_NOISE).get_tree(
                         NOISE_TYPES.duplicate_with_guardian.name
-                    ][row["noise_type"]]
+                    ).get(row["noise_type"])
                     entity_type = Keys.ROW_NOISE
                 else:
                     # I have preloaded the metadata for ACS and CPS to have the duplicate with
@@ -358,9 +360,9 @@ def validate_noise_level_proportions(
                     continue
             else:
                 # Config level for each column noise type
-                config_noise_level = configuration_tree[row["dataset"]][Keys.COLUMN_NOISE][
+                config_noise_level = configuration_tree.get_tree(row["dataset"]).get_tree(Keys.COLUMN_NOISE).get_tree(
                     row["column"]
-                ][row["noise_type"]][Keys.CELL_PROBABILITY]
+                ).get_tree(row["noise_type"]).get(Keys.CELL_PROBABILITY)
                 entity_type = Keys.COLUMN_NOISE
             max_noise_level = row["proportion"]
             if config_noise_level > max_noise_level:

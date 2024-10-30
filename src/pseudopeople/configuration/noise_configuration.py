@@ -1,3 +1,4 @@
+# mypy: disable-error-code="unused-ignore"
 from __future__ import annotations
 
 from typing import Any
@@ -23,7 +24,8 @@ class NoiseConfiguration:
         self._config = config
 
     def to_dict(self) -> dict[str, Any]:
-        config_dict: dict[str, Any] = self._config.to_dict()
+        # TODO: remove when dropping support for Python 3.9
+        config_dict: dict[str, Any] = self._config.to_dict() # type: ignore [assignment]
         return config_dict
 
     def get_value(
@@ -35,7 +37,7 @@ class NoiseConfiguration:
     ) -> float | int | list[float] | dict[int, float]:
         config = self._config
         try:
-            dataset_config = config[dataset]
+            dataset_config: LayeredConfigTree = config.get_tree(dataset)
         except:
             raise ValueError(
                 f"{dataset} was not found in configuration. "
@@ -48,20 +50,20 @@ class NoiseConfiguration:
                 raise ValueError(
                     f"You cannot provide both a row noise type ({noise_type}) and a column name ({column_name}) simultaneously."
                 )
-            config = dataset_config["row_noise"]
+            config = dataset_config.get_tree("row_noise")
         # column noise
         elif noise_type in COLUMN_NOISE_TYPES:
             if not column_name:
                 raise ValueError(
                     f"You must provide a column name when using a column noise type ({noise_type} in your case)."
                 )
-            all_column_configs: LayeredConfigTree = dataset_config["column_noise"]
+            all_column_configs: LayeredConfigTree = dataset_config.get_tree("column_noise")
             if column_name not in all_column_configs:
                 raise ValueError(
                     f"The column name {column_name} was not found in your config. "
                     f"Available columns are {list(all_column_configs.keys())}."
                 )
-            config = all_column_configs[column_name]
+            config = all_column_configs.get_tree(column_name)
         # unknown noise type
         else:
             raise ValueError(
@@ -70,14 +72,15 @@ class NoiseConfiguration:
                 f"Available column noise types are {COLUMN_NOISE_TYPES}."
             )
         # get value
-        parameter_tree: LayeredConfigTree = config[noise_type]
+        parameter_tree: LayeredConfigTree = config.get_tree(noise_type)
         if parameter_name not in parameter_tree:
             raise ValueError(
                 f"The parameter {parameter_name} was not found for {noise_type} in the configuration. "
                 f"Available parameters are {list(parameter_tree.keys())}."
             )
-        noise_value: int | float | LayeredConfigTree = parameter_tree[parameter_name]
+        noise_value: int | float | LayeredConfigTree = parameter_tree.get(parameter_name)
         converted_noise_value: int | float | dict[int, float] = (
+            # not sure how to tell mypy the types in this dict
             noise_value.to_dict() # type: ignore [assignment]
             if isinstance(noise_value, LayeredConfigTree)
             else noise_value

@@ -132,6 +132,8 @@ def _generate_configuration(is_no_noise: bool) -> LayeredConfigTree:
     baseline_dict = {}
     # Loop through each dataset
     for dataset_schema in DATASET_SCHEMAS:
+        # dataset_dict is extremely nested so typing it any deeper
+        # causes problems for typing further down
         dataset_dict: dict[str, dict[str, dict]] = {} # type: ignore [type-arg]
         row_noise_dict = {}
         column_dict = {}
@@ -226,9 +228,7 @@ def _format_misreport_age_perturbations(
         if not user_perturbations:
             continue
         formatted = {}
-        default_perturbations: dict[int, float] = default_config[dataset_schema][
-            Keys.COLUMN_NOISE
-        ]["age"][NOISE_TYPES.misreport_age.name][Keys.POSSIBLE_AGE_DIFFERENCES]
+        default_perturbations: dict[int, float] = default_config.get_tree(dataset_schema).get_tree(Keys.COLUMN_NOISE).get_tree("age").get_tree(NOISE_TYPES.misreport_age.name).get(Keys.POSSIBLE_AGE_DIFFERENCES).to_dict()
         # Replace default configuration with 0 probabilities
         for perturbation in default_perturbations:
             formatted[perturbation] = 0.0
