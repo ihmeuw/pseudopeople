@@ -24,13 +24,6 @@ class ParameterConfigValidator(Protocol):
         ...
 
 
-class ChooseWrongOptionValidator(Protocol):
-    def __call__(
-        self, noise_type_config: Any, parameter: str, base_error_message: str, column: str
-    ) -> None:
-        ...
-
-
 def validate_overrides(overrides: Any, default_config: LayeredConfigTree) -> None:
     """
     Validates the user-provided overrides. Confirms that all user-provided
@@ -272,8 +265,12 @@ def _validate_choose_wrong_option_probability(
     noise_type_config: Any, parameter: str, base_error_message: str, **kwargs: Any
 ) -> None:
     column = kwargs.get("column")
-    if not column or not isinstance(column, str):
-        raise ValueError("error")
+    if not column:
+        raise ValueError(
+            "You must pass in a column argument when validating choose wrong option probabilities."
+        )
+    elif not isinstance(column, str):
+        raise ConfigurationError("All the column names in your config must be strings.")
 
     _validate_probability(noise_type_config, parameter, base_error_message)
     num_options = len(get_options_for_column(column))

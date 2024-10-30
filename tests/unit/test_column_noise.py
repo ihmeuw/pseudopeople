@@ -315,9 +315,10 @@ def test_leave_blank(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
 
     data = dataset.data[[column_name]]
     NOISE_TYPES.leave_blank(dataset, config, column_name)
-    noised_data = dataset.data[column_name]
+    noised_data: pd.Series = dataset.data[column_name]
     # Calculate newly missing data, ie data that didn't come in as already missing
     data = data.squeeze()
+    # mypy can't know that squeeze() will not produce a scalar value
     noised_data = noised_data.squeeze()  # type: ignore [assignment]
     is_not_missing = (data.notna()) & (data != "")
     orig_non_missing_idx = is_not_missing[is_not_missing].index
@@ -585,7 +586,7 @@ def test_miswrite_ages_provided_probabilities(
                     "age": {
                         NOISE_TYPES.misreport_age.name: {
                             Keys.CELL_PROBABILITY: 0.6,
-                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,  # type: ignore [dict-item]
+                            Keys.POSSIBLE_AGE_DIFFERENCES: perturbations,
                         },
                     },
                 },
