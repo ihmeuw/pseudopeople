@@ -47,8 +47,12 @@ def validate_overrides(overrides: Any, default_config: LayeredConfigTree) -> Non
                 default_dataset_config, key, "configuration key", dataset_name
             )
 
-        default_row_noise_config: LayeredConfigTree = default_dataset_config.get_tree(Keys.ROW_NOISE)
-        default_column_noise_config: LayeredConfigTree = default_dataset_config.get_tree(Keys.COLUMN_NOISE)
+        default_row_noise_config: LayeredConfigTree = default_dataset_config.get_tree(
+            Keys.ROW_NOISE
+        )
+        default_column_noise_config: LayeredConfigTree = default_dataset_config.get_tree(
+            Keys.COLUMN_NOISE
+        )
 
         row_noise_config = dataset_config.get(Keys.ROW_NOISE, {})
         if not isinstance(row_noise_config, dict):
@@ -346,9 +350,12 @@ def validate_noise_level_proportions(
                 # Note: Using pd.isnull here and above because np.isnan does not work on strings
                 if NOISE_TYPES.duplicate_with_guardian in dataset_schema.row_noise_types:
                     # Config level for guardian duplication group
-                    config_noise_level = configuration_tree.get_tree(row["dataset"]).get_tree(Keys.ROW_NOISE).get_tree(
-                        NOISE_TYPES.duplicate_with_guardian.name
-                    ).get(row["noise_type"])
+                    config_noise_level = (
+                        configuration_tree.get_tree(row["dataset"])
+                        .get_tree(Keys.ROW_NOISE)
+                        .get_tree(NOISE_TYPES.duplicate_with_guardian.name)
+                        .get(row["noise_type"])
+                    )
                     entity_type = Keys.ROW_NOISE
                 else:
                     # I have preloaded the metadata for ACS and CPS to have the duplicate with
@@ -356,9 +363,13 @@ def validate_noise_level_proportions(
                     continue
             else:
                 # Config level for each column noise type
-                config_noise_level = configuration_tree.get_tree(row["dataset"]).get_tree(Keys.COLUMN_NOISE).get_tree(
-                    row["column"]
-                ).get_tree(row["noise_type"]).get(Keys.CELL_PROBABILITY)
+                config_noise_level = (
+                    configuration_tree.get_tree(row["dataset"])
+                    .get_tree(Keys.COLUMN_NOISE)
+                    .get_tree(row["column"])
+                    .get_tree(row["noise_type"])
+                    .get(Keys.CELL_PROBABILITY)
+                )
                 entity_type = Keys.COLUMN_NOISE
             max_noise_level = row["proportion"]
             if config_noise_level > max_noise_level:
