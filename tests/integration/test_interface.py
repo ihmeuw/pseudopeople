@@ -813,7 +813,7 @@ def _validate_column_noise_level(
     col: Column,
     config: NoiseConfiguration,
     fuzzy_name: str,
-    validator: Callable,
+    validator: FuzzyChecker,
 ) -> None:
     """
     This helper function iterates through all column noise types for a particular column

@@ -43,6 +43,5 @@ disable_error_code = [
 [[tool.mypy.overrides]]
 module = [
     "scipy.*",
-    "vivarium_testing_utils",
 ]
 ignore_missing_imports = true
