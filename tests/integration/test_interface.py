@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
 from functools import partial
 from pathlib import Path
-from typing import Callable
 
 import numpy as np
 import pandas as pd
@@ -12,6 +12,7 @@ from _pytest.fixtures import FixtureRequest
 from layered_config_tree import LayeredConfigTree
 from pandas.api.types import is_datetime64_any_dtype as is_datetime
 from pytest_mock import MockerFixture
+from vivarium_testing_utils import FuzzyChecker
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.noise_configuration import NoiseConfiguration
@@ -33,7 +34,6 @@ from pseudopeople.utilities import (
     load_phonetic_errors,
     load_qwerty_errors_data,
 )
-from tests.conftest import FuzzyChecker
 from tests.integration.conftest import (
     CELL_PROBABILITY,
     IDX_COLS,

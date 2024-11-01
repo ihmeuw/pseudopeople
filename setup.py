@@ -72,6 +72,7 @@ if __name__ == "__main__":
     test_requirements = [
         "pytest",
         "pytest-mock",
+        "vivarium_testing_utils",
     ] + dask_requirements
 
     lint_requirements = [
