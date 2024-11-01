@@ -17,6 +17,7 @@ DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_RACE: dict[str, float] = {
     "White": -0.0188,
 }
 
+# mypy cannot currently type pd.Interval (11/01/24)
 DO_NOT_RESPOND_AGE_INTERVALS: list[pd.Interval] = [  # type: ignore [type-arg]
     # Intervals should include their lower bound
     pd.Interval(0, 5, closed="left"),

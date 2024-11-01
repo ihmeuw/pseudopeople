@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Iterable, Literal, cast
+from typing import Any, Literal, cast
 
 import pandas as pd
 from loguru import logger
