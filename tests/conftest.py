@@ -5,7 +5,7 @@ import warnings
 from collections.abc import Callable, Generator
 from functools import cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import numpy as np
 import pandas as pd
