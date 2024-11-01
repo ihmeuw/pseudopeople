@@ -209,7 +209,9 @@ def ensure_dtype(data: pd.Series[Any], dtype: pd_dtype) -> pd.Series[Any]:
         return data.astype(dtype)
 
 
-def count_number_of_tokens_per_string(s1: pd.Series[str], s2: pd.Series[str]) -> pd.Series[int]:
+def count_number_of_tokens_per_string(
+    s1: pd.Series[str], s2: pd.Series[str]
+) -> pd.Series[int]:
     """
     Calculates the number of tokens in each string of a series.
     s1 is a pd.Series of tokens and we want to count how many tokens exist in each

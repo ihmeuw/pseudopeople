@@ -134,7 +134,7 @@ def _generate_configuration(is_no_noise: bool) -> LayeredConfigTree:
     for dataset_schema in DATASET_SCHEMAS:
         # dataset_dict is extremely nested so typing it any deeper
         # causes problems for typing further down
-        dataset_dict: dict[str, dict[str, dict]] = {} # type: ignore [type-arg]
+        dataset_dict: dict[str, dict[str, dict]] = {}  # type: ignore [type-arg]
         row_noise_dict = {}
         column_dict = {}
 
@@ -205,7 +205,9 @@ def add_overrides(
         validate_noise_level_proportions(noising_configuration, dataset_schema, filters)
 
 
-def _format_overrides(default_config: LayeredConfigTree, user_dict: dict[str, Any]) -> dict[str, Any]:
+def _format_overrides(
+    default_config: LayeredConfigTree, user_dict: dict[str, Any]
+) -> dict[str, Any]:
     """Formats the user's configuration file as necessary, so it can properly
     update noising configuration to be used
     """

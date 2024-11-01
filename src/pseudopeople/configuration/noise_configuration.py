@@ -25,7 +25,7 @@ class NoiseConfiguration:
 
     def to_dict(self) -> dict[str, Any]:
         # TODO: remove when dropping support for Python 3.9
-        config_dict: dict[str, Any] = self._config.to_dict() # type: ignore [assignment]
+        config_dict: dict[str, Any] = self._config.to_dict()  # type: ignore [assignment]
         return config_dict
 
     def get_value(
@@ -81,7 +81,7 @@ class NoiseConfiguration:
         noise_value: int | float | LayeredConfigTree = parameter_tree.get(parameter_name)
         converted_noise_value: int | float | dict[int, float] = (
             # not sure how to tell mypy the types in this dict
-            noise_value.to_dict() # type: ignore [assignment]
+            noise_value.to_dict()  # type: ignore [assignment]
             if isinstance(noise_value, LayeredConfigTree)
             else noise_value
         )
@@ -151,8 +151,12 @@ class NoiseConfiguration:
             )
         return value
 
-    def get_misreport_ages_probabilities(self, dataset: str, column_name: str) -> dict[int, float]:
-        value = self.get_value(dataset, "misreport_age", Keys.POSSIBLE_AGE_DIFFERENCES, column_name)
+    def get_misreport_ages_probabilities(
+        self, dataset: str, column_name: str
+    ) -> dict[int, float]:
+        value = self.get_value(
+            dataset, "misreport_age", Keys.POSSIBLE_AGE_DIFFERENCES, column_name
+        )
         if not isinstance(value, dict):
             raise ValueError(
                 f"Misreport age probabilities are expected to be a dict. Your config returned {type(value)}."
