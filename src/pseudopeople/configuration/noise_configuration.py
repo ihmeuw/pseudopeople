@@ -1,4 +1,3 @@
-# mypy: disable-error-code="unused-ignore"
 from __future__ import annotations
 
 from typing import Any
@@ -24,8 +23,7 @@ class NoiseConfiguration:
         self._config = config
 
     def to_dict(self) -> dict:
-        # TODO: remove ignore when dropping support for Python 3.9
-        config_dict: dict = self._config.to_dict()  # type: ignore [assignment]
+        config_dict: dict = self._config.to_dict()
         return config_dict
 
     def get_value(
@@ -80,8 +78,7 @@ class NoiseConfiguration:
             )
         noise_value: int | float | LayeredConfigTree = parameter_tree.get(parameter_name)
         converted_noise_value: int | float | dict = (
-            # not sure how to tell mypy the types in this dict
-            noise_value.to_dict()  # type: ignore [assignment]
+            noise_value.to_dict()
             if isinstance(noise_value, LayeredConfigTree)
             else noise_value
         )
