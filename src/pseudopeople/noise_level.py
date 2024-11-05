@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 def _get_census_omission_noise_levels(
     population: pd.DataFrame,
     base_probability: float = data_values.DO_NOT_RESPOND_BASE_PROBABILITY,
-) -> pd.Series:
+) -> pd.Series[float]:
     """
     Helper function for do_not_respond noising based on demography of age, race/ethnicity, and sex.
 
@@ -53,7 +53,7 @@ def _get_census_omission_noise_levels(
 
 def get_apply_do_not_respond_noise_level(
     configuration: NoiseConfiguration, dataset: Dataset, noise_type: str
-) -> pd.Series:
+) -> pd.Series[float]:
     dataset_name = dataset.dataset_schema.name
     noise_levels = _get_census_omission_noise_levels(dataset.data)
 

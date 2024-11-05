@@ -50,7 +50,7 @@ class Dataset:
         is_empty: bool = self.missingness[column_name].all()
         return is_empty
 
-    def get_non_empty_index(self, required_columns: list[str] | None = None) -> pd.Index:
+    def get_non_empty_index(self, required_columns: list[str] | None = None) -> pd.Index[int]:
         """Returns the non-empty data."""
 
         if required_columns is None:
@@ -139,7 +139,7 @@ class Dataset:
             # Format both the actual column, and the shadow version that will be used
             # to copy from a household member
             for column in [date_column, COPY_HOUSEHOLD_MEMBER_COLS.get(date_column)]:
-                if column in data.columns:
+                if column in data.columns and isinstance(column, str):
                     # Avoid running strftime on large data, since that will
                     # re-parse the format string for each row
                     # https://github.com/pandas-dev/pandas/issues/44764
@@ -173,7 +173,7 @@ class Dataset:
         return (data == "") | (data.isna())
 
 
-def _zfill_fast(col: pd.Series, desired_length: int) -> pd.Series:
+def _zfill_fast(col: pd.Series[str], desired_length: int) -> pd.Series[str]:
     """Performs the same operation as col.str.zfill(desired_length), but vectorized."""
     # The most zeroes that could ever be needed would be desired_length
     maximum_padding = ("0" * desired_length) + col

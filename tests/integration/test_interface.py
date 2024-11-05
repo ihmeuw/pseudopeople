@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
 from functools import partial
 from pathlib import Path
-from typing import Callable
+from typing import Any, Literal
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import pytest
 from _pytest.fixtures import FixtureRequest
@@ -45,7 +47,7 @@ from tests.integration.conftest import (
 )
 from tests.unit.test_configuration import COLUMN_NOISE_TYPES
 
-DATASET_GENERATION_FUNCS: dict[str, Callable] = {
+DATASET_GENERATION_FUNCS: dict[str, Callable[..., Any]] = {
     DATASET_SCHEMAS.census.name: generate_decennial_census,
     DATASET_SCHEMAS.acs.name: generate_american_community_survey,
     DATASET_SCHEMAS.cps.name: generate_current_population_survey,
@@ -55,7 +57,7 @@ DATASET_GENERATION_FUNCS: dict[str, Callable] = {
     DATASET_SCHEMAS.tax_1040.name: generate_taxes_1040,
 }
 
-TOKENS_PER_STRING_MAPPER: dict[str, Callable] = {
+TOKENS_PER_STRING_MAPPER: dict[str, Callable[..., pd.Series[int]]] = {
     NOISE_TYPES.make_ocr_errors.name: partial(
         count_number_of_tokens_per_string, pd.Series(load_ocr_errors().index)
     ),
@@ -94,7 +96,7 @@ TOKENS_PER_STRING_MAPPER: dict[str, Callable] = {
 def test_generate_dataset_from_multiple_shards(
     dataset_name: str,
     engine: str,
-    config: dict,
+    config: dict[str, Any],
     request: FixtureRequest,
     split_sample_data_dir: Path,
     mocker: MockerFixture,
@@ -177,7 +179,7 @@ def test_generate_dataset_from_multiple_shards(
     ],
 )
 def test_seed_behavior(
-    dataset_name: str, engine: str, config: dict, request: FixtureRequest
+    dataset_name: str, engine: str, config: dict[str, Any], request: FixtureRequest
 ) -> None:
     """Tests seed behavior"""
     if "TODO" in dataset_name:
@@ -238,7 +240,7 @@ def test_seed_behavior(
     ],
 )
 def test_column_dtypes(
-    dataset_name: str, engine: str, config: dict, request: FixtureRequest
+    dataset_name: str, engine: str, config: dict[str, Any], request: FixtureRequest
 ) -> None:
     """Tests that column dtypes are as expected"""
     if "TODO" in dataset_name:
@@ -289,7 +291,7 @@ def test_column_dtypes(
 def test_column_noising(
     dataset_name: str,
     engine: str,
-    config: dict,
+    config: dict[str, Any],
     request: FixtureRequest,
     fuzzy_checker: FuzzyChecker,
 ) -> None:
@@ -320,7 +322,7 @@ def test_column_noising(
         # Check for noising where applicable
         to_compare_idx = shared_idx.difference(originally_missing_idx)
         if col.noise_types:
-            different_check: np.ndarray = np.array(
+            different_check: npt.NDArray[np.bool] = np.array(
                 check_original.loc[to_compare_idx, col.name].values
                 != check_noised.loc[to_compare_idx, col.name].values
             )
@@ -340,7 +342,7 @@ def test_column_noising(
                 validator=fuzzy_checker,
             )
         else:  # No noising - should be identical
-            same_check: np.ndarray = np.array(
+            same_check: npt.NDArray[np.bool] = np.array(
                 check_original.loc[to_compare_idx, col.name].values
                 == check_noised.loc[to_compare_idx, col.name].values
             )
@@ -368,7 +370,7 @@ def test_column_noising(
     ],
 )
 def test_row_noising_omit_row_or_do_not_respond(
-    dataset_name: str, engine: str, config: dict, request: FixtureRequest
+    dataset_name: str, engine: str, config: dict[str, Any], request: FixtureRequest
 ) -> None:
     """Tests that omit_row and do_not_respond row noising are being applied"""
     if "TODO" in dataset_name:
@@ -808,7 +810,7 @@ def test_generate_dataset_with_bad_year(
 def _validate_column_noise_level(
     dataset_name: str,
     check_data: pd.DataFrame,
-    check_idx: pd.Index,
+    check_idx: pd.Index[int],
     noise_level: int,
     col: Column,
     config: NoiseConfiguration,
@@ -850,11 +852,11 @@ def _validate_column_noise_level(
 
             # Get number of tokens per string to calculate expected proportion
             tokens_per_string_getter: Callable[
-                ..., pd.Series | int
+                ..., pd.Series[int] | int
             ] = TOKENS_PER_STRING_MAPPER.get(
                 col_noise_type.name, lambda x: x.astype(str).str.len()
             )
-            tokens_per_string: pd.Series | int = tokens_per_string_getter(
+            tokens_per_string: pd.Series[int] | int = tokens_per_string_getter(
                 check_data.loc[check_idx, col.name]
             )
 
@@ -890,8 +892,8 @@ def _get_column_noise_level(
     column: Column,
     noised_data: pd.DataFrame,
     unnoised_data: pd.DataFrame,
-    common_idx: pd.Index,
-) -> tuple[int, pd.Index]:
+    common_idx: pd.Index[int],
+) -> tuple[int, pd.Index[int]]:
 
     # Check that originally missing data remained missing
     originally_missing_sample_idx = unnoised_data.index[unnoised_data[column.name].isna()]
@@ -900,7 +902,7 @@ def _get_column_noise_level(
 
     # Check for noising where applicable
     to_compare_sample_idx = common_idx.difference(originally_missing_sample_idx)
-    different_check: np.ndarray = np.array(
+    different_check: npt.NDArray[np.bool] = np.array(
         unnoised_data.loc[to_compare_sample_idx, column.name].values
         != noised_data.loc[to_compare_sample_idx, column.name].values
     )

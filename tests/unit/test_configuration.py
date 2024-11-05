@@ -219,7 +219,7 @@ def test_loading_from_yaml(tmp_path: Path) -> None:
     ids=["list", "dict"],
 )
 def test_format_miswrite_ages(
-    age_differences: list[int] | dict[int, float], expected: dict[int, float]
+    age_differences: list[int | float] | dict[int, float], expected: dict[int, float]
 ) -> None:
     """Test that user-supplied dictionary properly updates LayeredConfigTree object.
     This includes zero-ing out default values that don't exist in the user config
@@ -357,7 +357,7 @@ def test_type_checking_all_levels(object_bad_type: Any) -> None:
         "Invalid column noise type parameter",
     ],
 )
-def test_overriding_nonexistent_keys_fails(config: dict, match: str) -> None:
+def test_overriding_nonexistent_keys_fails(config: dict[str, Any], match: str) -> None:
     with pytest.raises(ConfigurationError, match=match):
         get_configuration(config)
 
@@ -459,7 +459,7 @@ def test_validate_standard_parameters_failures_column_noise(
     ],
 )
 def test_validate_miswrite_ages_failures(
-    perturbations: int | dict | list, match: str
+    perturbations: int | dict[int, float] | list[int | float], match: str
 ) -> None:
     """Test that a runtime error is thrown if the user provides bad possible_age_differences"""
     with pytest.raises(ConfigurationError, match=match):

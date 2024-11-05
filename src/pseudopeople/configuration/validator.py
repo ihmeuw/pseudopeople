@@ -121,7 +121,7 @@ def validate_overrides(overrides: Any, default_config: LayeredConfigTree) -> Non
 
 
 def _validate_noise_type_config(
-    noise_type_config: dict,
+    noise_type_config: dict[str, Any],
     default_noise_type_config: LayeredConfigTree,
     dataset_name: str,
     noise_type: str,

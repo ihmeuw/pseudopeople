@@ -22,8 +22,8 @@ class NoiseConfiguration:
     def __init__(self, config: LayeredConfigTree):
         self._config = config
 
-    def to_dict(self) -> dict:
-        config_dict: dict = self._config.to_dict()
+    def to_dict(self) -> dict[str, Any]:
+        config_dict: dict[str, Any] = self._config.to_dict()
         return config_dict
 
     def get_value(
@@ -32,7 +32,7 @@ class NoiseConfiguration:
         noise_type: str,
         parameter_name: str,
         column_name: str | None = None,
-    ) -> float | int | list | dict:
+    ) -> float | int | list[float] | dict[int, float]:
         config = self._config
         try:
             dataset_config: LayeredConfigTree = config.get_tree(dataset)
@@ -77,12 +77,12 @@ class NoiseConfiguration:
                 f"Available parameters are {list(parameter_tree.keys())}."
             )
         noise_value: int | float | LayeredConfigTree = parameter_tree.get(parameter_name)
-        converted_noise_value: int | float | dict = (
-            noise_value.to_dict()
-            if isinstance(noise_value, LayeredConfigTree)
-            else noise_value
-        )
-        return converted_noise_value
+        if isinstance(noise_value, LayeredConfigTree):
+            # TODO: [MIC-5500] store dicts in LayeredConfigTree without converting to LayeredConfigTree
+            converted_noise_value: dict[int, float] = noise_value.to_dict()  # type: ignore [assignment]
+            return converted_noise_value
+        else:
+            return noise_value
 
     def get_row_probability(self, dataset: str, noise_type: str) -> int | float:
         value = self.get_value(dataset, noise_type, parameter_name="row_probability")
@@ -148,7 +148,9 @@ class NoiseConfiguration:
             )
         return value
 
-    def get_misreport_ages_probabilities(self, dataset: str, column_name: str) -> dict:
+    def get_misreport_ages_probabilities(
+        self, dataset: str, column_name: str
+    ) -> dict[int, float]:
         value = self.get_value(
             dataset, "misreport_age", Keys.POSSIBLE_AGE_DIFFERENCES, column_name
         )
