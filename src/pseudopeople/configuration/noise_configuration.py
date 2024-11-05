@@ -78,6 +78,7 @@ class NoiseConfiguration:
             )
         noise_value: int | float | LayeredConfigTree = parameter_tree.get(parameter_name)
         if isinstance(noise_value, LayeredConfigTree):
+            # TODO: [MIC-5500] store dicts in LayeredConfigTree without converting to LayeredConfigTree
             converted_noise_value: dict[int, float] = noise_value.to_dict()  # type: ignore [assignment]
             return converted_noise_value
         else:
