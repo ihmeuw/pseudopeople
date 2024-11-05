@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import random
 from collections.abc import Callable
 from string import ascii_lowercase
@@ -252,7 +254,7 @@ def test_columns_noised(dummy_data: pd.DataFrame) -> None:
     ],
 )
 def test_correct_datasets_are_used(
-    func: Callable, dataset_schema: DatasetSchema, mocker: MockerFixture
+    func: Callable[..., pd.DataFrame], dataset_schema: DatasetSchema, mocker: MockerFixture
 ) -> None:
     """Test that each interface noise function uses the correct dataset"""
     mock = mocker.patch("pseudopeople.interface._generate_dataset")
@@ -290,7 +292,7 @@ def test_two_noise_functions_are_independent(
     def alpha_noise_function(
         dataset_: Dataset,
         _config: NoiseConfiguration,
-        to_noise_idx: pd.Index,
+        to_noise_idx: pd.Index[int],
         column_name: str,
     ) -> None:
         dataset_.data.loc[to_noise_idx, column_name] += "abc"
@@ -298,7 +300,7 @@ def test_two_noise_functions_are_independent(
     def beta_noise_function(
         dataset_: Dataset,
         _config: NoiseConfiguration,
-        to_noise_idx: pd.Index,
+        to_noise_idx: pd.Index[int],
         column_name: str,
     ) -> None:
         dataset_.data.loc[to_noise_idx, column_name] += "123"

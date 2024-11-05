@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 
 from pseudopeople.configuration import Keys
@@ -33,7 +34,7 @@ if TYPE_CHECKING:
 
 
 def omit_rows(
-    dataset: Dataset, configuration: NoiseConfiguration, to_noise_index: pd.Index
+    dataset: Dataset, configuration: NoiseConfiguration, to_noise_index: pd.Index[int]
 ) -> None:
     """
     Function that omits rows from a dataset and returns only the remaining rows.  Note that for the ACS and CPS datasets
@@ -50,7 +51,7 @@ def omit_rows(
 
 
 def apply_do_not_respond(
-    dataset: Dataset, configuration: NoiseConfiguration, to_noise_index: pd.Index
+    dataset: Dataset, configuration: NoiseConfiguration, to_noise_index: pd.Index[int]
 ) -> None:
     """
     Applies targeted omission based on demographic model for census and surveys.
@@ -95,7 +96,7 @@ def apply_do_not_respond(
 def duplicate_with_guardian(
     dataset: Dataset,
     configuration: NoiseConfiguration,
-    to_noise_index: pd.Index,
+    to_noise_index: pd.Index[int],
 ) -> None:
     """
     Function that duplicates rows of a dataset. Rows that are duplicated fall into one of three groups of
@@ -197,8 +198,8 @@ def duplicate_with_guardian(
         # Noise data
         # TODO: Mic-4876 Can we only operate on the index eligible for noise and
         # not the entire dataset?
-        noise_level: float | int = configuration.get_value(
-            dataset.dataset_schema.name, "duplicate_with_guardian", parameter_name=group
+        noise_level: int | float = configuration.get_duplicate_with_guardian_probabilities(
+            dataset.dataset_schema.name, parameter_name=group
         )
         to_noise_index = get_index_to_noise(
             dataset,
@@ -234,8 +235,8 @@ def duplicate_with_guardian(
         # are grouped together by sorting by date and household_id
         # todo if this index is a RangeIndex, we can do concat with ignore_index=True
         index_start_value = dataset.data.index.max() + 1
-        duplicated_rows_df.index = range(
-            index_start_value, index_start_value + len(duplicated_rows_df)
+        duplicated_rows_df.index = pd.Index(
+            range(index_start_value, index_start_value + len(duplicated_rows_df))
         )
         # Note: This is where we would sort the data by year and household_id but
         # we ran into runtime issues. It may be sufficient to do it here since this
@@ -254,7 +255,7 @@ def duplicate_with_guardian(
 def choose_wrong_options(
     dataset: Dataset,
     _: NoiseConfiguration,
-    to_noise_index: pd.Index,
+    to_noise_index: pd.Index[int],
     column_name: str,
 ) -> None:
     """
@@ -292,7 +293,7 @@ def choose_wrong_options(
 def copy_from_household_member(
     dataset: Dataset,
     configuration: NoiseConfiguration,
-    to_noise_index: pd.Index,
+    to_noise_index: pd.Index[int],
     column_name: str,
 ) -> None:
     """
@@ -314,7 +315,7 @@ def copy_from_household_member(
 def swap_months_and_days(
     dataset: Dataset,
     _: NoiseConfiguration,
-    to_noise_index: pd.Index,
+    to_noise_index: pd.Index[int],
     column_name: str,
 ) -> None:
     """
@@ -357,7 +358,7 @@ def swap_months_and_days(
 def write_wrong_zipcode_digits(
     dataset: Dataset,
     configuration: NoiseConfiguration,
-    to_noise_index: pd.Index,
+    to_noise_index: pd.Index[int],
     column_name: str,
 ) -> None:
     """
@@ -413,7 +414,7 @@ def write_wrong_zipcode_digits(
 def misreport_ages(
     dataset: Dataset,
     configuration: NoiseConfiguration,
-    to_noise_index: pd.Index,
+    to_noise_index: pd.Index[int],
     column_name: str,
 ) -> None:
     """Function to mis-write ages based on perturbation parameters included in
@@ -426,12 +427,10 @@ def misreport_ages(
     """
 
     column = dataset.data.loc[to_noise_index, column_name]
-    possible_perturbations: dict = configuration.get_value(
-        dataset.dataset_schema.name,
-        "misreport_age",
-        Keys.POSSIBLE_AGE_DIFFERENCES,
-        column_name,
+    possible_perturbations: dict[int, float] = configuration.get_misreport_ages_probabilities(
+        dataset.dataset_schema.name, column_name
     )
+
     perturbations = vectorized_choice(
         options=list(possible_perturbations.keys()),
         weights=list(possible_perturbations.values()),
@@ -453,7 +452,7 @@ def misreport_ages(
 def write_wrong_digits(
     dataset: Dataset,
     configuration: NoiseConfiguration,
-    to_noise_index: pd.Index,
+    to_noise_index: pd.Index[int],
     column_name: str,
 ) -> None:
     """
@@ -464,7 +463,7 @@ def write_wrong_digits(
     :param to_noise_index: pd.Index of rows to be noised
     :param column_name: String for column that will be noised
     """
-    column: pd.Series = dataset.data.loc[to_noise_index, column_name]
+    column: pd.Series[str] = dataset.data.loc[to_noise_index, column_name]
     # This is a fix to not replacing the original token for noise options
     token_probability: float = configuration.get_token_probability(
         dataset.dataset_schema.name, "write_wrong_digits", column_name
@@ -508,7 +507,7 @@ def write_wrong_digits(
 def use_nicknames(
     dataset: Dataset,
     _: NoiseConfiguration,
-    to_noise_index: pd.Index,
+    to_noise_index: pd.Index[int],
     column_name: str,
 ) -> None:
     """
@@ -539,7 +538,7 @@ def use_nicknames(
 def use_fake_names(
     dataset: Dataset,
     _: NoiseConfiguration,
-    to_noise_index: pd.Index,
+    to_noise_index: pd.Index[int],
     column_name: str,
 ) -> None:
     """
@@ -582,7 +581,7 @@ def use_fake_names(
 def make_phonetic_errors(
     dataset: Dataset,
     configuration: NoiseConfiguration,
-    to_noise_index: pd.Index,
+    to_noise_index: pd.Index[int],
     column_name: str,
 ) -> None:
     """
@@ -616,7 +615,7 @@ def make_phonetic_errors(
 def leave_blanks(
     dataset: Dataset,
     _: NoiseConfiguration,
-    to_noise_index: pd.Index,
+    to_noise_index: pd.Index[int],
     column_name: str,
 ) -> None:
     """
@@ -638,7 +637,7 @@ def leave_blanks(
 def make_typos(
     dataset: Dataset,
     configuration: NoiseConfiguration,
-    to_noise_index: pd.Index,
+    to_noise_index: pd.Index[int],
     column_name: str,
 ) -> None:
     """Function that applies noise to the string values
@@ -699,12 +698,17 @@ def make_typos(
         replace_random * number_of_options.loc[to_replace].to_numpy()
     )
     originals_to_keep = same_len_col_exploded[keep_original]
+
+    qwerty_errors_stacked = qwerty_errors.stack()
+    if not isinstance(qwerty_errors_stacked, pd.Series):
+        raise ValueError("Your qwerty errors data had columns with multiple levels.")
+
     # Numpy does not have an efficient way to do this merge operation
     same_len_col_exploded[replace] = (
         pd.DataFrame({"to_replace": to_replace, "replace_option_index": replace_option_index})
         .reset_index()
         .merge(
-            qwerty_errors.stack().rename("replacement"),
+            qwerty_errors_stacked.rename("replacement"),
             left_on=["to_replace", "replace_option_index"],
             right_index=True,
         )
@@ -725,7 +729,7 @@ def make_typos(
 def make_ocr_errors(
     dataset: Dataset,
     configuration: NoiseConfiguration,
-    to_noise_index: pd.Index,
+    to_noise_index: pd.Index[int],
     column_name: str,
 ) -> None:
     """
@@ -757,10 +761,10 @@ def make_ocr_errors(
 
 def _corrupt_tokens(
     errors: pd.DataFrame,
-    column: pd.Series,
+    column: pd.Series[str],
     token_probability: float,
     random_generator: np.random.Generator,
-) -> pd.Series:
+) -> pd.Series[str]:
     """
     Performs token-level corruption on a string Series when the tokens to corrupt
     (and the tokens they get corrupted to) can be more than one character long.
@@ -791,7 +795,7 @@ def _corrupt_tokens(
         len(errors.columns) * np.array(range(len(errors))), index=errors.index
     )
 
-    lengths: np.ndarray = column.str.len().values
+    lengths: npt.NDArray[np.int_] = np.array(column.str.len().values)
 
     same_len_col_exploded = (
         column
@@ -894,5 +898,5 @@ def _corrupt_tokens(
         next_due[use_original_char] = i + 1
 
     # "Un-explode" (re-concatenate) each string from its pieces.
-    results: pd.Series = pd.Series(result.sum(axis=1), index=column.index)
+    results: pd.Series[str] = pd.Series(result.sum(axis=1), index=column.index)
     return results
