@@ -8,7 +8,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import pytest
-from layered_config_tree import LayeredConfigTree
+from vivarium_testing_utils import FuzzyChecker
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.noise_configuration import NoiseConfiguration
@@ -24,7 +24,6 @@ from pseudopeople.utilities import (
     load_qwerty_errors_data,
     to_string,
 )
-from tests.conftest import FuzzyChecker
 
 CHARACTERS_LIST = [
     "A",
