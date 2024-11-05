@@ -1,4 +1,3 @@
-# mypy: disable-error-code="unused-ignore"
 from __future__ import annotations
 
 from typing import Any
@@ -24,8 +23,7 @@ class NoiseConfiguration:
         self._config = config
 
     def to_dict(self) -> dict[str, Any]:
-        # TODO: remove when dropping support for Python 3.9
-        config_dict: dict[str, Any] = self._config.to_dict()  # type: ignore [assignment]
+        config_dict: dict[str, Any] = self._config.to_dict()
         return config_dict
 
     def get_value(
@@ -79,13 +77,11 @@ class NoiseConfiguration:
                 f"Available parameters are {list(parameter_tree.keys())}."
             )
         noise_value: int | float | LayeredConfigTree = parameter_tree.get(parameter_name)
-        converted_noise_value: int | float | dict[int, float] = (
-            # not sure how to tell mypy the types in this dict
-            noise_value.to_dict()  # type: ignore [assignment]
-            if isinstance(noise_value, LayeredConfigTree)
-            else noise_value
-        )
-        return converted_noise_value
+        if isinstance(noise_value, LayeredConfigTree):
+            converted_noise_value: dict[int, float] = noise_value.to_dict()  # type: ignore [assignment]
+            return converted_noise_value
+        else:
+            return noise_value
 
     def get_row_probability(self, dataset: str, noise_type: str) -> int | float:
         value = self.get_value(dataset, noise_type, parameter_name="row_probability")

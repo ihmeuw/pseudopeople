@@ -38,7 +38,7 @@ if __name__ == "__main__":
         "pyarrow",
         "scipy",
         "tqdm",
-        "layered_config_tree>=1.0.1",
+        "layered_config_tree>=2.1.0",
         "loguru",
         # type stubs
         "pandas-stubs",

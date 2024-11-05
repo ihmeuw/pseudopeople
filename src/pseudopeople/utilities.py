@@ -223,7 +223,7 @@ def count_number_of_tokens_per_string(
     s2 = s2.astype(str)
     strings = s2.unique()
     tokens_per_string = pd.Series(
-        list(sum(count_occurrences(s, str(token)) for token in s1) for s in strings),
+        [sum(count_occurrences(s, str(token)) for token in s1) for s in strings],
         index=strings,
     )
 
