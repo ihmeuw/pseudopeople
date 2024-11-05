@@ -4,8 +4,10 @@ import math
 from collections.abc import Callable
 from functools import partial
 from pathlib import Path
+from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import pytest
 from _pytest.fixtures import FixtureRequest
@@ -45,7 +47,7 @@ from tests.integration.conftest import (
 )
 from tests.unit.test_configuration import COLUMN_NOISE_TYPES
 
-DATASET_GENERATION_FUNCS: dict[str, Callable] = {
+DATASET_GENERATION_FUNCS: dict[str, Callable[..., Any]] = {
     DATASET_SCHEMAS.census.name: generate_decennial_census,
     DATASET_SCHEMAS.acs.name: generate_american_community_survey,
     DATASET_SCHEMAS.cps.name: generate_current_population_survey,
@@ -55,7 +57,7 @@ DATASET_GENERATION_FUNCS: dict[str, Callable] = {
     DATASET_SCHEMAS.tax_1040.name: generate_taxes_1040,
 }
 
-TOKENS_PER_STRING_MAPPER = {
+TOKENS_PER_STRING_MAPPER: dict[str, Callable[..., pd.Series[int]]] = {
     NOISE_TYPES.make_ocr_errors.name: partial(
         count_number_of_tokens_per_string, pd.Series(load_ocr_errors().index)
     ),
@@ -94,7 +96,7 @@ TOKENS_PER_STRING_MAPPER = {
 def test_generate_dataset_from_multiple_shards(
     dataset_name: str,
     engine: str,
-    config: dict,
+    config: dict[str, Any],
     request: FixtureRequest,
     split_sample_data_dir: Path,
     mocker: MockerFixture,
@@ -177,7 +179,7 @@ def test_generate_dataset_from_multiple_shards(
     ],
 )
 def test_seed_behavior(
-    dataset_name: str, engine: str, config: dict, request: FixtureRequest
+    dataset_name: str, engine: str, config: dict[str, Any], request: FixtureRequest
 ) -> None:
     """Tests seed behavior"""
     if "TODO" in dataset_name:
@@ -238,7 +240,7 @@ def test_seed_behavior(
     ],
 )
 def test_column_dtypes(
-    dataset_name: str, engine: str, config: dict, request: FixtureRequest
+    dataset_name: str, engine: str, config: dict[str, Any], request: FixtureRequest
 ) -> None:
     """Tests that column dtypes are as expected"""
     if "TODO" in dataset_name:
@@ -289,7 +291,7 @@ def test_column_dtypes(
 def test_column_noising(
     dataset_name: str,
     engine: str,
-    config: dict,
+    config: dict[str, Any],
     request: FixtureRequest,
     fuzzy_checker: FuzzyChecker,
 ) -> None:
@@ -320,7 +322,7 @@ def test_column_noising(
         # Check for noising where applicable
         to_compare_idx = shared_idx.difference(originally_missing_idx)
         if col.noise_types:
-            different_check: np.ndarray = (
+            different_check: npt.NDArray[np.bool] = np.array(
                 check_original.loc[to_compare_idx, col.name].values
                 != check_noised.loc[to_compare_idx, col.name].values
             )
@@ -340,7 +342,7 @@ def test_column_noising(
                 validator=fuzzy_checker,
             )
         else:  # No noising - should be identical
-            same_check: np.ndarray = (
+            same_check: npt.NDArray[np.bool] = np.array(
                 check_original.loc[to_compare_idx, col.name].values
                 == check_noised.loc[to_compare_idx, col.name].values
             )
@@ -368,7 +370,7 @@ def test_column_noising(
     ],
 )
 def test_row_noising_omit_row_or_do_not_respond(
-    dataset_name: str, engine: str, config: dict, request: FixtureRequest
+    dataset_name: str, engine: str, config: dict[str, Any], request: FixtureRequest
 ) -> None:
     """Tests that omit_row and do_not_respond row noising are being applied"""
     if "TODO" in dataset_name:
@@ -808,7 +810,7 @@ def test_generate_dataset_with_bad_year(
 def _validate_column_noise_level(
     dataset_name: str,
     check_data: pd.DataFrame,
-    check_idx: pd.Index,
+    check_idx: pd.Index[int],
     noise_level: int,
     col: Column,
     config: NoiseConfiguration,
@@ -837,17 +839,26 @@ def _validate_column_noise_level(
         if col_noise_type.name not in includes_token_noising:
             not_noised = not_noised * (1 - CELL_PROBABILITY)
         else:
-            token_probability_key = {
-                NOISE_TYPES.write_wrong_zipcode_digits.name: Keys.ZIPCODE_DIGIT_PROBABILITIES,
-            }.get(col_noise_type.name, Keys.TOKEN_PROBABILITY)
-            token_probability: list[float] | float = config.get_value(
-                dataset_name, col_noise_type.name, token_probability_key, col.name
-            )
+            if col_noise_type.name == NOISE_TYPES.write_wrong_zipcode_digits.name:
+                token_probability: list[
+                    float
+                ] | int | float = config.get_zipcode_digit_probabilities(
+                    dataset_name, col.name
+                )
+            else:
+                token_probability = config.get_token_probability(
+                    dataset_name, col_noise_type.name, col.name
+                )
+
             # Get number of tokens per string to calculate expected proportion
-            tokens_per_string_getter: Callable = TOKENS_PER_STRING_MAPPER.get(
+            tokens_per_string_getter: Callable[
+                ..., pd.Series[int] | int
+            ] = TOKENS_PER_STRING_MAPPER.get(
                 col_noise_type.name, lambda x: x.astype(str).str.len()
             )
-            tokens_per_string = tokens_per_string_getter(check_data.loc[check_idx, col.name])
+            tokens_per_string: pd.Series[int] | int = tokens_per_string_getter(
+                check_data.loc[check_idx, col.name]
+            )
 
             # Calculate probability no token is noised
             if isinstance(token_probability, list):
@@ -856,6 +867,7 @@ def _validate_column_noise_level(
                     [1 - p for p in token_probability]
                 )
             else:
+                assert isinstance(tokens_per_string, pd.Series)
                 avg_probability_any_token_noised = (
                     1 - (1 - token_probability) ** tokens_per_string
                 ).mean()
@@ -880,8 +892,8 @@ def _get_column_noise_level(
     column: Column,
     noised_data: pd.DataFrame,
     unnoised_data: pd.DataFrame,
-    common_idx: pd.Index,
-) -> tuple[int, pd.Index]:
+    common_idx: pd.Index[int],
+) -> tuple[int, pd.Index[int]]:
 
     # Check that originally missing data remained missing
     originally_missing_sample_idx = unnoised_data.index[unnoised_data[column.name].isna()]
@@ -890,7 +902,7 @@ def _get_column_noise_level(
 
     # Check for noising where applicable
     to_compare_sample_idx = common_idx.difference(originally_missing_sample_idx)
-    different_check: np.ndarray = (
+    different_check: npt.NDArray[np.bool] = np.array(
         unnoised_data.loc[to_compare_sample_idx, column.name].values
         != noised_data.loc[to_compare_sample_idx, column.name].values
     )
