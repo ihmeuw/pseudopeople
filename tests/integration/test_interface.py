@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Literal
 
 import numpy as np
 import numpy.typing as npt

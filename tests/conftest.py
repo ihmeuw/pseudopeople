@@ -4,7 +4,6 @@ import os
 import warnings
 from collections.abc import Generator
 from functools import cache
-from numbers import Number
 from pathlib import Path
 from typing import Any
 
