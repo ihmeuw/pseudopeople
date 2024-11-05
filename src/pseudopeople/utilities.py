@@ -7,6 +7,7 @@ from functools import cache
 from typing import TYPE_CHECKING, Any, Callable, TextIO, Type, Union
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import yaml
 from loguru import logger
@@ -33,10 +34,10 @@ def get_random_generator(dataset_name: str, seed: Any) -> np.random.Generator:
 
 
 def vectorized_choice(
-    options: list | pd.Series,
+    options: list[Any] | pd.Series[Any],
     n_to_choose: int,
     random_generator: np.random.Generator,
-    weights: list | pd.Series | None = None,
+    weights: list[int | float] | pd.Series[int | float] | None = None,
 ) -> Any:
     """
     Function that takes a list of options and uses Vivarium common random numbers framework to make a given number
@@ -56,7 +57,7 @@ def vectorized_choice(
     if weights is None:
         chosen_indices = np.floor(probs * len(options)).astype(int)
     else:
-        weights_array: np.ndarray = np.array(weights)
+        weights_array: npt.NDArray[np.float64 | np.int_] = np.array(weights)
         # build cdf based on weights
         pmf = weights_array / weights_array.sum()
         cdf = np.cumsum(pmf)
@@ -64,15 +65,15 @@ def vectorized_choice(
         # for each p_i in probs, count how many elements of cdf for which p_i >= cdf_i
         chosen_indices = np.searchsorted(cdf, probs, side="right")
 
-    choices: np.ndarray = np.take(options, chosen_indices, axis=0)
+    choices: npt.NDArray[Any] = np.take(options, chosen_indices, axis=0)
     return choices
 
 
 def get_index_to_noise(
     dataset: "Dataset",
-    noise_level: int | float | pd.Series,
+    noise_level: int | float | pd.Series[int | float],
     required_columns: list[str] | None = None,
-) -> pd.Index:
+) -> pd.Index[int]:
     """
     Function that takes a series and returns a pd.Index that chosen by Vivarium Common Random Number to be noised.
     """
@@ -121,10 +122,10 @@ def add_logging_sink(
 
 
 def two_d_array_choice(
-    data: pd.Series,
+    data: pd.Series[Any],
     options: pd.DataFrame,
     random_generator: np.random.Generator,
-) -> pd.Series:
+) -> pd.Series[Any]:
     """
     Makes vectorized choice for 2D array options.
     :param data: pd.Series which should be a subset of options.index
@@ -134,7 +135,7 @@ def two_d_array_choice(
     """
 
     # Change columns to be integers for datawrangling later
-    options.columns = list(range(len(options.columns)))
+    options = options.rename({col: i for i, col in enumerate(options.columns)}, axis=1)
     # Get subset of options where we will choose new values
     data_idx = pd.Index(data.values)
     options = options.loc[data_idx]
@@ -155,7 +156,7 @@ def two_d_array_choice(
     options["choice_index"] = choice_index
     idx, cols = pd.factorize(options["choice_index"])
     # 2D array lookup to make an array for the series value
-    new: pd.Series = pd.Series(
+    new: pd.Series[Any] = pd.Series(
         options.reindex(cols, axis=1).to_numpy()[np.arange(len(options)), idx],
         index=data.index,
     )
@@ -179,36 +180,38 @@ def get_state_abbreviation(state: str) -> str:
         raise ValueError(f"Unexpected state input: '{state}'") from None
 
 
-def to_string_preserve_nans(s: pd.Series) -> pd.Series:
+def to_string_preserve_nans(s: pd.Series[Any]) -> pd.Series[str]:
     # NOTE: In newer versions of pandas, astype(str) will use the *pandas*
     # string type, which we haven't adopted yet.
-    result: pd.Series = s.astype(str).astype(DtypeNames.OBJECT)
+    result: pd.Series[str] = s.astype(str).astype("object")
     result[s.isna()] = np.nan
     return result
 
 
-def to_string_as_integer(column: pd.Series) -> pd.Series:
+def to_string_as_integer(column: pd.Series[Any]) -> pd.Series[str]:
     column = to_string_preserve_nans(column)
     float_mask = column.notna() & (column.str.contains(".", regex=False))
     column.loc[float_mask] = column.loc[float_mask].astype(str).str.split(".").str[0]
     return column
 
 
-def to_string(column: pd.Series) -> pd.Series:
+def to_string(column: pd.Series[Any]) -> pd.Series[str]:
     if column.name in INT_TO_STRING_COLUMNS:
         return to_string_as_integer(column)
     else:
         return to_string_preserve_nans(column)
 
 
-def ensure_dtype(data: pd.Series, dtype: pd_dtype) -> pd.Series:
+def ensure_dtype(data: pd.Series[Any], dtype: pd_dtype) -> pd.Series[Any]:
     if dtype.name == DtypeNames.OBJECT:
         return to_string(data)
     else:
         return data.astype(dtype)
 
 
-def count_number_of_tokens_per_string(s1: pd.Series, s2: pd.Series) -> pd.Series:
+def count_number_of_tokens_per_string(
+    s1: pd.Series[str], s2: pd.Series[str]
+) -> pd.Series[int]:
     """
     Calculates the number of tokens in each string of a series.
     s1 is a pd.Series of tokens and we want to count how many tokens exist in each
@@ -220,11 +223,11 @@ def count_number_of_tokens_per_string(s1: pd.Series, s2: pd.Series) -> pd.Series
     s2 = s2.astype(str)
     strings = s2.unique()
     tokens_per_string = pd.Series(
-        (sum(count_occurrences(s, str(token)) for token in s1) for s in strings),
+        [sum(count_occurrences(s, str(token)) for token in s1) for s in strings],
         index=strings,
     )
 
-    number_of_tokens: pd.Series = s2.map(tokens_per_string)
+    number_of_tokens: pd.Series[int] = s2.map(tokens_per_string)
     number_of_tokens.index = pd.Index(s2)
     return number_of_tokens
 
@@ -249,7 +252,8 @@ def coerce_dtypes(
             if col.dtype_name == DtypeNames.OBJECT:
                 data[col.name] = to_string(data[col.name])
             else:
-                data[col.name] = data[col.name].astype(col.dtype_name)
+                # mypy doesn't like using a variable as an argument to astype
+                data[col.name] = data[col.name].astype(col.dtype_name)  # type: ignore [call-overload]
 
     return data
 

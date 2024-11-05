@@ -21,7 +21,7 @@ from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS, DatasetSchema
 
 # Define non-baseline default items
 # NOTE: default values are defined in entity_types.RowNoiseType and entity_types.ColumnNoiseType
-DEFAULT_NOISE_VALUES: dict = {
+DEFAULT_NOISE_VALUES: dict[str, Any] = {
     DATASET_SCHEMAS.census.name: {
         Keys.ROW_NOISE: {
             NOISE_TYPES.do_not_respond.name: {
@@ -101,16 +101,19 @@ def get_configuration(
         overrides = None
     elif isinstance(overrides, (Path, str)):
         with open(overrides, "r") as f:
-            overrides = yaml.safe_load(f)
+            overrides_dict: dict[str, Any] = yaml.safe_load(f)
+        is_no_noise = False
+    elif overrides is not None:
+        overrides_dict = overrides
         is_no_noise = False
     else:
         is_no_noise = False
     noising_configuration = _generate_configuration(is_no_noise)
     if overrides is not None:
-        validate_overrides(overrides, noising_configuration)
+        validate_overrides(overrides_dict, noising_configuration)
         add_overrides(
             noising_configuration,
-            overrides,  # type: ignore [arg-type]
+            overrides_dict,
             dataset_schema,
             filters,
         )
@@ -129,7 +132,9 @@ def _generate_configuration(is_no_noise: bool) -> LayeredConfigTree:
     baseline_dict = {}
     # Loop through each dataset
     for dataset_schema in DATASET_SCHEMAS:
-        dataset_dict = {}
+        # dataset_dict is extremely nested so typing it any deeper
+        # causes problems for typing further down
+        dataset_dict: dict[str, dict[str, dict]] = {}  # type: ignore [type-arg]
         row_noise_dict = {}
         column_dict = {}
 
@@ -186,7 +191,7 @@ def get_noise_type_dict(noise_type: NoiseType, is_no_noise: bool) -> dict[str, f
 
 def add_overrides(
     noising_configuration: LayeredConfigTree,
-    overrides: dict,
+    overrides: dict[str, Any],
     dataset_schema: DatasetSchema | None = None,
     filters: Sequence[DataFilter] = (),
 ) -> None:
@@ -200,7 +205,9 @@ def add_overrides(
         validate_noise_level_proportions(noising_configuration, dataset_schema, filters)
 
 
-def _format_overrides(default_config: LayeredConfigTree, user_dict: dict) -> dict:
+def _format_overrides(
+    default_config: LayeredConfigTree, user_dict: dict[str, Any]
+) -> dict[str, Any]:
     """Formats the user's configuration file as necessary, so it can properly
     update noising configuration to be used
     """
@@ -209,8 +216,8 @@ def _format_overrides(default_config: LayeredConfigTree, user_dict: dict) -> dic
 
 
 def _format_misreport_age_perturbations(
-    default_config: LayeredConfigTree, user_dict: dict
-) -> dict:
+    default_config: LayeredConfigTree, user_dict: dict[str, Any]
+) -> dict[str, Any]:
     # Format any age perturbation lists as a dictionary with uniform probabilities
     for dataset_schema in user_dict:
         user_perturbations = (
@@ -223,9 +230,14 @@ def _format_misreport_age_perturbations(
         if not user_perturbations:
             continue
         formatted = {}
-        default_perturbations: dict[int, float] = default_config[dataset_schema][
-            Keys.COLUMN_NOISE
-        ]["age"][NOISE_TYPES.misreport_age.name][Keys.POSSIBLE_AGE_DIFFERENCES]
+        default_perturbations: dict[int, float] = (
+            default_config.get_tree(dataset_schema)
+            .get_tree(Keys.COLUMN_NOISE)
+            .get_tree("age")
+            .get_tree(NOISE_TYPES.misreport_age.name)
+            .get(Keys.POSSIBLE_AGE_DIFFERENCES)
+            .to_dict()
+        )
         # Replace default configuration with 0 probabilities
         for perturbation in default_perturbations:
             formatted[perturbation] = 0.0

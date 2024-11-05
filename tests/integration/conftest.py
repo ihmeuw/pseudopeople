@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 from typing import Any
 
@@ -222,7 +224,7 @@ def _initialize_dataset_with_sample(dataset_name: str) -> Dataset:
 
 def _get_common_datasets(
     unnoised_dataset: Dataset, noised_dataset: pd.DataFrame
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.Index]:
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.Index[int]]:
     """Use unique columns to determine shared non-NA rows between noised and
     unnoised data. Note that we cannot use the original index because that
     gets reset after noising, i.e. the unique columns must NOT be noised.
