@@ -23,8 +23,8 @@ def _noise_function_not_implemented(*_args: Any, **_kwargs: Any) -> None:
 def default_noise_level_getter(
     configuration: NoiseConfiguration, dataset: Dataset, noise_type: str
 ) -> float:
-    noise_level: float = configuration.get_value(
-        dataset.dataset_schema.name, noise_type, parameter_name="row_probability"
+    noise_level: float = configuration.get_row_probability(
+        dataset.dataset_schema.name, noise_type
     )
     return noise_level
 
@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 @dataclass
 class NoiseType(ABC):
     name: str
-    noise_function: Callable = _noise_function_not_implemented
+    noise_function: Callable[..., None] = _noise_function_not_implemented
     probability: float | None = 0.0
     additional_parameters: dict[str, Any] | None = None
 
@@ -68,10 +68,10 @@ class RowNoiseType(NoiseType):
     """
 
     noise_function: Callable[
-        [Dataset, NoiseConfiguration, pd.Index], None
+        [Dataset, NoiseConfiguration, pd.Index[int]], None
     ] = _noise_function_not_implemented
     get_noise_level: Callable[
-        [NoiseConfiguration, Dataset, str], float | pd.Series
+        [NoiseConfiguration, Dataset, str], float | pd.Series[int | float]
     ] = default_noise_level_getter
 
     @property
@@ -102,7 +102,7 @@ class ColumnNoiseType(NoiseType):
     """
 
     noise_function: Callable[
-        [Dataset, NoiseConfiguration, pd.Index, str], None
+        [Dataset, NoiseConfiguration, pd.Index[int], str], None
     ] = _noise_function_not_implemented
     probability: float | None = 0.01
     noise_level_scaling_function: Callable[[pd.DataFrame, str], float] = lambda x, y: 1.0

@@ -25,7 +25,7 @@ if __name__ == "__main__":
     base_dir = Path(__file__).parent
     src_dir = base_dir / "src"
 
-    about: dict = {}
+    about: dict[str, str] = {}
     with (src_dir / "pseudopeople" / "__about__.py").open() as f:
         exec(f.read(), about)
 
@@ -38,7 +38,7 @@ if __name__ == "__main__":
         "pyarrow",
         "scipy",
         "tqdm",
-        "layered_config_tree>=1.0.1",
+        "layered_config_tree>=2.1.0",
         "loguru",
         # type stubs
         "pandas-stubs",

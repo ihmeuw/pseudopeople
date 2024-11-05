@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from functools import cache
 from typing import Any
 
@@ -60,7 +62,7 @@ def load_nicknames_data() -> pd.DataFrame:
     return nicknames
 
 
-def get_options_for_column(column_name: str) -> pd.Series:
+def get_options_for_column(column_name: str) -> pd.Series[Any]:
     """
     For a column that has a set list of options, returns that set of options as
     a Series.
