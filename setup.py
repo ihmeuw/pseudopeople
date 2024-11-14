@@ -4,7 +4,7 @@ from pathlib import Path
 from packaging.version import parse
 from setuptools import find_packages, setup
 
-min_version, max_version = ("3.9", "3.11")
+min_version, max_version = ("3.10", "3.11")
 
 min_version = parse(min_version)
 max_version = parse(max_version)
