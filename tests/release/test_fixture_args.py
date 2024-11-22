@@ -23,7 +23,7 @@ from tests.release.conftest import (
 
 
 @pytest.fixture()
-def check_subprocess_environment():
+def check_subprocess_environment() -> None:
     if "RUNNING_AS_SUBPROCESS" not in os.environ:
         pytest.skip("Skipping this test because it's not running as a subprocess")
 
@@ -65,9 +65,11 @@ EXPECTED_PARAMETERS = {
 
 @pytest.mark.subprocess_test
 @pytest.mark.usefixtures("check_subprocess_environment")
-def test_parsing_fixture_params(request) -> None:
+def test_parsing_fixture_params(request: pytest.FixtureRequest) -> None:
     output = _parse_dataset_params(request)
-    dataset_name = output[0]
+    # we know output will have a string as the first element but can't type this
+    # while specifying the types of the other elements in output
+    dataset_name: str = output[0]  # type: ignore [assignment]
     assert output[1:] == EXPECTED_PARAMETERS[dataset_name]
 
 
@@ -83,7 +85,7 @@ def test_parsing_fixture_params(request) -> None:
         (["--dataset", "wic", "--state", "RI", "--year", "2010"]),
     ],
 )
-def test_parsing_fixture_param_combinations(pytest_args) -> None:
+def test_parsing_fixture_param_combinations(pytest_args: list[str]) -> None:
     env = os.environ.copy()
     env["RUNNING_AS_SUBPROCESS"] = "1"
     base_cmd = ["pytest", "-k", "test_parsing_fixture_params"]

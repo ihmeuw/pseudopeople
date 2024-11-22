@@ -7,7 +7,7 @@ from typing import Any
 
 import pandas as pd
 import pytest
-from memory_profiler import memory_usage
+from memory_profiler import memory_usage  # type: ignore
 
 from pseudopeople.interface import (
     generate_american_community_survey,
@@ -38,7 +38,7 @@ SOURCE_MAPPER = {"usa": FULL_USA_FILEPATH, "ri": RI_FILEPATH, "sample": None}
 DEFAULT_ENGINE = "pandas"
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
         "--dataset",
         action="store",
@@ -77,16 +77,18 @@ def pytest_addoption(parser):
 def output_dir() -> Path:
     # TODO: [MIC-5522] define correct output dir
     # output_dir = os.environ.get("PSP_TEST_OUTPUT_DIR")
-    output_dir = "/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing"
-    if not output_dir:
+    output_dir_name = (
+        "/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing"
+    )
+    if not output_dir_name:
         raise ValueError("PSP_TEST_OUTPUT_DIR environment variable not set")
-    output_dir = Path(output_dir) / f"{time.strftime('%Y%m%d_%H%M%S')}"
+    output_dir = Path(output_dir_name) / f"{time.strftime('%Y%m%d_%H%M%S')}"
     output_dir.mkdir(parents=True, exist_ok=False)
     return output_dir.resolve()
 
 
 @pytest.fixture(scope="session")
-def dataset(output_dir, request):
+def dataset(output_dir: Path, request: pytest.FixtureRequest) -> pd.DataFrame:
     dataset_name, dataset_func, source, engine, state, year = _parse_dataset_params(request)
 
     if dataset_func == generate_social_security:
@@ -102,12 +104,12 @@ def dataset(output_dir, request):
 ####################
 # Helper Functions #
 ####################
-def profile_data_generation(output_dir: Path) -> Callable[..., pd.DataFrame]:
+def profile_data_generation(output_dir: Path) -> Callable[..., Callable[..., pd.DataFrame]]:
     """Decorator to profile a function's time and memory usage."""
     # TODO: [MIC-5522] properly setup profiling
-    def decorator(func) -> Callable:
+    def decorator(func: Callable[..., pd.DataFrame]) -> Callable[..., pd.DataFrame]:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs) -> pd.DataFrame:
+        def wrapper(*args: Any, **kwargs: Any) -> pd.DataFrame:
             start_time = time.time()
             mem_before = memory_usage(interval=1, timeout=1)
             df = func(*args, **kwargs)
@@ -130,7 +132,9 @@ def profile_data_generation(output_dir: Path) -> Callable[..., pd.DataFrame]:
     return decorator
 
 
-def _parse_dataset_params(request) -> tuple[str | int | None, ...]:
+def _parse_dataset_params(
+    request: pytest.FixtureRequest,
+) -> tuple[str | int | Callable[..., pd.DataFrame] | None, ...]:
     dataset_name = request.config.getoption("--dataset")
     try:
         dataset_func = DATASET_GENERATION_FUNCS[dataset_name]
