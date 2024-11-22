@@ -1,5 +1,6 @@
 import os
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -88,6 +89,7 @@ def test_parsing_fixture_params(request: pytest.FixtureRequest) -> None:
 def test_parsing_fixture_param_combinations(pytest_args: list[str]) -> None:
     env = os.environ.copy()
     env["RUNNING_AS_SUBPROCESS"] = "1"
+    os.chdir(Path(__file__).parent)  # need this to access options from conftest.py
     base_cmd = ["pytest", "-k", "test_parsing_fixture_params"]
     cmd = base_cmd + pytest_args
     result = subprocess.run(cmd, capture_output=True, text=True, env=env)
