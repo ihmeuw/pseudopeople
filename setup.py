@@ -1,23 +1,30 @@
+import json
 import sys
 from pathlib import Path
 
 from packaging.version import parse
 from setuptools import find_packages, setup
 
-min_version, max_version = ("3.10", "3.11")
+f = open("python_versions.json")
+supported_python_versions = json.load(f)
+f.close()
 
-min_version = parse(min_version)
-max_version = parse(max_version)
+python_versions = [parse(v) for v in supported_python_versions]
+min_version = min(python_versions)
+max_version = max(python_versions)
+active_version = parse(".".join([str(v) for v in sys.version_info[:2]]))
 
-if not (
-    min_version <= parse(".".join([str(v) for v in sys.version_info[:2]])) <= max_version
-):
-    # Python 3.5 does not support f-strings
+if not (min_version <= active_version <= max_version):
     py_version = ".".join([str(v) for v in sys.version_info[:3]])
+    # Python 3.5 does not support f-strings
     error = (
         "\n----------------------------------------\n"
-        f"Error: Pseudopeople runs under python {min_version.base_version}-{max_version.base_version}.\n"
-        f"You are running python {py_version}"
+        "Error: Pseudopeople runs under python {min_version}-{max_version}.\n"
+        "You are running python {py_version}".format(
+            min_version=min_version.base_version,
+            max_version=max_version.base_version,
+            py_version=py_version,
+        )
     )
     print(error, file=sys.stderr)
     sys.exit(1)
@@ -27,7 +34,7 @@ if __name__ == "__main__":
     base_dir = Path(__file__).parent
     src_dir = base_dir / "src"
 
-    about = {}
+    about: dict[str, str] = {}
     with (src_dir / "pseudopeople" / "__about__.py").open() as f:
         exec(f.read(), about)
 
@@ -38,10 +45,18 @@ if __name__ == "__main__":
         "pandas",
         "numpy<2.0.0",
         "pyyaml>=5.1",
-        "vivarium>=1.2.0",
         "pyarrow",
+        "scipy",
         "tqdm",
-        "layered_config_tree>=1.0.1",
+        "layered_config_tree>=2.1.0",
+        "loguru",
+        # type stubs
+        "pandas-stubs",
+        "types-PyYAML",
+        "types-docutils",
+        "types-tqdm",
+        "types-setuptools",
+        "pyarrow-stubs",
     ]
 
     setup_requires = ["setuptools_scm"]
@@ -57,16 +72,19 @@ if __name__ == "__main__":
     test_requirements = [
         "pytest",
         "pytest-mock",
+        "vivarium_testing_utils",
     ] + dask_requirements
 
     lint_requirements = [
         "black==22.3.0",
         "isort",
+        "mypy",
     ]
 
     doc_requirements = [
+        "docutils",
         "sphinx>=4.0",
-        "sphinx-rtd-theme",
+        "sphinx-rtd-theme>=0.6",
         "sphinx-click",
         "IPython",
         "matplotlib",
