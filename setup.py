@@ -4,7 +4,7 @@ from pathlib import Path
 from packaging.version import parse
 from setuptools import find_packages, setup
 
-version_range = ("3.9", "3.11")
+version_range = ("3.10", "3.11")
 min_version = parse(version_range[0])
 max_version = parse(version_range[1])
 active_version = parse(".".join([str(v) for v in sys.version_info[:2]]))
