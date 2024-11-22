@@ -3,6 +3,7 @@ import os
 import time
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 import pytest
@@ -18,33 +19,65 @@ from pseudopeople.interface import (
     generate_women_infants_and_children,
 )
 
+DATASET_GENERATION_FUNCS: dict[str, Callable[..., Any]] = {
+    "census": generate_decennial_census,
+    "acs": generate_american_community_survey,
+    "cps": generate_current_population_survey,
+    "ssa": generate_social_security,
+    "tax_w2_1099": generate_taxes_w2_and_1099,
+    "wic": generate_women_infants_and_children,
+    "tax_1040": generate_taxes_1040,
+}
+
+DEFAULT_YEAR = 2020
+DEFAULT_STATE = None
+DEFAULT_POP = "sample"
+FULL_USA_FILEPATH = "/mnt/team/simulation_science/pub/models/vivarium_census_prl_synth_pop/results/release_02_yellow/full_data/united_states_of_america/2023_08_21_16_35_27/final_results/2023_08_31_15_58_01/pseudopeople_simulated_population_usa_2_0_0"
+RI_FILEPATH = "/mnt/team/simulation_science/pub/models/vivarium_census_prl_synth_pop/results/release_02_yellow/full_data/united_states_of_america/2023_08_21_16_35_27/final_results/2023_08_31_15_58_01/states/pseudopeople_simulated_population_rhode_island_2_0_0"
+SOURCE_MAPPER = {"usa": FULL_USA_FILEPATH, "ri": RI_FILEPATH, "sample": None}
+DEFAULT_ENGINE = "pandas"
+
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--year",
+        "--dataset",
         action="store",
-        default=2020,
-        help="The year to subset our data to.",
+        help="The dataset to generate. Options are census, acs, cps, ssa, tax_w2_1099, wic, and tax_1040.",
+    )
+    parser.addoption(
+        "--population",
+        action="store",
+        default=DEFAULT_POP,
+        help="The simulated population to generate. Options are USA, RI, and sample. sample will generate very small sample data.",
+    )
+    parser.addoption(
+        "--engine",
+        action="store",
+        default=DEFAULT_ENGINE,
+        help="The engine used to generate data. Options are pandas and dask.",
     )
     parser.addoption(
         "--state",
         action="store",
-        default=None,
-        help="The dataset to generate.",
+        default=DEFAULT_STATE,
+        help="The state to subset our data to (if using full USA population). None means no subsetting will be done.",
     )
     parser.addoption(
-        "--dataset",
+        "--year",
         action="store",
-        help="The dataset to generate.",
+        default=DEFAULT_YEAR,
+        help="The year to subset our data to.",
     )
+
 
 ############
 # Fixtures #
 ############
 @pytest.fixture(scope="session")
 def output_dir() -> Path:
-    #output_dir = os.environ.get("PSP_TEST_OUTPUT_DIR")
-    output_dir = '/home/hjafari/ppl_testing'
+    # TODO: [MIC-5522] define correct output dir
+    # output_dir = os.environ.get("PSP_TEST_OUTPUT_DIR")
+    output_dir = "/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing"
     if not output_dir:
         raise ValueError("PSP_TEST_OUTPUT_DIR environment variable not set")
     output_dir = Path(output_dir) / f"{time.strftime('%Y%m%d_%H%M%S')}"
@@ -53,53 +86,17 @@ def output_dir() -> Path:
 
 
 @pytest.fixture(scope="session")
-def american_community_survey(output_dir, request):
-    year = int(request.config.getoption("--year", default=2020))
-    state = request.config.getoption("--state", default=None)
-    FULL_USA_FILEPATH = '/mnt/team/simulation_science/pub/models/vivarium_census_prl_synth_pop/results/release_02_yellow/full_data/united_states_of_america/2023_08_21_16_35_27/final_results/2023_08_31_15_58_01/pseudopeople_simulated_population_usa_2_0_0'
-    return profile_data_generation(output_dir)(generate_american_community_survey)(source=FULL_USA_FILEPATH, year=year, state=state)
+def dataset(output_dir, request):
+    dataset_name, dataset_func, source, engine, state, year = _parse_dataset_params(request)
 
-
-@pytest.fixture(scope="session")
-def current_population_survey(output_dir, request):
-    year = int(request.config.getoption("--year", default=2020))
-    state = request.config.getoption("--state", default=None)
-    breakpoint()
-    return profile_data_generation(output_dir)(generate_current_population_survey)(year=year, state=state)
-
-
-@pytest.fixture(scope="session")
-def census_dataset(output_dir, request):
-    year = int(request.config.getoption("--year", default=2020))
-    state = request.config.getoption("--state", default=None)
-    return profile_data_generation(output_dir)(generate_decennial_census)(year=year, state=state)
-
-
-@pytest.fixture(scope="session")
-def ssa_dataset(output_dir, request):
-    year = int(request.config.getoption("--year", default=2020))
-    return profile_data_generation(output_dir)(generate_social_security)(year=year)
-
-
-@pytest.fixture(scope="session")
-def taxes_1040_dataset(output_dir, request):
-    year = int(request.config.getoption("--year", default=2020))
-    state = request.config.getoption("--state", default=None)
-    return profile_data_generation(output_dir)(generate_taxes_1040)(year=year, state=state)
-
-
-@pytest.fixture(scope="session")
-def taxes_w2_and_1099_dataset(output_dir, request):
-    year = int(request.config.getoption("--year", default=2020))
-    state = request.config.getoption("--state", default=None)
-    return profile_data_generation(output_dir)(generate_taxes_w2_and_1099)(year=year, state=state)
-
-
-@pytest.fixture(scope="session")
-def wic_dataset(output_dir, request):
-    year = int(request.config.getoption("--year", default=2020))
-    state = request.config.getoption("--state", default=None)
-    return profile_data_generation(output_dir)(generate_women_infants_and_children)(year=year, state=state)
+    if dataset_func == generate_social_security:
+        return profile_data_generation(output_dir)(dataset_func)(
+            source=source, year=year, engine=engine
+        )
+    else:
+        return profile_data_generation(output_dir)(dataset_func)(
+            source=source, year=year, state=state, engine=engine
+        )
 
 
 ####################
@@ -107,8 +104,8 @@ def wic_dataset(output_dir, request):
 ####################
 def profile_data_generation(output_dir: Path) -> Callable[..., pd.DataFrame]:
     """Decorator to profile a function's time and memory usage."""
-
-    def decorator(func):
+    # TODO: [MIC-5522] properly setup profiling
+    def decorator(func) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> pd.DataFrame:
             start_time = time.time()
@@ -131,3 +128,27 @@ def profile_data_generation(output_dir: Path) -> Callable[..., pd.DataFrame]:
         return wrapper
 
     return decorator
+
+
+def _parse_dataset_params(request) -> tuple[str | int | None, ...]:
+    dataset_name = request.config.getoption("--dataset")
+    try:
+        dataset_func = DATASET_GENERATION_FUNCS[dataset_name]
+    except KeyError:
+        raise ValueError(
+            f"{dataset_name} is not a valid dataset. Possible datasets are {','.join(DATASET_GENERATION_FUNCS.keys())}"
+        )
+
+    population = request.config.getoption("--population", default=DEFAULT_POP)
+    try:
+        source = SOURCE_MAPPER[population.lower()]
+    except KeyError:
+        raise ValueError(
+            f"population must be one of USA, RI, or sample. You passed in {population}."
+        )
+
+    engine = request.config.getoption("--engine", default=DEFAULT_ENGINE)
+    state = request.config.getoption("--state", default=DEFAULT_STATE)
+    year = int(request.config.getoption("--year", default=DEFAULT_YEAR))
+
+    return dataset_name, dataset_func, source, engine, state, year
