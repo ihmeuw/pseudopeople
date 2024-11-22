@@ -322,7 +322,7 @@ def test_column_noising(
         # Check for noising where applicable
         to_compare_idx = shared_idx.difference(originally_missing_idx)
         if col.noise_types:
-            different_check: npt.NDArray[np.bool] = np.array(
+            different_check: npt.NDArray[np.bool_] = np.array(
                 check_original.loc[to_compare_idx, col.name].values
                 != check_noised.loc[to_compare_idx, col.name].values
             )
@@ -342,7 +342,7 @@ def test_column_noising(
                 validator=fuzzy_checker,
             )
         else:  # No noising - should be identical
-            same_check: npt.NDArray[np.bool] = np.array(
+            same_check: npt.NDArray[np.bool_] = np.array(
                 check_original.loc[to_compare_idx, col.name].values
                 == check_noised.loc[to_compare_idx, col.name].values
             )
@@ -902,7 +902,7 @@ def _get_column_noise_level(
 
     # Check for noising where applicable
     to_compare_sample_idx = common_idx.difference(originally_missing_sample_idx)
-    different_check: npt.NDArray[np.bool] = np.array(
+    different_check: npt.NDArray[np.bool_] = np.array(
         unnoised_data.loc[to_compare_sample_idx, column.name].values
         != noised_data.loc[to_compare_sample_idx, column.name].values
     )
