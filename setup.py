@@ -1,21 +1,30 @@
+import json
 import sys
 from pathlib import Path
 
 from packaging.version import parse
 from setuptools import find_packages, setup
 
-version_range = ("3.10", "3.11")
-min_version = parse(version_range[0])
-max_version = parse(version_range[1])
+f = open("python_versions.json")
+supported_python_versions = json.load(f)
+f.close()
+
+python_versions = [parse(v) for v in supported_python_versions]
+min_version = min(python_versions)
+max_version = max(python_versions)
 active_version = parse(".".join([str(v) for v in sys.version_info[:2]]))
 
 if not (min_version <= active_version <= max_version):
-    # Python 3.5 does not support f-strings
     py_version = ".".join([str(v) for v in sys.version_info[:3]])
+    # Python 3.5 does not support f-strings
     error = (
         "\n----------------------------------------\n"
-        f"Error: Pseudopeople runs under python {min_version.base_version}-{max_version.base_version}.\n"
-        f"You are running python {py_version}"
+        "Error: Pseudopeople runs under python {min_version}-{max_version}.\n"
+        "You are running python {py_version}".format(
+            min_version=min_version.base_version,
+            max_version=max_version.base_version,
+            py_version=py_version,
+        )
     )
     print(error, file=sys.stderr)
     sys.exit(1)
@@ -34,6 +43,7 @@ if __name__ == "__main__":
 
     install_requirements = [
         "pandas",
+        "numpy<2.0.0",
         "pyyaml>=5.1",
         "pyarrow",
         "scipy",

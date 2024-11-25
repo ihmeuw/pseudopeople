@@ -2,6 +2,14 @@
 
  - Use script to find matching dependency branches
 
+**1.2.0 - 11/14/24**
+
+ - Drop support for Python 3.9
+
+**1.1.1 - 06/17/24**
+
+ - Hotfix pin numpy below 2.0
+
 **1.1.0 - 05/29/24**
 
  - Adds out-of-core and distributed processing capability via Dask
