@@ -17,6 +17,11 @@ from _pytest.python import Function
 from loguru import logger
 from vivarium_testing_utils import FuzzyChecker
 
+from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.noise_entities import NOISE_TYPES
+from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
+from tests.integration.conftest import CELL_PROBABILITY
+
 
 def pytest_addoption(parser: argparsing.Parser) -> None:
     parser.addoption("--runslow", action="store_true", default=False, help="run slow tests")
@@ -88,3 +93,50 @@ def fuzzy_checker(output_directory: Path) -> Generator[FuzzyChecker, None, None]
     yield checker
 
     checker.save_diagnostic_output(output_directory)
+
+
+@pytest.fixture(scope="session")
+def config() -> dict[str, Any]:
+    """Returns a custom configuration dict to be used in noising"""
+    ROW_PROBABILITY = 0.05
+    config = get_configuration().to_dict()  # default config
+
+    # Increase row noise probabilities to 5% and column cell_probabilities to 25%
+    for dataset_name in config:
+        dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+        config[dataset_schema.name][Keys.ROW_NOISE] = {
+            noise_type.name: {
+                Keys.ROW_PROBABILITY: ROW_PROBABILITY,
+            }
+            for noise_type in dataset_schema.row_noise_types
+            if noise_type != NOISE_TYPES.duplicate_with_guardian
+        }
+        for col in [c for c in dataset_schema.columns if c.noise_types]:
+            config[dataset_name][Keys.COLUMN_NOISE][col.name] = {
+                noise_type.name: {
+                    Keys.CELL_PROBABILITY: CELL_PROBABILITY,
+                }
+                for noise_type in col.noise_types
+            }
+
+    # FIXME: Remove when record_id is added as the truth deck for datasets.
+    # For integration tests, we will NOT duplicate rows with guardian duplication.
+    # This is because we want to be able to compare the noised and unnoised data
+    # and a big assumption we make is that simulant_id and household_id are the
+    # truth decks in our datasets.
+    config[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
+        NOISE_TYPES.duplicate_with_guardian.name
+    ] = {
+        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0.0,
+        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: 0.0,
+    }
+    # Update SSA dataset to noise 'ssn' but NOT noise 'ssa_event_type' since that
+    # will be used as an identifier along with simulant_id
+    # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
+    config[DATASET_SCHEMAS.ssa.name][Keys.COLUMN_NOISE][COLUMNS.ssa_event_type.name] = {
+        noise_type.name: {
+            Keys.CELL_PROBABILITY: 0,
+        }
+        for noise_type in COLUMNS.ssa_event_type.noise_types
+    }
+    return config

@@ -9,6 +9,7 @@ import pandas as pd
 import pytest
 from memory_profiler import memory_usage  # type: ignore
 
+from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.interface import (
     generate_american_community_survey,
     generate_current_population_survey,
@@ -18,6 +19,9 @@ from pseudopeople.interface import (
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
+from pseudopeople.noise_entities import NOISE_TYPES
+from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
+from tests.integration.conftest import CELL_PROBABILITY
 
 DATASET_GENERATION_FUNCS: dict[str, Callable[..., Any]] = {
     "census": generate_decennial_census,
@@ -28,14 +32,24 @@ DATASET_GENERATION_FUNCS: dict[str, Callable[..., Any]] = {
     "wic": generate_women_infants_and_children,
     "tax_1040": generate_taxes_1040,
 }
+DATASET_ARG_TO_FULL_NAME_MAPPER: dict[str, str] = {
+    "acs": "american_community_survey",
+    "cps": "current_population_survey",
+    "census": "decennial_census",
+    "ssa": "social_security",
+    "taxes_1040": "taxes_1040",
+    "taxes_w2_and_1099": "taxes_w2_and_1099",
+    "wic": "women_infants_and_children",
+}
 
-DEFAULT_YEAR = 2020
+DEFAULT_YEAR = None
 DEFAULT_STATE = None
 DEFAULT_POP = "sample"
 FULL_USA_FILEPATH = "/mnt/team/simulation_science/pub/models/vivarium_census_prl_synth_pop/results/release_02_yellow/full_data/united_states_of_america/2023_08_21_16_35_27/final_results/2023_08_31_15_58_01/pseudopeople_simulated_population_usa_2_0_0"
 RI_FILEPATH = "/mnt/team/simulation_science/pub/models/vivarium_census_prl_synth_pop/results/release_02_yellow/full_data/united_states_of_america/2023_08_21_16_35_27/final_results/2023_08_31_15_58_01/states/pseudopeople_simulated_population_rhode_island_2_0_0"
 SOURCE_MAPPER = {"usa": FULL_USA_FILEPATH, "ri": RI_FILEPATH, "sample": None}
 DEFAULT_ENGINE = "pandas"
+DEFAULT_CONFIG = None
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -68,6 +82,12 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=DEFAULT_YEAR,
         help="The year to subset our data to.",
     )
+    parser.addoption(
+        "--config",
+        action="store",
+        default=DEFAULT_CONFIG,
+        help="The noise config to use when generating data.",
+    )
 
 
 ############
@@ -77,9 +97,10 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 def output_dir() -> Path:
     # TODO: [MIC-5522] define correct output dir
     # output_dir = os.environ.get("PSP_TEST_OUTPUT_DIR")
-    output_dir_name = (
-        "/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing"
-    )
+    # output_dir_name = (
+    #    "/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing"
+    # )
+    output_dir_name = "/home/hjafari/ppl_testing"
     if not output_dir_name:
         raise ValueError("PSP_TEST_OUTPUT_DIR environment variable not set")
     output_dir = Path(output_dir_name) / f"{time.strftime('%Y%m%d_%H%M%S')}"
@@ -88,17 +109,25 @@ def output_dir() -> Path:
 
 
 @pytest.fixture(scope="session")
-def dataset(output_dir: Path, request: pytest.FixtureRequest) -> pd.DataFrame:
+def dataset(
+    output_dir: Path, request: pytest.FixtureRequest, config: dict[str, Any]
+) -> pd.DataFrame:
     dataset_name, dataset_func, source, engine, state, year = _parse_dataset_params(request)
 
     if dataset_func == generate_social_security:
         return profile_data_generation(output_dir)(dataset_func)(
-            source=source, year=year, engine=engine
+            source=source, year=year, engine=engine, config=config
         )
     else:
         return profile_data_generation(output_dir)(dataset_func)(
-            source=source, year=year, state=state, engine=engine
+            source=source, year=year, state=state, engine=engine, config=config
         )
+
+
+@pytest.fixture(scope="session")
+def dataset_name(request: pytest.FixtureRequest) -> str:
+    dataset_arg = request.config.getoption("--dataset")
+    return DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_arg]
 
 
 ####################
@@ -153,6 +182,7 @@ def _parse_dataset_params(
 
     engine = request.config.getoption("--engine", default=DEFAULT_ENGINE)
     state = request.config.getoption("--state", default=DEFAULT_STATE)
-    year = int(request.config.getoption("--year", default=DEFAULT_YEAR))
+    year = request.config.getoption("--year", default=DEFAULT_YEAR)
+    year = int(year) if year is not None else year
 
     return dataset_name, dataset_func, source, engine, state, year
