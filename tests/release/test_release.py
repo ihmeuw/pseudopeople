@@ -70,7 +70,7 @@ def test_column_noising(
     fuzzy_checker: FuzzyChecker,
 ) -> None:
     """Tests that columns are noised as expected"""
-    original = _initialize_dataset_with_sample(dataset_name)
+    original = request.getfixturevalue("unnoised_dataset")
     noised_data = request.getfixturevalue("data")
     check_noised, check_original, shared_idx = _get_common_datasets(original, noised_data)
 
