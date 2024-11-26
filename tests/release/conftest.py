@@ -9,7 +9,8 @@ import pandas as pd
 import pytest
 from memory_profiler import memory_usage  # type: ignore
 
-from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.configuration import get_configuration
+from pseudopeople.dataset import Dataset
 from pseudopeople.interface import (
     generate_american_community_survey,
     generate_current_population_survey,
@@ -19,9 +20,7 @@ from pseudopeople.interface import (
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
-from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
-from tests.integration.conftest import CELL_PROBABILITY
+from pseudopeople.schema_entities import DATASET_SCHEMAS
 
 DATASET_GENERATION_FUNCS: dict[str, Callable[..., Any]] = {
     "census": generate_decennial_census,
@@ -42,6 +41,7 @@ DATASET_ARG_TO_FULL_NAME_MAPPER: dict[str, str] = {
     "wic": "women_infants_and_children",
 }
 
+SEED = 0
 DEFAULT_YEAR = None
 DEFAULT_STATE = None
 DEFAULT_POP = "sample"
@@ -100,7 +100,8 @@ def output_dir() -> Path:
     # output_dir_name = (
     #    "/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing"
     # )
-    output_dir_name = "/home/hjafari/ppl_testing"
+    # output_dir_name = "/home/hjafari/ppl_testing"
+    output_dir_name = "/ihme/homes/hjafari/ppl_testing"
     if not output_dir_name:
         raise ValueError("PSP_TEST_OUTPUT_DIR environment variable not set")
     output_dir = Path(output_dir_name) / f"{time.strftime('%Y%m%d_%H%M%S')}"
@@ -109,7 +110,7 @@ def output_dir() -> Path:
 
 
 @pytest.fixture(scope="session")
-def dataset(
+def data(
     output_dir: Path, request: pytest.FixtureRequest, config: dict[str, Any]
 ) -> pd.DataFrame:
     dataset_name, dataset_func, source, engine, state, year = _parse_dataset_params(request)
@@ -122,6 +123,26 @@ def dataset(
         return profile_data_generation(output_dir)(dataset_func)(
             source=source, year=year, state=state, engine=engine, config=config
         )
+
+
+@pytest.fixture(scope="session")
+def unnoised_dataset(
+    output_dir: Path, request: pytest.FixtureRequest, config: dict[str, Any]
+) -> pd.DataFrame:
+    dataset_name, dataset_func, source, engine, state, year = _parse_dataset_params(request)
+    no_noise_config = get_configuration("no_noise")
+
+    if dataset_func == generate_social_security:
+        unnoised_data = dataset_func(
+            source=source, year=year, engine=engine, config=no_noise_config
+        )
+    else:
+        unnoised_data = dataset_func(
+            source=source, year=year, state=state, engine=engine, config=no_noise_config
+        )
+
+    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+    return Dataset(dataset_schema, unnoised_data, SEED)
 
 
 @pytest.fixture(scope="session")

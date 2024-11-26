@@ -71,7 +71,7 @@ def test_column_noising(
 ) -> None:
     """Tests that columns are noised as expected"""
     original = _initialize_dataset_with_sample(dataset_name)
-    noised_data = request.getfixturevalue("dataset")
+    noised_data = request.getfixturevalue("data")
     check_noised, check_original, shared_idx = _get_common_datasets(original, noised_data)
 
     run_column_noising_tests(
@@ -86,7 +86,7 @@ def test_row_noising_omit_row_or_do_not_respond(
     idx_cols = IDX_COLS.get(dataset_name)
     original = get_unnoised_data(dataset_name)
     original_data = original.data.set_index(idx_cols)
-    noised_data = request.getfixturevalue("dataset")
+    noised_data = request.getfixturevalue("data")
     noised_data = noised_data.set_index(idx_cols)
 
     run_omit_row_or_do_not_respond_tests(dataset_name, config, original_data, noised_data)
@@ -100,7 +100,7 @@ def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
     if dataset_name != DATASET_SCHEMAS.ssa.name:
         unnoised_id_cols.append(COLUMNS.household_id.name)
     original = _initialize_dataset_with_sample(dataset_name)
-    noised_data = request.getfixturevalue("dataset")
+    noised_data = request.getfixturevalue("data")
     check_noised, check_original, _ = _get_common_datasets(original, noised_data)
     assert (
         (
