@@ -9,7 +9,7 @@ import pandas as pd
 import pytest
 from memory_profiler import memory_usage  # type: ignore
 
-from pseudopeople.configuration import get_configuration
+from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.dataset import Dataset
 from pseudopeople.interface import (
     generate_american_community_survey,
@@ -20,7 +20,9 @@ from pseudopeople.interface import (
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
-from pseudopeople.schema_entities import DATASET_SCHEMAS
+from pseudopeople.noise_entities import NOISE_TYPES
+from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
+
 
 DATASET_GENERATION_FUNCS: dict[str, Callable[..., Any]] = {
     "census": generate_decennial_census,
@@ -162,8 +164,8 @@ def unnoised_dataset(
     request: pytest.FixtureRequest,
     config: dict[str, Any],
 ) -> pd.DataFrame:
-    dataset_name, dataset_func, source, engine, state, year = dataset_params
-    no_noise_config = get_configuration("no_noise")
+    dataset_arg, dataset_func, source, engine, state, year = dataset_params
+    no_noise_config = get_configuration("no_noise").to_dict()
 
     if dataset_func == generate_social_security:
         unnoised_data = dataset_func(
@@ -174,6 +176,7 @@ def unnoised_dataset(
             source=source, year=year, state=state, engine=engine, config=no_noise_config
         )
 
+    dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_arg]
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     return Dataset(dataset_schema, unnoised_data, SEED)
 
@@ -182,6 +185,54 @@ def unnoised_dataset(
 def dataset_name(request: pytest.FixtureRequest) -> str:
     dataset_arg = request.config.getoption("--dataset")
     return DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_arg]
+
+
+@pytest.fixture(scope="session")
+def config() -> dict[str, Any]:
+    """Returns a custom configuration dict to be used in noising"""
+    ROW_PROBABILITY = 0.05
+    CELL_PROBABILITY = 0.25
+    config = get_configuration().to_dict()  # default config
+
+    # Increase row noise probabilities to 5% and column cell_probabilities to 25%
+    for dataset_name in config:
+        dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+        config[dataset_schema.name][Keys.ROW_NOISE] = {
+            noise_type.name: {
+                Keys.ROW_PROBABILITY: ROW_PROBABILITY,
+            }
+            for noise_type in dataset_schema.row_noise_types
+            if noise_type != NOISE_TYPES.duplicate_with_guardian
+        }
+        for col in [c for c in dataset_schema.columns if c.noise_types]:
+            config[dataset_name][Keys.COLUMN_NOISE][col.name] = {
+                noise_type.name: {
+                    Keys.CELL_PROBABILITY: CELL_PROBABILITY,
+                }
+                for noise_type in col.noise_types
+            }
+
+    # FIXME: Remove when record_id is added as the truth deck for datasets.
+    # For integration tests, we will NOT duplicate rows with guardian duplication.
+    # This is because we want to be able to compare the noised and unnoised data
+    # and a big assumption we make is that simulant_id and household_id are the
+    # truth decks in our datasets.
+    config[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
+        NOISE_TYPES.duplicate_with_guardian.name
+    ] = {
+        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0.0,
+        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: 0.0,
+    }
+    # Update SSA dataset to noise 'ssn' but NOT noise 'ssa_event_type' since that
+    # will be used as an identifier along with simulant_id
+    # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
+    config[DATASET_SCHEMAS.ssa.name][Keys.COLUMN_NOISE][COLUMNS.ssa_event_type.name] = {
+        noise_type.name: {
+            Keys.CELL_PROBABILITY: 0,
+        }
+        for noise_type in COLUMNS.ssa_event_type.noise_types
+    }
+    return config
 
 
 ####################
