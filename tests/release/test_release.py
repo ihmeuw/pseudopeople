@@ -5,6 +5,7 @@ from functools import partial
 from typing import Any
 
 import pandas as pd
+import pytest
 from _pytest.fixtures import FixtureRequest
 from vivarium_testing_utils import FuzzyChecker
 
@@ -63,6 +64,7 @@ TOKENS_PER_STRING_MAPPER: dict[str, Callable[..., pd.Series[int]]] = {
 }
 
 
+@pytest.mark.release
 def test_column_noising(
     config: dict[str, Any],
     dataset_name: str,
@@ -79,6 +81,7 @@ def test_column_noising(
     )
 
 
+@pytest.mark.release
 def test_row_noising_omit_row_or_do_not_respond(
     dataset_name: str, config: dict[str, Any], request: FixtureRequest
 ) -> None:
