@@ -14,9 +14,9 @@ from pseudopeople.interface import (
     generate_women_infants_and_children,
 )
 from tests.release.conftest import (
-    DEFAULT_ENGINE,
-    DEFAULT_STATE,
-    DEFAULT_YEAR,
+    CLI_DEFAULT_ENGINE,
+    CLI_DEFAULT_STATE,
+    CLI_DEFAULT_YEAR,
     FULL_USA_FILEPATH,
     RI_FILEPATH,
 )
@@ -28,38 +28,46 @@ def check_subprocess_environment() -> None:
         pytest.skip("Skipping this test because it's not running as a subprocess")
 
 
+# expected parameters tuples contain
+# (generating function, data source, year, state, engine)
 EXPECTED_PARAMETERS = {
     "census": (
         generate_decennial_census,
         None,
-        DEFAULT_ENGINE,
-        DEFAULT_STATE,
-        DEFAULT_YEAR,
+        CLI_DEFAULT_YEAR,
+        CLI_DEFAULT_STATE,
+        CLI_DEFAULT_ENGINE,
     ),
     "acs": (
         generate_american_community_survey,
         FULL_USA_FILEPATH,
-        DEFAULT_ENGINE,
-        DEFAULT_STATE,
-        DEFAULT_YEAR,
+        CLI_DEFAULT_YEAR,
+        CLI_DEFAULT_STATE,
+        CLI_DEFAULT_ENGINE,
     ),
-    "ssa": (generate_social_security, None, "dask", DEFAULT_STATE, DEFAULT_YEAR),
-    "cps": (generate_current_population_survey, None, DEFAULT_ENGINE, "RI", DEFAULT_YEAR),
+    "cps": (
+        generate_current_population_survey,
+        None,
+        CLI_DEFAULT_YEAR,
+        "RI",
+        CLI_DEFAULT_ENGINE,
+    ),
+    "ssa": (generate_social_security, None, CLI_DEFAULT_YEAR, CLI_DEFAULT_STATE, "dask"),
+    "tax_1040": (
+        generate_taxes_1040,
+        None,
+        2010,
+        CLI_DEFAULT_STATE,
+        CLI_DEFAULT_ENGINE,
+    ),
     "tax_w2_1099": (
         generate_taxes_w2_and_1099,
         None,
-        DEFAULT_ENGINE,
-        DEFAULT_STATE,
         2010,
+        "RI",
+        CLI_DEFAULT_ENGINE,
     ),
-    "wic": (generate_women_infants_and_children, None, DEFAULT_ENGINE, "RI", 2010),
-    "tax_1040": (
-        generate_taxes_1040,
-        RI_FILEPATH,
-        DEFAULT_ENGINE,
-        DEFAULT_STATE,
-        DEFAULT_YEAR,
-    ),
+    "wic": (generate_women_infants_and_children, FULL_USA_FILEPATH, 2015, "MO", "dask"),
 }
 
 
@@ -78,11 +86,24 @@ def test_parsing_fixture_params(request: pytest.FixtureRequest) -> None:
     [
         (["--dataset", "census"]),
         (["--dataset", "acs", "--population", "USA"]),
-        (["--dataset", "tax_1040", "--population", "RI"]),
-        (["--dataset", "ssa", "--engine", "dask"]),
         (["--dataset", "cps", "--state", "RI"]),
-        (["--dataset", "tax_w2_1099", "--year", "2010"]),
-        (["--dataset", "wic", "--state", "RI", "--year", "2010"]),
+        (["--dataset", "ssa", "--engine", "dask"]),
+        (["--dataset", "tax_1040", "--year", "2010"]),
+        (["--dataset", "tax_w2_1099", "--state", "RI", "--year", "2010"]),
+        (
+            [
+                "--dataset",
+                "wic",
+                "--population",
+                "USA",
+                "--engine",
+                "dask",
+                "--state",
+                "MO",
+                "--year",
+                "2015",
+            ]
+        ),
     ],
 )
 def test_parsing_fixture_param_combinations(pytest_args: list[str]) -> None:
@@ -93,3 +114,4 @@ def test_parsing_fixture_param_combinations(pytest_args: list[str]) -> None:
     cmd = base_cmd + pytest_args
     result = subprocess.run(cmd, capture_output=True, text=True, env=env)
     assert result.returncode == 0
+    del env["RUNNING_AS_SUBPROCESS"]

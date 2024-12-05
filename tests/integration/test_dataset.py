@@ -34,7 +34,7 @@ def test_dataset_missingness(dataset_name: str) -> None:
                 noise_type(dataset, config)
                 # Check missingness is synced with data
                 assert dataset.missingness.equals(dataset.is_missing(dataset.data))
-        elif isinstance(noise_type, ColumnNoiseType):
+        if isinstance(noise_type, ColumnNoiseType):
             for column in dataset.data.columns:
                 if config.has_noise_type(
                     dataset.dataset_schema.name, noise_type.name, column
