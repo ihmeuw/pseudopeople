@@ -29,45 +29,40 @@ def check_subprocess_environment() -> None:
         pytest.skip("Skipping this test because it's not running as a subprocess")
 
 
+# expected parameters tuples contain
+# (generating function, data source, year, state, engine)
 EXPECTED_PARAMETERS = {
     "census": (
         generate_decennial_census,
         None,
-        CLI_DEFAULT_ENGINE,
-        CLI_DEFAULT_STATE,
         CLI_DEFAULT_YEAR,
+        CLI_DEFAULT_STATE,
+        CLI_DEFAULT_ENGINE,
     ),
     "acs": (
         generate_american_community_survey,
         FULL_USA_FILEPATH,
-        CLI_DEFAULT_ENGINE,
-        CLI_DEFAULT_STATE,
         CLI_DEFAULT_YEAR,
-    ),
-    "ssa": (generate_social_security, None, "dask", CLI_DEFAULT_STATE, CLI_DEFAULT_YEAR),
-    "cps": (generate_current_population_survey, None, CLI_DEFAULT_ENGINE, "RI", CLI_DEFAULT_YEAR),
-    "tax_w2_1099": (
-        generate_taxes_w2_and_1099,
-        None,
-        CLI_DEFAULT_ENGINE,
         CLI_DEFAULT_STATE,
-        2010,
+        CLI_DEFAULT_ENGINE,
     ),
-    "wic": (generate_women_infants_and_children, None, CLI_DEFAULT_ENGINE, "RI", 2010),
+    "cps": (generate_current_population_survey, None, CLI_DEFAULT_YEAR, "RI", CLI_DEFAULT_ENGINE),
+    "ssa": (generate_social_security, None, CLI_DEFAULT_YEAR, CLI_DEFAULT_STATE, "dask"),
     "tax_1040": (
         generate_taxes_1040,
         RI_FILEPATH,
-        CLI_DEFAULT_ENGINE,
+        2010,
         CLI_DEFAULT_STATE,
-        CLI_DEFAULT_YEAR,
+        CLI_DEFAULT_ENGINE,
     ),
-    'None': (
-generate_decennial_census,
-        FULL_USA_FILEPATH,
-        'dask',
-        'MO',
-        2015,
+    "tax_w2_1099": (
+        generate_taxes_w2_and_1099,
+        None,
+        2010,
+        'RI',
+        CLI_DEFAULT_ENGINE,
     ),
+    "wic": (generate_women_infants_and_children, FULL_USA_FILEPATH, 2010, "MO", "dask"),
 }
 
 
@@ -86,12 +81,11 @@ def test_parsing_fixture_params(request: pytest.FixtureRequest) -> None:
     [
         (["--dataset", "census"]),
         (["--dataset", "acs", "--population", "USA"]),
-        (["--dataset", "tax_1040", "--population", "RI"]),
-        (["--dataset", "ssa", "--engine", "dask"]),
         (["--dataset", "cps", "--state", "RI"]),
-        (["--dataset", "tax_w2_1099", "--year", "2010"]),
-        (["--dataset", "wic", "--state", "RI", "--year", "2010"]),
-        (["--population", "USA", "--engine", "dask", "--state", "MO", "--year", "2015"]),
+        (["--dataset", "ssa", "--engine", "dask"]),
+        (["--dataset", "tax_1040", "--year", "2010"]),
+        (["--dataset", "tax_w2_1099", "state", "RI", "--year", "2010"]),
+        (["--dataset", "wic", "--population", "USA", "--engine", "dask", "--state", "MO", "--year", "2015"]),
     ],
 )
 def test_parsing_fixture_param_combinations(pytest_args: list[str]) -> None:
