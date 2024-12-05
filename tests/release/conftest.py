@@ -7,7 +7,7 @@ from typing import Any
 
 import pandas as pd
 import pytest
-from memory_profiler import memory_usage
+from memory_profiler import memory_usage  # type: ignore
 
 from pseudopeople.interface import (
     generate_american_community_survey,
