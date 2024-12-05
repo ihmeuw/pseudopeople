@@ -46,11 +46,17 @@ EXPECTED_PARAMETERS = {
         CLI_DEFAULT_STATE,
         CLI_DEFAULT_ENGINE,
     ),
-    "cps": (generate_current_population_survey, None, CLI_DEFAULT_YEAR, "RI", CLI_DEFAULT_ENGINE),
+    "cps": (
+        generate_current_population_survey,
+        None,
+        CLI_DEFAULT_YEAR,
+        "RI",
+        CLI_DEFAULT_ENGINE,
+    ),
     "ssa": (generate_social_security, None, CLI_DEFAULT_YEAR, CLI_DEFAULT_STATE, "dask"),
     "tax_1040": (
         generate_taxes_1040,
-        RI_FILEPATH,
+        None,
         2010,
         CLI_DEFAULT_STATE,
         CLI_DEFAULT_ENGINE,
@@ -59,10 +65,10 @@ EXPECTED_PARAMETERS = {
         generate_taxes_w2_and_1099,
         None,
         2010,
-        'RI',
+        "RI",
         CLI_DEFAULT_ENGINE,
     ),
-    "wic": (generate_women_infants_and_children, FULL_USA_FILEPATH, 2010, "MO", "dask"),
+    "wic": (generate_women_infants_and_children, FULL_USA_FILEPATH, 2015, "MO", "dask"),
 }
 
 
@@ -84,8 +90,21 @@ def test_parsing_fixture_params(request: pytest.FixtureRequest) -> None:
         (["--dataset", "cps", "--state", "RI"]),
         (["--dataset", "ssa", "--engine", "dask"]),
         (["--dataset", "tax_1040", "--year", "2010"]),
-        (["--dataset", "tax_w2_1099", "state", "RI", "--year", "2010"]),
-        (["--dataset", "wic", "--population", "USA", "--engine", "dask", "--state", "MO", "--year", "2015"]),
+        (["--dataset", "tax_w2_1099", "--state", "RI", "--year", "2010"]),
+        (
+            [
+                "--dataset",
+                "wic",
+                "--population",
+                "USA",
+                "--engine",
+                "dask",
+                "--state",
+                "MO",
+                "--year",
+                "2015",
+            ]
+        ),
     ],
 )
 def test_parsing_fixture_param_combinations(pytest_args: list[str]) -> None:
@@ -96,4 +115,4 @@ def test_parsing_fixture_param_combinations(pytest_args: list[str]) -> None:
     cmd = base_cmd + pytest_args
     result = subprocess.run(cmd, capture_output=True, text=True, env=env)
     assert result.returncode == 0
-    del os.environ['RUNNING_AS_SUBPROCESS']
+    del env["RUNNING_AS_SUBPROCESS"]

@@ -29,7 +29,7 @@ DATASET_GENERATION_FUNCS: dict[str, Callable[..., Any]] = {
     "tax_1040": generate_taxes_1040,
 }
 
-CLI_DEFAULT_DATASET = 'acs'
+CLI_DEFAULT_DATASET = "acs"
 CLI_DEFAULT_POP = "sample"
 CLI_DEFAULT_YEAR = 2020
 CLI_DEFAULT_STATE = None
