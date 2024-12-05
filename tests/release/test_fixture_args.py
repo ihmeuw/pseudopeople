@@ -14,12 +14,12 @@ from pseudopeople.interface import (
     generate_women_infants_and_children,
 )
 from tests.release.conftest import (
-    DEFAULT_ENGINE,
-    DEFAULT_STATE,
-    DEFAULT_YEAR,
+    CLI_DEFAULT_ENGINE,
+    CLI_DEFAULT_STATE,
+    CLI_DEFAULT_YEAR,
     FULL_USA_FILEPATH,
     RI_FILEPATH,
-    _parse_dataset_params,
+    parse_dataset_params,
 )
 
 
@@ -33,33 +33,40 @@ EXPECTED_PARAMETERS = {
     "census": (
         generate_decennial_census,
         None,
-        DEFAULT_ENGINE,
-        DEFAULT_STATE,
-        DEFAULT_YEAR,
+        CLI_DEFAULT_ENGINE,
+        CLI_DEFAULT_STATE,
+        CLI_DEFAULT_YEAR,
     ),
     "acs": (
         generate_american_community_survey,
         FULL_USA_FILEPATH,
-        DEFAULT_ENGINE,
-        DEFAULT_STATE,
-        DEFAULT_YEAR,
+        CLI_DEFAULT_ENGINE,
+        CLI_DEFAULT_STATE,
+        CLI_DEFAULT_YEAR,
     ),
-    "ssa": (generate_social_security, None, "dask", DEFAULT_STATE, DEFAULT_YEAR),
-    "cps": (generate_current_population_survey, None, DEFAULT_ENGINE, "RI", DEFAULT_YEAR),
+    "ssa": (generate_social_security, None, "dask", CLI_DEFAULT_STATE, CLI_DEFAULT_YEAR),
+    "cps": (generate_current_population_survey, None, CLI_DEFAULT_ENGINE, "RI", CLI_DEFAULT_YEAR),
     "tax_w2_1099": (
         generate_taxes_w2_and_1099,
         None,
-        DEFAULT_ENGINE,
-        DEFAULT_STATE,
+        CLI_DEFAULT_ENGINE,
+        CLI_DEFAULT_STATE,
         2010,
     ),
-    "wic": (generate_women_infants_and_children, None, DEFAULT_ENGINE, "RI", 2010),
+    "wic": (generate_women_infants_and_children, None, CLI_DEFAULT_ENGINE, "RI", 2010),
     "tax_1040": (
         generate_taxes_1040,
         RI_FILEPATH,
-        DEFAULT_ENGINE,
-        DEFAULT_STATE,
-        DEFAULT_YEAR,
+        CLI_DEFAULT_ENGINE,
+        CLI_DEFAULT_STATE,
+        CLI_DEFAULT_YEAR,
+    ),
+    'None': (
+generate_decennial_census,
+        FULL_USA_FILEPATH,
+        'dask',
+        'MO',
+        2015,
     ),
 }
 
@@ -67,7 +74,7 @@ EXPECTED_PARAMETERS = {
 @pytest.mark.subprocess_test
 @pytest.mark.usefixtures("check_subprocess_environment")
 def test_parsing_fixture_params(request: pytest.FixtureRequest) -> None:
-    output = _parse_dataset_params(request)
+    output = parse_dataset_params(request)
     # we know output will have a string as the first element but can't type this
     # while specifying the types of the other elements in output
     dataset_name: str = output[0]  # type: ignore [assignment]
@@ -84,6 +91,7 @@ def test_parsing_fixture_params(request: pytest.FixtureRequest) -> None:
         (["--dataset", "cps", "--state", "RI"]),
         (["--dataset", "tax_w2_1099", "--year", "2010"]),
         (["--dataset", "wic", "--state", "RI", "--year", "2010"]),
+        (["--population", "USA", "--engine", "dask", "--state", "MO", "--year", "2015"]),
     ],
 )
 def test_parsing_fixture_param_combinations(pytest_args: list[str]) -> None:
@@ -94,3 +102,4 @@ def test_parsing_fixture_param_combinations(pytest_args: list[str]) -> None:
     cmd = base_cmd + pytest_args
     result = subprocess.run(cmd, capture_output=True, text=True, env=env)
     assert result.returncode == 0
+    del os.environ['RUNNING_AS_SUBPROCESS']
