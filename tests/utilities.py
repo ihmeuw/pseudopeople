@@ -12,6 +12,8 @@ from vivarium_testing_utils import FuzzyChecker
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.noise_configuration import NoiseConfiguration
+from pseudopeople.constants import paths
+from pseudopeople.dataset import Dataset
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS, Column
 from pseudopeople.utilities import (
@@ -195,3 +197,12 @@ def validate_column_noise_level(
         target_proportion=expected_noise,
         name_additional=f"{dataset_name}_{col.name}_{col_noise_type.name}",
     )
+
+
+def initialize_dataset_with_sample(dataset_name: str) -> Dataset:
+    SEED = 0
+    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+    data_path = paths.SAMPLE_DATA_ROOT / dataset_name / f"{dataset_name}.parquet"
+    dataset = Dataset(dataset_schema, pd.read_parquet(data_path), SEED)
+
+    return dataset

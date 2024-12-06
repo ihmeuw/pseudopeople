@@ -22,6 +22,7 @@ from pseudopeople.interface import (
 )
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
+from tests.utilities import initialize_dataset_with_sample
 
 
 DATASET_GENERATION_FUNCS: dict[str, Callable[..., Any]] = {
@@ -157,10 +158,12 @@ def unnoised_dataset(
     request: pytest.FixtureRequest,
     config: dict[str, Any],
 ) -> pd.DataFrame:
-    population = request.config.getoption('--population', default='sample')
-    if population == 'sample':
-        # get sample data
     dataset_arg, dataset_func, source, year, state, engine = dataset_params
+    dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_arg]
+
+    if source is None:
+        return initialize_dataset_with_sample(dataset_name)
+
     no_noise_config = get_configuration("no_noise").to_dict()
 
     if dataset_func == generate_social_security:
@@ -172,7 +175,6 @@ def unnoised_dataset(
             source=source, year=year, state=state, engine=engine, config=no_noise_config
         )
 
-    dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_arg]
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     return Dataset(dataset_schema, unnoised_data, SEED)
 

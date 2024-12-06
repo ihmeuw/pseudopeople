@@ -29,10 +29,10 @@ from pseudopeople.utilities import (
 from tests.integration.conftest import (
     IDX_COLS,
     _get_common_datasets,
-    _initialize_dataset_with_sample,
     get_unnoised_data,
 )
 from tests.utilities import (
+    initialize_dataset_with_sample,
     run_column_noising_tests,
     run_omit_row_or_do_not_respond_tests,
 )
@@ -102,7 +102,7 @@ def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
     unnoised_id_cols = [COLUMNS.simulant_id.name]
     if dataset_name != DATASET_SCHEMAS.ssa.name:
         unnoised_id_cols.append(COLUMNS.household_id.name)
-    original = _initialize_dataset_with_sample(dataset_name)
+    original = initialize_dataset_with_sample(dataset_name)
     noised_data = request.getfixturevalue("data")
     check_noised, check_original, _ = _get_common_datasets(original, noised_data)
     assert (
