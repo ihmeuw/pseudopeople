@@ -157,7 +157,10 @@ def unnoised_dataset(
     request: pytest.FixtureRequest,
     config: dict[str, Any],
 ) -> pd.DataFrame:
-    dataset_arg, dataset_func, source, engine, state, year = dataset_params
+    population = request.config.getoption('--population', default='sample')
+    if population == 'sample':
+        # get sample data
+    dataset_arg, dataset_func, source, year, state, engine = dataset_params
     no_noise_config = get_configuration("no_noise").to_dict()
 
     if dataset_func == generate_social_security:
