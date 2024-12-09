@@ -71,7 +71,6 @@ EXPECTED_PARAMETERS = {
 }
 
 
-@pytest.mark.subprocess_test
 @pytest.mark.usefixtures("check_subprocess_environment")
 def test_parsing_fixture_params(request: pytest.FixtureRequest) -> None:
     output = request.getfixturevalue("dataset_params")

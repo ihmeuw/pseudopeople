@@ -53,7 +53,6 @@ CLI_DEFAULT_ENGINE = "pandas"
 FULL_USA_FILEPATH = "/mnt/team/simulation_science/pub/models/vivarium_census_prl_synth_pop/results/release_02_yellow/full_data/united_states_of_america/2023_08_21_16_35_27/final_results/2023_08_31_15_58_01/pseudopeople_simulated_population_usa_2_0_0"
 RI_FILEPATH = "/mnt/team/simulation_science/pub/models/vivarium_census_prl_synth_pop/results/release_02_yellow/full_data/united_states_of_america/2023_08_21_16_35_27/final_results/2023_08_31_15_58_01/states/pseudopeople_simulated_population_rhode_island_2_0_0"
 SOURCE_MAPPER = {"usa": FULL_USA_FILEPATH, "ri": RI_FILEPATH, "sample": None}
-DEFAULT_CONFIG = None
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -87,12 +86,6 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=CLI_DEFAULT_ENGINE,
         help="The engine used to generate data. Options are 'pandas' and 'dask'.",
     )
-    parser.addoption(
-        "--config",
-        action="store",
-        default=DEFAULT_CONFIG,
-        help="The noise config to use when generating data.",
-    )
 
 
 ############
@@ -114,7 +107,7 @@ def release_output_dir() -> Path:
 def dataset_params(
     request: pytest.FixtureRequest,
 ) -> tuple[str | int | Callable[..., pd.DataFrame] | None, ...]:
-    dataset_name = request.config.getoption("--dataset")
+    dataset_name = request.config.getoption("--dataset", default=CLI_DEFAULT_DATASET)
     try:
         dataset_func = DATASET_GENERATION_FUNCS[dataset_name]
     except KeyError:
@@ -140,6 +133,10 @@ def dataset_params(
 
 @pytest.fixture(scope="session")
 def data(release_output_dir: Path, request: pytest.FixtureRequest, config: dict[str, Any]) -> pd.DataFrame:
+    marker = request.config.getoption('-m')
+    if marker != 'release':
+        return 0
+
     _, dataset_func, source, year, state, engine = request.getfixturevalue("dataset_params")
 
     if source is None:
@@ -162,6 +159,10 @@ def unnoised_dataset(
     request: pytest.FixtureRequest,
     config: dict[str, Any],
 ) -> pd.DataFrame:
+    marker = request.config.getoption('-m')
+    if marker != 'release':
+        return 0
+
     dataset_arg, dataset_func, source, year, state, engine = dataset_params
     dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_arg]
 
@@ -185,7 +186,7 @@ def unnoised_dataset(
 
 @pytest.fixture(scope="session")
 def dataset_name(request: pytest.FixtureRequest) -> str:
-    dataset_arg = request.config.getoption("--dataset")
+    dataset_arg = request.config.getoption("--dataset", default=CLI_DEFAULT_DATASET)
     return DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_arg]
 
 

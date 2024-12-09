@@ -96,6 +96,7 @@ def test_row_noising_omit_row_or_do_not_respond(
     run_omit_row_or_do_not_respond_tests(dataset_name, config, original_data, noised_data)
 
 
+@pytest.mark.release
 def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
     """Tests that all datasets retain unnoised simulant_id and household_id
     (except for SSA which does not include household_id)
