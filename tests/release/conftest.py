@@ -142,8 +142,12 @@ def dataset_params(
 def data(release_output_dir: Path, request: pytest.FixtureRequest, config: dict[str, Any]) -> pd.DataFrame:
     _, dataset_func, source, year, state, engine = request.getfixturevalue("dataset_params")
 
+    if source is None:
+        return dataset_func(seed=0, year=None, config=config)
+
     kwargs = {
         "source": source,
+        "config": config,
         "year": year,
         "engine": engine,
     }

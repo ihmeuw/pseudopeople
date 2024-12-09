@@ -23,9 +23,10 @@ from pseudopeople.utilities import (
     load_qwerty_errors_data,
 )
 
-from tests.integration.conftest import CELL_PROBABILITY
 from tests.unit.test_configuration import COLUMN_NOISE_TYPES
 
+
+CELL_PROBABILITY = 0.25
 
 TOKENS_PER_STRING_MAPPER: dict[str, Callable[..., pd.Series[int]]] = {
     NOISE_TYPES.make_ocr_errors.name: partial(

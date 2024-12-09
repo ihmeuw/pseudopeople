@@ -74,6 +74,7 @@ def test_column_noising(
     """Tests that columns are noised as expected"""
     original = request.getfixturevalue("unnoised_dataset")
     noised_data = request.getfixturevalue("data")
+
     check_noised, check_original, shared_idx = _get_common_datasets(original, noised_data)
 
     run_column_noising_tests(
