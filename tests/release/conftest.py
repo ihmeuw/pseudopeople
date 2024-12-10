@@ -135,7 +135,7 @@ def dataset_params(
 def data(release_output_dir: Path, request: pytest.FixtureRequest, config: dict[str, Any]) -> pd.DataFrame:
     marker = request.config.getoption('-m')
     if marker != 'release':
-        return 0
+        return pd.DataFrame()
 
     _, dataset_func, source, year, state, engine = request.getfixturevalue("dataset_params")
 
@@ -161,7 +161,7 @@ def unnoised_dataset(
 ) -> pd.DataFrame:
     marker = request.config.getoption('-m')
     if marker != 'release':
-        return 0
+        return pd.DataFrame()
 
     dataset_arg, dataset_func, source, year, state, engine = dataset_params
     dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_arg]
@@ -188,54 +188,6 @@ def unnoised_dataset(
 def dataset_name(request: pytest.FixtureRequest) -> str:
     dataset_arg = request.config.getoption("--dataset", default=CLI_DEFAULT_DATASET)
     return DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_arg]
-
-
-@pytest.fixture(scope="session")
-def config() -> dict[str, Any]:
-    """Returns a custom configuration dict to be used in noising"""
-    ROW_PROBABILITY = 0.05
-    CELL_PROBABILITY = 0.25
-    config = get_configuration().to_dict()  # default config
-
-    # Increase row noise probabilities to 5% and column cell_probabilities to 25%
-    for dataset_name in config:
-        dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
-        config[dataset_schema.name][Keys.ROW_NOISE] = {
-            noise_type.name: {
-                Keys.ROW_PROBABILITY: ROW_PROBABILITY,
-            }
-            for noise_type in dataset_schema.row_noise_types
-            if noise_type != NOISE_TYPES.duplicate_with_guardian
-        }
-        for col in [c for c in dataset_schema.columns if c.noise_types]:
-            config[dataset_name][Keys.COLUMN_NOISE][col.name] = {
-                noise_type.name: {
-                    Keys.CELL_PROBABILITY: CELL_PROBABILITY,
-                }
-                for noise_type in col.noise_types
-            }
-
-    # FIXME: Remove when record_id is added as the truth deck for datasets.
-    # For integration tests, we will NOT duplicate rows with guardian duplication.
-    # This is because we want to be able to compare the noised and unnoised data
-    # and a big assumption we make is that simulant_id and household_id are the
-    # truth decks in our datasets.
-    config[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
-        NOISE_TYPES.duplicate_with_guardian.name
-    ] = {
-        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0.0,
-        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: 0.0,
-    }
-    # Update SSA dataset to noise 'ssn' but NOT noise 'ssa_event_type' since that
-    # will be used as an identifier along with simulant_id
-    # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
-    config[DATASET_SCHEMAS.ssa.name][Keys.COLUMN_NOISE][COLUMNS.ssa_event_type.name] = {
-        noise_type.name: {
-            Keys.CELL_PROBABILITY: 0,
-        }
-        for noise_type in COLUMNS.ssa_event_type.noise_types
-    }
-    return config
 
 
 ####################

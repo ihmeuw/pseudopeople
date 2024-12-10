@@ -36,14 +36,6 @@ def pytest_addoption(parser: argparsing.Parser) -> None:
 
 def pytest_configure(config: Config) -> None:
     config.addinivalue_line("markers", "slow: mark test as slow to run")
-    #config.addinivalue_line(
-    #    "markers",
-    #    "subprocess_test: mark a test to run only as a subprocess within another test",
-    #)
-    config.addinivalue_line(
-        "markers",
-        "release: mark a test to run only for release",
-    )
 
 
 def pytest_collection_modifyitems(config: Config, items: list[Function]) -> None:
