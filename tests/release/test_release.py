@@ -64,7 +64,6 @@ TOKENS_PER_STRING_MAPPER: dict[str, Callable[..., pd.Series[int]]] = {
 }
 
 
-@pytest.mark.release
 def test_column_noising(
     config: dict[str, Any],
     dataset_name: str,
@@ -82,7 +81,6 @@ def test_column_noising(
     )
 
 
-@pytest.mark.release
 def test_row_noising_omit_row_or_do_not_respond(
     dataset_name: str, config: dict[str, Any], request: FixtureRequest
 ) -> None:
@@ -96,7 +94,6 @@ def test_row_noising_omit_row_or_do_not_respond(
     run_omit_row_or_do_not_respond_tests(dataset_name, config, original_data, noised_data)
 
 
-@pytest.mark.release
 def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
     """Tests that all datasets retain unnoised simulant_id and household_id
     (except for SSA which does not include household_id)

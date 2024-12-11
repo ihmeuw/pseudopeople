@@ -10,6 +10,7 @@ import pytest
 from memory_profiler import memory_usage  # type: ignore
 
 from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.configuration.entities import NO_NOISE
 from pseudopeople.dataset import Dataset
 from pseudopeople.interface import (
     generate_american_community_survey,
@@ -133,10 +134,6 @@ def dataset_params(
 
 @pytest.fixture(scope="session")
 def data(release_output_dir: Path, request: pytest.FixtureRequest, config: dict[str, Any]) -> pd.DataFrame:
-    marker = request.config.getoption('-m')
-    if marker != 'release':
-        return pd.DataFrame()
-
     _, dataset_func, source, year, state, engine = request.getfixturevalue("dataset_params")
 
     if source is None:
@@ -159,25 +156,19 @@ def unnoised_dataset(
     request: pytest.FixtureRequest,
     config: dict[str, Any],
 ) -> pd.DataFrame:
-    marker = request.config.getoption('-m')
-    if marker != 'release':
-        return pd.DataFrame()
-
     dataset_arg, dataset_func, source, year, state, engine = dataset_params
     dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_arg]
 
     if source is None:
         return initialize_dataset_with_sample(dataset_name)
 
-    no_noise_config = get_configuration("no_noise").to_dict()
-
     if dataset_func == generate_social_security:
         unnoised_data = dataset_func(
-            source=source, year=year, engine=engine, config=no_noise_config
+            source=source, year=year, engine=engine, config=NO_NOISE
         )
     else:
         unnoised_data = dataset_func(
-            source=source, year=year, state=state, engine=engine, config=no_noise_config
+            source=source, year=year, state=state, engine=engine, config=NO_NOISE
         )
 
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
