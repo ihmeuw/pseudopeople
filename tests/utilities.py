@@ -16,31 +16,8 @@ from pseudopeople.constants import paths
 from pseudopeople.dataset import Dataset
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS, Column
-from pseudopeople.utilities import (
-    count_number_of_tokens_per_string,
-    load_ocr_errors,
-    load_phonetic_errors,
-    load_qwerty_errors_data,
-)
+from tests.constants import CELL_PROBABILITY, TOKENS_PER_STRING_MAPPER
 from tests.unit.test_configuration import COLUMN_NOISE_TYPES
-
-CELL_PROBABILITY = 0.25
-
-TOKENS_PER_STRING_MAPPER: dict[str, Callable[..., pd.Series[int]]] = {
-    NOISE_TYPES.make_ocr_errors.name: partial(
-        count_number_of_tokens_per_string, pd.Series(load_ocr_errors().index)
-    ),
-    NOISE_TYPES.make_phonetic_errors.name: partial(
-        count_number_of_tokens_per_string,
-        pd.Series(load_phonetic_errors().index),
-    ),
-    NOISE_TYPES.write_wrong_digits.name: lambda x: x.astype(str)
-    .str.replace(r"[^\d]", "", regex=True)
-    .str.len(),
-    NOISE_TYPES.make_typos.name: partial(
-        count_number_of_tokens_per_string, pd.Series(load_qwerty_errors_data().index)
-    ),
-}
 
 
 def run_column_noising_tests(

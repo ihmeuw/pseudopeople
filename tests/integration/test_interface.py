@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -14,18 +13,8 @@ from pytest_mock import MockerFixture
 from vivarium_testing_utils import FuzzyChecker
 
 from pseudopeople.configuration import get_configuration
-from pseudopeople.configuration.noise_configuration import NoiseConfiguration
-from pseudopeople.interface import (
-    generate_american_community_survey,
-    generate_current_population_survey,
-    generate_decennial_census,
-    generate_social_security,
-    generate_taxes_1040,
-    generate_taxes_w2_and_1099,
-    generate_women_infants_and_children,
-)
-from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS, Column
+from tests.constants import DATASET_GENERATION_FUNCS
 from tests.integration.conftest import (
     IDX_COLS,
     SEED,
@@ -39,16 +28,6 @@ from tests.utilities import (
     run_omit_row_or_do_not_respond_tests,
     validate_column_noise_level,
 )
-
-DATASET_GENERATION_FUNCS: dict[str, Callable[..., Any]] = {
-    DATASET_SCHEMAS.census.name: generate_decennial_census,
-    DATASET_SCHEMAS.acs.name: generate_american_community_survey,
-    DATASET_SCHEMAS.cps.name: generate_current_population_survey,
-    DATASET_SCHEMAS.ssa.name: generate_social_security,
-    DATASET_SCHEMAS.tax_w2_1099.name: generate_taxes_w2_and_1099,
-    DATASET_SCHEMAS.wic.name: generate_women_infants_and_children,
-    DATASET_SCHEMAS.tax_1040.name: generate_taxes_1040,
-}
 
 
 @pytest.mark.parametrize(

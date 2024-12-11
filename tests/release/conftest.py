@@ -11,27 +11,11 @@ from memory_profiler import memory_usage  # type: ignore
 
 from pseudopeople.configuration.entities import NO_NOISE
 from pseudopeople.dataset import Dataset
-from pseudopeople.interface import (
-    generate_american_community_survey,
-    generate_current_population_survey,
-    generate_decennial_census,
-    generate_social_security,
-    generate_taxes_1040,
-    generate_taxes_w2_and_1099,
-    generate_women_infants_and_children,
-)
+from pseudopeople.interface import generate_social_security
 from pseudopeople.schema_entities import DATASET_SCHEMAS
+from tests.constants import DATASET_GENERATION_FUNCS
 from tests.utilities import initialize_dataset_with_sample
 
-DATASET_GENERATION_FUNCS: dict[str, Callable[..., Any]] = {
-    "census": generate_decennial_census,
-    "acs": generate_american_community_survey,
-    "cps": generate_current_population_survey,
-    "ssa": generate_social_security,
-    "tax_w2_1099": generate_taxes_w2_and_1099,
-    "wic": generate_women_infants_and_children,
-    "tax_1040": generate_taxes_1040,
-}
 DATASET_ARG_TO_FULL_NAME_MAPPER: dict[str, str] = {
     "acs": "american_community_survey",
     "cps": "current_population_survey",
