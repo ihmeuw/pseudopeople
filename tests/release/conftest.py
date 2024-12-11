@@ -141,7 +141,7 @@ def data(
     _, dataset_func, source, year, state, engine = dataset_params
 
     if source is None:
-        return dataset_func(seed=0, year=None, config=config) # type: ignore [misc, operator]
+        return dataset_func(seed=0, year=None, config=config)  # type: ignore [misc, operator]
 
     kwargs = {
         "source": source,
@@ -161,7 +161,7 @@ def unnoised_dataset(
     config: dict[str, Any],
 ) -> Dataset:
     dataset_arg, dataset_func, source, year, state, engine = dataset_params
-    dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_arg] # type: ignore [index]
+    dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_arg]  # type: ignore [index]
 
     if source is None:
         return initialize_dataset_with_sample(dataset_name)
@@ -174,7 +174,7 @@ def unnoised_dataset(
     }
     if dataset_func != generate_social_security:
         kwargs["state"] = state
-    unnoised_data = dataset_func(**kwargs) # type: ignore [misc, operator]
+    unnoised_data = dataset_func(**kwargs)  # type: ignore [misc, operator]
 
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     return Dataset(dataset_schema, unnoised_data, SEED)
