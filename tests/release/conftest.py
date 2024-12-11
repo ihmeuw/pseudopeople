@@ -9,7 +9,6 @@ import pandas as pd
 import pytest
 from memory_profiler import memory_usage  # type: ignore
 
-from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.entities import NO_NOISE
 from pseudopeople.dataset import Dataset
 from pseudopeople.interface import (
@@ -21,8 +20,7 @@ from pseudopeople.interface import (
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
-from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
+from pseudopeople.schema_entities import DATASET_SCHEMAS
 from tests.utilities import initialize_dataset_with_sample
 
 
@@ -95,8 +93,10 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 @pytest.fixture(scope="session")
 def release_output_dir() -> Path:
     # TODO: [MIC-5522] define correct output dir
-    # output_dir_name = os.environ.get("PSP_TEST_OUTPUT_DIR")
-    output_dir_name = "/ihme/homes/hjafari/ppl_testing"
+    # output_dir = os.environ.get("PSP_TEST_OUTPUT_DIR")
+    output_dir_name = (
+        "/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing"
+    )
     # if not output_dir_name:
     #     raise ValueError("PSP_TEST_OUTPUT_DIR environment variable not set")
     output_dir = Path(output_dir_name) / f"{time.strftime('%Y%m%d_%H%M%S')}"
@@ -133,8 +133,8 @@ def dataset_params(
 
 
 @pytest.fixture(scope="session")
-def data(release_output_dir: Path, request: pytest.FixtureRequest, config: dict[str, Any]) -> pd.DataFrame:
-    _, dataset_func, source, year, state, engine = request.getfixturevalue("dataset_params")
+def data(dataset_params: tuple[str | int | Callable[..., pd.DataFrame] | None, ...], release_output_dir: Path, request: pytest.FixtureRequest, config: dict[str, Any]) -> pd.DataFrame:
+    _, dataset_func, source, year, state, engine = dataset_params
 
     if source is None:
         return dataset_func(seed=0, year=None, config=config)
@@ -162,14 +162,15 @@ def unnoised_dataset(
     if source is None:
         return initialize_dataset_with_sample(dataset_name)
 
-    if dataset_func == generate_social_security:
-        unnoised_data = dataset_func(
-            source=source, year=year, engine=engine, config=NO_NOISE
-        )
-    else:
-        unnoised_data = dataset_func(
-            source=source, year=year, state=state, engine=engine, config=NO_NOISE
-        )
+    kwargs = {
+        "source": source,
+        "config": NO_NOISE,
+        "year": year,
+        "engine": engine,
+    }
+    if dataset_func != generate_social_security:
+        kwargs["state"] = state
+    unnoised_data = dataset_func(**kwargs)
 
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     return Dataset(dataset_schema, unnoised_data, SEED)

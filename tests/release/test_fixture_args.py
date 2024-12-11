@@ -1,4 +1,7 @@
+from typing import Callable
+
 import os
+import pandas as pd
 import subprocess
 from pathlib import Path
 
@@ -18,7 +21,6 @@ from tests.release.conftest import (
     CLI_DEFAULT_STATE,
     CLI_DEFAULT_YEAR,
     FULL_USA_FILEPATH,
-    RI_FILEPATH,
 )
 
 
@@ -72,12 +74,11 @@ EXPECTED_PARAMETERS = {
 
 
 @pytest.mark.usefixtures("check_subprocess_environment")
-def test_parsing_fixture_params(request: pytest.FixtureRequest) -> None:
-    output = request.getfixturevalue("dataset_params")
+def test_parsing_fixture_params(dataset_params: tuple[str | int | Callable[..., pd.DataFrame] | None, ...], request: pytest.FixtureRequest) -> None:
     # we know output will have a string as the first element but can't type this
     # while specifying the types of the other elements in output
-    dataset_name: str = output[0]  # type: ignore [assignment]
-    assert output[1:] == EXPECTED_PARAMETERS[dataset_name]
+    dataset_name: str = dataset_params[0]  # type: ignore [assignment]
+    assert dataset_params[1:] == EXPECTED_PARAMETERS[dataset_name]
 
 
 @pytest.mark.parametrize(
