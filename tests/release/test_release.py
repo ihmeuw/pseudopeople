@@ -1,44 +1,17 @@
 from __future__ import annotations
 
-from collections.abc import Callable
-from functools import partial
 from typing import Any
 
-import pandas as pd
-import pytest
 from _pytest.fixtures import FixtureRequest
 from vivarium_testing_utils import FuzzyChecker
 
-from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
-from pseudopeople.utilities import (
-    count_number_of_tokens_per_string,
-    load_ocr_errors,
-    load_phonetic_errors,
-    load_qwerty_errors_data,
-)
 from tests.integration.conftest import IDX_COLS, _get_common_datasets, get_unnoised_data
 from tests.utilities import (
     initialize_dataset_with_sample,
     run_column_noising_tests,
     run_omit_row_or_do_not_respond_tests,
 )
-
-TOKENS_PER_STRING_MAPPER: dict[str, Callable[..., pd.Series[int]]] = {
-    NOISE_TYPES.make_ocr_errors.name: partial(
-        count_number_of_tokens_per_string, pd.Series(load_ocr_errors().index)
-    ),
-    NOISE_TYPES.make_phonetic_errors.name: partial(
-        count_number_of_tokens_per_string,
-        pd.Series(load_phonetic_errors().index),
-    ),
-    NOISE_TYPES.write_wrong_digits.name: lambda x: x.astype(str)
-    .str.replace(r"[^\d]", "", regex=True)
-    .str.len(),
-    NOISE_TYPES.make_typos.name: partial(
-        count_number_of_tokens_per_string, pd.Series(load_qwerty_errors_data().index)
-    ),
-}
 
 
 def test_column_noising(
