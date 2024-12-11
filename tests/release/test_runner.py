@@ -1,7 +1,9 @@
 import os
 import subprocess
-import pytest
 from pathlib import Path
+
+import pytest
+
 
 @pytest.mark.parametrize(
     "pytest_args",
@@ -9,10 +11,10 @@ from pathlib import Path
         ([]),
         (["--dataset", "acs"]),
         (["--dataset", "cps"]),
-        #(["--dataset", "acs", "--population", "USA"]),
-        #(["--dataset", "acs", "--population", "USA", "--state", "RI"]),
+        # (["--dataset", "acs", "--population", "USA"]),
+        # (["--dataset", "acs", "--population", "USA", "--state", "RI"]),
         (["--dataset", "wic", "--year", "2015"]),
-        #(["--dataset", "wic", "--population", "USA", "--state", "RI", "--year", "2015"]),
+        # (["--dataset", "wic", "--population", "USA", "--state", "RI", "--year", "2015"]),
     ],
 )
 def test_integration(pytest_args: list[str]) -> None:

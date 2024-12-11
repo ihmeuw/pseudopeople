@@ -25,7 +25,9 @@ from tests.integration.conftest import CELL_PROBABILITY
 
 def pytest_addoption(parser: argparsing.Parser) -> None:
     parser.addoption("--runslow", action="store_true", default=False, help="run slow tests")
-    parser.addoption("--release", action="store_true", default=False, help="run release tests")
+    parser.addoption(
+        "--release", action="store_true", default=False, help="run release tests"
+    )
     parser.addoption(
         "--limit",
         action="store",
@@ -47,8 +49,8 @@ def pytest_collection_modifyitems(config: Config, items: list[Function]) -> None
     skip_release = pytest.mark.skip(reason="need --release to run")
     if not config.getoption("--release"):
         for item in items:
-           if 'test_release.py' in item.keywords or 'test_runner.py' in item.keywords:
-               item.add_marker(skip_release)
+            if "test_release.py" in item.keywords or "test_runner.py" in item.keywords:
+                item.add_marker(skip_release)
 
     if config.getoption("--runslow"):
         # --runslow given in cli: do not skip slow tests

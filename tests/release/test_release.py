@@ -26,11 +26,7 @@ from pseudopeople.utilities import (
     load_phonetic_errors,
     load_qwerty_errors_data,
 )
-from tests.integration.conftest import (
-    IDX_COLS,
-    _get_common_datasets,
-    get_unnoised_data,
-)
+from tests.integration.conftest import IDX_COLS, _get_common_datasets, get_unnoised_data
 from tests.utilities import (
     initialize_dataset_with_sample,
     run_column_noising_tests,

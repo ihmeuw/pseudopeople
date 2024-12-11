@@ -23,7 +23,6 @@ from pseudopeople.interface import (
 from pseudopeople.schema_entities import DATASET_SCHEMAS
 from tests.utilities import initialize_dataset_with_sample
 
-
 DATASET_GENERATION_FUNCS: dict[str, Callable[..., Any]] = {
     "census": generate_decennial_census,
     "acs": generate_american_community_survey,
@@ -133,7 +132,12 @@ def dataset_params(
 
 
 @pytest.fixture(scope="session")
-def data(dataset_params: tuple[str | int | Callable[..., pd.DataFrame] | None, ...], release_output_dir: Path, request: pytest.FixtureRequest, config: dict[str, Any]) -> pd.DataFrame:
+def data(
+    dataset_params: tuple[str | int | Callable[..., pd.DataFrame] | None, ...],
+    release_output_dir: Path,
+    request: pytest.FixtureRequest,
+    config: dict[str, Any],
+) -> pd.DataFrame:
     _, dataset_func, source, year, state, engine = dataset_params
 
     if source is None:

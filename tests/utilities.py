@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import math
-from functools import partial
 from collections.abc import Callable
+from functools import partial
 from typing import Any
 
 import numpy as np
@@ -22,9 +22,7 @@ from pseudopeople.utilities import (
     load_phonetic_errors,
     load_qwerty_errors_data,
 )
-
 from tests.unit.test_configuration import COLUMN_NOISE_TYPES
-
 
 CELL_PROBABILITY = 0.25
 
@@ -45,12 +43,14 @@ TOKENS_PER_STRING_MAPPER: dict[str, Callable[..., pd.Series[int]]] = {
 }
 
 
-def run_column_noising_tests(dataset_name: str,
-                             config: dict[str, Any],
-                             fuzzy_checker: FuzzyChecker,
-                             check_noised: pd.DataFrame,
-                             check_original: pd.DataFrame,
-                             shared_idx: pd.Index[int]) -> None:
+def run_column_noising_tests(
+    dataset_name: str,
+    config: dict[str, Any],
+    fuzzy_checker: FuzzyChecker,
+    check_noised: pd.DataFrame,
+    check_original: pd.DataFrame,
+    shared_idx: pd.Index[int],
+) -> None:
     config_tree = get_configuration(config)
     for col_name in check_noised.columns:
         col = COLUMNS.get_column(col_name)
@@ -90,10 +90,12 @@ def run_column_noising_tests(dataset_name: str,
             assert same_check.all()
 
 
-def run_omit_row_or_do_not_respond_tests(dataset_name: str,
-                                         config: dict[str, Any],
-                                         original_data: pd.DataFrame,
-                                         noised_data: pd.DataFrame) -> None:
+def run_omit_row_or_do_not_respond_tests(
+    dataset_name: str,
+    config: dict[str, Any],
+    original_data: pd.DataFrame,
+    noised_data: pd.DataFrame,
+) -> None:
     noise_config: NoiseConfiguration = get_configuration(config)
     noise_types = [
         noise_type

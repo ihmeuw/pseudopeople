@@ -2,9 +2,7 @@ import pytest
 from _pytest.fixtures import FixtureRequest
 
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
-from tests.integration.conftest import (
-    _get_common_datasets,
-)
+from tests.integration.conftest import _get_common_datasets
 from tests.utilities import initialize_dataset_with_sample
 
 

@@ -1,10 +1,9 @@
-from typing import Callable
-
 import os
-import pandas as pd
 import subprocess
 from pathlib import Path
+from typing import Callable
 
+import pandas as pd
 import pytest
 
 from pseudopeople.interface import (
@@ -74,7 +73,10 @@ EXPECTED_PARAMETERS = {
 
 
 @pytest.mark.usefixtures("check_subprocess_environment")
-def test_parsing_fixture_params(dataset_params: tuple[str | int | Callable[..., pd.DataFrame] | None, ...], request: pytest.FixtureRequest) -> None:
+def test_parsing_fixture_params(
+    dataset_params: tuple[str | int | Callable[..., pd.DataFrame] | None, ...],
+    request: pytest.FixtureRequest,
+) -> None:
     # we know output will have a string as the first element but can't type this
     # while specifying the types of the other elements in output
     dataset_name: str = dataset_params[0]  # type: ignore [assignment]

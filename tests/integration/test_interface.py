@@ -26,7 +26,6 @@ from pseudopeople.interface import (
 )
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS, Column
-
 from tests.integration.conftest import (
     IDX_COLS,
     SEED,
@@ -34,8 +33,12 @@ from tests.integration.conftest import (
     _get_common_datasets,
     get_unnoised_data,
 )
-from tests.utilities import initialize_dataset_with_sample, run_column_noising_tests, run_omit_row_or_do_not_respond_tests, validate_column_noise_level
-
+from tests.utilities import (
+    initialize_dataset_with_sample,
+    run_column_noising_tests,
+    run_omit_row_or_do_not_respond_tests,
+    validate_column_noise_level,
+)
 
 DATASET_GENERATION_FUNCS: dict[str, Callable[..., Any]] = {
     DATASET_SCHEMAS.census.name: generate_decennial_census,
@@ -285,7 +288,9 @@ def test_column_noising(
         noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
     check_noised, check_original, shared_idx = _get_common_datasets(original, noised_data)
 
-    run_column_noising_tests(dataset_name, config, fuzzy_checker, check_noised, check_original, shared_idx)
+    run_column_noising_tests(
+        dataset_name, config, fuzzy_checker, check_noised, check_original, shared_idx
+    )
 
 
 @pytest.mark.parametrize(
