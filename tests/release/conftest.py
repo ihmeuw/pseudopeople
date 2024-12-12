@@ -21,7 +21,6 @@ from pseudopeople.interface import (
     generate_women_infants_and_children,
 )
 from pseudopeople.schema_entities import DATASET_SCHEMAS
-from tests.constants import DATASET_GENERATION_FUNCS
 from tests.utilities import initialize_dataset_with_sample
 
 DATASET_GENERATION_FUNCS: dict[str, Callable[..., Any]] = {
