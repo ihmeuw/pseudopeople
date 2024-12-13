@@ -5,7 +5,7 @@ from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASET_SCHEMAS
-from tests.integration.conftest import _initialize_dataset_with_sample
+from tests.utilities import initialize_dataset_with_sample
 
 
 @pytest.mark.parametrize(
@@ -22,7 +22,7 @@ from tests.integration.conftest import _initialize_dataset_with_sample
 )
 def test_dataset_missingness(dataset_name: str) -> None:
     """Tests that missingness is accurate with dataset.data."""
-    dataset = _initialize_dataset_with_sample(dataset_name)
+    dataset = initialize_dataset_with_sample(dataset_name)
     # We must manually clean the data for noising since we are recreating our main noising loop
     dataset._clean_input_data()
     dataset._reformat_dates_for_noising()

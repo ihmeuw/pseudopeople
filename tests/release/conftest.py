@@ -9,6 +9,8 @@ import pandas as pd
 import pytest
 from memory_profiler import memory_usage  # type: ignore
 
+from pseudopeople.configuration.entities import NO_NOISE
+from pseudopeople.dataset import Dataset
 from pseudopeople.interface import (
     generate_american_community_survey,
     generate_current_population_survey,
@@ -18,6 +20,8 @@ from pseudopeople.interface import (
     generate_taxes_w2_and_1099,
     generate_women_infants_and_children,
 )
+from pseudopeople.schema_entities import DATASET_SCHEMAS
+from tests.utilities import initialize_dataset_with_sample
 
 DATASET_GENERATION_FUNCS: dict[str, Callable[..., Any]] = {
     "census": generate_decennial_census,
@@ -28,7 +32,17 @@ DATASET_GENERATION_FUNCS: dict[str, Callable[..., Any]] = {
     "wic": generate_women_infants_and_children,
     "tax_1040": generate_taxes_1040,
 }
+DATASET_ARG_TO_FULL_NAME_MAPPER: dict[str, str] = {
+    "acs": "american_community_survey",
+    "cps": "current_population_survey",
+    "census": "decennial_census",
+    "ssa": "social_security",
+    "taxes_1040": "taxes_1040",
+    "taxes_w2_and_1099": "taxes_w2_and_1099",
+    "wic": "women_infants_and_children",
+}
 
+SEED = 0
 CLI_DEFAULT_DATASET = "acs"
 CLI_DEFAULT_POP = "sample"
 CLI_DEFAULT_YEAR = 2020
@@ -90,17 +104,85 @@ def release_output_dir() -> Path:
 
 
 @pytest.fixture(scope="session")
-def dataset(release_output_dir: Path, request: pytest.FixtureRequest) -> pd.DataFrame:
-    _, dataset_func, source, year, state, engine = parse_dataset_params(request)
+def dataset_params(
+    request: pytest.FixtureRequest,
+) -> tuple[str | int | Callable[..., pd.DataFrame] | None, ...]:
+    dataset_name = request.config.getoption("--dataset", default=CLI_DEFAULT_DATASET)
+    try:
+        dataset_func = DATASET_GENERATION_FUNCS[dataset_name]
+    except KeyError:
+        raise ValueError(
+            f"{dataset_name} is not a valid dataset. Possible datasets are {','.join(DATASET_GENERATION_FUNCS.keys())}"
+        )
+
+    population = request.config.getoption("--population", default=CLI_DEFAULT_POP)
+    try:
+        source = SOURCE_MAPPER[population.lower()]
+    except KeyError:
+        raise ValueError(
+            f"population must be one of USA, RI, or sample. You passed in {population}."
+        )
+
+    engine = request.config.getoption("--engine", default=CLI_DEFAULT_ENGINE)
+    state = request.config.getoption("--state", default=CLI_DEFAULT_STATE)
+    year = request.config.getoption("--year", default=CLI_DEFAULT_YEAR)
+    year = int(year) if year is not None else year
+
+    return dataset_name, dataset_func, source, year, state, engine
+
+
+@pytest.fixture(scope="session")
+def data(
+    dataset_params: tuple[str | int | Callable[..., pd.DataFrame] | None, ...],
+    release_output_dir: Path,
+    config: dict[str, Any],
+) -> pd.DataFrame:
+    _, dataset_func, source, year, state, engine = dataset_params
+
+    if source is None:
+        return dataset_func(seed=SEED, year=None, config=config)  # type: ignore [misc, operator]
 
     kwargs = {
         "source": source,
+        "config": config,
         "year": year,
         "engine": engine,
     }
     if dataset_func != generate_social_security:
         kwargs["state"] = state
     return profile_data_generation(release_output_dir)(dataset_func)(**kwargs)
+
+
+@pytest.fixture(scope="session")
+def unnoised_dataset(
+    dataset_params: tuple[str | int | Callable[..., pd.DataFrame] | None, ...],
+    request: pytest.FixtureRequest,
+    config: dict[str, Any],
+) -> Dataset:
+    dataset_arg, dataset_func, source, year, state, engine = dataset_params
+    dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_arg]  # type: ignore [index]
+
+    if source is None:
+        return initialize_dataset_with_sample(dataset_name)
+
+    kwargs = {
+        "source": source,
+        "config": NO_NOISE,
+        "year": year,
+        "engine": engine,
+    }
+    if dataset_func != generate_social_security:
+        kwargs["state"] = state
+    unnoised_data = dataset_func(**kwargs)  # type: ignore [misc, operator]
+
+    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+    return Dataset(dataset_schema, unnoised_data, SEED)
+
+
+@pytest.fixture(scope="session")
+def dataset_name(request: pytest.FixtureRequest) -> str:
+    dataset_arg = request.config.getoption("--dataset", default=CLI_DEFAULT_DATASET)
+    return DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_arg]
 
 
 ####################
@@ -132,29 +214,3 @@ def profile_data_generation(output_dir: Path) -> Callable[..., Callable[..., pd.
         return wrapper
 
     return decorator
-
-
-def parse_dataset_params(
-    request: pytest.FixtureRequest,
-) -> tuple[str | int | Callable[..., pd.DataFrame] | None, ...]:
-    dataset_name = request.config.getoption("--dataset", default=CLI_DEFAULT_DATASET)
-    try:
-        dataset_func = DATASET_GENERATION_FUNCS[dataset_name]
-    except KeyError:
-        raise ValueError(
-            f"{dataset_name} is not a valid dataset. Possible datasets are {','.join(DATASET_GENERATION_FUNCS.keys())}"
-        )
-
-    population = request.config.getoption("--population", default=CLI_DEFAULT_POP)
-    try:
-        source = SOURCE_MAPPER[population.lower()]
-    except KeyError:
-        raise ValueError(
-            f"population must be one of 'USA', 'RI', or 'sample'. You passed in '{population}'."
-        )
-
-    year = int(request.config.getoption("--year", default=CLI_DEFAULT_YEAR))
-    state = request.config.getoption("--state", default=CLI_DEFAULT_STATE)
-    engine = request.config.getoption("--engine", default=CLI_DEFAULT_ENGINE)
-
-    return dataset_name, dataset_func, source, year, state, engine
