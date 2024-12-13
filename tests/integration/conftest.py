@@ -23,6 +23,7 @@ from pseudopeople.interface import (
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
 from pseudopeople.utilities import coerce_dtypes
+from tests.utilities import initialize_dataset_with_sample
 
 ROW_PROBABILITY = 0.05
 CELL_PROBABILITY = 0.25
@@ -209,17 +210,9 @@ def noised_sample_data_taxes_1040(config: dict[str, Any]) -> pd.DataFrame:
 
 
 def get_unnoised_data(dataset_name: str) -> Dataset:
-    result = _initialize_dataset_with_sample(dataset_name)
+    result = initialize_dataset_with_sample(dataset_name)
     result.data = coerce_dtypes(result.data, result.dataset_schema)
     return result
-
-
-def _initialize_dataset_with_sample(dataset_name: str) -> Dataset:
-    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
-    data_path = paths.SAMPLE_DATA_ROOT / dataset_name / f"{dataset_name}.parquet"
-    dataset = Dataset(dataset_schema, pd.read_parquet(data_path), SEED)
-
-    return dataset
 
 
 def _get_common_datasets(
