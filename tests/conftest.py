@@ -49,7 +49,7 @@ def pytest_collection_modifyitems(config: Config, items: list[Function]) -> None
     skip_release = pytest.mark.skip(reason="need --release to run")
     if not config.getoption("--release"):
         for item in items:
-            if "test_release.py" in item.keywords or "test_runner.py" in item.keywords:
+            if "release" in item.keywords:
                 item.add_marker(skip_release)
 
     if config.getoption("--runslow"):
@@ -59,9 +59,11 @@ def pytest_collection_modifyitems(config: Config, items: list[Function]) -> None
     skip_slow = pytest.mark.skip(reason="need --runslow option to run")
     for item in items:
         # Automatically tag all tests in the tests/integration dir as slow
-        if item.parent and Path(item.parent.path).parent.stem == "integration":
-            item.add_marker(pytest.mark.slow)
-        if "slow" in item.keywords:
+        test_in_slow_directory = (
+            item.parent and Path(item.parent.path).parent.stem == "integration"
+        )
+        test_is_slow = "slow" in item.keywords
+        if test_in_slow_directory or test_is_slow:
             item.add_marker(skip_slow)
 
     # Limit the number of permutations of parametrised tests to run.

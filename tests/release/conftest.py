@@ -136,13 +136,12 @@ def dataset_params(
 def data(
     dataset_params: tuple[str | int | Callable[..., pd.DataFrame] | None, ...],
     release_output_dir: Path,
-    request: pytest.FixtureRequest,
     config: dict[str, Any],
 ) -> pd.DataFrame:
     _, dataset_func, source, year, state, engine = dataset_params
 
     if source is None:
-        return dataset_func(seed=0, year=None, config=config)  # type: ignore [misc, operator]
+        return dataset_func(seed=SEED, year=None, config=config)  # type: ignore [misc, operator]
 
     kwargs = {
         "source": source,
