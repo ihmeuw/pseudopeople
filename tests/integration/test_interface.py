@@ -26,61 +26,7 @@ from tests.utilities import (
     initialize_dataset_with_sample,
     run_column_noising_tests,
     run_omit_row_or_do_not_respond_tests,
-    validate_column_noise_level,
 )
-
-
-@pytest.mark.parametrize(
-    "dataset_name",
-    [
-        DATASET_SCHEMAS.census.name,
-        DATASET_SCHEMAS.acs.name,
-        DATASET_SCHEMAS.cps.name,
-        DATASET_SCHEMAS.ssa.name,
-        DATASET_SCHEMAS.tax_w2_1099.name,
-        DATASET_SCHEMAS.wic.name,
-        DATASET_SCHEMAS.tax_1040.name,
-    ],
-)
-@pytest.mark.parametrize(
-    "engine",
-    [
-        "pandas",
-        "dask",
-    ],
-)
-def test_generate_dataset_from_multiple_shards(
-    dataset_name: str,
-    engine: str,
-    config: dict[str, Any],
-    request: FixtureRequest,
-    split_sample_data_dir: Path,
-    mocker: MockerFixture,
-    fuzzy_checker: FuzzyChecker,
-) -> None:
-    """Tests that we can generate noised data from a single sample dataset
-    or by concatenating and noising multiple datasets and that they have the
-    same columns
-    """
-    if "TODO" in dataset_name:
-        pytest.skip(reason=dataset_name)
-    mocker.patch("pseudopeople.interface.validate_source_compatibility")
-    generation_function = DATASET_GENERATION_FUNCS[dataset_name]
-    single_shard_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
-
-    multi_shard_data = generation_function(
-        seed=SEED,
-        year=None,
-        source=split_sample_data_dir,
-        engine=engine,
-        config=config,
-    )
-
-    if engine == "dask":
-        multi_shard_data = multi_shard_data.compute()
-
-    # Check that columns are identical
-    assert multi_shard_data.columns.equals(single_shard_data.columns)
 
 
 @pytest.mark.parametrize(
@@ -130,6 +76,8 @@ def test_noising_sharded_vs_unsharded_data(
     )
     if engine == "dask":
         multi_shard_noised_data = multi_shard_noised_data.compute()
+
+    assert multi_shard_noised_data.columns.equals(single_shard_noised_data.columns)
 
     # This index handling is adapted from _get_common_datasets
     # in integration/conftest.py
