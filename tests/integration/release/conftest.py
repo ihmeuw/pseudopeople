@@ -93,9 +93,10 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 def release_output_dir() -> Path:
     # TODO: [MIC-5522] define correct output dir
     # output_dir = os.environ.get("PSP_TEST_OUTPUT_DIR")
-    output_dir_name = (
-        "/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing"
-    )
+    # output_dir_name = (
+    #     "/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing"
+    # )
+    output_dir_name = "/home/hjafari/ppl_testing"
     # if not output_dir_name:
     #     raise ValueError("PSP_TEST_OUTPUT_DIR environment variable not set")
     output_dir = Path(output_dir_name) / f"{time.strftime('%Y%m%d_%H%M%S')}"
@@ -132,14 +133,16 @@ def dataset_params(
 
 
 @pytest.fixture(scope="session")
-def data(
+def noised_data(
     dataset_params: tuple[str | int | Callable[..., pd.DataFrame] | None, ...],
     release_output_dir: Path,
+    request: pytest.FixtureRequest,
     config: dict[str, Any],
 ) -> pd.DataFrame:
     _, dataset_func, source, year, state, engine = dataset_params
 
-    if source is None:
+    run_slow = request.config.getoption("--runslow")
+    if run_slow: # get sample data
         return dataset_func(seed=SEED, year=None, config=config)  # type: ignore [misc, operator]
 
     kwargs = {
@@ -162,7 +165,8 @@ def unnoised_dataset(
     dataset_arg, dataset_func, source, year, state, engine = dataset_params
     dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_arg]  # type: ignore [index]
 
-    if source is None:
+    run_slow = request.config.getoption("--runslow")
+    if run_slow:  # get sample data
         return initialize_dataset_with_sample(dataset_name)
 
     kwargs = {

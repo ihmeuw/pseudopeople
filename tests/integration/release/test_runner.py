@@ -23,3 +23,13 @@ def test_runner(pytest_args: list[str]) -> None:
     cmd = base_cmd + pytest_args
     result = subprocess.run(cmd, capture_output=True, text=True)
     assert result.returncode == 0
+
+# mark this as slow
+@pytest.mark.parametrize("dataset", ["acs", "cps"])
+def test_slow_tests() -> None:
+    os.chdir(Path(__file__).parent)  # need this to access cli options from conftest.py
+    base_cmd = ["pytest", "--release", "test_release.py"]
+    cmd = base_cmd + pytest_args
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    assert result.returncode == 0
+    pass
