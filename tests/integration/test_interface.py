@@ -58,8 +58,9 @@ def test_generate_dataset_from_multiple_shards(
     mocker: MockerFixture,
     fuzzy_checker: FuzzyChecker,
 ) -> None:
-    """Tests that we can generate noised data with the same columns from a
-    single sample dataset or by concatenating and noising multiple datasets
+    """Tests that we can generate noised data from a single sample dataset
+    or by concatenating and noising multiple datasets and that they have the
+    same columns
     """
     if "TODO" in dataset_name:
         pytest.skip(reason=dataset_name)
