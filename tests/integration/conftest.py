@@ -65,7 +65,7 @@ def split_sample_data_dir(tmpdir_factory: TempdirFactory) -> Path:
         data_path = paths.SAMPLE_DATA_ROOT / dataset_name / f"{dataset_name}.parquet"
         data = pd.read_parquet(data_path)
         # Split the sample dataset into two and save in tmpdir_factory
-        # We are spliting on household_id as a solution for how to keep households together
+        # We are splitting on household_id as a solution for how to keep households together
         # for the tax 1040 dataset.
         outdir = split_sample_data_dir.mkdir(dataset_name)
         if dataset_name in [
