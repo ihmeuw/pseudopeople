@@ -93,10 +93,9 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 def release_output_dir() -> Path:
     # TODO: [MIC-5522] define correct output dir
     # output_dir = os.environ.get("PSP_TEST_OUTPUT_DIR")
-    # output_dir_name = (
-    #     "/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing"
-    # )
-    output_dir_name = "/home/hjafari/ppl_testing"
+    output_dir_name = (
+        "/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing"
+    )
     # if not output_dir_name:
     #     raise ValueError("PSP_TEST_OUTPUT_DIR environment variable not set")
     output_dir = Path(output_dir_name) / f"{time.strftime('%Y%m%d_%H%M%S')}"
@@ -153,7 +152,10 @@ def noised_data(
     }
     if dataset_func != generate_social_security:
         kwargs["state"] = state
-    return profile_data_generation(release_output_dir)(dataset_func)(**kwargs)
+    noised_data = profile_data_generation(release_output_dir)(dataset_func)(**kwargs)
+    if engine == 'dask':
+        noised_data = noised_data.compute()
+    return noised_data
 
 
 @pytest.fixture(scope="session")
@@ -178,7 +180,8 @@ def unnoised_dataset(
     if dataset_func != generate_social_security:
         kwargs["state"] = state
     unnoised_data = dataset_func(**kwargs)  # type: ignore [misc, operator]
-
+    if engine == 'dask':
+        unnoised_data = unnoised_data.compute()
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     return Dataset(dataset_schema, unnoised_data, SEED)
 
