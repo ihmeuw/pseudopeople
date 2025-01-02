@@ -53,11 +53,11 @@ def pytest_collection_modifyitems(config: Config, items: list[Function]) -> None
     if not config.getoption("--release"):
         for item in items:
             parametrized_test_name = [x for x in item.keywords][0]
-            if "release" in item.keywords and 'test_slow_tests' not in parametrized_test_name:
+            if "release" in item.keywords and "test_slow_tests" not in parametrized_test_name:
                 item.add_marker(skip_release)
     else:
         for item in items:
-            if 'release' not in item.keywords:
+            if "release" not in item.keywords:
                 item.add_marker(skip_non_release)
 
     if config.getoption("--runslow"):
