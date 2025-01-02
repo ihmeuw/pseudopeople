@@ -12,8 +12,8 @@ from pandas.api.types import is_datetime64_any_dtype as is_datetime
 from pytest_mock import MockerFixture
 from vivarium_testing_utils import FuzzyChecker
 
-from pseudopeople.configuration import get_configuration
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS, Column
+from pseudopeople.utilities import coerce_dtypes
 from tests.constants import DATASET_GENERATION_FUNCS
 from tests.integration.conftest import (
     IDX_COLS,
@@ -26,7 +26,6 @@ from tests.utilities import (
     initialize_dataset_with_sample,
     run_column_noising_tests,
     run_omit_row_or_do_not_respond_tests,
-    validate_column_noise_level,
 )
 
 
@@ -49,7 +48,7 @@ from tests.utilities import (
         "dask",
     ],
 )
-def test_generate_dataset_from_multiple_shards(
+def test_noising_sharded_vs_unsharded_data(
     dataset_name: str,
     engine: str,
     config: dict[str, Any],
@@ -65,54 +64,54 @@ def test_generate_dataset_from_multiple_shards(
         pytest.skip(reason=dataset_name)
     mocker.patch("pseudopeople.interface.validate_source_compatibility")
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
-    original = initialize_dataset_with_sample(dataset_name)
-    noised_sample = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
 
-    noised_dataset = generation_function(
+    unnoised_dataset = initialize_dataset_with_sample(dataset_name)
+    single_shard_noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
+    multi_shard_noised_data = generation_function(
         seed=SEED,
         year=None,
         source=split_sample_data_dir,
         engine=engine,
         config=config,
     )
-
     if engine == "dask":
-        noised_dataset = noised_dataset.compute()
+        multi_shard_noised_data = multi_shard_noised_data.compute()
 
-    # Check same order of magnitude of rows was removed -- we don't know the
-    # full data size (we would need unnoised data for that), so we just check
-    # for similar lengths
-    assert 0.9 <= (len(noised_dataset) / len(noised_sample)) <= 1.1
-    # Check that columns are identical
-    assert noised_dataset.columns.equals(noised_sample.columns)
+    assert multi_shard_noised_data.columns.equals(single_shard_noised_data.columns)
 
-    # Check that each columns level of noising are similar
-    check_noised_dataset, check_original_dataset, shared_dataset_idx = _get_common_datasets(
-        original, noised_dataset
+    # This index handling is adapted from _get_common_datasets
+    # in integration/conftest.py
+    # Define indexes
+    idx_cols = IDX_COLS.get(unnoised_dataset.dataset_schema.name)
+    unnoised_dataset._reformat_dates_for_noising()
+    unnoised_dataset.data = coerce_dtypes(
+        unnoised_dataset.data, unnoised_dataset.dataset_schema
     )
+    check_original = unnoised_dataset.data.set_index(idx_cols)
+    check_single_noised = single_shard_noised_data.set_index(idx_cols)
+    check_multi_noised = multi_shard_noised_data.set_index(idx_cols)
 
-    config_tree = get_configuration(config)
-    for col_name in check_noised_dataset.columns:
-        col = COLUMNS.get_column(col_name)
-        if col.noise_types:
-            noise_level_dataset, to_compare_dataset_idx = _get_column_noise_level(
-                column=col,
-                noised_data=check_noised_dataset,
-                unnoised_data=check_original_dataset,
-                common_idx=shared_dataset_idx,
-            )
+    # Ensure the idx_cols are unique
+    assert check_original.index.duplicated().sum() == 0
+    assert check_single_noised.index.duplicated().sum() == 0
+    assert check_multi_noised.index.duplicated().sum() == 0
 
-            # Validate noise for each data object
-            validate_column_noise_level(
-                dataset_name=dataset_name,
-                check_data=check_original_dataset,
-                check_idx=to_compare_dataset_idx,
-                noise_level=noise_level_dataset,
-                col=col,
-                config=config_tree,
-                fuzzy_name="test_generate_dataset_from_sample_and_source_dataset",
-                validator=fuzzy_checker,
-            )
+    # Get shared indexes
+    shared_idx = pd.Index(
+        set(check_original.index)
+        .intersection(set(check_single_noised.index))
+        .intersection(set(check_multi_noised.index))
+    )
+    check_original = check_original.loc[shared_idx]
+    check_single_noised = check_single_noised.loc[shared_idx]
+    check_multi_noised = check_multi_noised.loc[shared_idx]
+
+    for col in check_single_noised.columns:
+        fuzzy_checker.fuzzy_assert_proportion(
+            target_proportion=(check_single_noised[col] != check_original[col]).mean(),
+            observed_numerator=(check_multi_noised[col] != check_original[col]).sum(),
+            observed_denominator=len(check_original),
+        )
 
 
 @pytest.mark.parametrize(
@@ -246,13 +245,10 @@ def test_row_noising_duplication(dataset_name: str) -> None:
 @pytest.mark.parametrize(
     "dataset_name",
     [
-        # DATASET_SCHEMAS.census.name,
-        # DATASET_SCHEMAS.tax_w2_1099.name,
-        # DATASET_SCHEMAS.wic.name,
-        # DATASET_SCHEMAS.tax_1040.name,
-        DATASET_SCHEMAS.acs.name,
-        DATASET_SCHEMAS.cps.name,
-        DATASET_SCHEMAS.ssa.name,
+        DATASET_SCHEMAS.census.name,
+        DATASET_SCHEMAS.tax_w2_1099.name,
+        DATASET_SCHEMAS.wic.name,
+        DATASET_SCHEMAS.tax_1040.name,
     ],
 )
 @pytest.mark.parametrize(
