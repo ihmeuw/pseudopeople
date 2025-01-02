@@ -4,7 +4,6 @@ from typing import Any
 
 import pandas as pd
 import pytest
-
 from _pytest.fixtures import FixtureRequest
 from vivarium_testing_utils import FuzzyChecker
 
