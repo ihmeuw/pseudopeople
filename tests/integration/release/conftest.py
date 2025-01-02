@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import os
 import time
@@ -154,7 +156,8 @@ def noised_data(
         kwargs["state"] = state
     noised_data = profile_data_generation(release_output_dir)(dataset_func)(**kwargs)
     if engine == "dask":
-        noised_data = noised_data.compute()
+        # mypy expects noised_data to be a series rather than dask object
+        noised_data = noised_data.compute()  # type: ignore [operator]
     return noised_data
 
 
@@ -180,7 +183,8 @@ def unnoised_dataset(
         kwargs["state"] = state
     unnoised_data = dataset_func(**kwargs)  # type: ignore [misc, operator]
     if engine == "dask":
-        unnoised_data = unnoised_data.compute()
+        # mypy expects unnoised_data to be a series rather than dask object
+        unnoised_data = unnoised_data.compute()  # type: ignore [operator]
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     return Dataset(dataset_schema, unnoised_data, SEED)
 

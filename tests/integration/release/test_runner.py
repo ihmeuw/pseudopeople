@@ -26,7 +26,7 @@ def test_release_tests(pytest_args: list[str]) -> None:
 
 
 @pytest.mark.parametrize("dataset", ["acs", "cps"])
-def test_slow_tests(dataset) -> None:
+def test_slow_tests(dataset: str) -> None:
     os.chdir(Path(__file__).parent)  # need this to access cli options from conftest.py
     cmd = ["pytest", "--runslow", "test_release.py", "--dataset", dataset]
     result = subprocess.run(cmd, capture_output=True, text=True)
