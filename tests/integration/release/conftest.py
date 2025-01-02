@@ -162,7 +162,6 @@ def noised_data(
 def unnoised_dataset(
     dataset_params: tuple[str | int | Callable[..., pd.DataFrame] | None, ...],
     request: pytest.FixtureRequest,
-    config: dict[str, Any],
 ) -> Dataset:
     dataset_arg, dataset_func, source, year, state, engine = dataset_params
     dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_arg]  # type: ignore [index]

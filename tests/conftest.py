@@ -46,6 +46,8 @@ def pytest_configure(config: Config) -> None:
 
 
 def pytest_collection_modifyitems(config: Config, items: list[Function]) -> None:
+    if config.getoption("--release") and config.getoption("--runslow"):
+        raise ValueError("You cannot run the release tests and slow tests simultaneously.")
     skip_release = pytest.mark.skip(reason="need --release to run")
     skip_non_release = pytest.mark.skip(reason="only running release tests")
     if not config.getoption("--release"):
