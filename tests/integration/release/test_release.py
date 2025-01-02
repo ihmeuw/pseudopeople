@@ -4,7 +4,6 @@ from typing import Any
 
 import pandas as pd
 import pytest
-
 from _pytest.fixtures import FixtureRequest
 from vivarium_testing_utils import FuzzyChecker
 
@@ -27,7 +26,9 @@ def test_column_noising(
     fuzzy_checker: FuzzyChecker,
 ) -> None:
     """Tests that columns are noised as expected"""
-    check_noised, check_original, shared_idx = _get_common_datasets(unnoised_dataset, noised_data)
+    check_noised, check_original, shared_idx = _get_common_datasets(
+        unnoised_dataset, noised_data
+    )
 
     run_column_noising_tests(
         dataset_name, config, fuzzy_checker, check_noised, check_original, shared_idx
@@ -35,7 +36,10 @@ def test_column_noising(
 
 
 def test_row_noising_omit_row_or_do_not_respond(
-    noised_data: pd.DataFrame, dataset_name: str, config: dict[str, Any], request: FixtureRequest
+    noised_data: pd.DataFrame,
+    dataset_name: str,
+    config: dict[str, Any],
+    request: FixtureRequest,
 ) -> None:
     """Tests that omit_row and do_not_respond row noising are being applied"""
     idx_cols = IDX_COLS.get(dataset_name)

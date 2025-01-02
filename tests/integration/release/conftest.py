@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import os
 import time
@@ -141,7 +143,7 @@ def noised_data(
     _, dataset_func, source, year, state, engine = dataset_params
 
     run_slow = request.config.getoption("--runslow")
-    if run_slow: # get sample data
+    if run_slow:  # get sample data
         return dataset_func(seed=SEED, year=None, config=config)  # type: ignore [misc, operator]
 
     kwargs = {
@@ -153,7 +155,7 @@ def noised_data(
     if dataset_func != generate_social_security:
         kwargs["state"] = state
     noised_data = profile_data_generation(release_output_dir)(dataset_func)(**kwargs)
-    if engine == 'dask':
+    if engine == "dask":
         noised_data = noised_data.compute()
     return noised_data
 
@@ -180,7 +182,7 @@ def unnoised_dataset(
     if dataset_func != generate_social_security:
         kwargs["state"] = state
     unnoised_data = dataset_func(**kwargs)  # type: ignore [misc, operator]
-    if engine == 'dask':
+    if engine == "dask":
         unnoised_data = unnoised_data.compute()
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     return Dataset(dataset_schema, unnoised_data, SEED)
