@@ -122,7 +122,7 @@ def split_sample_data_dir_state_edit(
     return Path(split_sample_data_dir_state_edit)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def config() -> dict[str, Any]:
     """Returns a custom configuration dict to be used in noising"""
     config = get_configuration().to_dict()  # default config

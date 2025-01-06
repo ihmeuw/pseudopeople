@@ -46,11 +46,19 @@ def pytest_configure(config: Config) -> None:
 
 
 def pytest_collection_modifyitems(config: Config, items: list[Function]) -> None:
+    if config.getoption("--release") and config.getoption("--runslow"):
+        raise ValueError("You cannot run the release tests and slow tests simultaneously.")
     skip_release = pytest.mark.skip(reason="need --release to run")
+    skip_non_release = pytest.mark.skip(reason="only running release tests")
     if not config.getoption("--release"):
         for item in items:
-            if "release" in item.keywords:
+            parametrized_test_name = [x for x in item.keywords][0]
+            if "release" in item.keywords and "test_slow_tests" not in parametrized_test_name:
                 item.add_marker(skip_release)
+    else:
+        for item in items:
+            if "release" not in item.keywords:
+                item.add_marker(skip_non_release)
 
     if config.getoption("--runslow"):
         # --runslow given in cli: do not skip slow tests
@@ -105,50 +113,3 @@ def fuzzy_checker(output_directory: Path) -> Generator[FuzzyChecker, None, None]
     yield checker
 
     checker.save_diagnostic_output(output_directory)
-
-
-@pytest.fixture(scope="session")
-def config() -> dict[str, Any]:
-    """Returns a custom configuration dict to be used in noising"""
-    ROW_PROBABILITY = 0.05
-    config = get_configuration().to_dict()  # default config
-
-    # Increase row noise probabilities to 5% and column cell_probabilities to 25%
-    for dataset_name in config:
-        dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
-        config[dataset_schema.name][Keys.ROW_NOISE] = {
-            noise_type.name: {
-                Keys.ROW_PROBABILITY: ROW_PROBABILITY,
-            }
-            for noise_type in dataset_schema.row_noise_types
-            if noise_type != NOISE_TYPES.duplicate_with_guardian
-        }
-        for col in [c for c in dataset_schema.columns if c.noise_types]:
-            config[dataset_name][Keys.COLUMN_NOISE][col.name] = {
-                noise_type.name: {
-                    Keys.CELL_PROBABILITY: CELL_PROBABILITY,
-                }
-                for noise_type in col.noise_types
-            }
-
-    # FIXME: Remove when record_id is added as the truth deck for datasets.
-    # For integration tests, we will NOT duplicate rows with guardian duplication.
-    # This is because we want to be able to compare the noised and unnoised data
-    # and a big assumption we make is that simulant_id and household_id are the
-    # truth decks in our datasets.
-    config[DATASET_SCHEMAS.census.name][Keys.ROW_NOISE][
-        NOISE_TYPES.duplicate_with_guardian.name
-    ] = {
-        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0.0,
-        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: 0.0,
-    }
-    # Update SSA dataset to noise 'ssn' but NOT noise 'ssa_event_type' since that
-    # will be used as an identifier along with simulant_id
-    # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
-    config[DATASET_SCHEMAS.ssa.name][Keys.COLUMN_NOISE][COLUMNS.ssa_event_type.name] = {
-        noise_type.name: {
-            Keys.CELL_PROBABILITY: 0,
-        }
-        for noise_type in COLUMNS.ssa_event_type.noise_types
-    }
-    return config
