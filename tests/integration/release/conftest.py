@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import os
 import time
@@ -132,14 +134,16 @@ def dataset_params(
 
 
 @pytest.fixture(scope="session")
-def data(
+def noised_data(
     dataset_params: tuple[str | int | Callable[..., pd.DataFrame] | None, ...],
     release_output_dir: Path,
+    request: pytest.FixtureRequest,
     config: dict[str, Any],
 ) -> pd.DataFrame:
     _, dataset_func, source, year, state, engine = dataset_params
 
-    if source is None:
+    run_slow = request.config.getoption("--runslow")
+    if run_slow:  # get sample data
         return dataset_func(seed=SEED, year=None, config=config)  # type: ignore [misc, operator]
 
     kwargs = {
@@ -150,19 +154,23 @@ def data(
     }
     if dataset_func != generate_social_security:
         kwargs["state"] = state
-    return profile_data_generation(release_output_dir)(dataset_func)(**kwargs)
+    noised_data = profile_data_generation(release_output_dir)(dataset_func)(**kwargs)
+    if engine == "dask":
+        # mypy expects noised_data to be a series rather than dask object
+        noised_data = noised_data.compute()  # type: ignore [operator]
+    return noised_data
 
 
 @pytest.fixture(scope="session")
 def unnoised_dataset(
     dataset_params: tuple[str | int | Callable[..., pd.DataFrame] | None, ...],
     request: pytest.FixtureRequest,
-    config: dict[str, Any],
 ) -> Dataset:
     dataset_arg, dataset_func, source, year, state, engine = dataset_params
     dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_arg]  # type: ignore [index]
 
-    if source is None:
+    run_slow = request.config.getoption("--runslow")
+    if run_slow:  # get sample data
         return initialize_dataset_with_sample(dataset_name)
 
     kwargs = {
@@ -174,7 +182,9 @@ def unnoised_dataset(
     if dataset_func != generate_social_security:
         kwargs["state"] = state
     unnoised_data = dataset_func(**kwargs)  # type: ignore [misc, operator]
-
+    if engine == "dask":
+        # mypy expects unnoised_data to be a series rather than dask object
+        unnoised_data = unnoised_data.compute()  # type: ignore [operator]
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     return Dataset(dataset_schema, unnoised_data, SEED)
 
