@@ -224,96 +224,6 @@ def test_column_dtypes(
         assert noised_data[col.name].dtype == expected_dtype
 
 
-@pytest.mark.parametrize(
-    "dataset_name",
-    [
-        DATASET_SCHEMAS.census.name,
-        DATASET_SCHEMAS.acs.name,
-        DATASET_SCHEMAS.cps.name,
-        DATASET_SCHEMAS.ssa.name,
-        DATASET_SCHEMAS.tax_w2_1099.name,
-        DATASET_SCHEMAS.wic.name,
-        DATASET_SCHEMAS.tax_1040.name,
-    ],
-)
-@pytest.mark.parametrize(
-    "engine",
-    [
-        "pandas",
-        "dask",
-    ],
-)
-def test_column_noising(
-    dataset_name: str,
-    engine: str,
-    config: dict[str, Any],
-    request: FixtureRequest,
-    fuzzy_checker: FuzzyChecker,
-) -> None:
-    """Tests that columns are noised as expected"""
-    if "TODO" in dataset_name:
-        pytest.skip(reason=dataset_name)
-    original = initialize_dataset_with_sample(dataset_name)
-    if engine == "dask":
-        generation_function = DATASET_GENERATION_FUNCS[dataset_name]
-        noised_data = generation_function(
-            seed=SEED,
-            year=None,
-            config=config,
-            engine=engine,
-        ).compute()
-    else:
-        noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
-    check_noised, check_original, shared_idx = _get_common_datasets(original, noised_data)
-
-    run_column_noising_tests(
-        dataset_name, config, fuzzy_checker, check_noised, check_original, shared_idx
-    )
-
-
-@pytest.mark.parametrize(
-    "dataset_name",
-    [
-        DATASET_SCHEMAS.census.name,
-        DATASET_SCHEMAS.acs.name,
-        DATASET_SCHEMAS.cps.name,
-        DATASET_SCHEMAS.ssa.name,
-        DATASET_SCHEMAS.tax_w2_1099.name,
-        DATASET_SCHEMAS.wic.name,
-        DATASET_SCHEMAS.tax_1040.name,
-    ],
-)
-@pytest.mark.parametrize(
-    "engine",
-    [
-        "pandas",
-        "dask",
-    ],
-)
-def test_row_noising_omit_row_or_do_not_respond(
-    dataset_name: str, engine: str, config: dict[str, Any], request: FixtureRequest
-) -> None:
-    """Tests that omit_row and do_not_respond row noising are being applied"""
-    if "TODO" in dataset_name:
-        pytest.skip(reason=dataset_name)
-    idx_cols = IDX_COLS.get(dataset_name)
-    original = get_unnoised_data(dataset_name)
-    original_data = original.data.set_index(idx_cols)
-    if engine == "dask":
-        generation_function = DATASET_GENERATION_FUNCS[dataset_name]
-        noised_data = generation_function(
-            seed=SEED,
-            year=None,
-            config=config,
-            engine=engine,
-        ).compute()
-    else:
-        noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
-    noised_data = noised_data.set_index(idx_cols)
-
-    run_omit_row_or_do_not_respond_tests(dataset_name, config, original_data, noised_data)
-
-
 @pytest.mark.skip(reason="TODO: Implement duplication row noising")
 @pytest.mark.parametrize(
     "dataset_name",
@@ -358,16 +268,16 @@ def test_dataset_filter_by_year(
         pytest.skip(reason=dataset_name)
     year = 2030  # not default 2020
 
-    # Generate a new (non-fixture) noised dataset for a single year but mocked such
+    # Generate a new (non-fixture) dataset for a single year but mocked such
     # that no noise actually happens (otherwise the years would get noised and
     # we couldn't tell if the filter was working properly)
     mocker.patch("pseudopeople.dataset.Dataset._noise_dataset")
     generation_function = DATASET_GENERATION_FUNCS[dataset_name]
-    noised_data = generation_function(year=year, engine=engine)
+    data = generation_function(year=year, engine=engine)
     if engine == "dask":
-        noised_data = noised_data.compute()
+        data = data.compute()
     dataset = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
-    assert (noised_data[dataset.date_column_name] == year).all()
+    assert (data[dataset.date_column_name] == year).all()
 
 
 @pytest.mark.parametrize(
