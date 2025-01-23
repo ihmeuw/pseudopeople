@@ -9,6 +9,7 @@ from vivarium_testing_utils import FuzzyChecker
 
 from pseudopeople.dataset import Dataset
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
+from pytest_check import check
 from tests.constants import DATASET_GENERATION_FUNCS
 from tests.integration.conftest import IDX_COLS, _get_common_datasets, get_unnoised_data
 from tests.utilities import (
@@ -60,11 +61,12 @@ def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
     original = initialize_dataset_with_sample(dataset_name)
     noised_data = request.getfixturevalue("noised_data")
     check_noised, check_original, _ = _get_common_datasets(original, noised_data)
-    assert (
-        (
-            check_original.reset_index()[unnoised_id_cols]
-            == check_noised.reset_index()[unnoised_id_cols]
+    with check:
+        assert (
+            (
+                check_original.reset_index()[unnoised_id_cols]
+                == check_noised.reset_index()[unnoised_id_cols]
+            )
+            .all()
+            .all()
         )
-        .all()
-        .all()
-    )
