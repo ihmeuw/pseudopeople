@@ -18,15 +18,13 @@ import pytest
     ],
     ids=['1','2','3','4']
 )
-def test_release_tests(pytest_args: list[str], release_logging_dir: Path, request) -> None:
+def test_release_tests(pytest_args: list[str], release_dir: Path, request) -> None:
     os.chdir(Path(__file__).parent)  # need this to access cli options from conftest.py
     base_cmd = ["pytest", "--release", "test_release.py"]
     cmd = base_cmd + pytest_args
     job_id = request.node.callspec.id
-    log_file = f"{release_logging_dir}/pytest_{job_id}.o"
-    # Open a file in write mode
+    log_file = release_dir / "logs" / f"pytest_{job_id}.o"
     with open(log_file, 'w') as file:
-        # Run pytest and direct stdout to the log file
         subprocess.run(cmd, stdout=file)
 
 
