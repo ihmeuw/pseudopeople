@@ -16,7 +16,7 @@ import pytest
         (["--dataset", "wic", "--year", "2015"]),
         # (["--dataset", "wic", "--population", "USA", "--state", "RI", "--year", "2015"]),
     ],
-    ids=['1','2','3','4']
+    ids=["1", "2", "3", "4"],
 )
 def test_release_tests(pytest_args: list[str], release_dir: Path, request) -> None:
     os.chdir(Path(__file__).parent)  # need this to access cli options from conftest.py
@@ -28,7 +28,7 @@ def test_release_tests(pytest_args: list[str], release_dir: Path, request) -> No
     log_dir = release_dir / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     log_file = log_dir / f"pytest_{job_id}.o"
-    with open(log_file, 'w') as file:
+    with open(log_file, "w") as file:
         subprocess.run(cmd, stdout=file)
 
 
