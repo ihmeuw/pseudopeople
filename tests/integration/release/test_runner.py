@@ -18,7 +18,7 @@ import pytest
     ],
     ids=["1", "2", "3", "4"],
 )
-def test_release_tests(pytest_args: list[str], release_dir: Path, request) -> None:
+def test_release_tests(pytest_args: list[str], release_dir: Path, request: pytest.FixtureRequest) -> None:
     os.chdir(Path(__file__).parent)  # need this to access cli options from conftest.py
     base_cmd = ["pytest", "--release", "test_release.py"]
     cmd = base_cmd + pytest_args
