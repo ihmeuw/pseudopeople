@@ -151,8 +151,7 @@ def noised_data(
     if dataset_func != generate_social_security:
         kwargs["state"] = state
     profiling_dir = release_dir / "profiling"
-    #noised_data = profile_data_generation(profiling_dir)(dataset_func)(**kwargs)
-    noised_data = dataset_func(**kwargs)
+    noised_data = profile_data_generation(profiling_dir)(dataset_func)(**kwargs)
     if engine == "dask":
         # mypy expects noised_data to be a series rather than dask object
         noised_data = noised_data.compute()  # type: ignore [operator]
