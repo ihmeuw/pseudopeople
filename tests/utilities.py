@@ -8,6 +8,7 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+from pytest_check import check
 from vivarium_testing_utils import FuzzyChecker
 
 from pseudopeople.configuration import Keys, get_configuration
@@ -16,7 +17,6 @@ from pseudopeople.constants import paths
 from pseudopeople.dataset import Dataset
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS, Column
-from pytest_check import check
 from tests.constants import CELL_PROBABILITY, TOKENS_PER_STRING_MAPPER
 from tests.unit.test_configuration import COLUMN_NOISE_TYPES
 

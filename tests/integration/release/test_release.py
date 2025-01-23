@@ -5,11 +5,11 @@ from typing import Any
 import pandas as pd
 import pytest
 from _pytest.fixtures import FixtureRequest
+from pytest_check import check
 from vivarium_testing_utils import FuzzyChecker
 
 from pseudopeople.dataset import Dataset
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
-from pytest_check import check
 from tests.constants import DATASET_GENERATION_FUNCS
 from tests.integration.conftest import IDX_COLS, _get_common_datasets, get_unnoised_data
 from tests.utilities import (
