@@ -45,6 +45,9 @@ DATASET_ARG_TO_FULL_NAME_MAPPER: dict[str, str] = {
 }
 
 SEED = 0
+CLI_DEFAULT_OUTPUT_DIR = (
+    "/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing"
+)
 CLI_DEFAULT_DATASET = "acs"
 CLI_DEFAULT_POP = "sample"
 CLI_DEFAULT_YEAR = 2020
@@ -56,6 +59,12 @@ SOURCE_MAPPER = {"usa": FULL_USA_FILEPATH, "ri": RI_FILEPATH, "sample": None}
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
+    parser.addoption(
+        "--output-dir",
+        action="store",
+        default=CLI_DEFAULT_OUTPUT_DIR,
+        help="The output directory to write to. Defaults to /mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing.",
+    )
     parser.addoption(
         "--dataset",
         action="store",
@@ -92,10 +101,8 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 # Fixtures #
 ############
 @pytest.fixture(scope="module")
-def release_output_dir() -> Path:
-    output_dir_name = (
-        "/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing/"
-    )
+def release_output_dir(request: pytest.FixtureRequest) -> Path:
+    output_dir_name = request.config.getoption("--output-dir", default=CLI_DEFAULT_OUTPUT_DIR)
     output_dir = Path(output_dir_name) / f"{time.strftime('%Y%m%d_%H%M%S')}"
     output_dir.mkdir(parents=True, exist_ok=False)
     return output_dir.resolve()
