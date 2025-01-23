@@ -18,14 +18,16 @@ import pytest
     ],
     ids=["1", "2", "3", "4"],
 )
-def test_release_tests(pytest_args: list[str], release_dir: Path, request: pytest.FixtureRequest) -> None:
+def test_release_tests(
+    pytest_args: list[str], release_output_dir: Path, request: pytest.FixtureRequest
+) -> None:
     os.chdir(Path(__file__).parent)  # need this to access cli options from conftest.py
     base_cmd = ["pytest", "--release", "test_release.py"]
     cmd = base_cmd + pytest_args
 
     # log using job id
     job_id = request.node.callspec.id
-    log_dir = release_dir / "logs"
+    log_dir = release_output_dir / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     log_file = log_dir / f"pytest_{job_id}.o"
     with open(log_file, "w") as file:
