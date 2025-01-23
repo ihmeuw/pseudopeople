@@ -22,8 +22,12 @@ def test_release_tests(pytest_args: list[str], release_dir: Path, request) -> No
     os.chdir(Path(__file__).parent)  # need this to access cli options from conftest.py
     base_cmd = ["pytest", "--release", "test_release.py"]
     cmd = base_cmd + pytest_args
+
+    # log using job id
     job_id = request.node.callspec.id
-    log_file = release_dir / "logs" / f"pytest_{job_id}.o"
+    log_dir = release_dir / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / f"pytest_{job_id}.o"
     with open(log_file, 'w') as file:
         subprocess.run(cmd, stdout=file)
 
