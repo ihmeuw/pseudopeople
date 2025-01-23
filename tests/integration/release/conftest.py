@@ -92,7 +92,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 # Fixtures #
 ############
 @pytest.fixture(scope="module")
-def release_dir() -> Path:
+def release_output_dir() -> Path:
     output_dir_name = (
         "/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing/"
     )
@@ -132,7 +132,7 @@ def dataset_params(
 @pytest.fixture(scope="session")
 def noised_data(
     dataset_params: tuple[str | int | Callable[..., pd.DataFrame] | None, ...],
-    release_dir: Path,
+    release_output_dir: Path,
     request: pytest.FixtureRequest,
     config: dict[str, Any],
 ) -> pd.DataFrame:
@@ -150,7 +150,7 @@ def noised_data(
     }
     if dataset_func != generate_social_security:
         kwargs["state"] = state
-    profiling_dir = release_dir / "profiling"
+    profiling_dir = release_output_dir / "profiling"
     noised_data = profile_data_generation(profiling_dir)(dataset_func)(**kwargs)
     if engine == "dask":
         # mypy expects noised_data to be a series rather than dask object
