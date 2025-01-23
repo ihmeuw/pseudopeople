@@ -94,7 +94,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 @pytest.fixture(scope="module")
 def release_dir() -> Path:
     output_dir_name = (
-       "/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing/test_dir"
+       "/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing/"
     )
     output_dir = Path(output_dir_name) / f"{time.strftime('%Y%m%d_%H%M%S')}"
     output_dir.mkdir(parents=True, exist_ok=False)
