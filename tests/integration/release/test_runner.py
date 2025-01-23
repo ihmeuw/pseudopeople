@@ -16,15 +16,18 @@ import pytest
         (["--dataset", "wic", "--year", "2015"]),
         # (["--dataset", "wic", "--population", "USA", "--state", "RI", "--year", "2015"]),
     ],
+    ids=['1','2','3','4']
 )
-def test_release_tests(pytest_args: list[str], release_output_dir: Path) -> None:
+def test_release_tests(pytest_args: list[str], release_logging_dir: Path, request) -> None:
     os.chdir(Path(__file__).parent)  # need this to access cli options from conftest.py
     base_cmd = ["pytest", "--release", "test_release.py"]
     cmd = base_cmd + pytest_args
+    job_id = request.node.callspec.id
+    log_file = f"{release_logging_dir}/pytest_{job_id}.o"
     # Open a file in write mode
-    with open(f"{release_output_dir}/pytest.new", 'w') as log_file:
+    with open(log_file, 'w') as file:
         # Run pytest and direct stdout to the log file
-        subprocess.run(cmd, stdout=log_file)
+        subprocess.run(cmd, stdout=file)
 
 
 @pytest.mark.parametrize("dataset", ["acs", "cps"])

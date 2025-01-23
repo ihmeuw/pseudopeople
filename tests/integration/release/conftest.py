@@ -92,9 +92,9 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 # Fixtures #
 ############
 @pytest.fixture(scope="session")
-def release_output_dir() -> Path:
+def release_log_dir() -> Path:
     output_dir_name = (
-       "/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing"
+       "/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing/error_logs"
     )
     output_dir = Path(output_dir_name) / f"{time.strftime('%Y%m%d_%H%M%S')}"
     output_dir.mkdir(parents=True, exist_ok=False)
