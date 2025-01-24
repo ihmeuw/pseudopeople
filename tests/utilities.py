@@ -103,6 +103,7 @@ def run_omit_row_or_do_not_respond_tests(
         # TODO: assert levels are as expected
         with check:
             assert noised_data.index.difference(original_data.index).empty
+        with check:
             assert not original_data.index.difference(noised_data.index).empty
 
 
