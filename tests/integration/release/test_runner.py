@@ -19,7 +19,7 @@ import pytest
 )
 def test_release_tests(pytest_args: list[str]) -> None:
     os.chdir(Path(__file__).parent)  # need this to access cli options from conftest.py
-    base_cmd = ["pytest", "--release", "test_release.py"]
+    base_cmd = ["pytest", "--release", "test_release.py", "--check-max-tb=1000"]
     cmd = base_cmd + pytest_args
     result = subprocess.run(cmd, capture_output=True, text=True)
     assert result.returncode == 0
