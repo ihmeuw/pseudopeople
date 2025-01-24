@@ -61,12 +61,11 @@ def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
     original = initialize_dataset_with_sample(dataset_name)
     noised_data = request.getfixturevalue("noised_data")
     check_noised, check_original, _ = _get_common_datasets(original, noised_data)
-    with check:
-        assert (
-            (
-                check_original.reset_index()[unnoised_id_cols]
-                == check_noised.reset_index()[unnoised_id_cols]
-            )
-            .all()
-            .all()
+    assert (
+        (
+            check_original.reset_index()[unnoised_id_cols]
+            == check_noised.reset_index()[unnoised_id_cols]
         )
+        .all()
+        .all()
+    )
