@@ -8,23 +8,22 @@ import pytest
 @pytest.mark.parametrize(
     "pytest_args",
     [
-        #([]),
+        ([]),
         (["--dataset", "acs"]),
-        #(["--dataset", "cps"]),
+        (["--dataset", "cps"]),
         # (["--dataset", "acs", "--population", "USA"]),
         # (["--dataset", "acs", "--population", "USA", "--state", "RI"]),
-        #(["--dataset", "wic", "--year", "2015"]),
+        (["--dataset", "wic", "--year", "2015"]),
         # (["--dataset", "wic", "--population", "USA", "--state", "RI", "--year", "2015"]),
     ],
-    #ids=["1", "2", "3", "4"],
-    ids = ['1'],
+    ids=["1", "2", "3", "4"],
 )
 def test_release_tests(
     pytest_args: list[str], release_output_dir: Path, request: pytest.FixtureRequest
 ) -> None:
     os.chdir(Path(__file__).parent)  # need this to access cli options from conftest.py
-    base_cmd = ["pytest", "--release", "test_release.py", f"--output-dir={release_output_dir}"]
-    cmd = base_cmd + pytest_args + ["--population", "USA"]
+    base_cmd = ["pytest", "--release", "test_release.py", "--check-max-tb=1000", f"--output-dir={release_output_dir}"]
+    cmd = base_cmd + pytest_args
 
     # log using job id
     job_id = request.node.callspec.id
