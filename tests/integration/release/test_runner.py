@@ -18,7 +18,7 @@ import time
         (["--dataset", "wic", "--year", "2015"]),
         # (["--dataset", "wic", "--population", "USA", "--state", "RI", "--year", "2015"]),
     ],
-    ids=["1", "2", "3", "4"],
+    ids=["1", "2", "3"],
 )
 def test_release_tests(
     pytest_args: list[str], request: pytest.FixtureRequest
