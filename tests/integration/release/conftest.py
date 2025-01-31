@@ -104,7 +104,12 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 @pytest.fixture(scope="session")
 def release_output_dir(request: pytest.FixtureRequest) -> Path:
-    output_dir_name = request.config.getoption("--output-dir", default=CLI_DEFAULT_OUTPUT_DIR)
+    # don't create new directory if running using test_runner
+    # this output directory doesn't get used in this case
+    if request.config.getoption("--from-runner"):
+        return Path("")
+
+    output_dir_name = request.config.getoption("--output-dir")
     output_dir = Path(output_dir_name) / f"{time.strftime('%Y%m%d_%H%M%S')}"
     output_dir.mkdir(parents=True, exist_ok=False)
     return output_dir.resolve()
