@@ -8,7 +8,7 @@ fictional United States population, designed for use in testing entity resolutio
 
 .. _python_support:
 
-Supported Python versions: 3.10, 3.11
+**Supported Python versions: 3.10, 3.11**
 
 .. _end_python_support:
 
