@@ -5,8 +5,6 @@ the project. It is intended to be run from the github "update README" workflow.
 import json
 import re
 
-from packaging.version import parse
-
 # Load supported python versions
 with open("python_versions.json", "r") as f:
     versions = json.load(f)
