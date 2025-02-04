@@ -15,12 +15,14 @@ with open("README.rst", "r") as file:
     readme = file.read()
 # Update the list of supported python versions
 # NOTE: this regex assumes the version format is always major.minor
+print(versions_str)
+print(readme)
 readme = re.sub(
     r"Supported Python versions:\s*(?:\d+\.\d+\s*,\s*)+\d+\.\d+",
     r"Supported Python versions: " + versions_str,
     readme,
 )
-
+print(readme)
 # Write the updated README.md back to file
 with open("README.rst", "w") as file:
     file.write(readme)
