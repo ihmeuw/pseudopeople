@@ -1,3 +1,7 @@
+**1.2.1 - 02/05/25**
+
+ - Get python versions from python_versions.json
+
 **1.2.0 - 11/14/24**
 
  - Drop support for Python 3.9

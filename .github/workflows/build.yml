@@ -7,65 +7,21 @@ on:
   push:
   pull_request:
   workflow_dispatch:
-  schedule: 
+  schedule:
     - cron: "0 8 * * *"
-
+  
 jobs:
   build:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.10", "3.11"]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Print environment values
-        run: |
-          python --version
-          cat $GITHUB_ENV
-      - name: Update pip
-        run: |
-          python -m pip install --upgrade pip
-      - name: Install dependencies
-        run: |
-          pip install .[dev]
-      - name: Lint
-        run: |
-          pip install black==22.3.0 isort
-          black . --check --diff
-          isort . --check --verbose --only-modified --diff
-      - name: Test
-        run: |
-          if "${{ github.event_name == 'schedule' }}"; then
-            pytest --runslow ./tests
-          else
-            pytest --limit=1 ./tests
-          fi
-      - name: Doc build
-        run: |
-          make html -C docs/ SPHINXOPTS="-W --keep-going -n"
-      - name: Doctest
-        run: |
-          make doctest -C docs/
-      - name: Send mail
-        # Notify when cron job fails
-        if: (github.event_name == 'schedule' && failure())
-        uses: dawidd6/action-send-mail@v2
-        with:
-          # mail server settings
-          server_address: smtp.gmail.com
-          server_port: 465
-          # user credentials
-          username: ${{ secrets.NOTIFY_EMAIL }}
-          password: ${{ secrets.NOTIFY_PASSWORD }}
-          # email subject
-          subject: ${{ github.job }} job of ${{ github.repository }} has ${{ job.status }}
-          # email body as text
-          body: ${{ github.job }} job in worflow ${{ github.workflow }} of ${{ github.repository }} has ${{ job.status }}
-          # comma-separated string, send email to
-          to: uw_ihme_simulationscience@uw.edu
-          # from email name
-          from: Pseudopeople Notifications
+    uses: 
+      ihmeuw/vivarium_build_utils/.github/workflows/build.yml@main
+    with:
+      dependencies: "layered_config_tree"
+      python_version: ${{ matrix.python-version }}
+      skip_mypy: true
+    secrets:
+      notify_email: ${{ secrets.NOTIFY_EMAIL }}
+      NOTIFY_PASSWORD: ${{ secrets.NOTIFY_PASSWORD }}
+    

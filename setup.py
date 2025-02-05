@@ -1,13 +1,17 @@
+import json
 import sys
 from pathlib import Path
 
 from packaging.version import parse
 from setuptools import find_packages, setup
 
-min_version, max_version = ("3.10", "3.11")
+with open("python_versions.json", "r") as f:
+    supported_python_versions = json.load(f)
 
-min_version = parse(min_version)
-max_version = parse(max_version)
+python_versions = [parse(v) for v in supported_python_versions]
+min_version = min(python_versions)
+max_version = max(python_versions)
+
 
 if not (
     min_version <= parse(".".join([str(v) for v in sys.version_info[:2]])) <= max_version
@@ -56,12 +60,13 @@ if __name__ == "__main__":
 
     test_requirements = [
         "pytest",
+        "pytest-cov",
         "pytest-mock",
     ] + dask_requirements
 
     lint_requirements = [
         "black==22.3.0",
-        "isort",
+        "isort==5.13.2",
     ]
 
     doc_requirements = [
