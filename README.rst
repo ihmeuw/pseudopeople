@@ -32,9 +32,7 @@ Or, you can install from source on `the pseudopeople GitHub repository <https://
 
 ::
 
-  $ git clone https://github.com/ihmeuw/pseudopeople.git
-  $ cd pseudopeople
-  $ python setup.py install
+  $ pip install git+https://github.com/ihmeuw/pseudopeople.git
 
 .. _end_installation:
 
