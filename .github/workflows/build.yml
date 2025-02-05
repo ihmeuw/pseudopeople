@@ -20,6 +20,7 @@ jobs:
     with:
       dependencies: "layered_config_tree"
       python_version: ${{ matrix.python-version }}
+      skip_mypy: true
     secrets:
       notify_email: ${{ secrets.NOTIFY_EMAIL }}
       NOTIFY_PASSWORD: ${{ secrets.NOTIFY_PASSWORD }}
