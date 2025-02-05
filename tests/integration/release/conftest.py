@@ -102,6 +102,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 # Fixtures #
 ############
 
+
 @pytest.fixture(scope="session")
 def release_output_dir(request: pytest.FixtureRequest) -> Path:
     # don't create new directory if running using test_runner
