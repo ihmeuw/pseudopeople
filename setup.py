@@ -19,7 +19,7 @@ if not (min_version <= active_version <= max_version):
     error = (
         "\n----------------------------------------\n"
         "Error: Pseudopeople runs under python {min_version}-{max_version}.\n"
-        "You are running python {py_version}".format(
+        "You are running python {py_version}\n".format(
             min_version=min_version.base_version,
             max_version=max_version.base_version,
             py_version=py_version,
