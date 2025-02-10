@@ -49,7 +49,6 @@ if __name__ == "__main__":
         "tqdm",
         "layered_config_tree>=2.1.0",
         "loguru",
-        "pytest_check",
         # type stubs
         "pandas-stubs",
         "types-PyYAML",
