@@ -1,11 +1,8 @@
 import os
 import subprocess
-import time
 from pathlib import Path
 
 import pytest
-
-from tests.integration.release.conftest import CLI_DEFAULT_OUTPUT_DIR
 
 
 @pytest.mark.parametrize(
