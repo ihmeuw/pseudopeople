@@ -7,6 +7,7 @@ import pytest
 
 @pytest.mark.parametrize(
     "pytest_args",
+    # TODO: [MIC-5508] finalize parameter set
     [
         ([]),
         (["--dataset", "acs"]),
@@ -16,6 +17,7 @@ import pytest
         (["--dataset", "wic", "--year", "2015"]),
         # (["--dataset", "wic", "--population", "USA", "--state", "RI", "--year", "2015"]),
     ],
+    # TODO: [MIC-5508] use more informative IDs
     ids=["1", "2", "3", "4"],
 )
 def test_release_tests(
@@ -27,8 +29,6 @@ def test_release_tests(
         "--release",
         "test_release.py",
         "--check-max-tb=1000",
-        "--population",
-        "USA",
         f"--output-dir={release_output_dir}",
     ]
     cmd = base_cmd + pytest_args
