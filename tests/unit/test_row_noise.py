@@ -82,7 +82,7 @@ def test_do_not_respond(
             {
                 DATASET_SCHEMAS.tax_w2_1099.name: {
                     Keys.ROW_NOISE: {
-                        "omit_row": {
+                        "do_not_respond": {
                             Keys.ROW_PROBABILITY: expected_noise,
                         },
                     },
