@@ -35,16 +35,18 @@ def dummy_data() -> pd.DataFrame:
     )
 
 
-@pytest.mark.parametrize("expected_noise", ["default", .01, .02, .05])
-def test_omit_row(expected_noise: str | float, dummy_data: pd.DataFrame, fuzzy_checker: FuzzyChecker) -> None:
+@pytest.mark.parametrize("expected_noise", ["default", 0.01, 0.02, 0.05])
+def test_omit_row(
+    expected_noise: str | float, dummy_data: pd.DataFrame, fuzzy_checker: FuzzyChecker
+) -> None:
     config: NoiseConfiguration = get_configuration()
-    if expected_noise != 'default':
+    if expected_noise != "default":
         config._update(
             {
                 DATASET_SCHEMAS.tax_w2_1099.name: {
                     Keys.ROW_NOISE: {
                         "omit_row": {
-                           Keys.ROW_PROBABILITY: expected_noise,
+                            Keys.ROW_PROBABILITY: expected_noise,
                         },
                     },
                 },
@@ -67,18 +69,21 @@ def test_omit_row(expected_noise: str | float, dummy_data: pd.DataFrame, fuzzy_c
     assert (noised_data1.dtypes == dummy_data.dtypes).all()
 
 
-@pytest.mark.parametrize("expected_noise", ["default", .01, .02, .05])
+@pytest.mark.parametrize("expected_noise", ["default", 0.01, 0.02, 0.05])
 def test_do_not_respond(
-    expected_noise: str | float, mocker: MockerFixture, dummy_data: pd.DataFrame, fuzzy_checker: FuzzyChecker
+    expected_noise: str | float,
+    mocker: MockerFixture,
+    dummy_data: pd.DataFrame,
+    fuzzy_checker: FuzzyChecker,
 ) -> None:
     config: NoiseConfiguration = get_configuration()
-    if expected_noise != 'default':
+    if expected_noise != "default":
         config._update(
             {
                 DATASET_SCHEMAS.tax_w2_1099.name: {
                     Keys.ROW_NOISE: {
                         "omit_row": {
-                           Keys.ROW_PROBABILITY: expected_noise,
+                            Keys.ROW_PROBABILITY: expected_noise,
                         },
                     },
                 },
