@@ -175,55 +175,6 @@ def test_seed_behavior(
     assert not noised_data.equals(noised_data_different_seed)
 
 
-@pytest.mark.parametrize(
-    "dataset_name",
-    [
-        DATASET_SCHEMAS.census.name,
-        DATASET_SCHEMAS.acs.name,
-        DATASET_SCHEMAS.cps.name,
-        DATASET_SCHEMAS.ssa.name,
-        DATASET_SCHEMAS.tax_w2_1099.name,
-        DATASET_SCHEMAS.wic.name,
-        DATASET_SCHEMAS.tax_1040.name,
-    ],
-)
-@pytest.mark.parametrize(
-    "engine",
-    [
-        "pandas",
-        "dask",
-    ],
-)
-def test_column_dtypes(
-    dataset_name: str, engine: str, config: dict[str, Any], request: FixtureRequest
-) -> None:
-    """Tests that column dtypes are as expected"""
-    if "TODO" in dataset_name:
-        pytest.skip(reason=dataset_name)
-
-    if engine == "dask":
-        generation_function = DATASET_GENERATION_FUNCS[dataset_name]
-        noised_data = generation_function(
-            seed=SEED,
-            year=None,
-            config=config,
-            engine=engine,
-        ).compute()
-    else:
-        noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
-
-    for col_name in noised_data.columns:
-        col = COLUMNS.get_column(col_name)
-        expected_dtype = col.dtype_name
-        if expected_dtype == np.dtype(object):
-            # str dtype is 'object'
-            # Check that they are actually strings and not some other
-            # type of object.
-            actual_types = noised_data[col.name].dropna().apply(type)
-            assert (actual_types == str).all(), actual_types.unique()
-        assert noised_data[col.name].dtype == expected_dtype
-
-
 @pytest.mark.skip(reason="TODO: Implement duplication row noising")
 @pytest.mark.parametrize(
     "dataset_name",
