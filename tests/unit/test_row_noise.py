@@ -106,10 +106,9 @@ def test_do_not_respond(
     mocker.patch(
         "pseudopeople.noise_level._get_census_omission_noise_levels",
         side_effect=(
-            # this return value is normally scaled assuming we use the default
-            # probability so re-scale accordingly
-            lambda *_: expected_noise
-            * (default_noise_level / expected_noise)
+            # update return value so that our applied noise level is the same
+            # as what's in the config
+            lambda *_: default_noise_level
         ),
     )
 
