@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from typing import Any
 
+import numpy as np
 import pandas as pd
-import pytest
 from _pytest.fixtures import FixtureRequest
 from vivarium_testing_utils import FuzzyChecker
 
 from pseudopeople.dataset import Dataset
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
-from tests.constants import DATASET_GENERATION_FUNCS
 from tests.integration.conftest import IDX_COLS, _get_common_datasets, get_unnoised_data
 from tests.utilities import (
     initialize_dataset_with_sample,
@@ -47,6 +46,25 @@ def test_row_noising_omit_row_or_do_not_respond(
     noised_data = noised_data.set_index(idx_cols)
 
     run_omit_row_or_do_not_respond_tests(dataset_name, config, original_data, noised_data)
+
+
+def test_column_dtypes(
+    unnoised_dataset: Dataset,
+    noised_data: pd.DataFrame,
+    dataset_name: str,
+    config: dict[str, Any],
+) -> None:
+    """Tests that column dtypes are as expected"""
+    for col_name in noised_data.columns:
+        col = COLUMNS.get_column(col_name)
+        expected_dtype = col.dtype_name
+        if expected_dtype == np.dtype(object):
+            # str dtype is 'object'
+            # Check that they are actually strings and not some other
+            # type of object.
+            actual_types = noised_data[col.name].dropna().apply(type)
+            assert (actual_types == str).all(), actual_types.unique()
+        assert noised_data[col.name].dtype == expected_dtype
 
 
 def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
