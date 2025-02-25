@@ -6,6 +6,7 @@ from pytest_mock import MockerFixture
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.noise_configuration import NoiseConfiguration
+from pseudopeople.constants import data_values
 from pseudopeople.constants.noise_type_metadata import (
     GUARDIAN_DUPLICATION_ADDRESS_COLUMNS,
 )
@@ -35,35 +36,85 @@ def dummy_data() -> pd.DataFrame:
     )
 
 
-def test_omit_row(dummy_data: pd.DataFrame, fuzzy_checker: FuzzyChecker) -> None:
+@pytest.mark.parametrize("expected_noise", ["default", 0.01, 0.02, 0.05])
+def test_omit_row(
+    expected_noise: str | float, dummy_data: pd.DataFrame, fuzzy_checker: FuzzyChecker
+) -> None:
     config: NoiseConfiguration = get_configuration()
+    if expected_noise != "default":
+        config._update(
+            {
+                DATASET_SCHEMAS.tax_w2_1099.name: {
+                    Keys.ROW_NOISE: {
+                        "omit_row": {
+                            Keys.ROW_PROBABILITY: expected_noise,
+                        },
+                    },
+                },
+            }
+        )
+    else:
+        expected_noise: float = config.get_row_probability(
+            DATASET_SCHEMAS.tax_w2_1099.name, "omit_row"
+        )
     dataset = Dataset(DATASET_SCHEMAS.tax_w2_1099, dummy_data, 0)
     NOISE_TYPES.omit_row(dataset, config)
     noised_data1 = dataset.data
 
-    expected_noise_1: float = config.get_row_probability(
-        DATASET_SCHEMAS.tax_w2_1099.name, "omit_row"
-    )
     fuzzy_checker.fuzzy_assert_proportion(
         name="test_omit_row",
         observed_numerator=len(noised_data1),
         observed_denominator=len(dummy_data),
-        target_proportion=1 - expected_noise_1,
+        target_proportion=1 - expected_noise,
     )
+
     assert set(noised_data1.columns) == set(dummy_data.columns)
     assert (noised_data1.dtypes == dummy_data.dtypes).all()
 
 
+@pytest.mark.parametrize("expected_noise", ["default", 0.01, 0.02, 0.05])
 def test_do_not_respond(
-    mocker: MockerFixture, dummy_data: pd.DataFrame, fuzzy_checker: FuzzyChecker
+    expected_noise: str | float,
+    mocker: MockerFixture,
+    dummy_data: pd.DataFrame,
+    fuzzy_checker: FuzzyChecker,
 ) -> None:
     config: NoiseConfiguration = get_configuration()
+    if expected_noise != "default":
+        for dataset_name in [DATASET_SCHEMAS.acs.name, DATASET_SCHEMAS.census.name]:
+            config._update(
+                {
+                    dataset_name: {
+                        Keys.ROW_NOISE: {
+                            "do_not_respond": {
+                                Keys.ROW_PROBABILITY: expected_noise,
+                            },
+                        },
+                    },
+                }
+            )
+    else:
+        # default probability is the same for acs and census so we can use acs
+        expected_noise: float = config.get_row_probability(
+            DATASET_SCHEMAS.acs.name, "do_not_respond"
+        )
+
+    # default probability is the same for acs and census so we can use acs
+    default_noise_level = data_values.DEFAULT_DO_NOT_RESPOND_ROW_PROBABILITY[
+        "american_community_survey"
+    ]
     mocker.patch(
         "pseudopeople.noise_level._get_census_omission_noise_levels",
         side_effect=(
-            lambda *_: config.get_row_probability(
-                DATASET_SCHEMAS.census.name, NOISE_TYPES.do_not_respond.name
-            )
+            # This private function typically returns individual-simulant probabilities of omission
+            # based on demographics. For normal use, it has been manually calibrated such that
+            # for a representative population, the _mean_ probability of omission would be
+            # the default noise level.
+            # Of course, the actual function does not contain parameters to create these probabilities
+            # for 27-year-old female Vulcans. Instead, we patch it so every simulant's probability
+            # is the default noise level, which is the simplest way to ensure that the mean will be the
+            # default noise level as expected.
+            lambda *_: default_noise_level
         ),
     )
 
@@ -107,7 +158,6 @@ def test_do_not_respond(
     assert set(noised_acs.columns) == set(my_dummy_data.columns)
     assert (noised_acs.dtypes == my_dummy_data.dtypes).all()
     assert len(noised_census) != len(noised_acs)
-    assert True
 
 
 @pytest.mark.parametrize(
