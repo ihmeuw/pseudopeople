@@ -106,8 +106,14 @@ def test_do_not_respond(
     mocker.patch(
         "pseudopeople.noise_level._get_census_omission_noise_levels",
         side_effect=(
-            # update return value so that our applied noise level is the same
-            # as what's in the config
+            # This private function typically returns individual-simulant probabilities of omission
+            # based on demographics. For normal use, it has been manually calibrated such that
+            # for a representative population, the _mean_ probability of omission would be
+            # the default noise level.
+            # Of course, the actual function does not contain parameters to create these probabilities
+            # for 27-year-old female Vulcans. Instead, we patch it so every simulant's probability
+            # is the default noise level, which is the simplest way to ensure that the mean will be the
+            # default noise level as expected.
             lambda *_: default_noise_level
         ),
     )
