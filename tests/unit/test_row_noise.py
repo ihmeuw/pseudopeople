@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import pytest
-from layered_config_tree import LayeredConfigTree
 from pytest_mock import MockerFixture
 
 from pseudopeople.configuration import Keys, get_configuration
@@ -189,7 +188,8 @@ def test_do_not_respond_missing_columns(dummy_data: pd.DataFrame) -> None:
         NOISE_TYPES.do_not_respond(census, config)
 
 
-def test_guardian_duplication() -> None:
+@pytest.mark.parametrize("duplication_probability", [1.0, 0.8])
+def test_guardian_duplication(duplication_probability: float, fuzzy_checker: FuzzyChecker) -> None:
     # We are going to make a small dataframe and update the configuration to noise 100% of the
     # available rows. We will then check that the correct rows were copied with the correct
     # information.
@@ -277,15 +277,19 @@ def test_guardian_duplication() -> None:
             ],
         }
     )
-    # Noise 100% of rows
+
+    if duplication_probability != 1.0: # need more data for fuzzy checking
+        dummy_data = pd.concat([dummy_data] * 100, ignore_index=True)
+        dummy_data['simulant_id'] = [str(sim_id) for sim_id in range(len(dummy_data))]
+
     config: NoiseConfiguration = get_configuration()
     config._update(
         {
             DATASET_SCHEMAS.census.name: {
                 Keys.ROW_NOISE: {
                     NOISE_TYPES.duplicate_with_guardian.name: {
-                        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 1,
-                        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: 1,
+                        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: duplication_probability,
+                        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: duplication_probability,
                     },
                 },
             }
@@ -294,22 +298,38 @@ def test_guardian_duplication() -> None:
     census = Dataset(DATASET_SCHEMAS.census, dummy_data, 0)
     NOISE_TYPES.duplicate_with_guardian(census, config)
     noised = census.data
-    # We know the following since every dependent is duplicated:
-    #  - Simulant ids 0, 1, 2, 3, and-5 will all be duplicated
-    #  - Simulant ids 5-9 are guardians. The only overlap is simulant id 5,
-    #    who is both a dependent and a guardian
-    #  - Simulant id 0 and 3 have two guardians, 8 and 9.
 
-    # Check that the correct rows were duplicated. Duplicated returns all instances of True after
-    # the first instance
     duplicated = noised.loc[noised["simulant_id"].duplicated()]
-    guardians = dummy_data.loc[dummy_data["simulant_id"].isin(dummy_data["guardian_1"])]
-    assert len(noised) == len(dummy_data) + len(duplicated)
-    assert set(duplicated["simulant_id"].tolist()) == set(["0", "1", "2", "3", "5"])
-    # Only duplicate a depedent one time
+
+    if duplication_probability == 1.0:
+        # We know the following since every dependent is duplicated
+        # in the case of 100% duplication:
+        #  - Simulant ids 0, 1, 2, 3, and-5 will all be duplicated
+        #  - Simulant ids 5-9 are guardians. The only overlap is simulant id 5,
+        #    who is both a dependent and a guardian
+        #  - Simulant id 0 and 3 have two guardians, 8 and 9.
+
+        # Check that the correct rows were duplicated. Duplicated returns all
+        # instances of True after the first instance
+        assert len(noised) == len(dummy_data) + len(duplicated)
+        assert set(duplicated["simulant_id"].tolist()) == set(["0", "1", "2", "3", "5"])
+    else: # non-1 probability
+        has_guardian = dummy_data['guardian_1'].notna()
+        not_in_military = dummy_data['housing_type'] != 'Military'
+        num_eligible_for_duplication = sum(has_guardian & not_in_military)
+
+        fuzzy_checker.fuzzy_assert_proportion(
+            name="test_do_not_respond",
+            observed_numerator=len(duplicated),
+            observed_denominator=num_eligible_for_duplication,
+            target_proportion=duplication_probability,
+            name_additional=f"noised_data",
+        )
+    # Only duplicate a dependent one time
     assert noised["simulant_id"].value_counts().max() == 2
 
     # Check address information is copied in new rows
+    guardians = dummy_data.loc[dummy_data["simulant_id"].isin(dummy_data["guardian_1"])]
     for i in duplicated.index:
         dependent = duplicated.loc[i]
         for column in GUARDIAN_DUPLICATION_ADDRESS_COLUMNS:
