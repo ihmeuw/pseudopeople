@@ -71,42 +71,6 @@ def run_column_noising_tests(
                 assert same_check.all()
 
 
-def run_omit_row_or_do_not_respond_tests(
-    dataset_name: str,
-    config: dict[str, Any],
-    original_data: pd.DataFrame,
-    noised_data: pd.DataFrame,
-) -> None:
-    noise_config: NoiseConfiguration = get_configuration(config)
-    noise_types = [
-        noise_type
-        for noise_type in [NOISE_TYPES.omit_row.name, NOISE_TYPES.do_not_respond.name]
-        if noise_config.has_noise_type(dataset_name, noise_type)
-    ]
-
-    if dataset_name in [
-        DATASET_SCHEMAS.census.name,
-        DATASET_SCHEMAS.acs.name,
-        DATASET_SCHEMAS.cps.name,
-    ]:
-        # Census and household surveys have do_not_respond and omit_row.
-        # For all other datasets they are mutually exclusive
-        with check:
-            assert len(noise_types) == 2
-    else:
-        with check:
-            assert len(noise_types) < 2
-    if not noise_types:  # Check that there are no missing indexes
-        with check:
-            assert noised_data.index.symmetric_difference(original_data.index).empty
-    else:  # Check that there are some omissions
-        # TODO: assert levels are as expected
-        with check:
-            assert noised_data.index.difference(original_data.index).empty
-        with check:
-            assert not original_data.index.difference(noised_data.index).empty
-
-
 def validate_column_noise_level(
     dataset_name: str,
     check_data: pd.DataFrame,

@@ -22,11 +22,7 @@ from tests.integration.conftest import (
     _get_common_datasets,
     get_unnoised_data,
 )
-from tests.utilities import (
-    initialize_dataset_with_sample,
-    run_column_noising_tests,
-    run_omit_row_or_do_not_respond_tests,
-)
+from tests.utilities import initialize_dataset_with_sample, run_column_noising_tests
 
 
 @pytest.mark.parametrize(

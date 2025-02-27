@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import pytest
-from layered_config_tree import LayeredConfigTree
 from pytest_mock import MockerFixture
 
 from pseudopeople.configuration import Keys, get_configuration
