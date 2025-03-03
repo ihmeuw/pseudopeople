@@ -66,7 +66,7 @@ def test_row_noising_omit_row_or_do_not_respond(
 
 def get_single_noise_type_config(
     dataset_name: str, noise_type_to_keep: str
-) -> NoiseConfiguration:
+) -> dict[str, Any]:
     """Return a NoiseConfiguration object with no noising except for noise_type_to_keep,
     which will contain the default values from get_configuration."""
     config: NoiseConfiguration = get_configuration()
@@ -75,17 +75,7 @@ def get_single_noise_type_config(
     for noise_type, probabilities in config_dict[dataset_name][Keys.ROW_NOISE].items():
         if noise_type != noise_type_to_keep:
             for probability_name, probability in probabilities.items():
-                config_dict.update(
-                    {
-                        dataset_name: {
-                            Keys.ROW_NOISE: {
-                                noise_type: {
-                                    probability_name: 0.0,
-                                },
-                            },
-                        },
-                    }
-                )
+                config_dict[dataset_name][Keys.ROW_NOISE][noise_type][probability_name] = 0.0
 
     for col, noise_types in config_dict[dataset_name][Keys.COLUMN_NOISE].items():
         for noise_type, probabilities in noise_types.items():
@@ -97,21 +87,9 @@ def get_single_noise_type_config(
                         new_probability = {key: 0.0 for key in probability.keys()}
                     else:
                         new_probability = 0.0
-                    config_dict.update(
-                        {
-                            dataset_name: {
-                                Keys.COLUMN_NOISE: {
-                                    col: {
-                                        noise_type: {
-                                            probability_name: new_probability,
-                                        },
-                                    },
-                                },
-                            },
-                        }
-                    )
+                    config_dict[dataset_name][Keys.COLUMN_NOISE][col][noise_type][probability_name] = new_probability
 
-    return NoiseConfiguration(LayeredConfigTree(config_dict))
+    return config_dict
 
 
 @pytest.mark.parametrize("expected_noise", ["default", 0.01])
@@ -119,32 +97,25 @@ def test_omit_row(
     expected_noise: str | float,
     unnoised_dataset: Dataset,
     dataset_name: str,
+    fuzzy_checker: FuzzyChecker,
 ) -> None:
     """Tests that omit_row noising is being applied at the expected proportion."""
     idx_cols = IDX_COLS.get(dataset_name)
     original = get_unnoised_data(dataset_name)
     original_data = original.data.set_index(idx_cols)
 
-    config: NoiseConfiguration = get_single_noise_type_config(
-        dataset_name, NOISE_TYPES.omit_row.name
-    )
+    config_dict = get_single_noise_type_config(dataset_name, NOISE_TYPES.omit_row.name)
+
     if expected_noise != "default":
-        config._update(
-            {
-                dataset_name: {
-                    Keys.ROW_NOISE: {
-                        NOISE_TYPES.omit_row.name: {
-                            Keys.ROW_PROBABILITY: expected_noise,
-                        },
-                    },
-                },
-            }
-        )
+        config_dict[dataset_name][Keys.ROW_NOISE][NOISE_TYPES.omit_row.name][Keys.ROW_PROBABILITY] = expected_noise
+        config = NoiseConfiguration(LayeredConfigTree(config_dict))
     else:
+        config = NoiseConfiguration(LayeredConfigTree(config_dict))
         expected_noise: float = config.get_row_probability(
             dataset_name, NOISE_TYPES.omit_row.name
         )
-    dataset = Dataset(dataset_name, original_data, 0)
+    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+    dataset = Dataset(dataset_schema, original_data, 0)
     NOISE_TYPES.omit_row(dataset, config)
     noised_data = dataset.data
 
@@ -164,6 +135,7 @@ def test_do_not_respond(
     expected_noise: str | float,
     unnoised_dataset: Dataset,
     dataset_name: str,
+    fuzzy_checker: FuzzyChecker,
 ) -> None:
     """Tests that do_not_respond noising is being applied at the expected proportion."""
     if dataset_name not in [
@@ -177,29 +149,21 @@ def test_do_not_respond(
     original = get_unnoised_data(dataset_name)
     original_data = original.data.set_index(idx_cols)
 
-    config: NoiseConfiguration = get_single_noise_type_config(
-        dataset_name, NOISE_TYPES.do_not_respond.name
-    )
+    config_dict = get_single_noise_type_config(dataset_name, NOISE_TYPES.do_not_respond.name)
+
     if expected_noise != "default":
-        config._update(
-            {
-                dataset_name: {
-                    Keys.ROW_NOISE: {
-                        NOISE_TYPES.do_not_respond.name: {
-                            Keys.ROW_PROBABILITY: expected_noise,
-                        },
-                    },
-                },
-            }
-        )
+        config_dict[dataset_name][Keys.ROW_NOISE][NOISE_TYPES.do_not_respond.name][Keys.ROW_PROBABILITY] = expected_noise
+        config = NoiseConfiguration(LayeredConfigTree(config_dict))
     else:
+        config = NoiseConfiguration(LayeredConfigTree(config_dict))
         expected_noise: float = config.get_row_probability(
             dataset_name, NOISE_TYPES.do_not_respond.name
         )
-    dataset = Dataset(dataset_name, original_data, 0)
+    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+    dataset = Dataset(dataset_schema, original_data, 0)
     NOISE_TYPES.do_not_respond(dataset, config)
     noised_data = dataset.data
-
+    breakpoint()
     # Check ACS and census data is scaled properly due to oversampling
     if dataset_name is not DATASET_SCHEMAS.census.name:  # is acs or cps
         row_probability: float = config.get_row_probability(
@@ -213,7 +177,7 @@ def test_do_not_respond(
         observed_numerator=len(original_data) - len(noised_data),
         observed_denominator=len(original_data),
         target_proportion=expected_noise,
-        name_additional=f"noised_data1",
+        name_additional=f"noised_data",
     )
     assert set(noised_data.columns) == set(original_data.columns)
     assert (noised_data.dtypes == original_data.dtypes).all()
