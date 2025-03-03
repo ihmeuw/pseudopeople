@@ -159,17 +159,15 @@ def test_do_not_respond(
         expected_noise: float = config.get_row_probability(
             dataset_name, NOISE_TYPES.do_not_respond.name
         )
+
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     dataset = Dataset(dataset_schema, original_data, 0)
     NOISE_TYPES.do_not_respond(dataset, config)
     noised_data = dataset.data
-    breakpoint()
-    # Check ACS and census data is scaled properly due to oversampling
+
+    # Check ACS and CPS data is scaled properly due to oversampling
     if dataset_name is not DATASET_SCHEMAS.census.name:  # is acs or cps
-        row_probability: float = config.get_row_probability(
-            DATASET_SCHEMAS.census.name, NOISE_TYPES.do_not_respond.name
-        )
-        expected_noise = 0.5 + row_probability / 2
+        expected_noise = 0.5 + expected_noise / 2
 
     # Test that noising affects expected proportion with expected types
     fuzzy_checker.fuzzy_assert_proportion(

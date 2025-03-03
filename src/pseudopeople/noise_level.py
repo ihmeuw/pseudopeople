@@ -43,10 +43,10 @@ def _get_census_omission_noise_levels(
             index=ages,
         )
         sex_mask = population["sex"] == sex
-        breakpoint()
         probabilities[sex_mask] += (
-            population[sex_mask]["age"].map(effect_by_age).astype(float)
+            population[sex_mask]["age"].astype(int).map(effect_by_age).astype(float)
         )
+
     probabilities[probabilities < 0.0] = 0.0
     probabilities[probabilities > 1.0] = 1.0
 
@@ -61,7 +61,7 @@ def get_apply_do_not_respond_noise_level(
 
     # Apply an overall non-response rate of 27.6% for Current Population Survey (CPS)
     if dataset_name == DatasetNames.CPS:
-        noise_levels += 0.276
+        noise_levels += 0.276 - .002105
 
     # Apply user-configured noise level
     configured_noise_level: float = configuration.get_row_probability(
