@@ -31,7 +31,7 @@ def _get_census_omission_noise_levels(
         .astype(str)
         .map(data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_RACE)
     )
-    ages = pd.Series(np.arange(population["age"].astype(int).max() + 1))
+    ages = pd.Series(np.arange(population["age"].max() + 1))
     for sex in ["Female", "Male"]:
         effect_by_age_bin = data_values.DO_NOT_RESPOND_ADDITIVE_PROBABILITY_BY_SEX_AGE[sex]
         # NOTE: calling pd.cut on a large array with an IntervalIndex is slow,
@@ -44,12 +44,10 @@ def _get_census_omission_noise_levels(
         )
         sex_mask = population["sex"] == sex
         probabilities[sex_mask] += (
-            population[sex_mask]["age"].astype(int).map(effect_by_age).astype(float)
+            population[sex_mask]["age"].map(effect_by_age).astype(float)
         )
-
     probabilities[probabilities < 0.0] = 0.0
     probabilities[probabilities > 1.0] = 1.0
-
     return probabilities
 
 
@@ -61,7 +59,7 @@ def get_apply_do_not_respond_noise_level(
 
     # Apply an overall non-response rate of 27.6% for Current Population Survey (CPS)
     if dataset_name == DatasetNames.CPS:
-        noise_levels += 0.276 - .002105
+        noise_levels += 0.276 
 
     # Apply user-configured noise level
     configured_noise_level: float = configuration.get_row_probability(
