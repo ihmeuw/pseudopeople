@@ -59,7 +59,7 @@ def get_apply_do_not_respond_noise_level(
 
     # Apply an overall non-response rate of 27.6% for Current Population Survey (CPS)
     if dataset_name == DatasetNames.CPS:
-        noise_levels += 0.276 
+        noise_levels += 0.276
 
     # Apply user-configured noise level
     configured_noise_level: float = configuration.get_row_probability(

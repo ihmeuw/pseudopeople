@@ -16,7 +16,7 @@ from pseudopeople.dataset import Dataset
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
 from tests.integration.conftest import IDX_COLS, _get_common_datasets, get_unnoised_data
-from tests.utilities import initialize_dataset_with_sample, run_column_noising_tests
+from tests.utilities import initialize_dataset_with_sample, run_column_noising_tests, get_single_noise_type_config
 
 
 def test_column_noising(
@@ -61,34 +61,6 @@ def test_row_noising_omit_row_or_do_not_respond(
     else:
         with check:
             assert len(noise_types) < 2
-
-
-def get_single_noise_type_config(
-    dataset_name: str, noise_type_to_keep: str
-) -> dict[str, Any]:
-    """Return a NoiseConfiguration object with no noising except for noise_type_to_keep,
-    which will contain the default values from get_configuration."""
-    config: NoiseConfiguration = get_configuration()
-    config_dict = config.to_dict()
-
-    for noise_type, probabilities in config_dict[dataset_name][Keys.ROW_NOISE].items():
-        if noise_type != noise_type_to_keep:
-            for probability_name, probability in probabilities.items():
-                config_dict[dataset_name][Keys.ROW_NOISE][noise_type][probability_name] = 0.0
-
-    for col, noise_types in config_dict[dataset_name][Keys.COLUMN_NOISE].items():
-        for noise_type, probabilities in noise_types.items():
-            if noise_type != noise_type_to_keep:
-                for probability_name, probability in probabilities.items():
-                    if isinstance(probability, list):
-                        new_probability = [0.0 for x in probability]
-                    elif isinstance(probability, dict):
-                        new_probability = {key: 0.0 for key in probability.keys()}
-                    else:
-                        new_probability = 0.0
-                    config_dict[dataset_name][Keys.COLUMN_NOISE][col][noise_type][probability_name] = new_probability
-
-    return config_dict
 
 
 @pytest.mark.parametrize("expected_noise", ["default", 0.01])
