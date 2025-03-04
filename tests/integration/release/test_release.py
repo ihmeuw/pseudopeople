@@ -37,7 +37,6 @@ def test_column_noising(
 
 
 def test_row_noising_omit_row_or_do_not_respond(
-    noised_data: pd.DataFrame,
     dataset_name: str,
     config: dict[str, Any],
 ) -> None:
@@ -100,10 +99,7 @@ def test_omit_row(
     fuzzy_checker: FuzzyChecker,
 ) -> None:
     """Tests that omit_row noising is being applied at the expected proportion."""
-    idx_cols = IDX_COLS.get(dataset_name)
-    original = get_unnoised_data(dataset_name)
-    original_data = original.data.set_index(idx_cols)
-
+    original_data = unnoised_dataset.data
     config_dict = get_single_noise_type_config(dataset_name, NOISE_TYPES.omit_row.name)
 
     if expected_noise != "default":
@@ -145,10 +141,7 @@ def test_do_not_respond(
     ]:
         return
 
-    idx_cols = IDX_COLS.get(dataset_name)
-    original = get_unnoised_data(dataset_name)
-    original_data = original.data.set_index(idx_cols)
-
+    original_data = unnoised_dataset.data
     config_dict = get_single_noise_type_config(dataset_name, NOISE_TYPES.do_not_respond.name)
 
     if expected_noise != "default":
