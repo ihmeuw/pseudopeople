@@ -185,6 +185,8 @@ def get_single_noise_type_config(
                         new_probability = {key: 0.0 for key in probability.keys()}
                     else:
                         new_probability = 0.0
-                    config_dict[dataset_name][Keys.COLUMN_NOISE][col][noise_type][probability_name] = new_probability
+                    config_dict[dataset_name][Keys.COLUMN_NOISE][col][noise_type][
+                        probability_name
+                    ] = new_probability
 
     return config_dict

@@ -16,7 +16,11 @@ from pseudopeople.dataset import Dataset
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
 from tests.integration.conftest import IDX_COLS, _get_common_datasets, get_unnoised_data
-from tests.utilities import initialize_dataset_with_sample, run_column_noising_tests, get_single_noise_type_config
+from tests.utilities import (
+    get_single_noise_type_config,
+    initialize_dataset_with_sample,
+    run_column_noising_tests,
+)
 
 
 def test_column_noising(
@@ -75,7 +79,9 @@ def test_omit_row(
     config_dict = get_single_noise_type_config(dataset_name, NOISE_TYPES.omit_row.name)
 
     if expected_noise != "default":
-        config_dict[dataset_name][Keys.ROW_NOISE][NOISE_TYPES.omit_row.name][Keys.ROW_PROBABILITY] = expected_noise
+        config_dict[dataset_name][Keys.ROW_NOISE][NOISE_TYPES.omit_row.name][
+            Keys.ROW_PROBABILITY
+        ] = expected_noise
         config = NoiseConfiguration(LayeredConfigTree(config_dict))
     else:
         config = NoiseConfiguration(LayeredConfigTree(config_dict))
@@ -117,7 +123,9 @@ def test_do_not_respond(
     config_dict = get_single_noise_type_config(dataset_name, NOISE_TYPES.do_not_respond.name)
 
     if expected_noise != "default":
-        config_dict[dataset_name][Keys.ROW_NOISE][NOISE_TYPES.do_not_respond.name][Keys.ROW_PROBABILITY] = expected_noise
+        config_dict[dataset_name][Keys.ROW_NOISE][NOISE_TYPES.do_not_respond.name][
+            Keys.ROW_PROBABILITY
+        ] = expected_noise
         config = NoiseConfiguration(LayeredConfigTree(config_dict))
     else:
         config = NoiseConfiguration(LayeredConfigTree(config_dict))
