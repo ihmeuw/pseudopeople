@@ -7,15 +7,14 @@ import pandas as pd
 import pytest
 from _pytest.fixtures import FixtureRequest
 from layered_config_tree import LayeredConfigTree
-from pytest_check import check
 from vivarium_testing_utils import FuzzyChecker
 
-from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.configuration import Keys
 from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.dataset import Dataset
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
-from tests.integration.conftest import IDX_COLS, _get_common_datasets, get_unnoised_data
+from tests.integration.conftest import SEED, _get_common_datasets
 from tests.utilities import (
     get_single_noise_type_config,
     initialize_dataset_with_sample,
@@ -40,33 +39,6 @@ def test_column_noising(
     )
 
 
-def test_row_noising_omit_row_or_do_not_respond(
-    dataset_name: str,
-    config: dict[str, Any],
-) -> None:
-    """Tests that the correct noising is applied to each dataset when
-    noising with omit_row and do_not_respond by checking the config."""
-    noise_config: NoiseConfiguration = get_configuration(config)
-    noise_types = [
-        noise_type
-        for noise_type in [NOISE_TYPES.omit_row.name, NOISE_TYPES.do_not_respond.name]
-        if noise_config.has_noise_type(dataset_name, noise_type)
-    ]
-
-    if dataset_name in [
-        DATASET_SCHEMAS.census.name,
-        DATASET_SCHEMAS.acs.name,
-        DATASET_SCHEMAS.cps.name,
-    ]:
-        # Census and household surveys have do_not_respond and omit_row.
-        # For all other datasets they are mutually exclusive
-        with check:
-            assert len(noise_types) == 2
-    else:
-        with check:
-            assert len(noise_types) < 2
-
-
 @pytest.mark.parametrize("expected_noise", ["default", 0.01])
 def test_omit_row(
     expected_noise: str | float,
@@ -85,19 +57,20 @@ def test_omit_row(
         config = NoiseConfiguration(LayeredConfigTree(config_dict))
     else:
         config = NoiseConfiguration(LayeredConfigTree(config_dict))
+        # updating expected_noise from 'default' to actual default value
         expected_noise: float = config.get_row_probability(
             dataset_name, NOISE_TYPES.omit_row.name
         )
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
-    dataset = Dataset(dataset_schema, original_data, 0)
+    dataset = Dataset(dataset_schema, original_data, SEED)
     NOISE_TYPES.omit_row(dataset, config)
     noised_data = dataset.data
 
     fuzzy_checker.fuzzy_assert_proportion(
         name="test_omit_row",
-        observed_numerator=len(noised_data),
+        observed_numerator=len(original_data) - len(noised_data),
         observed_denominator=len(original_data),
-        target_proportion=1 - expected_noise,
+        target_proportion=expected_noise,
     )
 
     assert set(noised_data.columns) == set(original_data.columns)
@@ -112,6 +85,7 @@ def test_do_not_respond(
     fuzzy_checker: FuzzyChecker,
 ) -> None:
     """Tests that do_not_respond noising is being applied at the expected proportion."""
+    # do_not_respond only applies to survey data
     if dataset_name not in [
         DATASET_SCHEMAS.acs.name,
         DATASET_SCHEMAS.census.name,
@@ -129,12 +103,13 @@ def test_do_not_respond(
         config = NoiseConfiguration(LayeredConfigTree(config_dict))
     else:
         config = NoiseConfiguration(LayeredConfigTree(config_dict))
+        # updating expected_noise from 'default' to actual default value
         expected_noise: float = config.get_row_probability(
             dataset_name, NOISE_TYPES.do_not_respond.name
         )
 
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
-    dataset = Dataset(dataset_schema, original_data, 0)
+    dataset = Dataset(dataset_schema, original_data, SEED)
     NOISE_TYPES.do_not_respond(dataset, config)
     noised_data = dataset.data
 

@@ -165,7 +165,7 @@ def initialize_dataset_with_sample(dataset_name: str) -> Dataset:
 def get_single_noise_type_config(
     dataset_name: str, noise_type_to_keep: str
 ) -> dict[str, Any]:
-    """Return a NoiseConfiguration object with no noising except for noise_type_to_keep,
+    """Return a dictionary with no noising except for noise_type_to_keep,
     which will contain the default values from get_configuration."""
     config: NoiseConfiguration = get_configuration()
     config_dict = config.to_dict()
