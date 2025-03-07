@@ -8,7 +8,10 @@ from _pytest.fixtures import FixtureRequest
 from pytest_check import check
 from vivarium_testing_utils import FuzzyChecker
 
+from pseudopeople.configuration import get_configuration
 from pseudopeople.dataset import Dataset
+from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
+from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
 from tests.constants import DATASET_GENERATION_FUNCS
 from tests.integration.conftest import IDX_COLS, _get_common_datasets, get_unnoised_data
@@ -69,3 +72,30 @@ def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
         .all()
         .all()
     )
+
+
+def test_dataset_missingness(unnoised_dataset: Dataset, dataset_name: str) -> None:
+    """Tests that missingness is accurate with dataset.data."""
+    # We must manually clean the data for noising since we are recreating our main noising loop
+    dataset = unnoised_dataset
+    dataset._clean_input_data()
+    dataset._reformat_dates_for_noising()
+    config = get_configuration()
+    
+    # NOTE: This is recreating Dataset._noise_dataset but adding assertions for missingness
+    for noise_type in NOISE_TYPES:
+        if isinstance(noise_type, RowNoiseType):
+            if config.has_noise_type(dataset.dataset_schema.name, noise_type.name):
+                noise_type(dataset, config)
+                # Check missingness is synced with data
+                assert dataset.missingness.equals(dataset.is_missing(dataset.data))
+        if isinstance(noise_type, ColumnNoiseType):
+            for column in dataset.data.columns:
+                if config.has_noise_type(
+                    dataset.dataset_schema.name, noise_type.name, column
+                ):
+                    try:
+                        noise_type(dataset, config, column)
+                    except:
+                        breakpoint()
+                assert dataset.missingness.equals(dataset.is_missing(dataset.data))

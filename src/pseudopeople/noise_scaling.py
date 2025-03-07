@@ -39,6 +39,8 @@ def scale_nicknames(data: pd.DataFrame, column_name: str) -> Any:
 
 def scale_copy_from_household_member(data: pd.DataFrame, column_name: str) -> Any:
     original_column = data[column_name]
+    if 'copy_age' not in data.columns:
+        breakpoint()
     copy_column = data[COPY_HOUSEHOLD_MEMBER_COLS[column_name]]
     original_column_not_missing = (original_column != "") & (original_column.notna())
     eligible = (copy_column != "") & (copy_column.notna()) & original_column_not_missing
