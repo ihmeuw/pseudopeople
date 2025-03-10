@@ -84,6 +84,15 @@ calculated from our simulated population after applying the nonresponse rates
 derived from [Census_PES]_ and [Response_Rates_BLS]_ to each demographic
 subgroup as described above.
 
+.. note::
+
+  pseudopeople assumes that the overall nonresponse probability in the dataset
+  being noised matches the relevant default value below before it is scaled to meet
+  the user's requested :code:`row_probability`. However, different datasets have
+  different demographic profiles, so this isn't precisely true. As a result, the
+  amount of nonresponse will not *exactly* match the :code:`row_probability`
+  requested.
+
 This noise type is called :code:`do_not_respond` in the configuration. It takes
 one parameter:
 
