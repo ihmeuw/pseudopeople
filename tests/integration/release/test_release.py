@@ -9,17 +9,12 @@ from _pytest.fixtures import FixtureRequest
 from layered_config_tree import LayeredConfigTree
 from vivarium_testing_utils import FuzzyChecker
 
-<<<<<<< HEAD
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.constants.noise_type_metadata import (
     GUARDIAN_DUPLICATION_ADDRESS_COLUMNS,
 )
-=======
-from pseudopeople.configuration import Keys
-from pseudopeople.configuration.noise_configuration import NoiseConfiguration
->>>>>>> epic/full_scale_testing
 from pseudopeople.dataset import Dataset
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
