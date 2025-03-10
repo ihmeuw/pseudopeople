@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 import yaml
 from _pytest.logging import LogCaptureFixture
-from layered_config_tree import LayeredConfigTree
+from pytest_check import check
 from pytest_mock import MockerFixture
 
 from pseudopeople.configuration import NO_NOISE, Keys, get_configuration
@@ -208,6 +208,35 @@ def test_loading_from_yaml(tmp_path: Path) -> None:
         )
         == 0.5
     )
+
+@pytest.mark.parametrize(
+    "dataset_schema",
+    list(DATASET_SCHEMAS),
+)
+def test_row_noising_config(
+    dataset_schema: DatasetSchema,
+) -> None:
+    """Tests that the correct noising is applied to each dataset when
+    noising with omit_row and do_not_respond by checking the config."""
+    noise_config: NoiseConfiguration = get_configuration()
+    noise_types = [
+        noise_type
+        for noise_type in [NOISE_TYPES.omit_row.name, NOISE_TYPES.do_not_respond.name]
+        if noise_config.has_noise_type(dataset_schema.name, noise_type)
+    ]
+
+    if dataset_schema.name in [
+        DATASET_SCHEMAS.census.name,
+        DATASET_SCHEMAS.acs.name,
+        DATASET_SCHEMAS.cps.name,
+    ]:
+        # Census and household surveys have do_not_respond and omit_row.
+        # For all other datasets they are mutually exclusive
+        with check:
+            assert len(noise_types) == 2
+    else:
+        with check:
+            assert len(noise_types) == 1
 
 
 @pytest.mark.parametrize(
