@@ -144,12 +144,12 @@ def duplicate_with_guardian(
     formatted_group_data = {}
     # Get dataframe for each dependent group to merge with guardians
     in_households_under_18 = dataset.data.loc[
-        (dataset.data["age"] < 18)
+        (dataset.data["age"].astype(int) < 18)
         & (dataset.data["housing_type"] == "Household")
         & (dataset.data["guardian_1"].notna())
     ]
     in_college_under_24 = dataset.data.loc[
-        (dataset.data["age"] < 24)
+        (dataset.data["age"].astype(int) < 24)
         & (dataset.data["housing_type"] == "College")
         & (dataset.data["guardian_1"].notna())
     ]
