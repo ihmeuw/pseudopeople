@@ -144,16 +144,16 @@ def duplicate_with_guardian(
     formatted_group_data = {}
     # Get dataframe for each dependent group to merge with guardians
     in_households_under_18 = dataset.data.loc[
-        (dataset.data["age"].astype(int) < 18)
+        (dataset.data["age"] < 18)
         & (dataset.data["housing_type"] == "Household")
         & (dataset.data["guardian_1"].notna())
     ]
     in_college_under_24 = dataset.data.loc[
-        (dataset.data["age"].astype(int) < 24)
+        (dataset.data["age"] < 24)
         & (dataset.data["housing_type"] == "College")
         & (dataset.data["guardian_1"].notna())
     ]
-
+    
     # Merge dependents with their guardians
     formatted_group_data[
         Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18
@@ -183,6 +183,7 @@ def duplicate_with_guardian(
             index=both_different_index,
         )
         group_df.loc[both_different_index, "copy_guardian"] = choices
+
         # Get remaining dependents that live in different address from one of their guardians
         guardian_1_different_index = group_df.index[
             (group_df["household_id"] != group_df["guardian_1_household_id"])
@@ -194,7 +195,7 @@ def duplicate_with_guardian(
             & (group_df["guardian_2_household_id"].notna())
         ].difference(choices.index)
         group_df.loc[guardian_2_different_index, "copy_guardian"] = "guardian_2"
-
+        
         # Noise data
         # TODO: Mic-4876 Can we only operate on the index eligible for noise and
         # not the entire dataset?
@@ -215,21 +216,23 @@ def duplicate_with_guardian(
             if index_to_copy.empty:
                 continue
             noised_group_df = group_df.loc[index_to_copy]
+            noised_group_df['old_housing_type'] = noised_group_df['housing_type']
             noised_group_df[GUARDIAN_DUPLICATION_ADDRESS_COLUMNS] = group_df.loc[
                 index_to_copy,
                 [f"{guardian}_" + column for column in GUARDIAN_DUPLICATION_ADDRESS_COLUMNS],
             ]
             duplicated_rows.append(noised_group_df)
-
+        
     if duplicated_rows:
         duplicated_rows_df: pd.DataFrame = pd.concat(duplicated_rows)
+
         # Update relationship to reference person for duplicated simulants based on housing type
         duplicated_rows_df["relationship_to_reference_person"] = duplicated_rows_df[
             "housing_type"
         ].map(HOUSING_TYPE_GUARDIAN_DUPLICATION_RELATONSHIP_MAP)
 
         # Clean columns
-        duplicated_rows_df = duplicated_rows_df[dataset.data.columns]
+        duplicated_rows_df = duplicated_rows_df[list(dataset.data.columns) + ['old_housing_type']]
 
         # Add duplicated rows to the original data and make sure that households
         # are grouped together by sorting by date and household_id

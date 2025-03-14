@@ -71,7 +71,7 @@ class Dataset:
         self._reformat_dates_for_noising()
         self._noise_dataset(configuration, noise_types, progress_bar=progress_bar)
         self.data = coerce_dtypes(self.data, self.dataset_schema)
-        self.data = self.data[[c.name for c in self.dataset_schema.columns]]
+        self.data = self.keep_schema_columns(self.data, self.dataset_schema)
         return self.data
 
     def _noise_dataset(
@@ -145,7 +145,7 @@ class Dataset:
                     # https://github.com/pandas-dev/pandas/issues/44764
                     # Year is already guaranteed to be 4-digit: https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#timeseries-timestamp-limits
                     is_na = data[column].isna()
-                    data_column = data.loc[~is_na, column]
+                    data_column = pd.to_datetime(data.loc[~is_na, column])
                     year_string = data_column.dt.year.astype(str)
                     month_string = _zfill_fast(data_column.dt.month.astype(str), 2)
                     day_string = _zfill_fast(data_column.dt.day.astype(str), 2)
@@ -164,6 +164,9 @@ class Dataset:
                     data.loc[~is_na, column] = result
 
         self.data = data
+
+    def keep_schema_columns(self, data, dataset_schema) -> pd.DataFrame:
+        return data[[c.name for c in dataset_schema.columns]]
 
     @staticmethod
     def is_missing(data: pd.DataFrame) -> pd.DataFrame:
