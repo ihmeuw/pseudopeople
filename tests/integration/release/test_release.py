@@ -18,6 +18,7 @@ from pseudopeople.constants.noise_type_metadata import (
     GUARDIAN_DUPLICATION_ADDRESS_COLUMNS,
 )
 from pseudopeople.dataset import Dataset
+from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.interface import generate_decennial_census
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
@@ -305,3 +306,30 @@ def test_guardian_duplication(dataset_params, dataset_name: str, duplication_pro
                         guardians.loc[guardians["simulant_id"] == guardian_2, column].values[0],
                     ]
                 assert dependent[column] in guardians_values
+
+
+def test_dataset_missingness(unnoised_dataset: Dataset, dataset_name: str, mocker: MockerFixture) -> None:
+    """Tests that missingness is accurate with dataset.data."""
+    mocker.patch("pseudopeople.dataset.coerce_dtypes", side_effect=lambda df, _: df)
+    mocker.patch("pseudopeople.dataset.Dataset.keep_schema_columns", side_effect=lambda df, _: df)
+
+    # We must manually clean the data for noising since we are recreating our main noising loop
+    dataset = unnoised_dataset
+    dataset._clean_input_data()
+    dataset._reformat_dates_for_noising()
+    config = get_configuration()
+    
+    # NOTE: This is recreating Dataset._noise_dataset but adding assertions for missingness
+    for noise_type in NOISE_TYPES:
+        if isinstance(noise_type, RowNoiseType):
+            if config.has_noise_type(dataset.dataset_schema.name, noise_type.name):
+                noise_type(dataset, config)
+                # Check missingness is synced with data
+                assert dataset.missingness.equals(dataset.is_missing(dataset.data))
+        if isinstance(noise_type, ColumnNoiseType):
+            for column in dataset.data.columns:
+                if config.has_noise_type(
+                    dataset.dataset_schema.name, noise_type.name, column
+                ):
+                    noise_type(dataset, config, column)
+                assert dataset.missingness.equals(dataset.is_missing(dataset.data))
