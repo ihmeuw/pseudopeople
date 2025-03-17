@@ -20,6 +20,7 @@ from pseudopeople.constants.noise_type_metadata import (
 from pseudopeople.dataset import Dataset
 from pseudopeople.interface import generate_decennial_census
 from pseudopeople.noise_entities import NOISE_TYPES
+from pseudopeople.noise_functions import _merge_dependents_and_guardians
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
 from tests.integration.conftest import SEED, _get_common_datasets
 from tests.utilities import (
@@ -197,36 +198,6 @@ def test_guardian_duplication(
 ) -> None:
     if dataset_name != DatasetNames.CENSUS:
         return
-
-    def _merge_dependents_and_guardians(
-        dependents_df: pd.DataFrame, full_data: pd.DataFrame
-    ) -> pd.DataFrame:
-        # Merge dependents with their guardians. We have to merge twice to check
-        # if either guardian is living at a separate location from the dependent.
-        guardian_1s = full_data.loc[
-            full_data["simulant_id"].isin(full_data["guardian_1"]),
-            GUARDIAN_DUPLICATION_ADDRESS_COLUMNS + ["simulant_id"],
-        ].add_prefix("guardian_1_")
-        dependents_and_guardians_df = dependents_df.merge(
-            guardian_1s,
-            how="left",
-            left_on=["guardian_1", "year"],
-            right_on=["guardian_1_simulant_id", "guardian_1_year"],
-        )
-        del guardian_1s
-        guardian_2s = full_data.loc[
-            full_data["simulant_id"].isin(full_data["guardian_2"]),
-            GUARDIAN_DUPLICATION_ADDRESS_COLUMNS + ["simulant_id"],
-        ].add_prefix("guardian_2_")
-        dependents_and_guardians_df = dependents_and_guardians_df.merge(
-            guardian_2s,
-            how="left",
-            left_on=["guardian_2", "year"],
-            right_on=["guardian_2_simulant_id", "guardian_2_year"],
-        )
-        del guardian_2s
-
-        return dependents_and_guardians_df
 
     mocker.patch("pseudopeople.dataset.coerce_dtypes", side_effect=lambda df, _: df)
     mocker.patch(

@@ -108,6 +108,7 @@ def duplicate_with_guardian(
     :param configuration: NoiseConfiguration object containing noise level values
     :param to_noise_index: pd.Index of rows to be noised
     """
+
     # Helper function to format group dataframe and merging with their dependents
     def _merge_dependents_and_guardians(
         dependents_df: pd.DataFrame, full_data: pd.DataFrame
@@ -163,6 +164,7 @@ def duplicate_with_guardian(
     # Note: We have two dicts (configuration and formatted_group_data) at this point that have
     # the key for the group and then a dataframe for that group or the group and the configured
     # noise level
+
     duplicated_rows = []
     for group, group_df in formatted_group_data.items():
         # Get index groups that can be noised based on dependent and guardian(s) addresses
@@ -181,7 +183,6 @@ def duplicate_with_guardian(
             index=both_different_index,
         )
         group_df.loc[both_different_index, "copy_guardian"] = choices
-
         # Get remaining dependents that live in different address from one of their guardians
         guardian_1_different_index = group_df.index[
             (group_df["household_id"] != group_df["guardian_1_household_id"])
@@ -223,7 +224,6 @@ def duplicate_with_guardian(
 
     if duplicated_rows:
         duplicated_rows_df: pd.DataFrame = pd.concat(duplicated_rows)
-
         # Update relationship to reference person for duplicated simulants based on housing type
         duplicated_rows_df["relationship_to_reference_person"] = duplicated_rows_df[
             "housing_type"
