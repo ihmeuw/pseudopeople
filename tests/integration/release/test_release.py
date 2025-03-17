@@ -20,7 +20,7 @@ from pseudopeople.constants.noise_type_metadata import (
 from pseudopeople.dataset import Dataset
 from pseudopeople.interface import generate_decennial_census
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.noise_functions import _merge_dependents_and_guardians
+from pseudopeople.noise_functions import merge_dependents_and_guardians
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
 from tests.integration.conftest import SEED, _get_common_datasets
 from tests.utilities import (
@@ -251,7 +251,7 @@ def test_guardian_duplication(
             & (unnoised["housing_type"] == housing_type)
             & (unnoised["guardian_1"].notna())
         ]
-        merged_data = _merge_dependents_and_guardians(group_data, unnoised)
+        merged_data = merge_dependents_and_guardians(group_data, unnoised)
         sims_eligible_for_duplication = merged_data.index[
             (
                 (merged_data["household_id"] != merged_data["guardian_1_household_id"])

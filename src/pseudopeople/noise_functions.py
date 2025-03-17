@@ -93,6 +93,38 @@ def apply_do_not_respond(
 #     return dataset
 
 
+# Helper function to format group dataframe and merging with their dependents
+def merge_dependents_and_guardians(
+    dependents_df: pd.DataFrame, full_data: pd.DataFrame
+) -> pd.DataFrame:
+    # Merge dependents with their guardians. We have to merge twice to check
+    # if either guardian is living at a separate location from the dependent.
+    guardian_1s = full_data.loc[
+        full_data["simulant_id"].isin(full_data["guardian_1"]),
+        GUARDIAN_DUPLICATION_ADDRESS_COLUMNS + ["simulant_id"],
+    ].add_prefix("guardian_1_")
+    dependents_and_guardians_df = dependents_df.merge(
+        guardian_1s,
+        how="left",
+        left_on=["guardian_1", "year"],
+        right_on=["guardian_1_simulant_id", "guardian_1_year"],
+    )
+    del guardian_1s
+    guardian_2s = full_data.loc[
+        full_data["simulant_id"].isin(full_data["guardian_2"]),
+        GUARDIAN_DUPLICATION_ADDRESS_COLUMNS + ["simulant_id"],
+    ].add_prefix("guardian_2_")
+    dependents_and_guardians_df = dependents_and_guardians_df.merge(
+        guardian_2s,
+        how="left",
+        left_on=["guardian_2", "year"],
+        right_on=["guardian_2_simulant_id", "guardian_2_year"],
+    )
+    del guardian_2s
+
+    return dependents_and_guardians_df
+    
+
 def duplicate_with_guardian(
     dataset: Dataset,
     configuration: NoiseConfiguration,
@@ -108,37 +140,6 @@ def duplicate_with_guardian(
     :param configuration: NoiseConfiguration object containing noise level values
     :param to_noise_index: pd.Index of rows to be noised
     """
-
-    # Helper function to format group dataframe and merging with their dependents
-    def _merge_dependents_and_guardians(
-        dependents_df: pd.DataFrame, full_data: pd.DataFrame
-    ) -> pd.DataFrame:
-        # Merge dependents with their guardians. We have to merge twice to check
-        # if either guardian is living at a separate location from the dependent.
-        guardian_1s = full_data.loc[
-            full_data["simulant_id"].isin(full_data["guardian_1"]),
-            GUARDIAN_DUPLICATION_ADDRESS_COLUMNS + ["simulant_id"],
-        ].add_prefix("guardian_1_")
-        dependents_and_guardians_df = dependents_df.merge(
-            guardian_1s,
-            how="left",
-            left_on=["guardian_1", "year"],
-            right_on=["guardian_1_simulant_id", "guardian_1_year"],
-        )
-        del guardian_1s
-        guardian_2s = full_data.loc[
-            full_data["simulant_id"].isin(full_data["guardian_2"]),
-            GUARDIAN_DUPLICATION_ADDRESS_COLUMNS + ["simulant_id"],
-        ].add_prefix("guardian_2_")
-        dependents_and_guardians_df = dependents_and_guardians_df.merge(
-            guardian_2s,
-            how="left",
-            left_on=["guardian_2", "year"],
-            right_on=["guardian_2_simulant_id", "guardian_2_year"],
-        )
-        del guardian_2s
-
-        return dependents_and_guardians_df
 
     # Get dict of group type and formatted dataframe for that group that should be noised
     formatted_group_data = {}
@@ -157,10 +158,10 @@ def duplicate_with_guardian(
     # Merge dependents with their guardians
     formatted_group_data[
         Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18
-    ] = _merge_dependents_and_guardians(in_households_under_18, dataset.data)
+    ] = merge_dependents_and_guardians(in_households_under_18, dataset.data)
     formatted_group_data[
         Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24
-    ] = _merge_dependents_and_guardians(in_college_under_24, dataset.data)
+    ] = merge_dependents_and_guardians(in_college_under_24, dataset.data)
     # Note: We have two dicts (configuration and formatted_group_data) at this point that have
     # the key for the group and then a dataframe for that group or the group and the configured
     # noise level
