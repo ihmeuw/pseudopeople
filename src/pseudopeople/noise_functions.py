@@ -123,7 +123,7 @@ def merge_dependents_and_guardians(
     del guardian_2s
 
     return dependents_and_guardians_df
-    
+
 
 def duplicate_with_guardian(
     dataset: Dataset,
