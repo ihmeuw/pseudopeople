@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from _pytest.fixtures import FixtureRequest
+from collections.abc import Callable
 from layered_config_tree import LayeredConfigTree
 from pytest_mock import MockerFixture
 from vivarium_testing_utils import FuzzyChecker
@@ -190,7 +191,7 @@ def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
     ],
 )
 def test_guardian_duplication(
-    dataset_params,
+    dataset_params: tuple[str | int | Callable[..., pd.DataFrame] | None, ...],
     dataset_name: str,
     probabilities: dict[str, float],
     fuzzy_checker: FuzzyChecker,
