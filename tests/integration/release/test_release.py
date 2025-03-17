@@ -12,8 +12,8 @@ from vivarium_testing_utils import FuzzyChecker
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.entities import NO_NOISE
-from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.configuration.noise_configuration import NoiseConfiguration
+from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.constants.noise_type_metadata import (
     GUARDIAN_DUPLICATION_ADDRESS_COLUMNS,
 )
@@ -175,8 +175,26 @@ def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
     )
 
 
-@pytest.mark.parametrize("duplication_probability", [1.0, 0.8])
-def test_guardian_duplication(dataset_params, dataset_name: str, duplication_probability: float, fuzzy_checker: FuzzyChecker, mocker: MockerFixture) -> None:
+@pytest.mark.parametrize(
+    "probabilities",
+    [
+        {
+            "row_probability_in_households_under_18": 1.0,
+            "row_probability_in_college_group_quarters_under_24": 1.0,
+        },
+        {
+            "row_probability_in_households_under_18": 0.7,
+            "row_probability_in_college_group_quarters_under_24": 0.8,
+        },
+    ],
+)
+def test_guardian_duplication(
+    dataset_params,
+    dataset_name: str,
+    probabilities: dict[str, float],
+    fuzzy_checker: FuzzyChecker,
+    mocker: MockerFixture,
+) -> None:
     if dataset_name != DatasetNames.CENSUS:
         return
 
@@ -211,97 +229,110 @@ def test_guardian_duplication(dataset_params, dataset_name: str, duplication_pro
         return dependents_and_guardians_df
 
     mocker.patch("pseudopeople.dataset.coerce_dtypes", side_effect=lambda df, _: df)
-    mocker.patch("pseudopeople.dataset.Dataset.keep_schema_columns", side_effect=lambda df, _: df)
-    mocker.patch("pseudopeople.configuration.generator.validate_overrides", side_effect=lambda *args: None)
+    mocker.patch(
+        "pseudopeople.dataset.Dataset.keep_schema_columns", side_effect=lambda df, _: df
+    )
+    mocker.patch(
+        "pseudopeople.configuration.generator.validate_overrides",
+        side_effect=lambda *args: None,
+    )
+    mocker.patch(
+        "pseudopeople.configuration.generator.validate_noise_level_proportions",
+        lambda *args: None,
+    )
 
     # get unnoised data
     _, _, source, year, state, engine = dataset_params
-    unnoised = generate_decennial_census(source=source, config=NO_NOISE, year=year, state=state, engine=engine)
+    unnoised = generate_decennial_census(
+        source=source, config=NO_NOISE, year=year, state=state, engine=engine
+    )
 
     # get noised data using custom config
-    config_dict = get_single_noise_type_config(dataset_name, NOISE_TYPES.duplicate_with_guardian.name)
-    for probability_key in [Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24, Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18]:
+    config_dict = get_single_noise_type_config(
+        dataset_name, NOISE_TYPES.duplicate_with_guardian.name
+    )
+    for probability_key in [
+        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24,
+        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18,
+    ]:
         config_dict[dataset_name][Keys.ROW_NOISE][NOISE_TYPES.duplicate_with_guardian.name][
             probability_key
-        ] = duplication_probability
+        ] = probabilities[probability_key]
     config = NoiseConfiguration(LayeredConfigTree(config_dict))
-    noised = generate_decennial_census(source=source, config=config.to_dict(), year=year, state=state, engine=engine)
-    
+    noised = generate_decennial_census(
+        source=source, config=config.to_dict(), year=year, state=state, engine=engine
+    )
+
     duplicated = noised.loc[noised["simulant_id"].duplicated()]
-    duplicated['age'] = duplicated['age'].astype(int)
+    duplicated["age"] = duplicated["age"].astype(int)
 
-    in_households_under_18 = unnoised.loc[
-        (unnoised["age"].astype(int) < 18)
-        & (unnoised["housing_type"] == "Household")
-        & (unnoised["guardian_1"].notna())
-    ]
-    in_college_under_24 = unnoised.loc[
-        (unnoised["age"].astype(int) < 24)
-        & (unnoised["housing_type"] == "College")
-        & (unnoised["guardian_1"].notna())
-    ]
-
-    merged_18 = _merge_dependents_and_guardians(in_households_under_18, unnoised)
-    sims_18_eligible_for_duplication = merged_18.index[
-            ((merged_18["household_id"] != merged_18["guardian_1_household_id"])
-            & (merged_18["guardian_1_household_id"].notna()))
-            | ((merged_18["household_id"] != merged_18["guardian_2_household_id"])
-            & (merged_18["guardian_2_household_id"].notna()))
+    # separate tests for household under 18 and for college under 24
+    for probability_name, age, housing_type in zip(
+        [
+            Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18,
+            Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24,
+        ],
+        [18, 24],
+        ["Household", "College"],
+    ):
+        group_data = unnoised.loc[
+            (unnoised["age"].astype(int) < age)
+            & (unnoised["housing_type"] == housing_type)
+            & (unnoised["guardian_1"].notna())
+        ]
+        merged_data = _merge_dependents_and_guardians(group_data, unnoised)
+        sims_eligible_for_duplication = merged_data.index[
+            (
+                (merged_data["household_id"] != merged_data["guardian_1_household_id"])
+                & (merged_data["guardian_1_household_id"].notna())
+            )
+            | (
+                (merged_data["household_id"] != merged_data["guardian_2_household_id"])
+                & (merged_data["guardian_2_household_id"].notna())
+            )
+        ]
+        duplicated_in_group = duplicated.loc[
+            (duplicated["age"] < age) & (duplicated["old_housing_type"] == housing_type)
         ]
 
-    merged_24 = _merge_dependents_and_guardians(in_college_under_24, unnoised)
-    sims_24_eligible_for_duplication = merged_24.index[
-            ((merged_24["household_id"] != merged_24["guardian_1_household_id"])
-            & (merged_24["guardian_1_household_id"].notna()))
-            | ((merged_24["household_id"] != merged_24["guardian_2_household_id"])
-            & (merged_24["guardian_2_household_id"].notna()))
-        ]
-
-    duplicated_in_households_under_18 = duplicated.query("age < 18 and old_housing_type=='Household'")
-    duplicated_in_college_under_24 = duplicated.query("age < 24 and old_housing_type=='College'")
-    
-    fuzzy_checker.fuzzy_assert_proportion(
-        name="test_duplicate_guardian",
-        observed_numerator=len(duplicated_in_households_under_18),
-        observed_denominator=len(sims_18_eligible_for_duplication),
-        target_proportion=duplication_probability,
-        name_additional=f"noised_data",
-    )
-    fuzzy_checker.fuzzy_assert_proportion(
-        name="test_duplicate_guardian",
-        observed_numerator=len(duplicated_in_college_under_24),
-        observed_denominator=len(sims_24_eligible_for_duplication),
-        target_proportion=duplication_probability,
-        name_additional=f"noised_data",
-    )
+        fuzzy_checker.fuzzy_assert_proportion(
+            name="test_duplicate_guardian",
+            observed_numerator=len(duplicated_in_group),
+            observed_denominator=len(sims_eligible_for_duplication),
+            target_proportion=probabilities[probability_name],
+            name_additional=f"noised_data",
+        )
     # Only duplicate a dependent one time
     assert noised["simulant_id"].value_counts().max() == 2
 
     # Check address information is copied in new rows
-    guardians = unnoised.loc[unnoised["simulant_id"].isin(unnoised["guardian_1"]) | unnoised["simulant_id"].isin(unnoised["guardian_2"])]
-    simulant_ids = unnoised['simulant_id'].values
-    guardian_1_ids = [x for x in unnoised['guardian_1'].unique() if not np.isnan(float(x))]
-    guardian_2_ids = [x for x in unnoised['guardian_2'].unique() if not np.isnan(float(x))]
-    missing_1_ids = [x for x in guardian_1_ids if x not in simulant_ids]
-    missing_2_ids = [x for x in guardian_2_ids if x not in simulant_ids]
+    guardians = unnoised.loc[
+        unnoised["simulant_id"].isin(unnoised["guardian_1"])
+        | unnoised["simulant_id"].isin(unnoised["guardian_2"])
+    ]
+    simulant_ids = unnoised["simulant_id"].values
 
     for i in duplicated.index:
         dependent = duplicated.loc[i]
+
         for column in GUARDIAN_DUPLICATION_ADDRESS_COLUMNS:
             guardian_1 = dependent["guardian_1"]
             guardian_2 = dependent["guardian_2"]
-            #if guardian_1 in missing_1_ids or guardian_2 in missing_2_ids:
-            #    pass
-            if False:
-               pass
-            else:
-                if guardian_2 is np.nan:
-                    guardians_values = [
-                        guardians.loc[guardians["simulant_id"] == guardian_1, column].values[0]
-                    ]
-                else:
-                    guardians_values = [
-                        guardians.loc[guardians["simulant_id"] == guardian_1, column].values[0],
-                        guardians.loc[guardians["simulant_id"] == guardian_2, column].values[0],
-                    ]
-                assert dependent[column] in guardians_values
+
+            if guardian_2 is np.nan:
+                guardians_values = [
+                    guardians.loc[guardians["simulant_id"] == guardian_1, column].values[0]
+                ]
+            else:  # dependent has both guardians
+                guardians_values = []
+                for guardian in [guardian_1, guardian_2]:
+                    if (
+                        guardian in simulant_ids
+                    ):  # duplicates will not have addresses copied from guardians not in data
+                        guardians_values += [
+                            guardians.loc[
+                                guardians["simulant_id"] == guardian, column
+                            ].values[0]
+                        ]
+
+            assert dependent[column] in guardians_values
