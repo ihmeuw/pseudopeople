@@ -111,7 +111,7 @@ def _generate_dataset(
         noised_dataset = pd.concat(noised_datasets_list, ignore_index=True)
 
         noised_dataset = coerce_dtypes(noised_dataset, dataset_schema)
-    else:
+    else:  # dask
         try:
             from distributed.client import default_client
 
@@ -125,6 +125,8 @@ def _generate_dataset(
         data_directory_path = source / dataset_schema.name
         import dask
         import dask.dataframe as dd
+
+        set_up_dask_client()
 
         # Our work depends on the particulars of how dtypes work, and is only
         # built to work with NumPy dtypes, so we turn off the Dask default behavior
@@ -931,3 +933,24 @@ def get_dataset_filepaths(source: Path, dataset_name: str) -> list[Path]:
     dataset_paths = [x for x in directory.glob(f"{dataset_name}*")]
     sorted_dataset_paths = sorted(dataset_paths)
     return sorted_dataset_paths
+
+
+def set_up_dask_client() -> None:
+    """Sets up a Dask client if one is not already running."""
+    from dask.distributed import get_client
+
+    # Determine whether or not a Dask client is already running. If not,
+    # create a new one.
+    try:
+        client = get_client()
+    except ValueError:
+        # No Dask client is running so we create one.
+        from dask.distributed import LocalCluster
+        from dask.system import CPU_COUNT
+
+        # extract the memory limit from the environment variable
+        cluster = LocalCluster(
+            n_workers=CPU_COUNT,
+            threads_per_worker=1,
+        )
+        client = cluster.get_client()
