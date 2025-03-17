@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 import numpy as np
 import pandas as pd
 import pytest
 from _pytest.fixtures import FixtureRequest
-from collections.abc import Callable
 from layered_config_tree import LayeredConfigTree
 from pytest_mock import MockerFixture
 from vivarium_testing_utils import FuzzyChecker
