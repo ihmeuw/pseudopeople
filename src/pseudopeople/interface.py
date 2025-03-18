@@ -942,15 +942,15 @@ def set_up_dask_client() -> None:
     # Determine whether or not a Dask client is already running. If not,
     # create a new one.
     try:
-        client = get_client()
+        get_client()
     except ValueError:
         # No Dask client is running so we create one.
         from dask.distributed import LocalCluster
         from dask.system import CPU_COUNT
 
         # extract the memory limit from the environment variable
-        cluster = LocalCluster(
+        cluster = LocalCluster(  # type: ignore [no-untyped-call]
             n_workers=CPU_COUNT,
             threads_per_worker=1,
         )
-        client = cluster.get_client()
+        cluster.get_client()  # type: ignore [no-untyped-call]

@@ -111,7 +111,7 @@ def test_set_up_dask_client_default() -> None:
 
     set_up_dask_client()
     client = get_client()
-    workers = client.scheduler_info()["workers"]
+    workers = client.scheduler_info()["workers"]  # type: ignore[no-untyped-call]
     assert len(workers) == CPU_COUNT
     assert all(worker["nthreads"] == 1 for worker in workers.values())
     if is_on_slurm():
@@ -134,13 +134,13 @@ def test_set_up_dask_client_default() -> None:
 def test_set_up_dask_client_custom() -> None:
     memory_limit = 1  # gb
     n_workers = 3
-    cluster = LocalCluster(
+    cluster = LocalCluster(  # type: ignore[no-untyped-call]
         name="custom",
         n_workers=n_workers,
         threads_per_worker=2,
         memory_limit=memory_limit * 1024**3,
     )
-    client = cluster.get_client()
+    client = cluster.get_client()  # type: ignore[no-untyped-call]
     set_up_dask_client()
     client = get_client()
     assert client.cluster.name == "custom"
