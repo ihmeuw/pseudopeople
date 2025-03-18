@@ -71,7 +71,7 @@ class Dataset:
         self._reformat_dates_for_noising()
         self._noise_dataset(configuration, noise_types, progress_bar=progress_bar)
         self.data = coerce_dtypes(self.data, self.dataset_schema)
-        self.data = self.keep_schema_columns(self.data, self.dataset_schema)
+        self.data = Dataset.drop_non_schema_columns(self.data, self.dataset_schema)
         return self.data
 
     def _noise_dataset(
@@ -165,7 +165,10 @@ class Dataset:
 
         self.data = data
 
-    def keep_schema_columns(self, data, dataset_schema) -> pd.DataFrame:
+    @staticmethod
+    def drop_non_schema_columns(
+        data: pd.DataFrame, dataset_schema: DatasetSchema
+    ) -> pd.DataFrame:
         return data[[c.name for c in dataset_schema.columns]]
 
     @staticmethod

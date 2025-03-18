@@ -200,14 +200,17 @@ def test_guardian_duplication(
     if dataset_name != DatasetNames.CENSUS:
         return
 
+    # patch these to avoid updating dtypes and dropping columns we need for testing
     mocker.patch("pseudopeople.dataset.coerce_dtypes", side_effect=lambda df, _: df)
     mocker.patch(
-        "pseudopeople.dataset.Dataset.keep_schema_columns", side_effect=lambda df, _: df
+        "pseudopeople.dataset.Dataset.drop_non_schema_columns", side_effect=lambda df, _: df
     )
+    # allow all irrelevant probabilities to be 0 in our config
     mocker.patch(
         "pseudopeople.configuration.generator.validate_overrides",
         side_effect=lambda *args: None,
     )
+    # allow our noise levels to be high in testing
     mocker.patch(
         "pseudopeople.configuration.generator.validate_noise_level_proportions",
         lambda *args: None,
