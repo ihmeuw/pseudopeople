@@ -1159,6 +1159,7 @@ def set_up_dask_client() -> None:
 
         # extract the memory limit from the environment variable
         cluster = LocalCluster(  # type: ignore [no-untyped-call]
+            name="pseudopeople_dask_cluster",
             n_workers=CPU_COUNT,
             threads_per_worker=1,
         )

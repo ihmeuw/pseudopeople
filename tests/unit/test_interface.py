@@ -111,6 +111,8 @@ def test_set_up_dask_client_default() -> None:
 
     set_up_dask_client()
     client = get_client()
+    assert isinstance(client.cluster, LocalCluster)
+    assert client.cluster.name == "pseudopeople_dask_cluster"
     workers = client.scheduler_info()["workers"]  # type: ignore[no-untyped-call]
     assert len(workers) == CPU_COUNT
     assert all(worker["nthreads"] == 1 for worker in workers.values())
