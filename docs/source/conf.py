@@ -17,13 +17,6 @@ import sys
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 from pathlib import Path
 
-from docutils import nodes
-from docutils.nodes import Text
-from sphinx.addnodes import literal_emphasis, pending_xref
-from sphinx.application import Sphinx
-from sphinx.environment import BuildEnvironment
-from sphinx.ext.intersphinx import missing_reference
-
 import pseudopeople
 
 base_dir = Path(pseudopeople.__file__).parent

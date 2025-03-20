@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
 import pandas as pd
 from loguru import logger
@@ -25,6 +25,35 @@ from pseudopeople.utilities import (
     get_state_abbreviation,
 )
 
+if TYPE_CHECKING:
+    import dask.dataframe as dd
+
+
+@overload
+def _generate_dataset(
+    dataset_schema: DatasetSchema,
+    source: Path | str | None,
+    seed: int,
+    config: Path | str | dict[str, Any] | None,
+    filters: Sequence[DataFilter],
+    verbose: bool,
+    engine_name: Literal["pandas"],
+) -> pd.DataFrame:
+    ...
+
+
+@overload
+def _generate_dataset(
+    dataset_schema: DatasetSchema,
+    source: Path | str | None,
+    seed: int,
+    config: Path | str | dict[str, Any] | None,
+    filters: Sequence[DataFilter],
+    verbose: bool,
+    engine_name: Literal["dask"],
+) -> dd.DataFrame:
+    ...
+
 
 def _generate_dataset(
     dataset_schema: DatasetSchema,
@@ -34,7 +63,7 @@ def _generate_dataset(
     filters: Sequence[DataFilter],
     verbose: bool = False,
     engine_name: Literal["pandas", "dask"] = "pandas",
-) -> pd.DataFrame:
+) -> pd.DataFrame | dd.DataFrame:
     """
     Helper for generating noised datasets.
 
@@ -67,7 +96,7 @@ def _generate_dataset(
 
     engine = get_engine_from_string(engine_name)
 
-    noised_dataset: pd.DataFrame
+    noised_dataset: pd.DataFrame | dd.DataFrame
     if engine == PANDAS_ENGINE:
         # We process shards serially
         data_file_paths = get_dataset_filepaths(source, dataset_schema.name)
@@ -111,7 +140,7 @@ def _generate_dataset(
         noised_dataset = pd.concat(noised_datasets_list, ignore_index=True)
 
         noised_dataset = coerce_dtypes(noised_dataset, dataset_schema)
-    else:
+    else:  # dask
         try:
             from distributed.client import default_client
 
@@ -125,6 +154,8 @@ def _generate_dataset(
         data_directory_path = source / dataset_schema.name
         import dask
         import dask.dataframe as dd
+
+        set_up_dask_client()
 
         # Our work depends on the particulars of how dtypes work, and is only
         # built to work with NumPy dtypes, so we turn off the Dask default behavior
@@ -203,6 +234,32 @@ def _get_data_changelog_version(changelog: Path) -> Version:
     return version
 
 
+@overload
+def generate_decennial_census(
+    source: Path | str | None = None,
+    seed: int = 0,
+    config: Path | str | dict[str, Any] | None = None,
+    year: int | None = 2020,
+    state: str | None = None,
+    verbose: bool = False,
+    engine: Literal["pandas"] = "pandas",
+) -> pd.DataFrame:
+    ...
+
+
+@overload
+def generate_decennial_census(
+    source: Path | str | None,
+    seed: int,
+    config: Path | str | dict[str, Any] | None,
+    year: int | None,
+    state: str | None,
+    verbose: bool,
+    engine: Literal["dask"],
+) -> dd.DataFrame:
+    ...
+
+
 def generate_decennial_census(
     source: Path | str | None = None,
     seed: int = 0,
@@ -211,7 +268,7 @@ def generate_decennial_census(
     state: str | None = None,
     verbose: bool = False,
     engine: Literal["pandas", "dask"] = "pandas",
-) -> pd.DataFrame:
+) -> pd.DataFrame | dd.DataFrame:
     """
     Generates a pseudopeople decennial census dataset which represents
     simulated responses to the US Census Bureau's Census of Population
@@ -301,6 +358,32 @@ def generate_decennial_census(
     )
 
 
+@overload
+def generate_american_community_survey(
+    source: Path | str | None = None,
+    seed: int = 0,
+    config: Path | str | dict[str, Any] | None = None,
+    year: int | None = 2020,
+    state: str | None = None,
+    verbose: bool = False,
+    engine: Literal["pandas"] = "pandas",
+) -> pd.DataFrame:
+    ...
+
+
+@overload
+def generate_american_community_survey(
+    source: Path | str | None,
+    seed: int,
+    config: Path | str | dict[str, Any] | None,
+    year: int | None,
+    state: str | None,
+    verbose: bool,
+    engine: Literal["dask"],
+) -> dd.DataFrame:
+    ...
+
+
 def generate_american_community_survey(
     source: Path | str | None = None,
     seed: int = 0,
@@ -309,7 +392,7 @@ def generate_american_community_survey(
     state: str | None = None,
     verbose: bool = False,
     engine: Literal["pandas", "dask"] = "pandas",
-) -> pd.DataFrame:
+) -> pd.DataFrame | dd.DataFrame:
     """
     Generates a pseudopeople ACS dataset which represents simulated
     responses to the ACS survey.
@@ -414,6 +497,32 @@ def generate_american_community_survey(
     )
 
 
+@overload
+def generate_current_population_survey(
+    source: Path | str | None = None,
+    seed: int = 0,
+    config: Path | str | dict[str, Any] | None = None,
+    year: int | None = 2020,
+    state: str | None = None,
+    verbose: bool = False,
+    engine: Literal["pandas"] = "pandas",
+) -> pd.DataFrame:
+    ...
+
+
+@overload
+def generate_current_population_survey(
+    source: Path | str | None,
+    seed: int,
+    config: Path | str | dict[str, Any] | None,
+    year: int | None,
+    state: str | None,
+    verbose: bool,
+    engine: Literal["dask"],
+) -> dd.DataFrame:
+    ...
+
+
 def generate_current_population_survey(
     source: Path | str | None = None,
     seed: int = 0,
@@ -422,7 +531,7 @@ def generate_current_population_survey(
     state: str | None = None,
     verbose: bool = False,
     engine: Literal["pandas", "dask"] = "pandas",
-) -> pd.DataFrame:
+) -> pd.DataFrame | dd.DataFrame:
     """
     Generates a pseudopeople CPS dataset which represents simulated
     responses to the CPS survey.
@@ -528,6 +637,32 @@ def generate_current_population_survey(
     )
 
 
+@overload
+def generate_taxes_w2_and_1099(
+    source: Path | str | None = None,
+    seed: int = 0,
+    config: Path | str | dict[str, Any] | None = None,
+    year: int | None = 2020,
+    state: str | None = None,
+    verbose: bool = False,
+    engine: Literal["pandas"] = "pandas",
+) -> pd.DataFrame:
+    ...
+
+
+@overload
+def generate_taxes_w2_and_1099(
+    source: Path | str | None,
+    seed: int,
+    config: Path | str | dict[str, Any] | None,
+    year: int | None,
+    state: str | None,
+    verbose: bool,
+    engine: Literal["dask"],
+) -> dd.DataFrame:
+    ...
+
+
 def generate_taxes_w2_and_1099(
     source: Path | str | None = None,
     seed: int = 0,
@@ -536,7 +671,7 @@ def generate_taxes_w2_and_1099(
     state: str | None = None,
     verbose: bool = False,
     engine: Literal["pandas", "dask"] = "pandas",
-) -> pd.DataFrame:
+) -> pd.DataFrame | dd.DataFrame:
     """
     Generates a pseudopeople W2 and 1099 tax dataset which represents
     simulated tax form data.
@@ -626,6 +761,32 @@ def generate_taxes_w2_and_1099(
     )
 
 
+@overload
+def generate_women_infants_and_children(
+    source: Path | str | None = None,
+    seed: int = 0,
+    config: Path | str | dict[str, Any] | None = None,
+    year: int | None = 2020,
+    state: str | None = None,
+    verbose: bool = False,
+    engine: Literal["pandas"] = "pandas",
+) -> pd.DataFrame:
+    ...
+
+
+@overload
+def generate_women_infants_and_children(
+    source: Path | str | None,
+    seed: int,
+    config: Path | str | dict[str, Any] | None,
+    year: int | None,
+    state: str | None,
+    verbose: bool,
+    engine: Literal["dask"],
+) -> dd.DataFrame:
+    ...
+
+
 def generate_women_infants_and_children(
     source: Path | str | None = None,
     seed: int = 0,
@@ -634,7 +795,7 @@ def generate_women_infants_and_children(
     state: str | None = None,
     verbose: bool = False,
     engine: Literal["pandas", "dask"] = "pandas",
-) -> pd.DataFrame:
+) -> pd.DataFrame | dd.DataFrame:
     """
     Generates a pseudopeople WIC dataset which represents a simulated
     version of the administrative data that would be recorded by WIC.
@@ -729,6 +890,30 @@ def generate_women_infants_and_children(
     )
 
 
+@overload
+def generate_social_security(
+    source: Path | str | None = None,
+    seed: int = 0,
+    config: Path | str | dict[str, Any] | None = None,
+    year: int | None = 2020,
+    verbose: bool = False,
+    engine: Literal["pandas"] = "pandas",
+) -> pd.DataFrame:
+    ...
+
+
+@overload
+def generate_social_security(
+    source: Path | str | None,
+    seed: int,
+    config: Path | str | dict[str, Any] | None,
+    year: int | None,
+    verbose: bool,
+    engine: Literal["dask"],
+) -> dd.DataFrame:
+    ...
+
+
 def generate_social_security(
     source: Path | str | None = None,
     seed: int = 0,
@@ -736,7 +921,7 @@ def generate_social_security(
     year: int | None = 2020,
     verbose: bool = False,
     engine: Literal["pandas", "dask"] = "pandas",
-) -> pd.DataFrame:
+) -> pd.DataFrame | dd.DataFrame:
     """
     Generates a pseudopeople SSA dataset which represents simulated
     Social Security Administration (SSA) data.
@@ -817,6 +1002,32 @@ def generate_social_security(
     )
 
 
+@overload
+def generate_taxes_1040(
+    source: Path | str | None = None,
+    seed: int = 0,
+    config: Path | str | dict[str, Any] | None = None,
+    year: int | None = 2020,
+    state: str | None = None,
+    verbose: bool = False,
+    engine: Literal["pandas"] = "pandas",
+) -> pd.DataFrame:
+    ...
+
+
+@overload
+def generate_taxes_1040(
+    source: Path | str | None,
+    seed: int,
+    config: Path | str | dict[str, Any] | None,
+    year: int | None,
+    state: str | None,
+    verbose: bool,
+    engine: Literal["dask"],
+) -> dd.DataFrame:
+    ...
+
+
 def generate_taxes_1040(
     source: Path | str | None = None,
     seed: int = 0,
@@ -825,7 +1036,7 @@ def generate_taxes_1040(
     state: str | None = None,
     verbose: bool = False,
     engine: Literal["pandas", "dask"] = "pandas",
-) -> pd.DataFrame:
+) -> pd.DataFrame | dd.DataFrame:
     """
     Generates a pseudopeople 1040 tax dataset which represents simulated
     tax form data.
@@ -931,3 +1142,25 @@ def get_dataset_filepaths(source: Path, dataset_name: str) -> list[Path]:
     dataset_paths = [x for x in directory.glob(f"{dataset_name}*")]
     sorted_dataset_paths = sorted(dataset_paths)
     return sorted_dataset_paths
+
+
+def set_up_dask_client() -> None:
+    """Sets up a Dask client if one is not already running."""
+    from dask.distributed import get_client
+
+    # Determine whether or not a Dask client is already running. If not,
+    # create a new one.
+    try:
+        get_client()
+    except ValueError:
+        # No Dask client is running so we create one.
+        from dask.distributed import LocalCluster
+        from dask.system import CPU_COUNT
+
+        # extract the memory limit from the environment variable
+        cluster = LocalCluster(  # type: ignore [no-untyped-call]
+            name="pseudopeople_dask_cluster",
+            n_workers=CPU_COUNT,
+            threads_per_worker=1,
+        )
+        cluster.get_client()  # type: ignore [no-untyped-call]
