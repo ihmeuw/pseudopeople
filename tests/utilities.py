@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import math
+import shutil
 from collections.abc import Callable
-from functools import partial
 from typing import Any
 
 import numpy as np
@@ -191,3 +191,15 @@ def get_single_noise_type_config(
                     ] = new_probability
 
     return config_dict
+
+
+def is_on_slurm() -> bool:
+    """Returns True if the current environment is a SLURM cluster.
+
+    Notes
+    -----
+    This function simply checks for the presence of the `sbatch` command to _infer_
+    if SLURM is installed. It does _not_ check if SLURM is currently active or
+    managing jobs.
+    """
+    return shutil.which("sbatch") is not None

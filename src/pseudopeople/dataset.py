@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from pseudopeople.configuration import Keys
 from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.constants.metadata import DATEFORMATS
 from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COLS
