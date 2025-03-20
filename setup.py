@@ -56,6 +56,7 @@ if __name__ == "__main__":
         "types-tqdm",
         "types-setuptools",
         "pyarrow-stubs",
+        "types-psutil",
     ]
 
     setup_requires = ["setuptools_scm"]

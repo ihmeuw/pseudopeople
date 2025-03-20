@@ -16,3 +16,4 @@ py:exc DataSourceError
 # misc
 # TODO: remove when dropping support for Python 3.9
 py:class Path
+py:class dd.DataFrame
