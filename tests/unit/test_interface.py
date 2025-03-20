@@ -121,8 +121,8 @@ def test_set_up_dask_client_default() -> None:
             raise RuntimeError(
                 "You are on Slurm but SLURM_MEM_PER_NODE is not set. "
                 "It is likely that you are SSHed onto a node (perhaps using VSCode). "
-                "In this case, dask will assign the total memory of the node to each "
-                "worker instead of the allocated memory from the srun call. "
+                "In this case, dask will assign the total memory of the node to the "
+                "cluster instead of the allocated memory from the srun call. "
                 "Pseudopeople should only be used on Slurm directly on the node "
                 "assigned via an srun (both for pytests as well as actual work)."
             )
