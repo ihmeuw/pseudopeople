@@ -168,6 +168,19 @@ class Dataset:
     def drop_non_schema_columns(
         data: pd.DataFrame, dataset_schema: DatasetSchema
     ) -> pd.DataFrame:
+        """Returns data with only the columns in the dataset schema.
+
+        Parameters
+        ----------
+        data
+            The pd.DataFrame to update.
+        dataset_schema
+            A DatasetSchema which contains the columns of interest in its column attribute.
+
+        Returns
+        -------
+            A pd.DataFrame with the columns in the dataset schema.
+        """
         return data[[c.name for c in dataset_schema.columns]]
 
     @staticmethod

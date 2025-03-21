@@ -216,7 +216,6 @@ def duplicate_with_guardian(
             if index_to_copy.empty:
                 continue
             noised_group_df = group_df.loc[index_to_copy]
-            noised_group_df["old_housing_type"] = noised_group_df["housing_type"]
             noised_group_df[GUARDIAN_DUPLICATION_ADDRESS_COLUMNS] = group_df.loc[
                 index_to_copy,
                 [f"{guardian}_" + column for column in GUARDIAN_DUPLICATION_ADDRESS_COLUMNS],
@@ -231,9 +230,7 @@ def duplicate_with_guardian(
         ].map(HOUSING_TYPE_GUARDIAN_DUPLICATION_RELATONSHIP_MAP)
 
         # Clean columns
-        duplicated_rows_df = duplicated_rows_df[
-            list(dataset.data.columns) + ["old_housing_type"]
-        ]
+        duplicated_rows_df = duplicated_rows_df[dataset.data.columns]
 
         # Add duplicated rows to the original data and make sure that households
         # are grouped together by sorting by date and household_id

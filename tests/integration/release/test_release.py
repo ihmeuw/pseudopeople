@@ -241,6 +241,12 @@ def test_guardian_duplication(
     duplicated = noised.loc[noised["simulant_id"].duplicated()]
     duplicated["age"] = duplicated["age"].astype(int)
 
+    # add old housing type data to duplicated simulants
+    old_housing_data = unnoised[["simulant_id", "housing_type"]].rename(
+        {"housing_type": "unnoised_housing_type"}, axis=1
+    )
+    duplicated = duplicated.merge(old_housing_data)
+
     # separate tests for household under 18 and for college under 24
     for probability_name, age, housing_type in zip(
         [
@@ -267,7 +273,7 @@ def test_guardian_duplication(
             )
         ]
         duplicated_in_group = duplicated.loc[
-            (duplicated["age"] < age) & (duplicated["old_housing_type"] == housing_type)
+            (duplicated["age"] < age) & (duplicated["unnoised_housing_type"] == housing_type)
         ]
 
         fuzzy_checker.fuzzy_assert_proportion(
