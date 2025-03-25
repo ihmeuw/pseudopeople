@@ -70,7 +70,7 @@ class Dataset:
         self._reformat_dates_for_noising()
         self._noise_dataset(configuration, noise_types, progress_bar=progress_bar)
         self.data = coerce_dtypes(self.data, self.dataset_schema)
-        self.data = self.data[[c.name for c in self.dataset_schema.columns]]
+        self.data = Dataset.drop_non_schema_columns(self.data, self.dataset_schema)
         return self.data
 
     def _noise_dataset(
@@ -163,6 +163,25 @@ class Dataset:
                     data.loc[~is_na, column] = result
 
         self.data = data
+
+    @staticmethod
+    def drop_non_schema_columns(
+        data: pd.DataFrame, dataset_schema: DatasetSchema
+    ) -> pd.DataFrame:
+        """Returns data with only the columns in the dataset schema.
+
+        Parameters
+        ----------
+        data
+            The pd.DataFrame to update.
+        dataset_schema
+            A DatasetSchema which contains the columns of interest in its column attribute.
+
+        Returns
+        -------
+            A pd.DataFrame with the columns in the dataset schema.
+        """
+        return data[[c.name for c in dataset_schema.columns]]
 
     @staticmethod
     def is_missing(data: pd.DataFrame) -> pd.DataFrame:
