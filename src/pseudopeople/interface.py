@@ -249,13 +249,13 @@ def generate_decennial_census(
 
 @overload
 def generate_decennial_census(
-    source: Path | str | None,
-    seed: int,
-    config: Path | str | dict[str, Any] | None,
-    year: int | None,
-    state: str | None,
-    verbose: bool,
-    engine: Literal["dask"],
+    source: Path | str | None = None,
+    seed: int = 0,
+    config: Path | str | dict[str, Any] | None = None,
+    year: int | None = 2020,
+    state: str | None = None,
+    verbose: bool = False,
+    engine: Literal["dask"] = "dask",
 ) -> dd.DataFrame:
     ...
 

@@ -5,7 +5,7 @@ import os
 import time
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import pandas as pd
 import pytest
@@ -112,7 +112,7 @@ def release_output_dir(request: pytest.FixtureRequest) -> Path:
 @pytest.fixture(scope="session")
 def dataset_params(
     request: pytest.FixtureRequest,
-) -> tuple[str, Callable[..., pd.DataFrame], str | None, int | None, str | None, str | None]:
+) -> tuple[str, Callable[..., pd.DataFrame], str | None, int | None, str | None, Literal["pandas", "dask"]]:
     dataset_name = request.config.getoption("--dataset")
     try:
         dataset_func = DATASET_GENERATION_FUNCS[dataset_name]

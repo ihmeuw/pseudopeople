@@ -68,11 +68,9 @@ def test_omit_row(
     else:
         config = NoiseConfiguration(LayeredConfigTree(config_dict))
         # updating expected_noise from 'default' to actual default value
-        expected_noise = config.get_row_probability(
-            dataset_name, NOISE_TYPES.omit_row.name
-        )
+        expected_noise = config.get_row_probability(dataset_name, NOISE_TYPES.omit_row.name)
     assert isinstance(expected_noise, float)
-    
+
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     dataset = Dataset(dataset_schema, original_data, SEED)
     NOISE_TYPES.omit_row(dataset, config)
@@ -120,7 +118,7 @@ def test_do_not_respond(
             dataset_name, NOISE_TYPES.do_not_respond.name
         )
     assert isinstance(expected_noise, float)
-    
+
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     dataset = Dataset(dataset_schema, original_data, SEED)
     NOISE_TYPES.do_not_respond(dataset, config)
@@ -196,7 +194,14 @@ def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
     ],
 )
 def test_guardian_duplication(
-    dataset_params: tuple[str, Callable[..., pd.DataFrame], str | None, int | None, str | None, Literal["pandas", "dask"]],
+    dataset_params: tuple[
+        str,
+        Callable[..., pd.DataFrame],
+        str | None,
+        int | None,
+        str | None,
+        Literal["pandas", "dask"],
+    ],
     dataset_name: str,
     probabilities: dict[str, float],
     fuzzy_checker: FuzzyChecker,
@@ -266,7 +271,7 @@ def test_guardian_duplication(
             & (unnoised["housing_type"] == housing_type)
             & (unnoised["guardian_1"].notna())
         ]
-        merged_data = merge_dependents_and_guardians(group_data, unnoised)
+        merged_data = merge_dependents_and_guardians(group_data, unnoised) # type:  ignore [arg-type]
         sims_eligible_for_duplication = merged_data.index[
             (
                 (merged_data["household_id"] != merged_data["guardian_1_household_id"])
@@ -324,10 +329,19 @@ def test_guardian_duplication(
             assert dependent[column] in guardians_values
 
 
-def test_dataset_missingness(dataset_params: tuple[str, Callable[..., pd.DataFrame], str | None, int | None, str | None, str | None], dataset_name: str, mocker: MockerFixture) -> None:
+def test_dataset_missingness(
+    dataset_params: tuple[
+        str,
+        Callable[..., pd.DataFrame],
+        str | None,
+        int | None,
+        str | None,
+        Literal["pandas", "dask"],
+    ],
+    dataset_name: str,
+    mocker: MockerFixture,
+) -> None:
     """Tests that missingness is accurate with dataset.data."""
-    
-    mocker.patch("pseudopeople.dataset.coerce_dtypes", side_effect=lambda df, _: df)
     mocker.patch(
         "pseudopeople.dataset.Dataset.drop_non_schema_columns", side_effect=lambda df, _: df
     )
@@ -342,16 +356,19 @@ def test_dataset_missingness(dataset_params: tuple[str, Callable[..., pd.DataFra
     }
     if dataset_func != generate_social_security:
         kwargs["state"] = state
-    assert callable(dataset_func)
     unnoised_data = dataset_func(**kwargs)
 
     # We must manually clean the data for noising since we are recreating our main noising loop
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     dataset = Dataset(dataset_schema, unnoised_data, SEED)
     dataset._clean_input_data()
+    for col in [COLUMNS.dob.name, COLUMNS.ssa_event_date.name]:
+        if col in dataset.data:
+            dataset.data[col] = pd.to_datetime(dataset.data[col])
+            dataset.data['copy_'+col] = pd.to_datetime(dataset.data['copy_'+col])
     dataset._reformat_dates_for_noising()
     config = get_configuration()
-    
+
     # NOTE: This is recreating Dataset._noise_dataset but adding assertions for missingness
     for noise_type in NOISE_TYPES:
         if isinstance(noise_type, RowNoiseType):
