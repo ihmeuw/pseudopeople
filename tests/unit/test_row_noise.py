@@ -53,9 +53,10 @@ def test_omit_row(
             }
         )
     else:
-        expected_noise: float = config.get_row_probability(
+        expected_noise = config.get_row_probability(
             DATASET_SCHEMAS.tax_w2_1099.name, "omit_row"
         )
+    assert isinstance(expected_noise, float)
     dataset = Dataset(DATASET_SCHEMAS.tax_w2_1099, dummy_data, 0)
     NOISE_TYPES.omit_row(dataset, config)
     noised_data1 = dataset.data
@@ -94,7 +95,7 @@ def test_do_not_respond(
             )
     else:
         # default probability is the same for acs and census so we can use acs
-        expected_noise: float = config.get_row_probability(
+        expected_noise = config.get_row_probability(
             DATASET_SCHEMAS.acs.name, "do_not_respond"
         )
 

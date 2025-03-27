@@ -39,8 +39,8 @@ DATASET_ARG_TO_FULL_NAME_MAPPER: dict[str, str] = {
     "cps": "current_population_survey",
     "census": "decennial_census",
     "ssa": "social_security",
-    "taxes_1040": "taxes_1040",
-    "taxes_w2_and_1099": "taxes_w2_and_1099",
+    "tax_1040": "taxes_1040",
+    "tax_w2_1099": "taxes_w2_and_1099",
     "wic": "women_infants_and_children",
 }
 
@@ -112,7 +112,7 @@ def release_output_dir(request: pytest.FixtureRequest) -> Path:
 @pytest.fixture(scope="session")
 def dataset_params(
     request: pytest.FixtureRequest,
-) -> tuple[str | int | Callable[..., pd.DataFrame] | None, ...]:
+) -> tuple[str, Callable[..., pd.DataFrame], str | None, int | None, str | None, str | None]:
     dataset_name = request.config.getoption("--dataset")
     try:
         dataset_func = DATASET_GENERATION_FUNCS[dataset_name]

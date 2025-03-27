@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
@@ -19,7 +19,8 @@ from pseudopeople.constants.noise_type_metadata import (
     GUARDIAN_DUPLICATION_ADDRESS_COLUMNS,
 )
 from pseudopeople.dataset import Dataset
-from pseudopeople.interface import generate_decennial_census
+from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
+from pseudopeople.interface import generate_decennial_census, generate_social_security
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.noise_functions import merge_dependents_and_guardians
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
@@ -67,9 +68,11 @@ def test_omit_row(
     else:
         config = NoiseConfiguration(LayeredConfigTree(config_dict))
         # updating expected_noise from 'default' to actual default value
-        expected_noise: float = config.get_row_probability(
+        expected_noise = config.get_row_probability(
             dataset_name, NOISE_TYPES.omit_row.name
         )
+    assert isinstance(expected_noise, float)
+    
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     dataset = Dataset(dataset_schema, original_data, SEED)
     NOISE_TYPES.omit_row(dataset, config)
@@ -113,10 +116,11 @@ def test_do_not_respond(
     else:
         config = NoiseConfiguration(LayeredConfigTree(config_dict))
         # updating expected_noise from 'default' to actual default value
-        expected_noise: float = config.get_row_probability(
+        expected_noise = config.get_row_probability(
             dataset_name, NOISE_TYPES.do_not_respond.name
         )
-
+    assert isinstance(expected_noise, float)
+    
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     dataset = Dataset(dataset_schema, original_data, SEED)
     NOISE_TYPES.do_not_respond(dataset, config)
@@ -152,7 +156,8 @@ def test_column_dtypes(
             # str dtype is 'object'
             # Check that they are actually strings and not some other
             # type of object.
-            actual_types = noised_data[col.name].dropna().apply(type)
+            type_function: Callable[..., Any] = lambda x: type(x)
+            actual_types = noised_data[col.name].dropna().apply(type_function)
             assert (actual_types == str).all(), actual_types.unique()
         assert noised_data[col.name].dtype == expected_dtype
 
@@ -191,7 +196,7 @@ def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
     ],
 )
 def test_guardian_duplication(
-    dataset_params: tuple[str | int | Callable[..., pd.DataFrame] | None, ...],
+    dataset_params: tuple[str, Callable[..., pd.DataFrame], str | None, int | None, str | None, Literal["pandas", "dask"]],
     dataset_name: str,
     probabilities: dict[str, float],
     fuzzy_checker: FuzzyChecker,
@@ -317,3 +322,47 @@ def test_guardian_duplication(
                         ]
 
             assert dependent[column] in guardians_values
+
+
+def test_dataset_missingness(dataset_params: tuple[str, Callable[..., pd.DataFrame], str | None, int | None, str | None, str | None], dataset_name: str, mocker: MockerFixture) -> None:
+    """Tests that missingness is accurate with dataset.data."""
+    
+    mocker.patch("pseudopeople.dataset.coerce_dtypes", side_effect=lambda df, _: df)
+    mocker.patch(
+        "pseudopeople.dataset.Dataset.drop_non_schema_columns", side_effect=lambda df, _: df
+    )
+
+    # create unnoised dataset
+    _, dataset_func, source, year, state, engine = dataset_params
+    kwargs = {
+        "source": source,
+        "config": NO_NOISE,
+        "year": year,
+        "engine": engine,
+    }
+    if dataset_func != generate_social_security:
+        kwargs["state"] = state
+    assert callable(dataset_func)
+    unnoised_data = dataset_func(**kwargs)
+
+    # We must manually clean the data for noising since we are recreating our main noising loop
+    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+    dataset = Dataset(dataset_schema, unnoised_data, SEED)
+    dataset._clean_input_data()
+    dataset._reformat_dates_for_noising()
+    config = get_configuration()
+    
+    # NOTE: This is recreating Dataset._noise_dataset but adding assertions for missingness
+    for noise_type in NOISE_TYPES:
+        if isinstance(noise_type, RowNoiseType):
+            if config.has_noise_type(dataset.dataset_schema.name, noise_type.name):
+                noise_type(dataset, config)
+                # Check missingness is synced with data
+                assert dataset.missingness.equals(dataset.is_missing(dataset.data))
+        if isinstance(noise_type, ColumnNoiseType):
+            for column in dataset.data.columns:
+                if config.has_noise_type(
+                    dataset.dataset_schema.name, noise_type.name, column
+                ):
+                    noise_type(dataset, config, column)
+                assert dataset.missingness.equals(dataset.is_missing(dataset.data))
