@@ -132,7 +132,7 @@ def test_do_not_respond(
         observed_numerator=len(original_data) - len(noised_data),
         observed_denominator=len(original_data),
         # 3% uncertainty on either side
-        target_proportion=(expected_noise *.97, expected_noise*1.03),
+        target_proportion=(expected_noise * 0.97, expected_noise * 1.03),
         name_additional=f"noised_data",
     )
     assert set(noised_data.columns) == set(original_data.columns)
