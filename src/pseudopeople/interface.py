@@ -373,13 +373,13 @@ def generate_american_community_survey(
 
 @overload
 def generate_american_community_survey(
-    source: Path | str | None,
-    seed: int,
-    config: Path | str | dict[str, Any] | None,
-    year: int | None,
-    state: str | None,
-    verbose: bool,
-    engine: Literal["dask"],
+    source: Path | str | None = None,
+    seed: int = 0,
+    config: Path | str | dict[str, Any] | None = None,
+    year: int | None = 2020,
+    state: str | None = None,
+    verbose: bool = False,
+    engine: Literal["dask"] = "dask",
 ) -> dd.DataFrame:
     ...
 
@@ -512,13 +512,13 @@ def generate_current_population_survey(
 
 @overload
 def generate_current_population_survey(
-    source: Path | str | None,
-    seed: int,
-    config: Path | str | dict[str, Any] | None,
-    year: int | None,
-    state: str | None,
-    verbose: bool,
-    engine: Literal["dask"],
+    source: Path | str | None = None,
+    seed: int = 0,
+    config: Path | str | dict[str, Any] | None = None,
+    year: int | None = 2020,
+    state: str | None = None,
+    verbose: bool = False,
+    engine: Literal["dask"] = "dask",
 ) -> dd.DataFrame:
     ...
 
@@ -652,13 +652,13 @@ def generate_taxes_w2_and_1099(
 
 @overload
 def generate_taxes_w2_and_1099(
-    source: Path | str | None,
-    seed: int,
-    config: Path | str | dict[str, Any] | None,
-    year: int | None,
-    state: str | None,
-    verbose: bool,
-    engine: Literal["dask"],
+    source: Path | str | None = None,
+    seed: int = 0,
+    config: Path | str | dict[str, Any] | None = None,
+    year: int | None = 2020,
+    state: str | None = None,
+    verbose: bool = False,
+    engine: Literal["dask"] = "dask",
 ) -> dd.DataFrame:
     ...
 
@@ -776,13 +776,13 @@ def generate_women_infants_and_children(
 
 @overload
 def generate_women_infants_and_children(
-    source: Path | str | None,
-    seed: int,
-    config: Path | str | dict[str, Any] | None,
-    year: int | None,
-    state: str | None,
-    verbose: bool,
-    engine: Literal["dask"],
+    source: Path | str | None = None,
+    seed: int = 0,
+    config: Path | str | dict[str, Any] | None = None,
+    year: int | None = 2020,
+    state: str | None = None,
+    verbose: bool = False,
+    engine: Literal["dask"] = "dask",
 ) -> dd.DataFrame:
     ...
 
@@ -904,12 +904,12 @@ def generate_social_security(
 
 @overload
 def generate_social_security(
-    source: Path | str | None,
-    seed: int,
-    config: Path | str | dict[str, Any] | None,
-    year: int | None,
-    verbose: bool,
-    engine: Literal["dask"],
+    source: Path | str | None = None,
+    seed: int = 0,
+    config: Path | str | dict[str, Any] | None = None,
+    year: int | None = 2020,
+    verbose: bool = False,
+    engine: Literal["dask"] = "dask",
 ) -> dd.DataFrame:
     ...
 
@@ -1017,13 +1017,13 @@ def generate_taxes_1040(
 
 @overload
 def generate_taxes_1040(
-    source: Path | str | None,
-    seed: int,
-    config: Path | str | dict[str, Any] | None,
-    year: int | None,
-    state: str | None,
-    verbose: bool,
-    engine: Literal["dask"],
+    source: Path | str | None = None,
+    seed: int = 0,
+    config: Path | str | dict[str, Any] | None = None,
+    year: int | None = 2020,
+    state: str | None = None,
+    verbose: bool = False,
+    engine: Literal["dask"] = "dask",
 ) -> dd.DataFrame:
     ...
 
