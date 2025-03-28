@@ -190,7 +190,9 @@ def test_do_not_respond_missing_columns(dummy_data: pd.DataFrame) -> None:
 
 
 @pytest.mark.parametrize("duplication_probability", [1.0, 0.8])
-def test_guardian_duplication(duplication_probability: float, fuzzy_checker: FuzzyChecker) -> None:
+def test_guardian_duplication(
+    duplication_probability: float, fuzzy_checker: FuzzyChecker
+) -> None:
     # We are going to make a small dataframe and update the configuration to noise 100% of the
     # available rows. We will then check that the correct rows were copied with the correct
     # information.
@@ -279,9 +281,9 @@ def test_guardian_duplication(duplication_probability: float, fuzzy_checker: Fuz
         }
     )
 
-    if duplication_probability != 1.0: # need more data for fuzzy checking
+    if duplication_probability != 1.0:  # need more data for fuzzy checking
         dummy_data = pd.concat([dummy_data] * 100, ignore_index=True)
-        dummy_data['simulant_id'] = [str(sim_id) for sim_id in range(len(dummy_data))]
+        dummy_data["simulant_id"] = [str(sim_id) for sim_id in range(len(dummy_data))]
 
     config: NoiseConfiguration = get_configuration()
     config._update(
@@ -314,9 +316,9 @@ def test_guardian_duplication(duplication_probability: float, fuzzy_checker: Fuz
         # instances of True after the first instance
         assert len(noised) == len(dummy_data) + len(duplicated)
         assert set(duplicated["simulant_id"].tolist()) == set(["0", "1", "2", "3", "5"])
-    else: # non-1 probability
-        has_guardian = dummy_data['guardian_1'].notna()
-        not_in_military = dummy_data['housing_type'] != 'Military'
+    else:  # non-1 probability
+        has_guardian = dummy_data["guardian_1"].notna()
+        not_in_military = dummy_data["housing_type"] != "Military"
         num_eligible_for_duplication = sum(has_guardian & not_in_military)
 
         fuzzy_checker.fuzzy_assert_proportion(

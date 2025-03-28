@@ -154,6 +154,8 @@ def test_column_dtypes(
             # str dtype is 'object'
             # Check that they are actually strings and not some other
             # type of object.
+            # mypy wants typed type_function to pass into apply but doesn't
+            # accept type as an output
             type_function: Callable[..., Any] = lambda x: type(x)
             actual_types = noised_data[col.name].dropna().apply(type_function)
             assert (actual_types == str).all(), actual_types.unique()
@@ -271,7 +273,9 @@ def test_guardian_duplication(
             & (unnoised["housing_type"] == housing_type)
             & (unnoised["guardian_1"].notna())
         ]
-        merged_data = merge_dependents_and_guardians(group_data, unnoised) # type:  ignore [arg-type]
+        merged_data = merge_dependents_and_guardians(
+            group_data, unnoised
+        )  # type:  ignore [arg-type]
         sims_eligible_for_duplication = merged_data.index[
             (
                 (merged_data["household_id"] != merged_data["guardian_1_household_id"])
@@ -362,10 +366,11 @@ def test_dataset_missingness(
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     dataset = Dataset(dataset_schema, unnoised_data, SEED)
     dataset._clean_input_data()
+    # convert datetime columns to datetime types for _reformat_dates_for_noising
     for col in [COLUMNS.dob.name, COLUMNS.ssa_event_date.name]:
         if col in dataset.data:
             dataset.data[col] = pd.to_datetime(dataset.data[col])
-            dataset.data['copy_'+col] = pd.to_datetime(dataset.data['copy_'+col])
+            dataset.data["copy_" + col] = pd.to_datetime(dataset.data["copy_" + col])
     dataset._reformat_dates_for_noising()
     config = get_configuration()
 

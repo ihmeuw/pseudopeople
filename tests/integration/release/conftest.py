@@ -112,7 +112,14 @@ def release_output_dir(request: pytest.FixtureRequest) -> Path:
 @pytest.fixture(scope="session")
 def dataset_params(
     request: pytest.FixtureRequest,
-) -> tuple[str, Callable[..., pd.DataFrame], str | None, int | None, str | None, Literal["pandas", "dask"]]:
+) -> tuple[
+    str,
+    Callable[..., pd.DataFrame],
+    str | None,
+    int | None,
+    str | None,
+    Literal["pandas", "dask"],
+]:
     dataset_name = request.config.getoption("--dataset")
     try:
         dataset_func = DATASET_GENERATION_FUNCS[dataset_name]
