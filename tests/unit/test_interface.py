@@ -104,10 +104,16 @@ def test_validate_source_compatibility_wrong_directory(tmp_path: Path) -> None:
 
 
 def test_set_up_dask_client_default() -> None:
-
-    # There should be no dask client yet
-    with pytest.raises(ValueError):
+    # Shut down a client if it exists
+    try:
         client = get_client()
+        client.shutdown()
+    except ValueError:
+        pass
+    finally:
+        # There should be no dask client at this point
+        with pytest.raises(ValueError):
+            client = get_client()
 
     set_up_dask_client()
     client = get_client()
