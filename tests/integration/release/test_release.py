@@ -362,11 +362,15 @@ def test_dataset_missingness(
         kwargs["state"] = state
     unnoised_data = dataset_func(**kwargs)
 
-    # We must manually clean the data for noising since we are recreating our main noising loop
+    # In our standard noising process, i.e. when noising a shard of data, we
+    # 1) clean and reformat the data, 2) noise the data, and 3) do some post-processing.
+    # We're replicating steps 1 and 2 in this test and skipping 3.
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     dataset = Dataset(dataset_schema, unnoised_data, SEED)
     dataset._clean_input_data()
     # convert datetime columns to datetime types for _reformat_dates_for_noising
+    # because the post-processing that occured in generating the unnoised data
+    # in step 3 mentioned above converts these columns to object dtypes
     for col in [COLUMNS.dob.name, COLUMNS.ssa_event_date.name]:
         if col in dataset.data:
             dataset.data[col] = pd.to_datetime(dataset.data[col])
