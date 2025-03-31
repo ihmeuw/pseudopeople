@@ -180,7 +180,9 @@ def get_single_noise_type_config(
             if noise_type != noise_type_to_keep:
                 for probability_name, probability in probabilities.items():
                     if isinstance(probability, list):
-                        new_probability = [0.0 for x in probability]
+                        new_probability: float | list[float] | dict[int, float] = [
+                            0.0 for x in probability
+                        ]
                     elif isinstance(probability, dict):
                         # NOTE: this will fail default config validations
                         new_probability = {0: 1.0}
