@@ -32,6 +32,101 @@ from tests.utilities import (
 )
 
 
+def get_high_config() -> dict[str, Any]:
+    """Returns a custom configuration dict to be used in noising"""
+    HIGH_PROBABILITY = 0.03
+    config = get_configuration().to_dict()  # default config
+
+    # Increase row noise probabilities and column cell_probabilities to 3%
+    for dataset_name in config:
+        dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+        config[dataset_schema.name][Keys.ROW_NOISE] = {
+            noise_type.name: {
+                Keys.ROW_PROBABILITY: HIGH_PROBABILITY,
+            }
+            for noise_type in dataset_schema.row_noise_types
+            if noise_type != NOISE_TYPES.duplicate_with_guardian
+        }
+        for col in [c for c in dataset_schema.columns if c.noise_types]:
+            config[dataset_name][Keys.COLUMN_NOISE][col.name] = {
+                noise_type.name: {
+                    Keys.CELL_PROBABILITY: HIGH_PROBABILITY,
+                }
+                for noise_type in col.noise_types
+            }
+
+    return config
+
+
+def test_release(
+    dataset_params: tuple[
+    str,
+    Callable[..., pd.DataFrame],
+    str | None,
+    int | None,
+    str | None,
+    Literal["pandas", "dask"],
+    ],
+) -> None:
+    # create unnoised dataset
+    dataset_name, dataset_func, source, year, state, engine, noising_level = dataset_params
+    unnoised_data_kwargs = {
+        "source": source,
+        "config": NO_NOISE,
+        "year": year,
+        "engine": engine,
+    }
+    if dataset_func != generate_social_security:
+        unnoised_data_kwargs["state"] = state
+    unnoised_data = dataset_func(**unnoised_data_kwargs)
+    
+    # In our standard noising process, i.e. when noising a shard of data, we
+    # 1) clean and reformat the data, 2) noise the data, and 3) do some post-processing.
+    # We're replicating steps 1 and 2 in this test and skipping 3.
+    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+    dataset = Dataset(dataset_schema, unnoised_data, SEED)
+    # don't unnecessarily keep in memory
+    del unnoised_data
+    dataset._clean_input_data()
+    # convert datetime columns to datetime types for _reformat_dates_for_noising
+    # because the post-processing that occured in generating the unnoised data
+    # in step 3 mentioned above converts these columns to object dtypes
+    for col in [COLUMNS.dob.name, COLUMNS.ssa_event_date.name]:
+        if col in dataset.data:
+            dataset.data[col] = pd.to_datetime(dataset.data[col])
+            dataset.data["copy_" + col] = pd.to_datetime(dataset.data["copy_" + col])
+    dataset._reformat_dates_for_noising()
+    if noising_level == 'default':
+        config = get_configuration()
+    else:
+        config = get_high_config()
+
+    for noise_type in NOISE_TYPES:
+        original_data = dataset.data.copy()
+        noise_type(dataset, config)
+        run_noising_test(noise_type, original_data, dataset.data, OTHER_PARAMS)
+        with check:
+            # TODO: possible to replace missingness with smaller data structure?
+            assert dataset.missingness.equals(dataset.is_missing(dataset.data))
+
+    del original_data
+
+    # dataset.data is now completely noised data
+    dataset.post_process_data()
+    unnoised_data = dataset_func(**unnoised_data_kwargs)
+
+    run_final_tests(unnoised_data, dataset.data)
+
+
+def run_noising_test():
+    if noise_type is row_noise:
+        test_function = test_functions_dict[noise_type]
+        test_function(original_data, noised_data)
+    else: # is column noise
+        run_column_tests(noise_type)
+
+
+
 def test_column_noising(
     unnoised_dataset: Dataset,
     noised_data: pd.DataFrame,

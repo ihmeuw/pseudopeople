@@ -17,11 +17,6 @@ from _pytest.python import Function
 from loguru import logger
 from vivarium_testing_utils import FuzzyChecker
 
-from pseudopeople.configuration import Keys, get_configuration
-from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
-from tests.integration.conftest import CELL_PROBABILITY
-
 
 def pytest_addoption(parser: argparsing.Parser) -> None:
     parser.addoption("--runslow", action="store_true", default=False, help="run slow tests")
