@@ -382,7 +382,6 @@ class __Columns(NamedTuple):
         "middle_initial",
         (
             NOISE_TYPES.leave_blank,
-            NOISE_TYPES.make_phonetic_errors,
             NOISE_TYPES.make_ocr_errors,
             NOISE_TYPES.make_typos,
         ),
