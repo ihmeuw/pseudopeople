@@ -107,7 +107,7 @@ def test_set_up_dask_client_default() -> None:
     # Shut down a client if it exists
     try:
         client = get_client()
-        client.shutdown()
+        client.shutdown()  # type: ignore [no-untyped-call]
     except ValueError:
         pass
     finally:
@@ -135,8 +135,12 @@ def test_set_up_dask_client_default() -> None:
                 "assigned via an srun (both for pytests as well as actual work)."
             )
     else:
-        available_memory = psutil.virtual_memory().total / (1024 ** 3)
-    assert np.isclose(sum(worker["memory_limit"] / 1024**3 for worker in workers.values()), available_memory, rtol=0.01)
+        available_memory = psutil.virtual_memory().total / (1024**3)
+    assert np.isclose(
+        sum(worker["memory_limit"] / 1024**3 for worker in workers.values()),
+        available_memory,
+        rtol=0.01,
+    )
 
 
 def test_set_up_dask_client_custom() -> None:
@@ -155,4 +159,7 @@ def test_set_up_dask_client_custom() -> None:
     workers = client.scheduler_info()["workers"]
     assert len(workers) == 3
     assert all(worker["nthreads"] == 2 for worker in workers.values())
-    assert sum(worker["memory_limit"] / 1024**3 for worker in workers.values()) == memory_limit * n_workers
+    assert (
+        sum(worker["memory_limit"] / 1024**3 for worker in workers.values())
+        == memory_limit * n_workers
+    )

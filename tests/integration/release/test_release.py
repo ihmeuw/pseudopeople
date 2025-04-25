@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any, Literal
 
+import dask.dataframe as dd
 import numpy as np
 import pandas as pd
-import pytest
 from _pytest.fixtures import FixtureRequest
 from layered_config_tree import LayeredConfigTree
 from pytest_mock import MockerFixture
@@ -14,24 +15,39 @@ from vivarium_testing_utils import FuzzyChecker
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.entities import NO_NOISE
 from pseudopeople.configuration.noise_configuration import NoiseConfiguration
+from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.constants.noise_type_metadata import (
     GUARDIAN_DUPLICATION_ADDRESS_COLUMNS,
 )
 from pseudopeople.dataset import Dataset
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
-from pseudopeople.interface import generate_decennial_census, generate_social_security
+from pseudopeople.filter import get_generate_data_filters
+from pseudopeople.interface import (
+    generate_social_security,
+    get_dataset_filepaths,
+    validate_source_compatibility,
+)
+from pseudopeople.loader import load_standard_dataset
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.noise_functions import merge_dependents_and_guardians
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
+from pseudopeople.utilities import DASK_ENGINE, get_engine_from_string
 from tests.integration.conftest import SEED, _get_common_datasets
-from tests.integration.release.conftest import DATASET_ARG_TO_FULL_NAME_MAPPER
+from tests.integration.release.conftest import (
+    DATASET_ARG_TO_FULL_NAME_MAPPER,
+    RI_FILEPATH,
+)
 from tests.integration.release.utilities import (
     run_do_not_respond_tests,
     run_guardian_duplication_tests,
     run_omit_row_tests,
 )
-from tests.utilities import initialize_dataset_with_sample, run_column_noising_tests
+from tests.utilities import (
+    get_single_noise_type_config,
+    initialize_dataset_with_sample,
+    run_column_noising_tests,
+)
 
 ROW_TEST_FUNCTIONS = {
     "omit_row": run_omit_row_tests,
@@ -40,69 +56,55 @@ ROW_TEST_FUNCTIONS = {
 }
 
 
-def test_release_runs(
+def test_release_row_noising(
     dataset_params: tuple[
         str,
         Callable[..., pd.DataFrame],
-        str | None,
+        Path | str | None,
         int | None,
         str | None,
         Literal["pandas", "dask"],
     ],
     fuzzy_checker: FuzzyChecker,
-    mocker: MockerFixture,
 ) -> None:
-    # keep all columns when generating unnoised data because some of them are used in testing
-    mocker.patch(
-        "pseudopeople.dataset.Dataset.drop_non_schema_columns", side_effect=lambda df, _: df
-    )
-
-    # create unnoised dataset
-    dataset_name, dataset_func, source, year, state, engine = dataset_params
-    unnoised_data_kwargs = {
-        "source": source,
-        "config": NO_NOISE,
-        "year": year,
-        "engine": engine,
-    }
-    if dataset_func != generate_social_security:
-        unnoised_data_kwargs["state"] = state
-    unnoised_data = dataset_func(**unnoised_data_kwargs)
-
-    # In our standard noising process, i.e. when noising a shard of data, we
-    # 1) clean and reformat the data, 2) noise the data, and 3) do some post-processing.
-    # We're replicating steps 1 and 2 in this test and skipping 3.
+    dataset_name, _, source, year, state, engine_name = dataset_params
     full_dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_name]
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(full_dataset_name)
-    dataset = Dataset(dataset_schema, unnoised_data, SEED)
-    # don't unnecessarily keep in memory
-    del unnoised_data
-    dataset._clean_input_data()
-    # convert datetime columns to datetime types for _reformat_dates_for_noising
-    # because the post-processing that occured in generating the unnoised data
-    # in step 3 mentioned above converts these columns to object dtypes
-    for col in [COLUMNS.dob.name, COLUMNS.ssa_event_date.name]:
-        if col in dataset.data:
-            dataset.data[col] = pd.to_datetime(
-                dataset.data[col], format=dataset_schema.date_format
-            )
-            copy_col = "copy_" + col
-            if copy_col in dataset.data:
-                dataset.data[copy_col] = pd.to_datetime(
-                    dataset.data[copy_col], format=dataset_schema.date_format
-                )
-    dataset._reformat_dates_for_noising()
-
     config = get_configuration()
+    # config = NoiseConfiguration(LayeredConfigTree(config_dict))
+
+    # update parameters
+    if source is None:
+        source = paths.SAMPLE_DATA_ROOT
+    elif isinstance(source, str) or isinstance(source, Path):
+        source = Path(source)
+        validate_source_compatibility(source, dataset_schema)
+
+    engine = get_engine_from_string(engine_name)
+
+    data_file_paths = get_dataset_filepaths(Path(source), dataset_schema.name)
+    filters = get_generate_data_filters(dataset_schema, year, state)
+    unnoised_data = [load_standard_dataset(path, filters, engine) for path in data_file_paths]
+
+    if engine == DASK_ENGINE:
+        # TODO: [MIC-5960] move this compute to later in the code
+        dataset_data: list[pd.DataFrame] = [data.compute() for data in unnoised_data if len(data) != 0]  # type: ignore [operator]
+    else:
+        dataset_data = [data for data in unnoised_data if len(data) != 0]  # type: ignore [misc]
+
+    if str(source) == RI_FILEPATH and (dataset_name == "acs" or dataset_name == "cps"):
+        dataset_data = [pd.concat(dataset_data).reset_index()]
+
+    datasets = [Dataset(dataset_schema, data, SEED) for data in dataset_data]
 
     for noise_type in NOISE_TYPES:
-        original_data = dataset.data.copy()
+        prenoised_dataframes = [dataset.data.copy() for dataset in datasets]
         if isinstance(noise_type, RowNoiseType):
-            if config.has_noise_type(dataset.dataset_schema.name, noise_type.name):
-                noise_type(dataset, config)
+            if config.has_noise_type(dataset_schema.name, noise_type.name):
+                [noise_type(dataset, config) for dataset in datasets]
                 test_function = ROW_TEST_FUNCTIONS[noise_type.name]
                 test_function(
-                    original_data, dataset.data, config, full_dataset_name, fuzzy_checker
+                    prenoised_dataframes, datasets, config, full_dataset_name, fuzzy_checker
                 )
 
 

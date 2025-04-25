@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import dask.dataframe as dd
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
@@ -95,7 +96,7 @@ def apply_do_not_respond(
 
 # Helper function to format group dataframe and merging with their dependents
 def merge_dependents_and_guardians(
-    dependents_df: pd.DataFrame, full_data: pd.DataFrame
+    dependents_df: pd.DataFrame | dd.DataFrame, full_data: pd.DataFrame | dd.DataFrame
 ) -> pd.DataFrame:
     # Merge dependents with their guardians. We have to merge twice to check
     # if either guardian is living at a separate location from the dependent.
