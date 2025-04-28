@@ -71,7 +71,6 @@ def test_release_row_noising(
     full_dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_name]
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(full_dataset_name)
     config = get_configuration()
-    # config = NoiseConfiguration(LayeredConfigTree(config_dict))
 
     # update parameters
     if source is None:
@@ -92,7 +91,8 @@ def test_release_row_noising(
     else:
         dataset_data = [data for data in unnoised_data if len(data) != 0]  # type: ignore [misc]
 
-    if str(source) == RI_FILEPATH and (dataset_name == "acs" or dataset_name == "cps"):
+    has_small_shards = dataset_name == "acs" or dataset_name == "cps" or dataset_name == "wic"
+    if str(source) == RI_FILEPATH and has_small_shards:
         dataset_data = [pd.concat(dataset_data).reset_index()]
 
     datasets = [Dataset(dataset_schema, data, SEED) for data in dataset_data]

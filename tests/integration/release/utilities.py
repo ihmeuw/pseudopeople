@@ -93,7 +93,7 @@ def run_omit_row_tests(
     # Test that noising affects expected proportion with expected types
     with check:
         fuzzy_checker.fuzzy_assert_proportion(
-            name="test_do_not_respond",
+            name="test_omit_row",
             observed_numerator=numerator,
             observed_denominator=denominator,
             # 3% uncertainty on either side
