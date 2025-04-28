@@ -22,7 +22,7 @@ class DataFilter:
 
 
 def get_generate_data_filters(
-    dataset_schema: DatasetSchema, year: int | None, state: str | None
+    dataset_schema: DatasetSchema, year: int | None = 2020, state: str | None = None
 ) -> Sequence[DataFilter]:
     filters = []
 
