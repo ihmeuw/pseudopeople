@@ -44,7 +44,7 @@ if __name__ == "__main__":
         "pandas",
         "numpy",
         "pyyaml>=5.1",
-        "pyarrow",
+        "pyarrow>=19.0.1,<20.0.0",
         "scipy",
         "tqdm",
         "layered_config_tree>=2.1.0",
