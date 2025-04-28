@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import time
 
 import numpy as np
 import psutil
@@ -108,6 +109,7 @@ def test_set_up_dask_client_default() -> None:
     try:
         client = get_client()
         client.shutdown()  # type: ignore [no-untyped-call]
+        time.sleep(30)
     except ValueError:
         pass
     finally:
