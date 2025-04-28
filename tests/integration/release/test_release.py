@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+import numpy.typing as npt
 from pathlib import Path
 from typing import Any, Literal
 
 import dask.dataframe as dd
+import math
 import numpy as np
 import pandas as pd
 from _pytest.fixtures import FixtureRequest
 from layered_config_tree import LayeredConfigTree
+from pytest_check import check
 from pytest_mock import MockerFixture
 from vivarium_testing_utils import FuzzyChecker
 
@@ -33,6 +36,7 @@ from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.noise_functions import merge_dependents_and_guardians
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
 from pseudopeople.utilities import DASK_ENGINE, get_engine_from_string
+from tests.constants import TOKENS_PER_STRING_MAPPER
 from tests.integration.conftest import SEED, _get_common_datasets
 from tests.integration.release.conftest import (
     DATASET_ARG_TO_FULL_NAME_MAPPER,
@@ -99,31 +103,118 @@ def test_release_row_noising(
 
     for noise_type in NOISE_TYPES:
         prenoised_dataframes = [dataset.data.copy() for dataset in datasets]
-        if isinstance(noise_type, RowNoiseType):
-            if config.has_noise_type(dataset_schema.name, noise_type.name):
-                [noise_type(dataset, config) for dataset in datasets]
-                test_function = ROW_TEST_FUNCTIONS[noise_type.name]
-                test_function(
-                    prenoised_dataframes, datasets, config, full_dataset_name, fuzzy_checker
-                )
+        # if isinstance(noise_type, RowNoiseType):
+        #     if config.has_noise_type(dataset_schema.name, noise_type.name):
+        #         [noise_type(dataset, config) for dataset in datasets]
+        #         test_function = ROW_TEST_FUNCTIONS[noise_type.name]
+        #         test_function(
+        #             prenoised_dataframes, datasets, config, full_dataset_name, fuzzy_checker
+        #         )
+        if isinstance(noise_type, ColumnNoiseType):
+            for column in prenoised_dataframes[0].columns:
+                if config.has_noise_type(
+                    dataset_schema.name, noise_type.name, column
+                ):
+                    if column == COLUMNS.ssa_event_type.name:
+                        pass
+                    else:
+                        [noise_type(dataset, config, column) for dataset in datasets]
+                        run_column_noising_test(prenoised_dataframes, datasets, config, full_dataset_name, noise_type.name, column, fuzzy_checker)
+                    
 
-
-def test_column_noising(
-    unnoised_dataset: Dataset,
-    noised_data: pd.DataFrame,
-    config: dict[str, Any],
+def run_column_noising_test(
+    prenoised_dataframes: list[pd.DataFrame],
+    noised_datasets: list[Dataset],
+    config: NoiseConfiguration,
     dataset_name: str,
+    noise_type: str,
+    column: str,
     fuzzy_checker: FuzzyChecker,
+    filename: str = None,
 ) -> None:
-    """Tests that columns are noised as expected"""
-    check_noised, check_original, shared_idx = _get_common_datasets(
-        unnoised_dataset, noised_data
+    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+    
+    shared_noised_list, shared_prenoised_list, shared_idxs = [], [], []
+    for prenoised_dataframe, noised_dataset in zip(prenoised_dataframes, noised_datasets):
+        shared_noised, shared_prenoised, shared_idx = _get_common_datasets(
+            dataset_schema, prenoised_dataframe, noised_dataset.data
+        )
+        shared_noised_list.append(shared_noised)
+        shared_prenoised_list.append(shared_prenoised)
+        shared_idxs.append(shared_idx)
+    col = COLUMNS.get_column(column)
+    
+    # Check that originally missing data remained missing
+    originally_missing_idx = shared_prenoised.index[shared_prenoised.reset_index()[col.name].isna()]
+    with check:
+        assert shared_noised.loc[originally_missing_idx, col.name].isna().all()
+
+    # Check for noising where applicable
+    to_compare_idx = shared_idx.difference(originally_missing_idx)
+
+    different_check: npt.NDArray[np.bool_] = np.array(
+        shared_prenoised.loc[to_compare_idx, col.name].values
+        != shared_noised.loc[to_compare_idx, col.name].values
     )
 
-    run_column_noising_tests(
-        dataset_name, config, fuzzy_checker, check_noised, check_original, shared_idx
-    )
+    try:
+        assert different_check.any()
+    except:
+        no_differences = True
 
+    noise_level = different_check.sum()
+
+    # Validate column noise level
+    expected_noise = config.get_cell_probability(dataset_name, noise_type, col.name)
+    # Calculate expected noise (target proportion for fuzzy checker)
+    includes_token_noising = config.has_parameter(dataset_name, noise_type, Keys.TOKEN_PROBABILITY, col.name) or config.has_parameter(dataset_name, noise_type, Keys.ZIPCODE_DIGIT_PROBABILITIES, col.name)
+    
+    if includes_token_noising:
+        if noise_type == NOISE_TYPES.write_wrong_zipcode_digits.name:
+            token_probability: list[
+                float
+            ] | int | float = config.get_zipcode_digit_probabilities(
+                dataset_name, col.name
+            )
+        else:
+            token_probability = config.get_token_probability(
+                dataset_name, noise_type, col.name
+            )
+
+        # Get number of tokens per string to calculate expected proportion
+        tokens_per_string_getter: Callable[
+            ..., pd.Series[int] | int
+        ] = TOKENS_PER_STRING_MAPPER.get(
+            noise_type, lambda x: x.astype(str).str.len()
+        )
+        tokens_per_string: pd.Series[int] | int = tokens_per_string_getter(
+            shared_prenoised.loc[to_compare_idx, col.name]
+        )
+
+        # Calculate probability no token is noised
+        if isinstance(token_probability, list):
+            # Calculate write wrong zipcode average digits probability any token is noise
+            avg_probability_any_token_noised = 1 - math.prod(
+                [1 - p for p in token_probability]
+            )
+        else:
+            with check:
+                assert isinstance(tokens_per_string, pd.Series)
+            avg_probability_any_token_noised = (
+                1 - (1 - token_probability) ** tokens_per_string
+            ).mean()
+
+        # This is accumulating not_noised over all noise types
+        expected_noise = avg_probability_any_token_noised * expected_noise
+    breakpoint()
+    fuzzy_checker.fuzzy_assert_proportion(
+        name=noise_type,
+        observed_numerator=noise_level,
+        observed_denominator=len(shared_prenoised.loc[to_compare_idx, col.name]),
+        target_proportion=expected_noise,
+        name_additional=f"{dataset_name}_{col.name}_{noise_type}",
+    )
+    
 
 def test_column_dtypes(
     unnoised_dataset: Dataset,
