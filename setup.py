@@ -43,7 +43,7 @@ if __name__ == "__main__":
         "numpy<2.0.0",
         "pyyaml>=5.1",
         "vivarium>=1.2.0",
-        "pyarrow",
+        "pyarrow>=19.0.1,<20.0.0",
         "tqdm",
         "layered_config_tree>=1.0.1",
     ]
