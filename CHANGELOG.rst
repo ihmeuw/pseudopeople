@@ -1,3 +1,7 @@
+**1.2.2 - 04/29/25**
+
+ - pin pyarrow>=19.0.1,<20.0.0
+
 **1.2.1 - 02/05/25**
 
  - Get python versions from python_versions.json
