@@ -116,6 +116,7 @@ def test_set_up_dask_client_default() -> None:
             client = get_client()
 
     set_up_dask_client()
+
     if is_on_slurm():
         try:
             available_memory = float(os.environ["SLURM_MEM_PER_NODE"]) / 1024
@@ -131,7 +132,8 @@ def test_set_up_dask_client_default() -> None:
             )
     else:
         available_memory = psutil.virtual_memory().total / (1024**3)
-    _check_cluster(
+
+    _check_cluster_attrs(
         cluster_name="pseudopeople_dask_cluster",
         memory_limit=available_memory,
         n_workers=CPU_COUNT,
@@ -153,21 +155,31 @@ def test_set_up_dask_client_existing_cluster() -> None:
         memory_limit=memory_limit * 1024**3,
     )
     cluster.get_client()  # type: ignore[no-untyped-call]
-    _check_cluster(cluster_name=cluster_name, memory_limit=memory_limit * n_workers, n_workers=n_workers, threads_per_worker=threads_per_worker)
+    _check_cluster_attrs(
+        cluster_name=cluster_name,
+        memory_limit=memory_limit * n_workers,
+        n_workers=n_workers,
+        threads_per_worker=threads_per_worker
+    )
     
     # Call the dask client setup function
     set_up_dask_client()
     
     # Make sure that the cluster hasn't been changed
-    _check_cluster(cluster_name=cluster_name, memory_limit=memory_limit * n_workers, n_workers=n_workers, threads_per_worker=threads_per_worker)
+    assert get_client().cluster == cluster
+    _check_cluster_attrs(
+        cluster_name=cluster_name,
+        memory_limit=memory_limit * n_workers,
+        n_workers=n_workers,
+        threads_per_worker=threads_per_worker
+    )
 
 ####################
 # Helper Functions #
 ####################
 
-def _check_cluster(cluster_name: str, memory_limit: int | float, n_workers: int, threads_per_worker: int) -> None:
-    client = get_client()
-    cluster = client.cluster
+def _check_cluster_attrs(cluster_name: str, memory_limit: int | float, n_workers: int, threads_per_worker: int) -> None:
+    cluster = get_client().cluster
     assert isinstance(cluster, LocalCluster)
     assert cluster.name == cluster_name
     workers = cluster.scheduler_info["workers"]
