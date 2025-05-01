@@ -144,6 +144,7 @@ def test_set_up_dask_client_existing_cluster() -> None:
     memory_limit = 1  # gb
     n_workers = 3
     threads_per_worker = 2
+
     # Manually create a cluster
     cluster = LocalCluster(  # type: ignore[no-untyped-call]
         name=cluster_name,
@@ -152,11 +153,17 @@ def test_set_up_dask_client_existing_cluster() -> None:
         memory_limit=memory_limit * 1024**3,
     )
     cluster.get_client()  # type: ignore[no-untyped-call]
+    _check_cluster(cluster_name=cluster_name, memory_limit=memory_limit * n_workers, n_workers=n_workers, threads_per_worker=threads_per_worker)
+    
     # Call the dask client setup function
     set_up_dask_client()
+    
     # Make sure that the cluster hasn't been changed
     _check_cluster(cluster_name=cluster_name, memory_limit=memory_limit * n_workers, n_workers=n_workers, threads_per_worker=threads_per_worker)
 
+####################
+# Helper Functions #
+####################
 
 def _check_cluster(cluster_name: str, memory_limit: int | float, n_workers: int, threads_per_worker: int) -> None:
     client = get_client()
