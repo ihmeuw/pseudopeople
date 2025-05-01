@@ -224,9 +224,7 @@ def _get_common_datasets(
     """
     idx_cols = IDX_COLS.get(dataset_schema.name)
     #unnoised_dataset._reformat_dates_for_noising()
-    #unnoised_dataset.data = coerce_dtypes(
-    #    unnoised_dataset.data, unnoised_dataset.dataset_schema
-    #)
+    #unnoised_data = coerce_dtypes(unnoised_data, dataset_schema)
     check_original = unnoised_data.set_index(idx_cols)
     check_noised = noised_data.set_index(idx_cols)
     # Ensure the idx_cols are unique
