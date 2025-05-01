@@ -107,7 +107,7 @@ def test_set_up_dask_client_default() -> None:
     # Shut down a client if it exists
     try:
         client = get_client()
-        client.shutdown()
+        client.shutdown()  # type: ignore[no-untyped-call]
     except ValueError:
         pass
     finally:
