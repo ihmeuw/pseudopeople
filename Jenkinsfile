@@ -17,5 +17,15 @@ To configure the repo/branch go to:
 Updating the shared repo will take affect on the next pipeline invocation.
 The "_" denotes that all modules will be imported from the shared library.
 */ 
-@Library("vivarium_build_utils") _
-reusable_pipeline(scheduled_branches: ["main", "epic/full_scale_testing", "release-candidate/v.orange.rebased"], upstream_repos: ["layered_config_tree"])
+@Library("vivarium_build_utils@sbachmei/mic-6029/run-jenkins-pytests-on-slurm") _
+reusable_pipeline(
+  scheduled_branches: [
+    "main",
+    "epic/full_scale_testing",
+    "release-candidate/v.orange.rebased",
+  ],
+  upstream_repos: ["layered_config_tree"],
+  requires_slurm: true,
+  use_shared_fs: true,
+  run_tests_on_slurm: true,
+)
