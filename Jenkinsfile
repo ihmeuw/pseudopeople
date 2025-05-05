@@ -24,6 +24,8 @@ reusable_pipeline(
     "epic/full_scale_testing",
     "release-candidate/v.orange.rebased",
     "sbachmei/mic-6032/modify-cron",
+    "foo",
+    "bar",
   ],
   stagger_scheduled_builds: true,
   upstream_repos: ["layered_config_tree"],
