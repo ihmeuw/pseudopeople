@@ -1,3 +1,7 @@
+**1.2.3 - 05/06/25**
+
+ - request reusable pipeline to stagger scheduled builds
+
 **1.2.2 - 04/29/25**
 
  - pin pyarrow>=19.0.1,<20.0.0
