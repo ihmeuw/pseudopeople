@@ -96,8 +96,11 @@ def test_release_row_noising(
     else:
         dataset_data = [data for data in unnoised_data if len(data) != 0]  # type: ignore [misc]
 
+    seed = SEED
+    if dataset_schema.name != DatasetNames.CENSUS and year is not None:
+        seed = seed * 10_000 + year
     datasets: list[Dataset] = [
-        Dataset(dataset_schema, data, f"SEED_{i}") for i, data in enumerate(dataset_data)
+        Dataset(dataset_schema, data, f"{seed}_{i}") for i, data in enumerate(dataset_data)
     ]
 
     for noise_type in NOISE_TYPES:
