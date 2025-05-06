@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import dask.dataframe as dd
 import numpy as np
 import pandas as pd
 from pytest_check import check
@@ -57,8 +56,8 @@ def run_do_not_respond_tests(
             observed_numerator=numerator,
             observed_denominator=denominator,
             # 3% uncertainty on either side
-            target_proportion=(expected_noise * 0.97, expected_noise * 1.03),
-            name_additional=f"noised_data",
+            target_proportion=(expected_noise - 0.03, expected_noise + 0.03),
+            name_additional="noised_data",
         )
 
 
@@ -96,9 +95,8 @@ def run_omit_row_tests(
             name="test_omit_row",
             observed_numerator=numerator,
             observed_denominator=denominator,
-            # 3% uncertainty on either side
-            target_proportion=(expected_noise * 0.97, expected_noise * 1.03),
-            name_additional=f"noised_data",
+            target_proportion=expected_noise,
+            name_additional="noised_data",
         )
 
 
@@ -218,5 +216,5 @@ def run_guardian_duplication_tests(
                 observed_numerator=numerators[probability_name],
                 observed_denominator=denominators[probability_name],
                 target_proportion=expected_noise,
-                name_additional=f"noised_data",
+                name_additional="noised_data",
             )

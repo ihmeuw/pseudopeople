@@ -109,7 +109,6 @@ def test_set_up_dask_client_default() -> None:
     try:
         client = get_client()
         client.shutdown()  # type: ignore [no-untyped-call]
-        time.sleep(30)
     except ValueError:
         pass
     finally:
@@ -161,26 +160,30 @@ def test_set_up_dask_client_existing_cluster() -> None:
         cluster_name=cluster_name,
         memory_limit=memory_limit * n_workers,
         n_workers=n_workers,
-        threads_per_worker=threads_per_worker
+        threads_per_worker=threads_per_worker,
     )
-    
+
     # Call the dask client setup function
     set_up_dask_client()
-    
+
     # Make sure that the cluster hasn't been changed
     assert get_client().cluster == cluster
     _check_cluster_attrs(
         cluster_name=cluster_name,
         memory_limit=memory_limit * n_workers,
         n_workers=n_workers,
-        threads_per_worker=threads_per_worker
+        threads_per_worker=threads_per_worker,
     )
+
 
 ####################
 # Helper Functions #
 ####################
 
-def _check_cluster_attrs(cluster_name: str, memory_limit: int | float, n_workers: int, threads_per_worker: int) -> None:
+
+def _check_cluster_attrs(
+    cluster_name: str, memory_limit: int | float, n_workers: int, threads_per_worker: int
+) -> None:
     cluster = get_client().cluster
     assert isinstance(cluster, LocalCluster)
     assert cluster.name == cluster_name

@@ -14,7 +14,7 @@ from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
 from pseudopeople.dataset import noise_data
 from pseudopeople.exceptions import DataSourceError
-from pseudopeople.filter import DataFilter, get_generate_data_filters
+from pseudopeople.filter import DataFilter, get_data_filters
 from pseudopeople.loader import load_standard_dataset
 from pseudopeople.schema_entities import DATASET_SCHEMAS, DatasetSchema
 from pseudopeople.utilities import (
@@ -196,6 +196,9 @@ def _generate_dataset(
 
 
 def validate_source_compatibility(source: Path, dataset_schema: DatasetSchema) -> None:
+    """Validate that a given source is compatible with the provided dataset schema by checking that
+    1) data exist for said schema in the provided source path and that 2) the data is the expected version
+    as specified in its CHANGELOG."""
     # TODO [MIC-4546]: Clean this up w/ metadata and update test_interface.py tests to be generic
     directories = [x.name for x in source.iterdir() if x.is_dir()]
     if dataset_schema.name not in directories:
@@ -341,7 +344,7 @@ def generate_decennial_census(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    filters: list[DataFilter] = get_generate_data_filters(DATASET_SCHEMAS.census, year, state)
+    filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.census, year, state)
     return _generate_dataset(
         DATASET_SCHEMAS.census,
         source,
@@ -467,7 +470,7 @@ def generate_american_community_survey(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    filters: list[DataFilter] = get_generate_data_filters(DATASET_SCHEMAS.acs, year, state)
+    filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.acs, year, state)
     if year is not None:
         seed = seed * 10_000 + year
     return _generate_dataset(
@@ -590,7 +593,7 @@ def generate_current_population_survey(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    filters: list[DataFilter] = get_generate_data_filters(DATASET_SCHEMAS.cps, year, state)
+    filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.cps, year, state)
     if year is not None:
         seed = seed * 10_000 + year
     return _generate_dataset(
@@ -704,9 +707,7 @@ def generate_taxes_w2_and_1099(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    filters: list[DataFilter] = get_generate_data_filters(
-        DATASET_SCHEMAS.tax_w2_1099, year, state
-    )
+    filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.tax_w2_1099, year, state)
     if year is not None:
         seed = seed * 10_000 + year
     return _generate_dataset(
@@ -837,7 +838,7 @@ def generate_women_infants_and_children(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    filters: list[DataFilter] = get_generate_data_filters(DATASET_SCHEMAS.wic, year, state)
+    filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.wic, year, state)
     if year is not None:
         seed = seed * 10_000 + year
     return _generate_dataset(
@@ -939,7 +940,7 @@ def generate_social_security(
         The simulated population has no data for this dataset in the
         specified year or any prior years.
     """
-    filters: list[DataFilter] = get_generate_data_filters(DATASET_SCHEMAS.ssa, year)
+    filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.ssa, year)
     if year is not None:
         seed = seed * 10_000 + year
     return _generate_dataset(
@@ -1053,9 +1054,7 @@ def generate_taxes_1040(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    filters: list[DataFilter] = get_generate_data_filters(
-        DATASET_SCHEMAS.tax_1040, year, state
-    )
+    filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.tax_1040, year, state)
     if year is not None:
         seed = seed * 10_000 + year
     return _generate_dataset(

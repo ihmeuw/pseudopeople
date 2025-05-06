@@ -21,49 +21,35 @@ class DataFilter:
         return self.column_name, self.operator, self.value
 
 
-def get_generate_data_filters(
+def get_data_filters(
     dataset_schema: DatasetSchema, year: int | None = 2020, state: str | None = None
 ) -> Sequence[DataFilter]:
     filters = []
+    if dataset_schema.has_state_filter and state is not None:
+        state_column = cast(str, dataset_schema.state_column_name)
+        filters.append(DataFilter(state_column, "==", get_state_abbreviation(state)))
 
-    # add year filter for SSA
-    if dataset_schema.name == DatasetNames.SSA:
-        if year is not None:
-            try:
-                filters.append(
-                    DataFilter(
-                        dataset_schema.date_column_name,
-                        "<=",
-                        pd.Timestamp(year=year, month=12, day=31),
-                    )
-                )
-            except (pd.errors.OutOfBoundsDatetime, ValueError):
-                raise ValueError(f"Invalid year provided: '{year}'")
-    # add state filters except for SSA which does not have a state column
-    else:
-        if state is not None:
-            state_column = cast(str, dataset_schema.state_column_name)
-            filters.append(DataFilter(state_column, "==", get_state_abbreviation(state)))
-
-    # add non-SSA year filters
-    if dataset_schema.name == DatasetNames.ACS or dataset_schema.name == DatasetNames.CPS:
-        if year is not None:
-            try:
+    if year is not None:
+        try:
+            if dataset_schema.has_year_lower_filter:
                 date_lower_filter = DataFilter(
                     dataset_schema.date_column_name,
                     ">=",
                     pd.Timestamp(year=year, month=1, day=1),
                 )
+                filters.append(date_lower_filter)
+
+            if dataset_schema.has_year_upper_filter:
                 date_upper_filter = DataFilter(
                     dataset_schema.date_column_name,
                     "<=",
                     pd.Timestamp(year=year, month=12, day=31),
                 )
-                filters.extend([date_lower_filter, date_upper_filter])
-            except (pd.errors.OutOfBoundsDatetime, ValueError):
-                raise ValueError(f"Invalid year provided: '{year}'")
-    else:
-        if year is not None and dataset_schema.name != DatasetNames.SSA:
+                filters.append(date_upper_filter)
+        except (pd.errors.OutOfBoundsDatetime, ValueError):
+            raise ValueError(f"Invalid year provided: '{year}'")
+
+        if dataset_schema.has_exact_year_filter:
             filters.append(DataFilter(dataset_schema.date_column_name, "==", year))
 
     return filters
