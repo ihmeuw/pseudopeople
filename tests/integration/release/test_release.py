@@ -3,10 +3,8 @@ from __future__ import annotations
 from collections.abc import Callable
 import numpy.typing as npt
 from pathlib import Path
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
-import dask.dataframe as dd
-import math
 import numpy as np
 import pandas as pd
 from _pytest.fixtures import FixtureRequest
@@ -26,7 +24,7 @@ from pseudopeople.constants.noise_type_metadata import (
 from pseudopeople.dataset import Dataset
 from pseudopeople.dtypes import DtypeNames
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
-from pseudopeople.filter import get_generate_data_filters
+from pseudopeople.filter import get_data_filters
 from pseudopeople.interface import (
     generate_social_security,
     get_dataset_filepaths,
@@ -53,6 +51,10 @@ from tests.utilities import (
     initialize_dataset_with_sample,
     run_column_noising_tests,
 )
+
+if TYPE_CHECKING:
+    import dask.dataframe as dd
+
 
 ROW_TEST_FUNCTIONS = {
     "omit_row": run_omit_row_tests,
@@ -95,30 +97,34 @@ def test_release_row_noising(
     engine = get_engine_from_string(engine_name)
 
     data_file_paths = get_dataset_filepaths(Path(source), dataset_schema.name)
-    filters = get_generate_data_filters(dataset_schema, year, state)
-    unnoised_data = [load_standard_dataset(path, filters, engine) for path in data_file_paths]
-    
+    filters = get_data_filters(dataset_schema, year, state)
+    unnoised_data: list[pd.DataFrame | dd.DataFrame] = [
+        load_standard_dataset(path, filters, engine) for path in data_file_paths
+    ]
+
     if engine == DASK_ENGINE:
         # TODO: [MIC-5960] move this compute to later in the code
         dataset_data: list[pd.DataFrame] = [data.compute() for data in unnoised_data if len(data) != 0]  # type: ignore [operator]
     else:
         dataset_data = [data for data in unnoised_data if len(data) != 0]  # type: ignore [misc]
 
-    #has_small_shards = dataset_name == 'acs' or dataset_name == "cps" or dataset_name == "wic"
-    #if str(source) == RI_FILEPATH and has_small_shards:
-    #    dataset_data = [pd.concat(dataset_data).reset_index()]
-    dataset_data = [pd.concat(dataset_data).reset_index()]
+    datasets: list[Dataset] = [
+        Dataset(dataset_schema, data, f"SEED_{i}") for i, data in enumerate(dataset_data)
+    ]
 
-    datasets = [Dataset(dataset_schema, data, SEED) for data in dataset_data]
-    for noise_type in NOISE_TYPES[3:]:
-        prenoised_dataframes = [dataset.data.copy() for dataset in datasets]
-        # if isinstance(noise_type, RowNoiseType):
-        #     if config.has_noise_type(dataset_schema.name, noise_type.name):
-        #         [noise_type(dataset, config) for dataset in datasets]
-        #         test_function = ROW_TEST_FUNCTIONS[noise_type.name]
-        #         test_function(
-        #             prenoised_dataframes, datasets, config, full_dataset_name, fuzzy_checker
-        #         )
+    for noise_type in NOISE_TYPES:
+        prenoised_dataframes: list[pd.DataFrame] = [
+            dataset.data.copy() for dataset in datasets
+        ]
+        if isinstance(noise_type, RowNoiseType):
+            if config.has_noise_type(dataset_schema.name, noise_type.name):
+                for dataset in datasets:
+                    # noise datasets in place
+                    noise_type(dataset, config)
+                test_function = ROW_TEST_FUNCTIONS[noise_type.name]
+                test_function(
+                    prenoised_dataframes, datasets, config, full_dataset_name, fuzzy_checker
+                )
         if isinstance(noise_type, ColumnNoiseType):
             for column in prenoised_dataframes[0].columns:
                 if config.has_noise_type(

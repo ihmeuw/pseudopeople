@@ -116,19 +116,15 @@ def test_set_up_dask_client_default() -> None:
             client = get_client()
 
     set_up_dask_client()
-    client = get_client()
-    assert isinstance(client.cluster, LocalCluster)
-    assert client.cluster.name == "pseudopeople_dask_cluster"
-    workers = client.scheduler_info()["workers"]  # type: ignore[no-untyped-call]
-    assert len(workers) == CPU_COUNT
-    assert all(worker["nthreads"] == 1 for worker in workers.values())
+
     if is_on_slurm():
         try:
             available_memory = float(os.environ["SLURM_MEM_PER_NODE"]) / 1024
         except KeyError:
             raise RuntimeError(
-                "You are on Slurm but SLURM_MEM_PER_NODE is not set. "
-                "It is likely that you are SSHed onto a node (perhaps using VSCode). "
+                "NOTE: This RuntimeError is expected if you are using VSCode on the cluster!\n\n"
+                "You are on Slurm but SLURM_MEM_PER_NODE is not set; it is likely "
+                "that you are SSHed onto a node (perhaps using VSCode?). "
                 "In this case, dask will assign the total memory of the node to the "
                 "cluster instead of the allocated memory from the srun call. "
                 "Pseudopeople should only be used on Slurm directly on the node "
@@ -136,30 +132,65 @@ def test_set_up_dask_client_default() -> None:
             )
     else:
         available_memory = psutil.virtual_memory().total / (1024**3)
-    assert np.isclose(
-        sum(worker["memory_limit"] / 1024**3 for worker in workers.values()),
-        available_memory,
-        rtol=0.01,
+
+    _check_cluster_attrs(
+        cluster_name="pseudopeople_dask_cluster",
+        memory_limit=available_memory,
+        n_workers=CPU_COUNT,
+        threads_per_worker=1,
     )
 
 
-def test_set_up_dask_client_custom() -> None:
+def test_set_up_dask_client_existing_cluster() -> None:
+    cluster_name = "custom"
     memory_limit = 1  # gb
     n_workers = 3
+    threads_per_worker = 2
+
+    # Manually create a cluster
     cluster = LocalCluster(  # type: ignore[no-untyped-call]
-        name="custom",
+        name=cluster_name,
         n_workers=n_workers,
-        threads_per_worker=2,
+        threads_per_worker=threads_per_worker,
         memory_limit=memory_limit * 1024**3,
     )
-    client = cluster.get_client()  # type: ignore[no-untyped-call]
+    cluster.get_client()  # type: ignore[no-untyped-call]
+    _check_cluster_attrs(
+        cluster_name=cluster_name,
+        memory_limit=memory_limit * n_workers,
+        n_workers=n_workers,
+        threads_per_worker=threads_per_worker,
+    )
+
+    # Call the dask client setup function
     set_up_dask_client()
-    client = get_client()
-    assert client.cluster.name == "custom"
-    workers = client.scheduler_info()["workers"]
-    assert len(workers) == 3
-    assert all(worker["nthreads"] == 2 for worker in workers.values())
-    assert (
-        sum(worker["memory_limit"] / 1024**3 for worker in workers.values())
-        == memory_limit * n_workers
+
+    # Make sure that the cluster hasn't been changed
+    assert get_client().cluster == cluster
+    _check_cluster_attrs(
+        cluster_name=cluster_name,
+        memory_limit=memory_limit * n_workers,
+        n_workers=n_workers,
+        threads_per_worker=threads_per_worker,
+    )
+
+
+####################
+# Helper Functions #
+####################
+
+
+def _check_cluster_attrs(
+    cluster_name: str, memory_limit: int | float, n_workers: int, threads_per_worker: int
+) -> None:
+    cluster = get_client().cluster
+    assert isinstance(cluster, LocalCluster)
+    assert cluster.name == cluster_name
+    workers = cluster.scheduler_info["workers"]
+    assert len(workers) == n_workers
+    assert all(worker["nthreads"] == threads_per_worker for worker in workers.values())
+    assert np.isclose(
+        sum(worker["memory_limit"] / 1024**3 for worker in workers.values()),
+        memory_limit,
+        rtol=0.01,
     )
