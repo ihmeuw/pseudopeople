@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+import math
 import numpy.typing as npt
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
@@ -63,6 +64,40 @@ ROW_TEST_FUNCTIONS = {
 }
 
 
+def get_high_noise_config() -> NoiseConfiguration:
+    """Returns a custom configuration dict to be used in noising"""
+    config = get_configuration().to_dict()  # default config
+    breakpoint()
+    # Increase row noise probabilities to 5% and column cell_probabilities to 25%
+    for dataset_name in config:
+        dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+        config[dataset_schema.name][Keys.ROW_NOISE] = {
+            noise_type.name: {
+                Keys.ROW_PROBABILITY: 0.05,
+            }
+            for noise_type in dataset_schema.row_noise_types
+            if noise_type != NOISE_TYPES.duplicate_with_guardian
+        }
+        for col in [c for c in dataset_schema.columns if c.noise_types]:
+            config[dataset_name][Keys.COLUMN_NOISE][col.name] = {
+                noise_type.name: {
+                    Keys.CELL_PROBABILITY: 0.2,
+                }
+                for noise_type in col.noise_types
+            }
+
+    # Update SSA dataset to noise 'ssn' but NOT noise 'ssa_event_type' since that
+    # will be used as an identifier along with simulant_id
+    # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
+    config[DATASET_SCHEMAS.ssa.name][Keys.COLUMN_NOISE][COLUMNS.ssa_event_type.name] = {
+        noise_type.name: {
+            Keys.CELL_PROBABILITY: 0,
+        }
+        for noise_type in COLUMNS.ssa_event_type.noise_types
+    }
+    return NoiseConfiguration((LayeredConfigTree(config)))
+    
+
 def test_release_row_noising(
     dataset_params: tuple[
         str,
@@ -77,7 +112,8 @@ def test_release_row_noising(
     dataset_name, _, source, year, state, engine_name = dataset_params
     full_dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_name]
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(full_dataset_name)
-    config = get_configuration()
+    #config = get_configuration()
+    config = get_high_noise_config()
 
     if source is None:
         filename = None
@@ -133,11 +169,12 @@ def test_release_row_noising(
                 if config.has_noise_type(
                     dataset_schema.name, noise_type.name, column
                 ):
-                    if column == COLUMNS.ssa_event_type.name:
-                        pass
-                    else:
-                        [noise_type(dataset, config, column) for dataset in datasets]
-                        run_column_noising_test(prenoised_dataframes, datasets, config, full_dataset_name, noise_type.name, column, fuzzy_checker, filename)
+                    #if column == COLUMNS.ssa_event_type.name:
+                    #    pass
+                    #else:
+                    for dataset in datasets:
+                        noise_type(dataset, config, column)
+                    run_column_noising_test(prenoised_dataframes, datasets, config, full_dataset_name, noise_type.name, column, fuzzy_checker, filename)
                     
 
 def run_column_noising_test(
