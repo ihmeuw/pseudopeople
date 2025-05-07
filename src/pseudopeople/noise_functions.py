@@ -29,6 +29,8 @@ from pseudopeople.utilities import (
 )
 
 if TYPE_CHECKING:
+    import dask.dataframe as dd
+
     from pseudopeople.configuration.noise_configuration import NoiseConfiguration
     from pseudopeople.dataset import Dataset
 
@@ -95,7 +97,7 @@ def apply_do_not_respond(
 
 # Helper function to format group dataframe and merging with their dependents
 def merge_dependents_and_guardians(
-    dependents_df: pd.DataFrame, full_data: pd.DataFrame
+    dependents_df: pd.DataFrame | dd.DataFrame, full_data: pd.DataFrame | dd.DataFrame
 ) -> pd.DataFrame:
     # Merge dependents with their guardians. We have to merge twice to check
     # if either guardian is living at a separate location from the dependent.

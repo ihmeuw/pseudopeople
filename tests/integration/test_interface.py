@@ -500,7 +500,7 @@ def test_generate_dataset_with_bad_year(
 
 
 @pytest.mark.skip(reason="TODO: mic-6023")
-def test_dask_cluster_is_used():
+def test_dask_cluster_is_used() -> None:
     """Set up a dask cluster manually, then run psp, then make sure that the
     resulting dataframe was computed from that same cluster
     """

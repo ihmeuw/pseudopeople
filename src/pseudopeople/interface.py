@@ -14,7 +14,7 @@ from pseudopeople.configuration import get_configuration
 from pseudopeople.constants import paths
 from pseudopeople.dataset import noise_data
 from pseudopeople.exceptions import DataSourceError
-from pseudopeople.filter import DataFilter
+from pseudopeople.filter import DataFilter, get_data_filters
 from pseudopeople.loader import load_standard_dataset
 from pseudopeople.schema_entities import DATASET_SCHEMAS, DatasetSchema
 from pseudopeople.utilities import (
@@ -196,6 +196,9 @@ def _generate_dataset(
 
 
 def validate_source_compatibility(source: Path, dataset_schema: DatasetSchema) -> None:
+    """Validate that a given source is compatible with the provided dataset schema by checking that
+    1) data exist for said schema in the provided source path and that 2) the data is the expected version
+    as specified in its CHANGELOG."""
     # TODO [MIC-4546]: Clean this up w/ metadata and update test_interface.py tests to be generic
     directories = [x.name for x in source.iterdir() if x.is_dir()]
     if dataset_schema.name not in directories:
@@ -341,12 +344,7 @@ def generate_decennial_census(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    filters: list[DataFilter] = []
-    if year is not None:
-        filters.append(DataFilter(DATASET_SCHEMAS.census.date_column_name, "==", year))
-    if state is not None:
-        state_column_name = cast(str, DATASET_SCHEMAS.census.state_column_name)
-        filters.append(DataFilter(state_column_name, "==", get_state_abbreviation(state)))
+    filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.census, year, state)
     return _generate_dataset(
         DATASET_SCHEMAS.census,
         source,
@@ -472,26 +470,9 @@ def generate_american_community_survey(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    filters = []
+    filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.acs, year, state)
     if year is not None:
-        try:
-            date_lower_filter = DataFilter(
-                DATASET_SCHEMAS.acs.date_column_name,
-                ">=",
-                pd.Timestamp(year=year, month=1, day=1),
-            )
-            date_upper_filter = DataFilter(
-                DATASET_SCHEMAS.acs.date_column_name,
-                "<=",
-                pd.Timestamp(year=year, month=12, day=31),
-            )
-            filters.extend([date_lower_filter, date_upper_filter])
-        except (pd.errors.OutOfBoundsDatetime, ValueError):
-            raise ValueError(f"Invalid year provided: '{year}'")
         seed = seed * 10_000 + year
-    if state is not None:
-        state_column = cast(str, DATASET_SCHEMAS.acs.state_column_name)
-        filters.append(DataFilter(state_column, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.acs, source, seed, config, filters, verbose, engine_name=engine
     )
@@ -612,26 +593,9 @@ def generate_current_population_survey(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    filters = []
+    filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.cps, year, state)
     if year is not None:
-        try:
-            date_lower_filter = DataFilter(
-                DATASET_SCHEMAS.acs.date_column_name,
-                ">=",
-                pd.Timestamp(year=year, month=1, day=1),
-            )
-            date_upper_filter = DataFilter(
-                DATASET_SCHEMAS.acs.date_column_name,
-                "<=",
-                pd.Timestamp(year=year, month=12, day=31),
-            )
-            filters.extend([date_lower_filter, date_upper_filter])
-        except (pd.errors.OutOfBoundsDatetime, ValueError):
-            raise ValueError(f"Invalid year provided: '{year}'")
         seed = seed * 10_000 + year
-    if state is not None:
-        state_column = cast(str, DATASET_SCHEMAS.cps.state_column_name)
-        filters.append(DataFilter(state_column, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.cps, source, seed, config, filters, verbose, engine_name=engine
     )
@@ -743,13 +707,9 @@ def generate_taxes_w2_and_1099(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    filters = []
+    filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.tax_w2_1099, year, state)
     if year is not None:
-        filters.append(DataFilter(DATASET_SCHEMAS.tax_w2_1099.date_column_name, "==", year))
         seed = seed * 10_000 + year
-    if state is not None:
-        state_column = cast(str, DATASET_SCHEMAS.tax_w2_1099.state_column_name)
-        filters.append(DataFilter(state_column, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.tax_w2_1099,
         source,
@@ -878,13 +838,9 @@ def generate_women_infants_and_children(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    filters = []
+    filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.wic, year, state)
     if year is not None:
-        filters.append(DataFilter(DATASET_SCHEMAS.wic.date_column_name, "==", year))
         seed = seed * 10_000 + year
-    if state is not None:
-        state_column = cast(str, DATASET_SCHEMAS.wic.state_column_name)
-        filters.append(DataFilter(state_column, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.wic, source, seed, config, filters, verbose, engine_name=engine
     )
@@ -984,18 +940,8 @@ def generate_social_security(
         The simulated population has no data for this dataset in the
         specified year or any prior years.
     """
-    filters = []
+    filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.ssa, year)
     if year is not None:
-        try:
-            filters.append(
-                DataFilter(
-                    DATASET_SCHEMAS.ssa.date_column_name,
-                    "<=",
-                    pd.Timestamp(year=year, month=12, day=31),
-                )
-            )
-        except (pd.errors.OutOfBoundsDatetime, ValueError):
-            raise ValueError(f"Invalid year provided: '{year}'")
         seed = seed * 10_000 + year
     return _generate_dataset(
         DATASET_SCHEMAS.ssa, source, seed, config, filters, verbose, engine_name=engine
@@ -1108,13 +1054,9 @@ def generate_taxes_1040(
         The simulated population has no data for this dataset in the
         specified year or state.
     """
-    filters = []
+    filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.tax_1040, year, state)
     if year is not None:
-        filters.append(DataFilter(DATASET_SCHEMAS.tax_1040.date_column_name, "==", year))
         seed = seed * 10_000 + year
-    if state is not None:
-        state_column = cast(str, DATASET_SCHEMAS.tax_1040.state_column_name)
-        filters.append(DataFilter(state_column, "==", get_state_abbreviation(state)))
     return _generate_dataset(
         DATASET_SCHEMAS.tax_1040,
         source,
