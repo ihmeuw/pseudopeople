@@ -590,6 +590,10 @@ class DatasetSchema:
     date_format: str
     state_column_name: str | None
     row_noise_types: tuple[RowNoiseType, ...]
+    has_state_filter: bool
+    has_year_lower_filter: bool
+    has_year_upper_filter: bool
+    has_exact_year_filter: bool
 
 
 class __DatasetSchemas(NamedTuple):
@@ -626,6 +630,10 @@ class __DatasetSchemas(NamedTuple):
             # NOISE_TYPES.duplication,
         ),
         date_format=DATEFORMATS.MM_DD_YYYY,
+        has_state_filter=True,
+        has_year_lower_filter=False,
+        has_year_upper_filter=False,
+        has_exact_year_filter=True,
     )
     acs: DatasetSchema = DatasetSchema(
         DatasetNames.ACS,
@@ -657,6 +665,10 @@ class __DatasetSchemas(NamedTuple):
             # NOISE_TYPES.duplication,
         ),
         date_format=DATEFORMATS.MM_DD_YYYY,
+        has_state_filter=True,
+        has_year_lower_filter=True,
+        has_year_upper_filter=True,
+        has_exact_year_filter=False,
     )
     cps: DatasetSchema = DatasetSchema(
         DatasetNames.CPS,
@@ -686,6 +698,10 @@ class __DatasetSchemas(NamedTuple):
             # NOISE_TYPES.duplication,
         ),
         date_format=DATEFORMATS.MM_DD_YYYY,
+        has_state_filter=True,
+        has_year_lower_filter=True,
+        has_year_upper_filter=True,
+        has_exact_year_filter=False,
     )
     wic: DatasetSchema = DatasetSchema(
         DatasetNames.WIC,
@@ -713,6 +729,10 @@ class __DatasetSchemas(NamedTuple):
             # NOISE_TYPES.duplication,
         ),
         date_format=DATEFORMATS.MMDDYYYY,
+        has_state_filter=True,
+        has_year_lower_filter=False,
+        has_year_upper_filter=False,
+        has_exact_year_filter=True,
     )
     ssa: DatasetSchema = DatasetSchema(
         DatasetNames.SSA,
@@ -734,6 +754,10 @@ class __DatasetSchemas(NamedTuple):
             # NOISE_TYPES.duplication,
         ),
         date_format=DATEFORMATS.YYYYMMDD,
+        has_state_filter=False,
+        has_year_lower_filter=False,
+        has_year_upper_filter=True,
+        has_exact_year_filter=False,
     )
     tax_w2_1099: DatasetSchema = DatasetSchema(
         DatasetNames.TAXES_W2_1099,
@@ -770,6 +794,10 @@ class __DatasetSchemas(NamedTuple):
             # NOISE_TYPES.duplication,
         ),
         date_format=DATEFORMATS.MM_DD_YYYY,
+        has_state_filter=True,
+        has_year_lower_filter=False,
+        has_year_upper_filter=False,
+        has_exact_year_filter=True,
     )
     tax_1040: DatasetSchema = DatasetSchema(
         DatasetNames.TAXES_1040,
@@ -809,6 +837,10 @@ class __DatasetSchemas(NamedTuple):
         state_column_name=COLUMNS.mailing_state.name,
         row_noise_types=(NOISE_TYPES.omit_row,),
         date_format=DATEFORMATS.MM_DD_YYYY,
+        has_state_filter=True,
+        has_year_lower_filter=False,
+        has_year_upper_filter=False,
+        has_exact_year_filter=True,
     )
 
     ##################
