@@ -345,6 +345,10 @@ def generate_decennial_census(
         specified year or state.
     """
     filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.census, year, state)
+    # update seed so the first N digits are the seed and the last 4 digits are the year
+    # so that it's unique for every year and original seed combination
+    if year is not None:
+        seed = seed * 10_000 + year
     return _generate_dataset(
         DATASET_SCHEMAS.census,
         source,
@@ -471,6 +475,8 @@ def generate_american_community_survey(
         specified year or state.
     """
     filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.acs, year, state)
+    # update seed so the first N digits are the seed and the last 4 digits are the year
+    # so that it's unique for every year and original seed combination
     if year is not None:
         seed = seed * 10_000 + year
     return _generate_dataset(
@@ -594,6 +600,8 @@ def generate_current_population_survey(
         specified year or state.
     """
     filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.cps, year, state)
+    # update seed so the first N digits are the seed and the last 4 digits are the year
+    # so that it's unique for every year and original seed combination
     if year is not None:
         seed = seed * 10_000 + year
     return _generate_dataset(
@@ -708,6 +716,8 @@ def generate_taxes_w2_and_1099(
         specified year or state.
     """
     filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.tax_w2_1099, year, state)
+    # update seed so the first N digits are the seed and the last 4 digits are the year
+    # so that it's unique for every year and original seed combination
     if year is not None:
         seed = seed * 10_000 + year
     return _generate_dataset(
@@ -839,6 +849,8 @@ def generate_women_infants_and_children(
         specified year or state.
     """
     filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.wic, year, state)
+    # update seed so the first N digits are the seed and the last 4 digits are the year
+    # so that it's unique for every year and original seed combination
     if year is not None:
         seed = seed * 10_000 + year
     return _generate_dataset(
@@ -941,6 +953,8 @@ def generate_social_security(
         specified year or any prior years.
     """
     filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.ssa, year)
+    # update seed so the first N digits are the seed and the last 4 digits are the year
+    # so that it's unique for every year and original seed combination
     if year is not None:
         seed = seed * 10_000 + year
     return _generate_dataset(
@@ -1055,6 +1069,8 @@ def generate_taxes_1040(
         specified year or state.
     """
     filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.tax_1040, year, state)
+    # update seed so the first N digits are the seed and the last 4 digits are the year
+    # so that it's unique for every year and original seed combination
     if year is not None:
         seed = seed * 10_000 + year
     return _generate_dataset(
