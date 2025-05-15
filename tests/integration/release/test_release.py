@@ -64,41 +64,49 @@ ROW_TEST_FUNCTIONS = {
 }
 
 
-def get_high_noise_config() -> NoiseConfiguration:
-    """Returns a custom configuration dict to be used in noising"""
-    config = get_configuration().to_dict()  # default config
-    breakpoint()
-    # Increase row noise probabilities to 5% and column cell_probabilities to 25%
-    for dataset_name in config:
-        dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
-        config[dataset_schema.name][Keys.ROW_NOISE] = {
-            noise_type.name: {
-                Keys.ROW_PROBABILITY: 0.05,
-            }
-            for noise_type in dataset_schema.row_noise_types
-            if noise_type != NOISE_TYPES.duplicate_with_guardian
-        }
-        for col in [c for c in dataset_schema.columns if c.noise_types]:
-            config[dataset_name][Keys.COLUMN_NOISE][col.name] = {
-                noise_type.name: {
-                    Keys.CELL_PROBABILITY: 0.2,
-                }
-                for noise_type in col.noise_types
-            }
+def get_high_noise_config(
+    dataset_name: str
+) -> NoiseConfiguration:
+    """Return a dictionary with a probability for each value."""
+    config: NoiseConfiguration = get_configuration()
+    config_dict = config.to_dict()
+    HIGH_PROBABILITY = 0.2
 
-    # Update SSA dataset to noise 'ssn' but NOT noise 'ssa_event_type' since that
-    # will be used as an identifier along with simulant_id
-    # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
-    config[DATASET_SCHEMAS.ssa.name][Keys.COLUMN_NOISE][COLUMNS.ssa_event_type.name] = {
-        noise_type.name: {
-            Keys.CELL_PROBABILITY: 0,
-        }
-        for noise_type in COLUMNS.ssa_event_type.noise_types
-    }
-    return NoiseConfiguration((LayeredConfigTree(config)))
+    for noise_type, probabilities in config_dict[dataset_name][Keys.ROW_NOISE].items():
+        for probability_name, probability in probabilities.items():
+            if probability_name == 'cell_probability':
+                config_dict[dataset_name][Keys.ROW_NOISE][noise_type][probability_name] = HIGH_PROBABILITY
+
+    for col, noise_types in config_dict[dataset_name][Keys.COLUMN_NOISE].items():
+        for noise_type, probabilities in noise_types.items():
+            for probability_name, probability in probabilities.items():
+                if isinstance(probability, list) or isinstance(probability, dict):
+                    pass
+                elif probability_name == 'cell_probability':
+                    config_dict[dataset_name][Keys.COLUMN_NOISE][col][noise_type][
+                        probability_name
+                    ] = HIGH_PROBABILITY
+
+    return NoiseConfiguration((LayeredConfigTree(config_dict)))
     
 
-def test_release_row_noising(
+def clean_input_data(dataset: Dataset) -> None:
+    for col in dataset.dataset_schema.columns:
+        # Coerce empty strings to nans
+        dataset.data[col.name] = dataset.data[col.name].replace("", np.nan)
+
+        if (
+            dataset.data[col.name].dtype.name == "category"
+            and col.dtype_name == DtypeNames.OBJECT
+        ):
+            # We made some columns in the pseudopeople input categorical
+            # purely as a kind of DIY compression.
+            # TODO: Determine whether this is benefitting us after
+            # the switch to Parquet.
+            dataset.data[col.name] = to_string(dataset.data[col.name])
+
+
+def test_full_release_noising(
     dataset_params: tuple[
         str,
         Callable[..., pd.DataFrame],
@@ -113,15 +121,19 @@ def test_release_row_noising(
     full_dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_name]
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(full_dataset_name)
     #config = get_configuration()
-    config = get_high_noise_config()
+    config = get_high_noise_config(full_dataset_name)
 
+    ### writing out file info ###
+    import time
+    current_time = time.time()
     if source is None:
-        filename = None
+        filename = f"/ihme/homes/hjafari/ppl_col_noise/{dataset_name}_sample_{current_time}.txt"
     elif str(source) == RI_FILEPATH:
-        filename = f"/ihme/homes/hjafari/ppl_col_noise/{dataset_name}_RI.txt"
+        filename = f"/ihme/homes/hjafari/ppl_col_noise/{dataset_name}_RI_{current_time}.txt"
     else:
-        filename = f"/ihme/homes/hjafari/ppl_col_noise/{dataset_name}_USA.txt"
+        filename = f"/ihme/homes/hjafari/ppl_col_noise/{dataset_name}_USA_{current_time}.txt"
     open(filename, 'a').close()
+    ##############################
 
     # update parameters
     if source is None:
@@ -150,7 +162,10 @@ def test_release_row_noising(
     datasets: list[Dataset] = [
         Dataset(dataset_schema, data, f"{seed}_{i}") for i, data in enumerate(dataset_data)
     ]
-
+    
+    for dataset in datasets:
+        clean_input_data(dataset)
+    
     for noise_type in NOISE_TYPES:
         prenoised_dataframes: list[pd.DataFrame] = [
             dataset.data.copy() for dataset in datasets
@@ -169,12 +184,17 @@ def test_release_row_noising(
                 if config.has_noise_type(
                     dataset_schema.name, noise_type.name, column
                 ):
-                    #if column == COLUMNS.ssa_event_type.name:
-                    #    pass
-                    #else:
-                    for dataset in datasets:
-                        noise_type(dataset, config, column)
-                    run_column_noising_test(prenoised_dataframes, datasets, config, full_dataset_name, noise_type.name, column, fuzzy_checker, filename)
+                    if column == COLUMNS.ssa_event_type.name:
+                       pass
+                    else:
+                        for dataset in datasets:
+                            noise_type(dataset, config, column)
+                            try:
+                                assert dataset.missingness.equals(dataset.is_missing(dataset.data))
+                            except:
+                                breakpoint()
+                        run_column_noising_test(prenoised_dataframes, datasets, config, full_dataset_name, noise_type.name, column, fuzzy_checker, filename)
+                        
                     
 
 def run_column_noising_test(
@@ -193,6 +213,11 @@ def run_column_noising_test(
     denominator = 0
     expected_noise_level = 0
 
+    # Validate column noise level
+    expected_config_noise = config.get_cell_probability(dataset_name, noise_type, column)
+    includes_token_noising = config.has_parameter(dataset_name, noise_type, Keys.TOKEN_PROBABILITY, column) or config.has_parameter(dataset_name, noise_type, Keys.ZIPCODE_DIGIT_PROBABILITIES, column)
+    removed_rows = 0
+    i=0
     for prenoised_dataframe, noised_dataset in zip(prenoised_dataframes, noised_datasets):
         shared_noised, shared_prenoised, shared_idx = _get_common_datasets(
             dataset_schema, prenoised_dataframe, noised_dataset.data
@@ -205,6 +230,8 @@ def run_column_noising_test(
 
         # Check for noising where applicable
         to_compare_idx = shared_idx.difference(originally_missing_idx)
+        if len(to_compare_idx) == 0:
+            continue
         
         if shared_prenoised[column].dtype.name != shared_noised[column].dtype.name:
             if shared_noised[column].dtype.name == DtypeNames.OBJECT:
@@ -212,10 +239,10 @@ def run_column_noising_test(
             else:
                 # mypy doesn't like using a variable as an argument to astype
                 shared_prenoised[column] = shared_prenoised[column].astype(shared_noised[column].dtype.name)  # type: ignore [call-overload]
-
+        
         prenoised_values = shared_prenoised.loc[to_compare_idx, column].values
         noised_values = shared_noised.loc[to_compare_idx, column].values
-
+        
         different_check: npt.NDArray[np.bool_] = np.array(
             prenoised_values != noised_values
         )
@@ -227,10 +254,6 @@ def run_column_noising_test(
             no_differences = True
 
         noise_level = different_check.sum()
-
-        # Validate column noise level
-        expected_noise = config.get_cell_probability(dataset_name, noise_type, column)
-        includes_token_noising = config.has_parameter(dataset_name, noise_type, Keys.TOKEN_PROBABILITY, column) or config.has_parameter(dataset_name, noise_type, Keys.ZIPCODE_DIGIT_PROBABILITIES, column)
         
         if includes_token_noising:
             if noise_type == NOISE_TYPES.write_wrong_zipcode_digits.name:
@@ -253,7 +276,6 @@ def run_column_noising_test(
             tokens_per_string: pd.Series[int] | int = tokens_per_string_getter(
                 shared_prenoised.loc[to_compare_idx, column]
             )
-
             # Calculate probability no token is noised
             if isinstance(token_probability, list):
                 # Calculate write wrong zipcode average digits probability any token is noise
@@ -268,11 +290,20 @@ def run_column_noising_test(
                 ).mean()
 
             # This is accumulating not_noised over all noise types
-            expected_noise = avg_probability_any_token_noised * expected_noise
+            expected_noise = avg_probability_any_token_noised * expected_config_noise
+        else:
+            expected_noise = expected_config_noise
+
+        num_eligible = len(to_compare_idx)
+        # we sometimes copy the same age from a household member so we only want
+        # to look at individuals who have a different age as a result of this noising
+        if noise_type == 'copy_from_household_member' and column == 'age':
+            num_sims_with_same_copy_age = sum(shared_prenoised.loc[to_compare_idx, 'age'].astype(float).astype(str) == shared_prenoised.loc[to_compare_idx, 'copy_age'].astype(float).astype(str))
+            num_eligible -= num_sims_with_same_copy_age
 
         numerator += noise_level
-        denominator += len(shared_prenoised.loc[to_compare_idx, column])
-        expected_noise_level += expected_noise * len(shared_prenoised.loc[to_compare_idx, column])
+        denominator += num_eligible
+        expected_noise_level += expected_noise * num_eligible
 
     try:
         fuzzy_checker.fuzzy_assert_proportion(

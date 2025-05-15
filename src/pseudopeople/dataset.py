@@ -40,6 +40,7 @@ class Dataset:
         self.data = data
         self.randomness = get_random_generator(self.dataset_schema.name, seed)
         self.missingness = self.is_missing(self.data)
+        self.seed = seed
 
     def __bool__(self) -> bool:
         return not self.data.empty
@@ -57,6 +58,7 @@ class Dataset:
         else:
             missingness_mask = self.missingness[required_columns].any(axis=1)
             non_empty_data = self.data.loc[~missingness_mask, required_columns]
+            
         return non_empty_data.index
 
     def get_noised_data(
