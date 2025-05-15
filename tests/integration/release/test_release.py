@@ -29,7 +29,6 @@ from pseudopeople.utilities import DASK_ENGINE, get_engine_from_string
 from tests.integration.conftest import SEED, _get_common_datasets
 from tests.integration.release.conftest import DATASET_ARG_TO_FULL_NAME_MAPPER
 from tests.integration.release.utilities import (
-    get_high_noise_config,
     run_do_not_respond_tests,
     run_guardian_duplication_tests,
     run_omit_row_tests,
