@@ -31,7 +31,7 @@ from pseudopeople.loader import load_standard_dataset
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.noise_functions import merge_dependents_and_guardians
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
-from pseudopeople.utilities import DASK_ENGINE, get_engine_from_string
+from pseudopeople.utilities import DASK_ENGINE, get_engine_from_string, update_seed
 from tests.integration.conftest import SEED, _get_common_datasets
 from tests.integration.release.conftest import (
     DATASET_ARG_TO_FULL_NAME_MAPPER,
@@ -96,9 +96,7 @@ def test_release_row_noising(
     else:
         dataset_data = [data for data in unnoised_data if len(data) != 0]  # type: ignore [misc]
 
-    seed = SEED
-    if dataset_schema.name != DatasetNames.CENSUS and year is not None:
-        seed = seed * 10_000 + year
+    seed = update_seed(SEED, year)
     datasets: list[Dataset] = [
         Dataset(dataset_schema, data, f"{seed}_{i}") for i, data in enumerate(dataset_data)
     ]
