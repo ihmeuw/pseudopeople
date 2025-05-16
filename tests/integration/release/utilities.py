@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from layered_config_tree import LayeredConfigTree
 from pytest_check import check
 from vivarium_testing_utils import FuzzyChecker
 
-from pseudopeople.configuration import Keys
+from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.constants.noise_type_metadata import (
     GUARDIAN_DUPLICATION_ADDRESS_COLUMNS,
@@ -14,6 +15,30 @@ from pseudopeople.dataset import Dataset
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.noise_functions import merge_dependents_and_guardians
 from pseudopeople.schema_entities import DATASET_SCHEMAS
+
+
+def get_high_noise_config(dataset_name: str) -> NoiseConfiguration:
+    """Return a dictionary with HIGH_PROBABILITY for each row noise value and for each
+    column noise cell probability."""
+    config: NoiseConfiguration = get_configuration()
+    config_dict = config.to_dict()
+    HIGH_PROBABILITY = 0.2
+
+    for noise_type, probabilities in config_dict[dataset_name][Keys.ROW_NOISE].items():
+        for probability_name in probabilities.keys():
+            config_dict[dataset_name][Keys.ROW_NOISE][noise_type][
+                probability_name
+            ] = HIGH_PROBABILITY
+
+    for col, noise_types in config_dict[dataset_name][Keys.COLUMN_NOISE].items():
+        for noise_type, probabilities in noise_types.items():
+            for probability_name in probabilities.keys():
+                if probability_name == Keys.CELL_PROBABILITY:
+                    config_dict[dataset_name][Keys.COLUMN_NOISE][col][noise_type][
+                        probability_name
+                    ] = HIGH_PROBABILITY
+
+    return NoiseConfiguration((LayeredConfigTree(config_dict)))
 
 
 def run_do_not_respond_tests(
