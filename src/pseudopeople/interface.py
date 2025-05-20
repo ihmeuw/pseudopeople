@@ -22,7 +22,7 @@ from pseudopeople.utilities import (
     coerce_dtypes,
     configure_logging_to_terminal,
     get_engine_from_string,
-    get_state_abbreviation,
+    update_seed,
 )
 
 if TYPE_CHECKING:
@@ -345,6 +345,7 @@ def generate_decennial_census(
         specified year or state.
     """
     filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.census, year, state)
+    seed = update_seed(seed, year)
     return _generate_dataset(
         DATASET_SCHEMAS.census,
         source,
@@ -471,8 +472,7 @@ def generate_american_community_survey(
         specified year or state.
     """
     filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.acs, year, state)
-    if year is not None:
-        seed = seed * 10_000 + year
+    seed = update_seed(seed, year)
     return _generate_dataset(
         DATASET_SCHEMAS.acs, source, seed, config, filters, verbose, engine_name=engine
     )
@@ -594,8 +594,7 @@ def generate_current_population_survey(
         specified year or state.
     """
     filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.cps, year, state)
-    if year is not None:
-        seed = seed * 10_000 + year
+    seed = update_seed(seed, year)
     return _generate_dataset(
         DATASET_SCHEMAS.cps, source, seed, config, filters, verbose, engine_name=engine
     )
@@ -708,8 +707,7 @@ def generate_taxes_w2_and_1099(
         specified year or state.
     """
     filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.tax_w2_1099, year, state)
-    if year is not None:
-        seed = seed * 10_000 + year
+    seed = update_seed(seed, year)
     return _generate_dataset(
         DATASET_SCHEMAS.tax_w2_1099,
         source,
@@ -839,8 +837,7 @@ def generate_women_infants_and_children(
         specified year or state.
     """
     filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.wic, year, state)
-    if year is not None:
-        seed = seed * 10_000 + year
+    seed = update_seed(seed, year)
     return _generate_dataset(
         DATASET_SCHEMAS.wic, source, seed, config, filters, verbose, engine_name=engine
     )
@@ -941,8 +938,7 @@ def generate_social_security(
         specified year or any prior years.
     """
     filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.ssa, year)
-    if year is not None:
-        seed = seed * 10_000 + year
+    seed = update_seed(seed, year)
     return _generate_dataset(
         DATASET_SCHEMAS.ssa, source, seed, config, filters, verbose, engine_name=engine
     )
@@ -1055,8 +1051,7 @@ def generate_taxes_1040(
         specified year or state.
     """
     filters: Sequence[DataFilter] = get_data_filters(DATASET_SCHEMAS.tax_1040, year, state)
-    if year is not None:
-        seed = seed * 10_000 + year
+    seed = update_seed(seed, year)
     return _generate_dataset(
         DATASET_SCHEMAS.tax_1040,
         source,
