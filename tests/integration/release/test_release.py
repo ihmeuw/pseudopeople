@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-import math
-import numpy.typing as npt
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
+import math
 import numpy as np
 import pandas as pd
 from _pytest.fixtures import FixtureRequest
 from layered_config_tree import LayeredConfigTree
+import numpy.typing as npt
 from pytest_check import check
 from pytest_mock import MockerFixture
 from vivarium_testing_utils import FuzzyChecker
@@ -35,7 +35,7 @@ from pseudopeople.loader import load_standard_dataset
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.noise_functions import merge_dependents_and_guardians
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
-from pseudopeople.utilities import DASK_ENGINE, to_string, get_engine_from_string
+from pseudopeople.utilities import DASK_ENGINE, to_string, get_engine_from_string, update_seed
 from tests.constants import TOKENS_PER_STRING_MAPPER
 from tests.integration.conftest import SEED, _get_common_datasets
 from tests.integration.release.conftest import (
@@ -63,32 +63,6 @@ ROW_TEST_FUNCTIONS = {
     "duplicate_with_guardian": run_guardian_duplication_tests,
 }
 
-
-def get_high_noise_config(
-    dataset_name: str
-) -> NoiseConfiguration:
-    """Return a dictionary with a probability for each value."""
-    config: NoiseConfiguration = get_configuration()
-    config_dict = config.to_dict()
-    HIGH_PROBABILITY = 0.2
-
-    for noise_type, probabilities in config_dict[dataset_name][Keys.ROW_NOISE].items():
-        for probability_name, probability in probabilities.items():
-            if probability_name == 'cell_probability':
-                config_dict[dataset_name][Keys.ROW_NOISE][noise_type][probability_name] = HIGH_PROBABILITY
-
-    for col, noise_types in config_dict[dataset_name][Keys.COLUMN_NOISE].items():
-        for noise_type, probabilities in noise_types.items():
-            for probability_name, probability in probabilities.items():
-                if isinstance(probability, list) or isinstance(probability, dict):
-                    pass
-                elif probability_name == 'cell_probability':
-                    config_dict[dataset_name][Keys.COLUMN_NOISE][col][noise_type][
-                        probability_name
-                    ] = HIGH_PROBABILITY
-
-    return NoiseConfiguration((LayeredConfigTree(config_dict)))
-    
 
 def clean_input_data(dataset: Dataset) -> None:
     for col in dataset.dataset_schema.columns:
@@ -122,18 +96,6 @@ def test_full_release_noising(
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(full_dataset_name)
     config = get_configuration()
 
-    ### writing out file info ###
-    import time
-    current_time = time.time()
-    if source is None:
-        filename = f"/ihme/homes/hjafari/ppl_col_noise/{dataset_name}_sample_{current_time}.txt"
-    elif str(source) == RI_FILEPATH:
-        filename = f"/ihme/homes/hjafari/ppl_col_noise/{dataset_name}_RI_{current_time}.txt"
-    else:
-        filename = f"/ihme/homes/hjafari/ppl_col_noise/{dataset_name}_USA_{current_time}.txt"
-    open(filename, 'a').close()
-    ##############################
-
     # update parameters
     if source is None:
         source = paths.SAMPLE_DATA_ROOT
@@ -155,16 +117,14 @@ def test_full_release_noising(
     else:
         dataset_data = [data for data in unnoised_data if len(data) != 0]  # type: ignore [misc]
 
-    seed = SEED
-    if dataset_schema.name != DatasetNames.CENSUS and year is not None:
-        seed = seed * 10_000 + year
+    seed = update_seed(SEED, year)
     datasets: list[Dataset] = [
         Dataset(dataset_schema, data, f"{seed}_{i}") for i, data in enumerate(dataset_data)
     ]
-    
+
     for dataset in datasets:
         clean_input_data(dataset)
-    
+
     for noise_type in NOISE_TYPES:
         prenoised_dataframes: list[pd.DataFrame] = [
             dataset.data.copy() for dataset in datasets
@@ -178,6 +138,7 @@ def test_full_release_noising(
                 test_function(
                     prenoised_dataframes, datasets, config, full_dataset_name, fuzzy_checker
                 )
+
         if isinstance(noise_type, ColumnNoiseType):
             for column in prenoised_dataframes[0].columns:
                 if config.has_noise_type(
@@ -188,14 +149,11 @@ def test_full_release_noising(
                     else:
                         for dataset in datasets:
                             noise_type(dataset, config, column)
-                            try:
+                            with check:
                                 assert dataset.missingness.equals(dataset.is_missing(dataset.data))
-                            except:
-                                breakpoint()
-                        run_column_noising_test(prenoised_dataframes, datasets, config, full_dataset_name, noise_type.name, column, fuzzy_checker, filename)
+                        run_column_noising_test(prenoised_dataframes, datasets, config, full_dataset_name, noise_type.name, column, fuzzy_checker)
                         
                     
-
 def run_column_noising_test(
     prenoised_dataframes: list[pd.DataFrame],
     noised_datasets: list[Dataset],
@@ -204,7 +162,6 @@ def run_column_noising_test(
     noise_type: str,
     column: str,
     fuzzy_checker: FuzzyChecker,
-    filename: str,
 ) -> None:
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
     
@@ -215,8 +172,7 @@ def run_column_noising_test(
     # Validate column noise level
     expected_config_noise = config.get_cell_probability(dataset_name, noise_type, column)
     includes_token_noising = config.has_parameter(dataset_name, noise_type, Keys.TOKEN_PROBABILITY, column) or config.has_parameter(dataset_name, noise_type, Keys.ZIPCODE_DIGIT_PROBABILITIES, column)
-    removed_rows = 0
-    i=0
+
     for prenoised_dataframe, noised_dataset in zip(prenoised_dataframes, noised_datasets):
         shared_noised, shared_prenoised, shared_idx = _get_common_datasets(
             dataset_schema, prenoised_dataframe, noised_dataset.data
@@ -296,9 +252,7 @@ def run_column_noising_test(
         num_eligible = len(to_compare_idx)
         # we sometimes copy the same column value from a household member so we only want
         # to look at individuals who have a different value as a result of this noising
-        can_silently_noise_copy = noise_type == 'copy_from_household_member' and (column == 'age' or column == 'date_of_birth') 
-        can_silently_noise_swap = noise_type == 'swap_month_and_day'
-        can_silently_noise = can_silently_noise_copy or can_silently_noise_swap
+        can_silently_noise = noise_type == 'copy_from_household_member' and (column == 'age' or column == 'date_of_birth') 
         if can_silently_noise:
             try:
                 num_sims_with_silent_noising = sum(shared_prenoised.loc[to_compare_idx, column].astype(float) == shared_prenoised.loc[to_compare_idx, f"copy_{column}"].astype(float))
@@ -310,32 +264,30 @@ def run_column_noising_test(
         denominator += num_eligible
         expected_noise_level += expected_noise * num_eligible
 
-    try:
-        fuzzy_checker.fuzzy_assert_proportion(
-            name=noise_type,
-            observed_numerator=numerator,
-            observed_denominator=denominator,
-            target_proportion=expected_noise_level / denominator,
-            name_additional=f"{dataset_name}_{column}_{noise_type}",
-        )
-        if no_differences:
-            with open(filename, "a") as f:
-                info = f"NOISE_TYPE_{noise_type}_COL_{column} has no differences but passed fuzzy checker\n"
-                f.write(info)
-    except:
-        if no_differences:
-            with open(filename, "a") as f:
-                info = f"NOISE_TYPE_{noise_type}_COL_{column} had no differences in our check\n"
-                f.write(info)   
-        if len(to_compare_idx) == 0:
-            with open(filename, "a") as f:
-                info = f"NOISE_TYPE_{noise_type}_COL_{column} has to_compare_idx of length_0\n"
-                f.write(info)
-        else:
-            with open(filename, "a") as f:
-                info = f"NOISE_TYPE_{noise_type}_COL_{column} issue fuzzy checking: expected {expected_noise_level / denominator} from {expected_noise_level} / {denominator} but got {numerator / denominator} from {numerator} / {denominator}\n"
-                f.write(info)
-    
+    fuzzy_checker.fuzzy_assert_proportion(
+        name=noise_type,
+        observed_numerator=numerator,
+        observed_denominator=denominator,
+        target_proportion=expected_noise_level / denominator,
+        name_additional=f"{dataset_name}_{column}_{noise_type}",
+    )
+
+
+def test_column_noising(
+    unnoised_dataset: Dataset,
+    noised_data: pd.DataFrame,
+    config: dict[str, Any],
+    dataset_name: str,
+    fuzzy_checker: FuzzyChecker,
+) -> None:
+    """Tests that columns are noised as expected"""
+    check_noised, check_original, shared_idx = _get_common_datasets(
+        unnoised_dataset, noised_data
+    )
+
+    run_column_noising_tests(
+        dataset_name, config, fuzzy_checker, check_noised, check_original, shared_idx
+    )
 
 def test_column_dtypes(
     unnoised_dataset: Dataset,

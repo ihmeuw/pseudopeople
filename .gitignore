@@ -129,7 +129,7 @@ dmypy.json
 # Pycharm project settings
 .idea/
 
-# VSCode
+# VSCode 
 .vscode/
 
 # Local user jupyter notebooks directory

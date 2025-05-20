@@ -97,6 +97,16 @@ def get_index_to_noise(
     return to_noise_idx
 
 
+def update_seed(seed: int, year: int | None) -> int:
+    """Update seed so the first N digits are the seed and the last 4 digits are the year
+    so that the updated seed is unique for every year and original seed combination.
+    The only exception is when the original seed is 0, in which case the seed will be
+    updated to be the year."""
+    if year is not None:
+        seed = seed * 10_000 + year
+    return seed
+
+
 def configure_logging_to_terminal(verbose: bool = False) -> None:
     logger.remove()  # Clear default configuration
     add_logging_sink(sys.stdout, verbose, colorize=True)

@@ -30,6 +30,8 @@ from pseudopeople.utilities import (
 )
 
 if TYPE_CHECKING:
+    import dask.dataframe as dd
+
     from pseudopeople.configuration.noise_configuration import NoiseConfiguration
     from pseudopeople.dataset import Dataset
 
