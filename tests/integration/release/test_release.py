@@ -185,7 +185,7 @@ def run_column_noising_test(
 
     numerator = 0
     denominator = 0
-    expected_noise_level = 0
+    expected_noise_level = 0.0
 
     # Validate column noise level
     expected_config_noise = config.get_cell_probability(dataset_name, noise_type, column)
