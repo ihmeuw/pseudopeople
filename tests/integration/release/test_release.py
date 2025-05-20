@@ -64,6 +64,7 @@ ROW_TEST_FUNCTIONS = {
 }
 
 
+# taken from Dataset._clean_input_data
 def clean_input_data(dataset: Dataset) -> None:
     for col in dataset.dataset_schema.columns:
         # Coerce empty strings to nans
@@ -151,6 +152,7 @@ def test_full_release_noising(
                        pass
                     else:
                         for dataset in datasets:
+                            # noise datasets in place
                             noise_type(dataset, config, column)
                             with check:
                                 assert dataset.missingness.equals(dataset.is_missing(dataset.data))
@@ -312,64 +314,3 @@ def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
         .all()
         .all()
     )
-
-
-def test_dataset_missingness(
-    dataset_params: tuple[
-        str,
-        Callable[..., pd.DataFrame],
-        str | None,
-        int | None,
-        str | None,
-        Literal["pandas", "dask"],
-    ],
-    dataset_name: str,
-    mocker: MockerFixture,
-) -> None:
-    """Tests that missingness is accurate with dataset.data."""
-    mocker.patch(
-        "pseudopeople.dataset.Dataset.drop_non_schema_columns", side_effect=lambda df, _: df
-    )
-
-    # create unnoised dataset
-    _, dataset_func, source, year, state, engine = dataset_params
-    kwargs = {
-        "source": source,
-        "config": NO_NOISE,
-        "year": year,
-        "engine": engine,
-    }
-    if dataset_func != generate_social_security:
-        kwargs["state"] = state
-    unnoised_data = dataset_func(**kwargs)
-
-    # In our standard noising process, i.e. when noising a shard of data, we
-    # 1) clean and reformat the data, 2) noise the data, and 3) do some post-processing.
-    # We're replicating steps 1 and 2 in this test and skipping 3.
-    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
-    dataset = Dataset(dataset_schema, unnoised_data, SEED)
-    dataset._clean_input_data()
-    # convert datetime columns to datetime types for _reformat_dates_for_noising
-    # because the post-processing that occured in generating the unnoised data
-    # in step 3 mentioned above converts these columns to object dtypes
-    for col in [COLUMNS.dob.name, COLUMNS.ssa_event_date.name]:
-        if col in dataset.data:
-            dataset.data[col] = pd.to_datetime(dataset.data[col])
-            dataset.data["copy_" + col] = pd.to_datetime(dataset.data["copy_" + col])
-    dataset._reformat_dates_for_noising()
-    config = get_configuration()
-
-    # NOTE: This is recreating Dataset._noise_dataset but adding assertions for missingness
-    for noise_type in NOISE_TYPES:
-        if isinstance(noise_type, RowNoiseType):
-            if config.has_noise_type(dataset.dataset_schema.name, noise_type.name):
-                noise_type(dataset, config)
-                # Check missingness is synced with data
-                assert dataset.missingness.equals(dataset.is_missing(dataset.data))
-        if isinstance(noise_type, ColumnNoiseType):
-            for column in dataset.data.columns:
-                if config.has_noise_type(
-                    dataset.dataset_schema.name, noise_type.name, column
-                ):
-                    noise_type(dataset, config, column)
-                assert dataset.missingness.equals(dataset.is_missing(dataset.data))
