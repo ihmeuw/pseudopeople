@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import dask.dataframe as dd
 import numpy as np
 import numpy.typing as npt
 import pandas as pd

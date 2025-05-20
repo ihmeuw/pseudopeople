@@ -37,7 +37,7 @@ from pseudopeople.noise_functions import merge_dependents_and_guardians
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
 from pseudopeople.utilities import DASK_ENGINE, to_string, get_engine_from_string, update_seed
 from tests.constants import TOKENS_PER_STRING_MAPPER
-from tests.integration.conftest import SEED, _get_common_datasets
+from tests.integration.conftest import SEED, get_common_datasets
 from tests.integration.release.conftest import (
     DATASET_ARG_TO_FULL_NAME_MAPPER,
     RI_FILEPATH,
@@ -144,6 +144,9 @@ def test_full_release_noising(
                 if config.has_noise_type(
                     dataset_schema.name, noise_type.name, column
                 ):
+                    # don't noise ssa_event_type because it's used as an identifier column
+                    # along with simulant id
+                    # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
                     if column == COLUMNS.ssa_event_type.name:
                        pass
                     else:
@@ -174,7 +177,7 @@ def run_column_noising_test(
     includes_token_noising = config.has_parameter(dataset_name, noise_type, Keys.TOKEN_PROBABILITY, column) or config.has_parameter(dataset_name, noise_type, Keys.ZIPCODE_DIGIT_PROBABILITIES, column)
 
     for prenoised_dataframe, noised_dataset in zip(prenoised_dataframes, noised_datasets):
-        shared_noised, shared_prenoised, shared_idx = _get_common_datasets(
+        shared_noised, shared_prenoised, shared_idx = get_common_datasets(
             dataset_schema, prenoised_dataframe, noised_dataset.data
         )
 
@@ -188,6 +191,8 @@ def run_column_noising_test(
         if len(to_compare_idx) == 0:
             continue
         
+        # make sure dtypes match when comparing prenoised and noised values
+        # adapted from utilities.coerce_dtypes
         if shared_prenoised[column].dtype.name != shared_noised[column].dtype.name:
             if shared_noised[column].dtype.name == DtypeNames.OBJECT:
                 shared_prenoised[column] = to_string(shared_prenoised[column])
@@ -201,13 +206,6 @@ def run_column_noising_test(
         different_check: npt.NDArray[np.bool_] = np.array(
             prenoised_values != noised_values
         )
-
-        no_differences = False
-        try:
-            assert different_check.any()
-        except:
-            no_differences = True
-
         noise_level = different_check.sum()
         
         if includes_token_noising:
@@ -251,7 +249,7 @@ def run_column_noising_test(
 
         num_eligible = len(to_compare_idx)
         # we sometimes copy the same column value from a household member so we only want
-        # to look at individuals who have a different value as a result of this noising
+        # to consider individuals who ended up with a different value as a result of this noising
         can_silently_noise = noise_type == 'copy_from_household_member' and (column == 'age' or column == 'date_of_birth') 
         if can_silently_noise:
             try:
@@ -272,22 +270,6 @@ def run_column_noising_test(
         name_additional=f"{dataset_name}_{column}_{noise_type}",
     )
 
-
-def test_column_noising(
-    unnoised_dataset: Dataset,
-    noised_data: pd.DataFrame,
-    config: dict[str, Any],
-    dataset_name: str,
-    fuzzy_checker: FuzzyChecker,
-) -> None:
-    """Tests that columns are noised as expected"""
-    check_noised, check_original, shared_idx = _get_common_datasets(
-        unnoised_dataset, noised_data
-    )
-
-    run_column_noising_tests(
-        dataset_name, config, fuzzy_checker, check_noised, check_original, shared_idx
-    )
 
 def test_column_dtypes(
     unnoised_dataset: Dataset,
@@ -320,7 +302,8 @@ def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
         unnoised_id_cols.append(COLUMNS.household_id.name)
     original = initialize_dataset_with_sample(dataset_name)
     noised_data = request.getfixturevalue("noised_data")
-    check_noised, check_original, _ = _get_common_datasets(original, noised_data)
+    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+    check_noised, check_original, _ = get_common_datasets(dataset_schema, original.data, noised_data)
     assert (
         (
             check_original.reset_index()[unnoised_id_cols]

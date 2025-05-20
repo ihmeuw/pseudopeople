@@ -137,7 +137,6 @@ class ColumnNoiseType(NoiseType):
             noise_level,
             [column_name] + self.additional_column_getter(column_name),
         )
-        
         if to_noise_idx.empty:
             logger.debug(
                 f"No cells chosen to noise for noise function {self.name} on "
@@ -148,9 +147,7 @@ class ColumnNoiseType(NoiseType):
 
         input_dtype = dataset.data[column_name].dtype
         output_dtype = self.output_dtype_getter(input_dtype)
-        
         dataset.data[column_name] = ensure_dtype(dataset.data[column_name], output_dtype)
-        
         self.noise_function(
             dataset,
             configuration,

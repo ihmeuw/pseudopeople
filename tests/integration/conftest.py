@@ -215,7 +215,7 @@ def get_unnoised_data(dataset_name: str) -> Dataset:
     return result
 
 
-def _get_common_datasets(
+def get_common_datasets(
     dataset_schema: DatasetSchema, unnoised_data: pd.DataFrame, noised_data: pd.DataFrame
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.Index[int]]:
     """Use unique columns to determine shared non-NA rows between noised and
@@ -223,8 +223,6 @@ def _get_common_datasets(
     gets reset after noising, i.e. the unique columns must NOT be noised.
     """
     idx_cols = IDX_COLS.get(dataset_schema.name)
-    #unnoised_dataset._reformat_dates_for_noising()
-    #unnoised_data = coerce_dtypes(unnoised_data, dataset_schema)
     check_original = unnoised_data.set_index(idx_cols)
     check_noised = noised_data.set_index(idx_cols)
     # Ensure the idx_cols are unique

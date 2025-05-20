@@ -79,6 +79,7 @@ def get_index_to_noise(
     """
 
     index_eligible_for_noise = dataset.get_non_empty_index(required_columns)
+    
     if isinstance(noise_level, float):
         number_to_noise = dataset.randomness.binomial(
             len(index_eligible_for_noise), p=noise_level
