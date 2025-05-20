@@ -19,7 +19,7 @@ from pseudopeople.schema_entities import DATASET_SCHEMAS
 
 def get_high_noise_config(dataset_name: str) -> NoiseConfiguration:
     """Return a dictionary with HIGH_PROBABILITY for each row noise value and for each
-    column noise cell probability."""
+    column noise cell probability for provided dataset."""
     config: NoiseConfiguration = get_configuration()
     config_dict = config.to_dict()
     HIGH_PROBABILITY = 0.2

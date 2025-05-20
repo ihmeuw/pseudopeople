@@ -29,6 +29,7 @@ from pseudopeople.utilities import DASK_ENGINE, get_engine_from_string
 from tests.integration.conftest import SEED, _get_common_datasets
 from tests.integration.release.conftest import DATASET_ARG_TO_FULL_NAME_MAPPER
 from tests.integration.release.utilities import (
+    get_high_noise_config,
     run_do_not_respond_tests,
     run_guardian_duplication_tests,
     run_omit_row_tests,
@@ -54,13 +55,22 @@ def test_release_row_noising(
         int | None,
         str | None,
         Literal["pandas", "dask"],
+        str,
     ],
     fuzzy_checker: FuzzyChecker,
 ) -> None:
-    dataset_name, _, source, year, state, engine_name = dataset_params
+    dataset_name, _, source, year, state, engine_name, noise_level = dataset_params
     full_dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_name]
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(full_dataset_name)
-    config = get_configuration()
+    if noise_level == "default":
+        config = get_configuration()
+    elif noise_level == "high":
+        config = get_high_noise_config(full_dataset_name)
+    else:
+        raise ValueError(
+            f"noise level must be 'default' or 'high', but {noise_level} was passed instead."
+        )
+    breakpoint()
 
     # update parameters
     if source is None:
