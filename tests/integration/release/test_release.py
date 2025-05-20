@@ -120,8 +120,7 @@ def test_full_release_noising(
     dataset_name, _, source, year, state, engine_name = dataset_params
     full_dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_name]
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(full_dataset_name)
-    #config = get_configuration()
-    config = get_high_noise_config(full_dataset_name)
+    config = get_configuration()
 
     ### writing out file info ###
     import time
@@ -295,11 +294,17 @@ def run_column_noising_test(
             expected_noise = expected_config_noise
 
         num_eligible = len(to_compare_idx)
-        # we sometimes copy the same age from a household member so we only want
-        # to look at individuals who have a different age as a result of this noising
-        if noise_type == 'copy_from_household_member' and column == 'age':
-            num_sims_with_same_copy_age = sum(shared_prenoised.loc[to_compare_idx, 'age'].astype(float).astype(str) == shared_prenoised.loc[to_compare_idx, 'copy_age'].astype(float).astype(str))
-            num_eligible -= num_sims_with_same_copy_age
+        # we sometimes copy the same column value from a household member so we only want
+        # to look at individuals who have a different value as a result of this noising
+        can_silently_noise_copy = noise_type == 'copy_from_household_member' and (column == 'age' or column == 'date_of_birth') 
+        can_silently_noise_swap = noise_type == 'swap_month_and_day'
+        can_silently_noise = can_silently_noise_copy or can_silently_noise_swap
+        if can_silently_noise:
+            try:
+                num_sims_with_silent_noising = sum(shared_prenoised.loc[to_compare_idx, column].astype(float) == shared_prenoised.loc[to_compare_idx, f"copy_{column}"].astype(float))
+            except:
+                num_sims_with_silent_noising = sum(shared_prenoised.loc[to_compare_idx, column].astype(str) == shared_prenoised.loc[to_compare_idx, f"copy_{column}"].astype(str))
+            num_eligible -= num_sims_with_silent_noising
 
         numerator += noise_level
         denominator += num_eligible
