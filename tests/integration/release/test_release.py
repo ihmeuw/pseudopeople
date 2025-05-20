@@ -70,7 +70,6 @@ def test_release_row_noising(
         raise ValueError(
             f"noise level must be 'default' or 'high', but {noise_level} was passed instead."
         )
-    breakpoint()
 
     # update parameters
     if source is None:
