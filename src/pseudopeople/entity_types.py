@@ -147,7 +147,9 @@ class ColumnNoiseType(NoiseType):
 
         input_dtype = dataset.data[column_name].dtype
         output_dtype = self.output_dtype_getter(input_dtype)
+
         dataset.data[column_name] = ensure_dtype(dataset.data[column_name], output_dtype)
+        
         self.noise_function(
             dataset,
             configuration,
