@@ -30,7 +30,9 @@ def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
     original = initialize_dataset_with_sample(dataset_name)
     noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
-    check_noised, check_original, _ = get_common_datasets(dataset_schema, original.data, noised_data)
+    check_noised, check_original, _ = get_common_datasets(
+        dataset_schema, original.data, noised_data
+    )
     assert (
         (
             check_original.reset_index()[unnoised_id_cols]

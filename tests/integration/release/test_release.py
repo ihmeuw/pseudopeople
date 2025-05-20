@@ -1,15 +1,15 @@
 from __future__ import annotations
 
+import math
 from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
-import math
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 from _pytest.fixtures import FixtureRequest
 from layered_config_tree import LayeredConfigTree
-import numpy.typing as npt
 from pytest_check import check
 from pytest_mock import MockerFixture
 from vivarium_testing_utils import FuzzyChecker
@@ -35,7 +35,12 @@ from pseudopeople.loader import load_standard_dataset
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.noise_functions import merge_dependents_and_guardians
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
-from pseudopeople.utilities import DASK_ENGINE, to_string, get_engine_from_string, update_seed
+from pseudopeople.utilities import (
+    DASK_ENGINE,
+    get_engine_from_string,
+    to_string,
+    update_seed,
+)
 from tests.constants import TOKENS_PER_STRING_MAPPER
 from tests.integration.conftest import SEED, get_common_datasets
 from tests.integration.release.conftest import (
@@ -142,23 +147,31 @@ def test_full_release_noising(
 
         if isinstance(noise_type, ColumnNoiseType):
             for column in prenoised_dataframes[0].columns:
-                if config.has_noise_type(
-                    dataset_schema.name, noise_type.name, column
-                ):
+                if config.has_noise_type(dataset_schema.name, noise_type.name, column):
                     # don't noise ssa_event_type because it's used as an identifier column
                     # along with simulant id
                     # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
                     if column == COLUMNS.ssa_event_type.name:
-                       pass
+                        pass
                     else:
                         for dataset in datasets:
                             # noise datasets in place
                             noise_type(dataset, config, column)
                             with check:
-                                assert dataset.missingness.equals(dataset.is_missing(dataset.data))
-                        run_column_noising_test(prenoised_dataframes, datasets, config, full_dataset_name, noise_type.name, column, fuzzy_checker)
-                        
-                    
+                                assert dataset.missingness.equals(
+                                    dataset.is_missing(dataset.data)
+                                )
+                        run_column_noising_test(
+                            prenoised_dataframes,
+                            datasets,
+                            config,
+                            full_dataset_name,
+                            noise_type.name,
+                            column,
+                            fuzzy_checker,
+                        )
+
+
 def run_column_noising_test(
     prenoised_dataframes: list[pd.DataFrame],
     noised_datasets: list[Dataset],
@@ -169,14 +182,18 @@ def run_column_noising_test(
     fuzzy_checker: FuzzyChecker,
 ) -> None:
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
-    
+
     numerator = 0
     denominator = 0
     expected_noise_level = 0
 
     # Validate column noise level
     expected_config_noise = config.get_cell_probability(dataset_name, noise_type, column)
-    includes_token_noising = config.has_parameter(dataset_name, noise_type, Keys.TOKEN_PROBABILITY, column) or config.has_parameter(dataset_name, noise_type, Keys.ZIPCODE_DIGIT_PROBABILITIES, column)
+    includes_token_noising = config.has_parameter(
+        dataset_name, noise_type, Keys.TOKEN_PROBABILITY, column
+    ) or config.has_parameter(
+        dataset_name, noise_type, Keys.ZIPCODE_DIGIT_PROBABILITIES, column
+    )
 
     for prenoised_dataframe, noised_dataset in zip(prenoised_dataframes, noised_datasets):
         shared_noised, shared_prenoised, shared_idx = get_common_datasets(
@@ -184,7 +201,9 @@ def run_column_noising_test(
         )
 
         # Check that originally missing data remained missing
-        originally_missing_idx = shared_prenoised.index[shared_prenoised.reset_index()[column].isna()]
+        originally_missing_idx = shared_prenoised.index[
+            shared_prenoised.reset_index()[column].isna()
+        ]
         with check:
             assert shared_noised.loc[originally_missing_idx, column].isna().all()
 
@@ -192,7 +211,7 @@ def run_column_noising_test(
         to_compare_idx = shared_idx.difference(originally_missing_idx)
         if len(to_compare_idx) == 0:
             continue
-        
+
         # make sure dtypes match when comparing prenoised and noised values
         # adapted from utilities.coerce_dtypes
         if shared_prenoised[column].dtype.name != shared_noised[column].dtype.name:
@@ -201,22 +220,18 @@ def run_column_noising_test(
             else:
                 # mypy doesn't like using a variable as an argument to astype
                 shared_prenoised[column] = shared_prenoised[column].astype(shared_noised[column].dtype.name)  # type: ignore [call-overload]
-        
+
         prenoised_values = shared_prenoised.loc[to_compare_idx, column].values
         noised_values = shared_noised.loc[to_compare_idx, column].values
-        
-        different_check: npt.NDArray[np.bool_] = np.array(
-            prenoised_values != noised_values
-        )
+
+        different_check: npt.NDArray[np.bool_] = np.array(prenoised_values != noised_values)
         noise_level = different_check.sum()
-        
+
         if includes_token_noising:
             if noise_type == NOISE_TYPES.write_wrong_zipcode_digits.name:
                 token_probability: list[
                     float
-                ] | int | float = config.get_zipcode_digit_probabilities(
-                    dataset_name, column
-                )
+                ] | int | float = config.get_zipcode_digit_probabilities(dataset_name, column)
             else:
                 token_probability = config.get_token_probability(
                     dataset_name, noise_type, column
@@ -225,9 +240,7 @@ def run_column_noising_test(
             # Get number of tokens per string to calculate expected proportion
             tokens_per_string_getter: Callable[
                 ..., pd.Series[int] | int
-            ] = TOKENS_PER_STRING_MAPPER.get(
-                noise_type, lambda x: x.astype(str).str.len()
-            )
+            ] = TOKENS_PER_STRING_MAPPER.get(noise_type, lambda x: x.astype(str).str.len())
             tokens_per_string: pd.Series[int] | int = tokens_per_string_getter(
                 shared_prenoised.loc[to_compare_idx, column]
             )
@@ -252,12 +265,20 @@ def run_column_noising_test(
         num_eligible = len(to_compare_idx)
         # we sometimes copy the same column value from a household member so we only want
         # to consider individuals who ended up with a different value as a result of this noising
-        can_silently_noise = noise_type == 'copy_from_household_member' and (column == 'age' or column == 'date_of_birth') 
+        can_silently_noise = noise_type == "copy_from_household_member" and (
+            column == "age" or column == "date_of_birth"
+        )
         if can_silently_noise:
             try:
-                num_sims_with_silent_noising = sum(shared_prenoised.loc[to_compare_idx, column].astype(float) == shared_prenoised.loc[to_compare_idx, f"copy_{column}"].astype(float))
+                num_sims_with_silent_noising = sum(
+                    shared_prenoised.loc[to_compare_idx, column].astype(float)
+                    == shared_prenoised.loc[to_compare_idx, f"copy_{column}"].astype(float)
+                )
             except:
-                num_sims_with_silent_noising = sum(shared_prenoised.loc[to_compare_idx, column].astype(str) == shared_prenoised.loc[to_compare_idx, f"copy_{column}"].astype(str))
+                num_sims_with_silent_noising = sum(
+                    shared_prenoised.loc[to_compare_idx, column].astype(str)
+                    == shared_prenoised.loc[to_compare_idx, f"copy_{column}"].astype(str)
+                )
             num_eligible -= num_sims_with_silent_noising
 
         numerator += noise_level
@@ -305,7 +326,9 @@ def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
     original = initialize_dataset_with_sample(dataset_name)
     noised_data = request.getfixturevalue("noised_data")
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
-    check_noised, check_original, _ = get_common_datasets(dataset_schema, original.data, noised_data)
+    check_noised, check_original, _ = get_common_datasets(
+        dataset_schema, original.data, noised_data
+    )
     assert (
         (
             check_original.reset_index()[unnoised_id_cols]
