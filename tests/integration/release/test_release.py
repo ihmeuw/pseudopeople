@@ -69,23 +69,6 @@ ROW_TEST_FUNCTIONS = {
 }
 
 
-# taken from Dataset._clean_input_data
-def clean_input_data(dataset: Dataset) -> None:
-    for col in dataset.dataset_schema.columns:
-        # Coerce empty strings to nans
-        dataset.data[col.name] = dataset.data[col.name].replace("", np.nan)
-
-        if (
-            dataset.data[col.name].dtype.name == "category"
-            and col.dtype_name == DtypeNames.OBJECT
-        ):
-            # We made some columns in the pseudopeople input categorical
-            # purely as a kind of DIY compression.
-            # TODO: Determine whether this is benefitting us after
-            # the switch to Parquet.
-            dataset.data[col.name] = to_string(dataset.data[col.name])
-
-
 def test_full_release_noising(
     dataset_params: tuple[
         str,
@@ -129,7 +112,7 @@ def test_full_release_noising(
     ]
 
     for dataset in datasets:
-        clean_input_data(dataset)
+        dataset._clean_input_data()
 
     for noise_type in NOISE_TYPES:
         prenoised_dataframes: list[pd.DataFrame] = [
@@ -152,24 +135,23 @@ def test_full_release_noising(
                     # along with simulant id
                     # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
                     if column == COLUMNS.ssa_event_type.name:
-                        pass
-                    else:
-                        for dataset in datasets:
-                            # noise datasets in place
-                            noise_type(dataset, config, column)
-                            with check:
-                                assert dataset.missingness.equals(
-                                    dataset.is_missing(dataset.data)
-                                )
-                        run_column_noising_test(
-                            prenoised_dataframes,
-                            datasets,
-                            config,
-                            full_dataset_name,
-                            noise_type.name,
-                            column,
-                            fuzzy_checker,
-                        )
+                        continue
+                    for dataset in datasets:
+                        # noise datasets in place
+                        noise_type(dataset, config, column)
+                        with check:
+                            assert dataset.missingness.equals(
+                                dataset.is_missing(dataset.data)
+                            )
+                    run_column_noising_test(
+                        prenoised_dataframes,
+                        datasets,
+                        config,
+                        full_dataset_name,
+                        noise_type.name,
+                        column,
+                        fuzzy_checker,
+                    )
 
 
 def run_column_noising_test(
@@ -265,16 +247,13 @@ def run_column_noising_test(
         num_eligible = len(to_compare_idx)
         # we sometimes copy the same column value from a household member so we only want
         # to consider individuals who ended up with a different value as a result of this noising
-        can_silently_noise = noise_type == "copy_from_household_member" and (
-            column == "age" or column == "date_of_birth"
-        )
-        if can_silently_noise:
-            try:
+        if noise_type == "copy_from_household_member":
+            if column == "age":
                 num_sims_with_silent_noising = sum(
                     shared_prenoised.loc[to_compare_idx, column].astype(float)
                     == shared_prenoised.loc[to_compare_idx, f"copy_{column}"].astype(float)
                 )
-            except:
+            elif column == "date_of_birth":
                 num_sims_with_silent_noising = sum(
                     shared_prenoised.loc[to_compare_idx, column].astype(str)
                     == shared_prenoised.loc[to_compare_idx, f"copy_{column}"].astype(str)
