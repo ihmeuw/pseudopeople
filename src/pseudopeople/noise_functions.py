@@ -24,6 +24,7 @@ from pseudopeople.utilities import (
     load_ocr_errors,
     load_phonetic_errors,
     load_qwerty_errors_data,
+    parse_dates,
     two_d_array_choice,
     vectorized_choice,
 )
@@ -334,20 +335,12 @@ def swap_months_and_days(
     date_format = dataset.dataset_schema.date_format
 
     to_swap_values = dataset.data.loc[to_noise_index, column_name]
+    year, month, day = parse_dates(to_swap_values, date_format)
     if date_format == DATEFORMATS.YYYYMMDD:  # YYYYMMDD
-        year = to_swap_values.str[:4]
-        month = to_swap_values.str[4:6]
-        day = to_swap_values.str[6:]
         noised = year + day + month
     elif date_format == DATEFORMATS.MM_DD_YYYY:  # MM/DD/YYYY
-        year = to_swap_values.str[6:]
-        month = to_swap_values.str[:3]
-        day = to_swap_values.str[3:6]
         noised = day + month + year
     elif date_format == DATEFORMATS.MMDDYYYY:  # MMDDYYYY
-        year = to_swap_values.str[4:]
-        month = to_swap_values.str[:2]
-        day = to_swap_values.str[2:4]
         noised = day + month + year
     else:
         raise ValueError(f"Invalid date format in {dataset.dataset_schema.name}.")
