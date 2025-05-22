@@ -13,8 +13,9 @@ from pytest_check import check
 from pytest_mock import MockerFixture
 from vivarium_testing_utils import FuzzyChecker
 
-from pseudopeople.configuration import get_configuration
+from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.entities import NO_NOISE
+from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.dataset import Dataset
