@@ -21,7 +21,7 @@ from pseudopeople.interface import (
     generate_women_infants_and_children,
 )
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
+from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS, DatasetSchema
 from pseudopeople.utilities import coerce_dtypes
 from tests.utilities import initialize_dataset_with_sample
 
@@ -215,20 +215,16 @@ def get_unnoised_data(dataset_name: str) -> Dataset:
     return result
 
 
-def _get_common_datasets(
-    unnoised_dataset: Dataset, noised_dataset: pd.DataFrame
+def get_common_datasets(
+    dataset_schema: DatasetSchema, unnoised_data: pd.DataFrame, noised_data: pd.DataFrame
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.Index[int]]:
     """Use unique columns to determine shared non-NA rows between noised and
     unnoised data. Note that we cannot use the original index because that
     gets reset after noising, i.e. the unique columns must NOT be noised.
     """
-    idx_cols = IDX_COLS.get(unnoised_dataset.dataset_schema.name)
-    unnoised_dataset._reformat_dates_for_noising()
-    unnoised_dataset.data = coerce_dtypes(
-        unnoised_dataset.data, unnoised_dataset.dataset_schema
-    )
-    check_original = unnoised_dataset.data.set_index(idx_cols)
-    check_noised = noised_dataset.set_index(idx_cols)
+    idx_cols = IDX_COLS.get(dataset_schema.name)
+    check_original = unnoised_data.set_index(idx_cols)
+    check_noised = noised_data.set_index(idx_cols)
     # Ensure the idx_cols are unique
     assert check_original.index.duplicated().sum() == 0
     assert check_noised.index.duplicated().sum() == 0

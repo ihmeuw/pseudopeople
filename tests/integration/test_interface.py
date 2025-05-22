@@ -67,7 +67,7 @@ def test_noising_sharded_vs_unsharded_data(
 
     assert multi_shard_noised_data.columns.equals(single_shard_noised_data.columns)
 
-    # This index handling is adapted from _get_common_datasets
+    # This index handling is adapted from get_common_datasets
     # in integration/conftest.py
     # Define indexes
     idx_cols = IDX_COLS.get(unnoised_dataset.dataset_schema.name)
