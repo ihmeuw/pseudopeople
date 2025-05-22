@@ -268,8 +268,10 @@ def coerce_dtypes(
     return data
 
 
-def parse_dates(dates: pd.Series, date_format: str) -> tuple[str, str, str]:
-    """Takes a Series of dates as strings and returns the year, month, and day
+def parse_dates(
+    dates: pd.Series[str], date_format: str
+) -> tuple[pd.Series[str], pd.Series[str], pd.Series[str]]:
+    """Takes a Series of dates as strings and returns the years, months, and days
     after parsing the data assuming it is formatted according to the provided date_format."""
     # import here to avoid circular dependency
     from pseudopeople.schema_entities import DATEFORMATS
