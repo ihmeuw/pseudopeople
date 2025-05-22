@@ -54,6 +54,7 @@ CLI_DEFAULT_POP = "sample"
 CLI_DEFAULT_YEAR = 2020
 CLI_DEFAULT_STATE = None
 CLI_DEFAULT_ENGINE = "pandas"
+CLI_DEFAULT_NOISE = "default"
 FULL_USA_FILEPATH = "/mnt/team/simulation_science/pub/models/vivarium_census_prl_synth_pop/results/release_02_yellow/full_data/united_states_of_america/2023_08_21_16_35_27/final_results/2023_08_31_15_58_01/pseudopeople_simulated_population_usa_2_0_0"
 RI_FILEPATH = "/mnt/team/simulation_science/pub/models/vivarium_census_prl_synth_pop/results/release_02_yellow/full_data/united_states_of_america/2023_08_21_16_35_27/final_results/2023_08_31_15_58_01/states/pseudopeople_simulated_population_rhode_island_2_0_0"
 SOURCE_MAPPER = {"usa": FULL_USA_FILEPATH, "ri": RI_FILEPATH, "sample": None}
@@ -96,6 +97,12 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=CLI_DEFAULT_ENGINE,
         help="The engine used to generate data. Options are 'pandas' and 'dask'.",
     )
+    parser.addoption(
+        "--noise-level",
+        action="store",
+        default=CLI_DEFAULT_NOISE,
+        help="How much noising to apply. Options are 'default' and 'high'.",
+    )
 
 
 ############
@@ -119,6 +126,7 @@ def dataset_params(
     int | None,
     str | None,
     Literal["pandas", "dask"],
+    str,
 ]:
     dataset_name = request.config.getoption("--dataset")
     try:
@@ -140,8 +148,9 @@ def dataset_params(
     state = request.config.getoption("--state")
     year = request.config.getoption("--year")
     year = int(year) if year is not None else year
+    noise_level = request.config.getoption("--noise-level")
 
-    return dataset_name, dataset_func, source, year, state, engine
+    return dataset_name, dataset_func, source, year, state, engine, noise_level
 
 
 @pytest.fixture(scope="session")

@@ -9,19 +9,14 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 from _pytest.fixtures import FixtureRequest
-from layered_config_tree import LayeredConfigTree
 from pytest_check import check
 from pytest_mock import MockerFixture
 from vivarium_testing_utils import FuzzyChecker
 
-from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.configuration import get_configuration
 from pseudopeople.configuration.entities import NO_NOISE
-from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import DatasetNames
-from pseudopeople.constants.noise_type_metadata import (
-    GUARDIAN_DUPLICATION_ADDRESS_COLUMNS,
-)
 from pseudopeople.dataset import Dataset
 from pseudopeople.dtypes import DtypeNames
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
@@ -33,7 +28,6 @@ from pseudopeople.interface import (
 )
 from pseudopeople.loader import load_standard_dataset
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.noise_functions import merge_dependents_and_guardians
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
 from pseudopeople.utilities import (
     DASK_ENGINE,
@@ -48,15 +42,12 @@ from tests.integration.release.conftest import (
     RI_FILEPATH,
 )
 from tests.integration.release.utilities import (
+    get_high_noise_config,
     run_do_not_respond_tests,
     run_guardian_duplication_tests,
     run_omit_row_tests,
 )
-from tests.utilities import (
-    get_single_noise_type_config,
-    initialize_dataset_with_sample,
-    run_column_noising_tests,
-)
+from tests.utilities import initialize_dataset_with_sample, run_column_noising_tests
 
 if TYPE_CHECKING:
     import dask.dataframe as dd
@@ -77,13 +68,21 @@ def test_full_release_noising(
         int | None,
         str | None,
         Literal["pandas", "dask"],
+        str,
     ],
     fuzzy_checker: FuzzyChecker,
 ) -> None:
-    dataset_name, _, source, year, state, engine_name = dataset_params
+    dataset_name, _, source, year, state, engine_name, noise_level = dataset_params
     full_dataset_name = DATASET_ARG_TO_FULL_NAME_MAPPER[dataset_name]
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(full_dataset_name)
-    config = get_configuration()
+    if noise_level == "default":
+        config = get_configuration()
+    elif noise_level == "high":
+        config = get_high_noise_config(full_dataset_name)
+    else:
+        raise ValueError(
+            f"noise level must be 'default' or 'high', but {noise_level} was passed instead."
+        )
 
     # update parameters
     if source is None:
