@@ -258,6 +258,8 @@ def run_column_noising_test(
                     shared_prenoised.loc[to_compare_idx, column].astype(str)
                     == shared_prenoised.loc[to_compare_idx, f"copy_{column}"].astype(str)
                 )
+            else:
+                num_sims_with_silent_noising = 0
             num_eligible -= num_sims_with_silent_noising
 
         numerator += noise_level
