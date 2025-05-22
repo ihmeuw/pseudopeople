@@ -614,6 +614,11 @@ def make_phonetic_errors(
         dataset.data[column_name].dtype,
     )
 
+    # make_phonetic_errors possibly introduces blanks when we noise
+    # some single-character values
+    became_blank = dataset.data.loc[to_noise_index, column_name] == ""
+    dataset.missingness.loc[to_noise_index, column_name] = became_blank
+
 
 def leave_blanks(
     dataset: Dataset,

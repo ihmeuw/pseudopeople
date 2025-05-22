@@ -1,20 +1,25 @@
 from __future__ import annotations
 
+import math
 from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 from _pytest.fixtures import FixtureRequest
+from pytest_check import check
 from pytest_mock import MockerFixture
 from vivarium_testing_utils import FuzzyChecker
 
-from pseudopeople.configuration import get_configuration
+from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.configuration.entities import NO_NOISE
+from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.dataset import Dataset
+from pseudopeople.dtypes import DtypeNames
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.filter import get_data_filters
 from pseudopeople.interface import (
@@ -25,9 +30,18 @@ from pseudopeople.interface import (
 from pseudopeople.loader import load_standard_dataset
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
-from pseudopeople.utilities import DASK_ENGINE, get_engine_from_string, update_seed
-from tests.integration.conftest import SEED, _get_common_datasets
-from tests.integration.release.conftest import DATASET_ARG_TO_FULL_NAME_MAPPER
+from pseudopeople.utilities import (
+    DASK_ENGINE,
+    get_engine_from_string,
+    to_string,
+    update_seed,
+)
+from tests.constants import TOKENS_PER_STRING_MAPPER
+from tests.integration.conftest import SEED, get_common_datasets
+from tests.integration.release.conftest import (
+    DATASET_ARG_TO_FULL_NAME_MAPPER,
+    RI_FILEPATH,
+)
 from tests.integration.release.utilities import (
     get_high_noise_config,
     run_do_not_respond_tests,
@@ -47,7 +61,7 @@ ROW_TEST_FUNCTIONS = {
 }
 
 
-def test_release_row_noising(
+def test_full_release_noising(
     dataset_params: tuple[
         str,
         Callable[..., pd.DataFrame],
@@ -97,6 +111,9 @@ def test_release_row_noising(
         Dataset(dataset_schema, data, f"{seed}_{i}") for i, data in enumerate(dataset_data)
     ]
 
+    for dataset in datasets:
+        dataset._clean_input_data()
+
     for noise_type in NOISE_TYPES:
         prenoised_dataframes: list[pd.DataFrame] = [
             dataset.data.copy() for dataset in datasets
@@ -111,21 +128,150 @@ def test_release_row_noising(
                     prenoised_dataframes, datasets, config, full_dataset_name, fuzzy_checker
                 )
 
+        if isinstance(noise_type, ColumnNoiseType):
+            for column in prenoised_dataframes[0].columns:
+                if config.has_noise_type(dataset_schema.name, noise_type.name, column):
+                    # don't noise ssa_event_type because it's used as an identifier column
+                    # along with simulant id
+                    # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
+                    if column == COLUMNS.ssa_event_type.name:
+                        continue
+                    for dataset in datasets:
+                        # noise datasets in place
+                        noise_type(dataset, config, column)
+                        with check:
+                            assert dataset.missingness.equals(
+                                dataset.is_missing(dataset.data)
+                            )
+                    run_column_noising_test(
+                        prenoised_dataframes,
+                        datasets,
+                        config,
+                        full_dataset_name,
+                        noise_type.name,
+                        column,
+                        fuzzy_checker,
+                    )
 
-def test_column_noising(
-    unnoised_dataset: Dataset,
-    noised_data: pd.DataFrame,
-    config: dict[str, Any],
+
+def run_column_noising_test(
+    prenoised_dataframes: list[pd.DataFrame],
+    noised_datasets: list[Dataset],
+    config: NoiseConfiguration,
     dataset_name: str,
+    noise_type: str,
+    column: str,
     fuzzy_checker: FuzzyChecker,
 ) -> None:
-    """Tests that columns are noised as expected"""
-    check_noised, check_original, shared_idx = _get_common_datasets(
-        unnoised_dataset, noised_data
+    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+
+    numerator = 0
+    denominator = 0
+    expected_noise_level = 0.0
+
+    # Validate column noise level
+    expected_config_noise = config.get_cell_probability(dataset_name, noise_type, column)
+    includes_token_noising = config.has_parameter(
+        dataset_name, noise_type, Keys.TOKEN_PROBABILITY, column
+    ) or config.has_parameter(
+        dataset_name, noise_type, Keys.ZIPCODE_DIGIT_PROBABILITIES, column
     )
 
-    run_column_noising_tests(
-        dataset_name, config, fuzzy_checker, check_noised, check_original, shared_idx
+    for prenoised_dataframe, noised_dataset in zip(prenoised_dataframes, noised_datasets):
+        shared_noised, shared_prenoised, shared_idx = get_common_datasets(
+            dataset_schema, prenoised_dataframe, noised_dataset.data
+        )
+
+        # Check that originally missing data remained missing
+        originally_missing_idx = shared_prenoised.index[
+            shared_prenoised.reset_index()[column].isna()
+        ]
+        with check:
+            assert shared_noised.loc[originally_missing_idx, column].isna().all()
+
+        # Check for noising where applicable
+        to_compare_idx = shared_idx.difference(originally_missing_idx)
+        if len(to_compare_idx) == 0:
+            continue
+
+        # make sure dtypes match when comparing prenoised and noised values
+        # adapted from utilities.coerce_dtypes
+        if shared_prenoised[column].dtype.name != shared_noised[column].dtype.name:
+            if shared_noised[column].dtype.name == DtypeNames.OBJECT:
+                shared_prenoised[column] = to_string(shared_prenoised[column])
+            else:
+                # mypy doesn't like using a variable as an argument to astype
+                shared_prenoised[column] = shared_prenoised[column].astype(shared_noised[column].dtype.name)  # type: ignore [call-overload]
+
+        prenoised_values = shared_prenoised.loc[to_compare_idx, column].values
+        noised_values = shared_noised.loc[to_compare_idx, column].values
+
+        different_check: npt.NDArray[np.bool_] = np.array(prenoised_values != noised_values)
+        noise_level = different_check.sum()
+
+        if includes_token_noising:
+            if noise_type == NOISE_TYPES.write_wrong_zipcode_digits.name:
+                token_probability: list[
+                    float
+                ] | int | float = config.get_zipcode_digit_probabilities(dataset_name, column)
+            else:
+                token_probability = config.get_token_probability(
+                    dataset_name, noise_type, column
+                )
+
+            # Get number of tokens per string to calculate expected proportion
+            tokens_per_string_getter: Callable[
+                ..., pd.Series[int] | int
+            ] = TOKENS_PER_STRING_MAPPER.get(noise_type, lambda x: x.astype(str).str.len())
+            tokens_per_string: pd.Series[int] | int = tokens_per_string_getter(
+                shared_prenoised.loc[to_compare_idx, column]
+            )
+            # Calculate probability no token is noised
+            if isinstance(token_probability, list):
+                # Calculate write wrong zipcode average digits probability any token is noise
+                avg_probability_any_token_noised = 1 - math.prod(
+                    [1 - p for p in token_probability]
+                )
+            else:
+                with check:
+                    assert isinstance(tokens_per_string, pd.Series)
+                avg_probability_any_token_noised = (
+                    1 - (1 - token_probability) ** tokens_per_string
+                ).mean()
+
+            # This is accumulating not_noised over all noise types
+            expected_noise = avg_probability_any_token_noised * expected_config_noise
+        else:
+            expected_noise = expected_config_noise
+
+        num_eligible = len(to_compare_idx)
+        # we sometimes copy the same column value from a household member so we only want
+        # to consider individuals who ended up with a different value as a result of this noising
+        if noise_type == "copy_from_household_member":
+            if column == "age":
+                num_sims_with_silent_noising = sum(
+                    shared_prenoised.loc[to_compare_idx, column].astype(float)
+                    == shared_prenoised.loc[to_compare_idx, f"copy_{column}"].astype(float)
+                )
+            elif column == "date_of_birth":
+                num_sims_with_silent_noising = sum(
+                    shared_prenoised.loc[to_compare_idx, column].astype(str)
+                    == shared_prenoised.loc[to_compare_idx, f"copy_{column}"].astype(str)
+                )
+            else:
+                num_sims_with_silent_noising = 0
+            num_eligible -= num_sims_with_silent_noising
+
+        numerator += noise_level
+        denominator += num_eligible
+        expected_noise_level += expected_noise * num_eligible
+
+    fuzzy_checker.fuzzy_assert_proportion(
+        name=noise_type,
+        observed_numerator=numerator,
+        observed_denominator=denominator,
+        target_proportion=expected_noise_level / denominator,
+        name_additional=f"{dataset_name}_{column}_{noise_type}",
     )
 
 
@@ -160,7 +306,10 @@ def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
         unnoised_id_cols.append(COLUMNS.household_id.name)
     original = initialize_dataset_with_sample(dataset_name)
     noised_data = request.getfixturevalue("noised_data")
-    check_noised, check_original, _ = _get_common_datasets(original, noised_data)
+    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+    check_noised, check_original, _ = get_common_datasets(
+        dataset_schema, original.data, noised_data
+    )
     assert (
         (
             check_original.reset_index()[unnoised_id_cols]
@@ -169,64 +318,3 @@ def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
         .all()
         .all()
     )
-
-
-def test_dataset_missingness(
-    dataset_params: tuple[
-        str,
-        Callable[..., pd.DataFrame],
-        str | None,
-        int | None,
-        str | None,
-        Literal["pandas", "dask"],
-    ],
-    dataset_name: str,
-    mocker: MockerFixture,
-) -> None:
-    """Tests that missingness is accurate with dataset.data."""
-    mocker.patch(
-        "pseudopeople.dataset.Dataset.drop_non_schema_columns", side_effect=lambda df, _: df
-    )
-
-    # create unnoised dataset
-    _, dataset_func, source, year, state, engine = dataset_params
-    kwargs = {
-        "source": source,
-        "config": NO_NOISE,
-        "year": year,
-        "engine": engine,
-    }
-    if dataset_func != generate_social_security:
-        kwargs["state"] = state
-    unnoised_data = dataset_func(**kwargs)
-
-    # In our standard noising process, i.e. when noising a shard of data, we
-    # 1) clean and reformat the data, 2) noise the data, and 3) do some post-processing.
-    # We're replicating steps 1 and 2 in this test and skipping 3.
-    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
-    dataset = Dataset(dataset_schema, unnoised_data, SEED)
-    dataset._clean_input_data()
-    # convert datetime columns to datetime types for _reformat_dates_for_noising
-    # because the post-processing that occured in generating the unnoised data
-    # in step 3 mentioned above converts these columns to object dtypes
-    for col in [COLUMNS.dob.name, COLUMNS.ssa_event_date.name]:
-        if col in dataset.data:
-            dataset.data[col] = pd.to_datetime(dataset.data[col])
-            dataset.data["copy_" + col] = pd.to_datetime(dataset.data["copy_" + col])
-    dataset._reformat_dates_for_noising()
-    config = get_configuration()
-
-    # NOTE: This is recreating Dataset._noise_dataset but adding assertions for missingness
-    for noise_type in NOISE_TYPES:
-        if isinstance(noise_type, RowNoiseType):
-            if config.has_noise_type(dataset.dataset_schema.name, noise_type.name):
-                noise_type(dataset, config)
-                # Check missingness is synced with data
-                assert dataset.missingness.equals(dataset.is_missing(dataset.data))
-        if isinstance(noise_type, ColumnNoiseType):
-            for column in dataset.data.columns:
-                if config.has_noise_type(
-                    dataset.dataset_schema.name, noise_type.name, column
-                ):
-                    noise_type(dataset, config, column)
-                assert dataset.missingness.equals(dataset.is_missing(dataset.data))
