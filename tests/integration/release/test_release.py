@@ -98,7 +98,7 @@ def test_full_release_noising(
     data_file_paths = get_dataset_filepaths(Path(source), dataset_schema.name)
     filters = get_data_filters(dataset_schema, year, state)
     unnoised_data: list[pd.DataFrame | dd.DataFrame] = [
-        load_standard_dataset(path, filters, engine) for path in data_file_paths[:20]
+        load_standard_dataset(path, filters, engine) for path in data_file_paths
     ]
 
     if engine == DASK_ENGINE:
@@ -264,12 +264,12 @@ def run_column_noising_test(
                 num_sims_with_silent_noising = 0
             num_eligible -= num_sims_with_silent_noising
 
-        # if noise_type == 'swap_month_and_day':
-        #     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
-        #     date_format = dataset_schema.date_format
-        #     _, month, day = parse_dates(shared_prenoised.loc[to_compare_idx, column], date_format)
-        #     num_sims_with_same_month_and_day = sum(month == day)
-        #     num_eligible -= num_sims_with_same_month_and_day
+        if noise_type == 'swap_month_and_day':
+            dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+            date_format = dataset_schema.date_format
+            _, month, day = parse_dates(shared_prenoised.loc[to_compare_idx, column], date_format)
+            num_sims_with_same_month_and_day = sum(month == day)
+            num_eligible -= num_sims_with_same_month_and_day
         
         numerator += noise_level
         denominator += num_eligible
