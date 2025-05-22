@@ -153,6 +153,51 @@ def test_full_release_noising(
                         fuzzy_checker,
                     )
 
+    for dataset in datasets:
+        test_column_dtypes(dataset.data)
+        
+
+def test_column_dtypes(
+    noised_data: pd.DataFrame,
+) -> None:
+    """Tests that column dtypes are as expected"""
+    for col_name in noised_data.columns:
+        col = COLUMNS.get_column(col_name)
+        expected_dtype = col.dtype_name
+        if expected_dtype == np.dtype(object):
+            # str dtype is 'object'
+            # Check that they are actually strings and not some other
+            # type of object.
+            # mypy wants typed type_function to pass into apply but doesn't
+            # accept type as an output
+            type_function: Callable[..., Any] = lambda x: type(x)
+            actual_types = noised_data[col.name].dropna().apply(type_function)
+            assert (actual_types == str).all(), actual_types.unique()
+        assert noised_data[col.name].dtype == expected_dtype
+
+
+def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
+    """Tests that all datasets retain unnoised simulant_id and household_id
+    (except for SSA which does not include household_id)
+    """
+    unnoised_id_cols = [COLUMNS.simulant_id.name]
+    if dataset_name != DATASET_SCHEMAS.ssa.name:
+        unnoised_id_cols.append(COLUMNS.household_id.name)
+    original = initialize_dataset_with_sample(dataset_name)
+    noised_data = request.getfixturevalue("noised_data")
+    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+    check_noised, check_original, _ = get_common_datasets(
+        dataset_schema, original.data, noised_data
+    )
+    assert (
+        (
+            check_original.reset_index()[unnoised_id_cols]
+            == check_noised.reset_index()[unnoised_id_cols]
+        )
+        .all()
+        .all()
+    )
+
 
 def run_column_noising_test(
     prenoised_dataframes: list[pd.DataFrame],
@@ -272,49 +317,4 @@ def run_column_noising_test(
         observed_denominator=denominator,
         target_proportion=expected_noise_level / denominator,
         name_additional=f"{dataset_name}_{column}_{noise_type}",
-    )
-
-
-def test_column_dtypes(
-    unnoised_dataset: Dataset,
-    noised_data: pd.DataFrame,
-    dataset_name: str,
-    config: dict[str, Any],
-) -> None:
-    """Tests that column dtypes are as expected"""
-    for col_name in noised_data.columns:
-        col = COLUMNS.get_column(col_name)
-        expected_dtype = col.dtype_name
-        if expected_dtype == np.dtype(object):
-            # str dtype is 'object'
-            # Check that they are actually strings and not some other
-            # type of object.
-            # mypy wants typed type_function to pass into apply but doesn't
-            # accept type as an output
-            type_function: Callable[..., Any] = lambda x: type(x)
-            actual_types = noised_data[col.name].dropna().apply(type_function)
-            assert (actual_types == str).all(), actual_types.unique()
-        assert noised_data[col.name].dtype == expected_dtype
-
-
-def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
-    """Tests that all datasets retain unnoised simulant_id and household_id
-    (except for SSA which does not include household_id)
-    """
-    unnoised_id_cols = [COLUMNS.simulant_id.name]
-    if dataset_name != DATASET_SCHEMAS.ssa.name:
-        unnoised_id_cols.append(COLUMNS.household_id.name)
-    original = initialize_dataset_with_sample(dataset_name)
-    noised_data = request.getfixturevalue("noised_data")
-    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
-    check_noised, check_original, _ = get_common_datasets(
-        dataset_schema, original.data, noised_data
-    )
-    assert (
-        (
-            check_original.reset_index()[unnoised_id_cols]
-            == check_noised.reset_index()[unnoised_id_cols]
-        )
-        .all()
-        .all()
     )
