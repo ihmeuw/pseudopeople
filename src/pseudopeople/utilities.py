@@ -271,6 +271,7 @@ def coerce_dtypes(
 def parse_dates(dates: pd.Series, date_format: str) -> tuple[str, str, str]:
     '''Takes a Series of dates as strings and returns the year, month, and day 
     after parsing the data assuming it is formatted according to the provided date_format.'''
+    # import here to avoid circular dependency 
     from pseudopeople.schema_entities import DATEFORMATS
 
     if date_format == DATEFORMATS.YYYYMMDD:  # YYYYMMDD

@@ -132,8 +132,6 @@ class Dataset:
 
     def _reformat_dates_for_noising(self) -> None:
         """Formats date columns so they can be noised as strings."""
-        #data = self.data.copy()
-
         for date_column in [COLUMNS.dob.name, COLUMNS.ssa_event_date.name]:
             # Format both the actual column, and the shadow version that will be used
             # to copy from a household member
@@ -161,8 +159,6 @@ class Dataset:
 
                     self.data[column] = pd.Series(np.nan, dtype=str)
                     self.data.loc[~is_na, column] = result
-
-        #self.data = data
 
     @staticmethod
     def drop_non_schema_columns(
