@@ -158,7 +158,8 @@ def test_full_release_noising(
         dataset.data = coerce_dtypes(dataset.data, dataset.dataset_schema)
         dataset.data = Dataset.drop_non_schema_columns(dataset.data, dataset.dataset_schema)
         test_column_dtypes(dataset.data)
-        test_unnoised_id_cols(dataset.dataset_schema.name, dataset.data)
+    
+    test_unnoised_id_cols(datasets, dataset.dataset_schema.name)
         
 
 def test_column_dtypes(
@@ -182,7 +183,7 @@ def test_column_dtypes(
             assert noised_data[col.name].dtype == expected_dtype
 
 
-def test_unnoised_id_cols(dataset_name: str, noised_data: pd.DataFrame) -> None:
+def test_unnoised_id_cols(datasets: list[Dataset], dataset_name: str) -> None:
     """Tests that all datasets retain unnoised simulant_id and household_id
     (except for SSA which does not include household_id)
     """
@@ -192,17 +193,18 @@ def test_unnoised_id_cols(dataset_name: str, noised_data: pd.DataFrame) -> None:
     original = initialize_dataset_with_sample(dataset_name)
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
 
-    check_noised, check_original, _ = get_common_datasets(
-        dataset_schema, original.data, noised_data
-    )
-    assert (
-        (
-            check_original.reset_index()[unnoised_id_cols]
-            == check_noised.reset_index()[unnoised_id_cols]
+    for noised_dataset in datasets:
+        check_noised, check_original, _ = get_common_datasets(
+            dataset_schema, original.data, noised_dataset.data
         )
-        .all()
-        .all()
-    )
+        assert (
+            (
+                check_original.reset_index()[unnoised_id_cols]
+                == check_noised.reset_index()[unnoised_id_cols]
+            )
+            .all()
+            .all()
+        )
 
 
 def run_column_noising_test(
