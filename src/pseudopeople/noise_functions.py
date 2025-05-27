@@ -330,7 +330,7 @@ def swap_months_and_days(
     :param to_noise_index: pd.Index of rows to be noised
     :param column_name: String for column that will be noised
     """
-    from pseudopeople.schema_entities import DATEFORMATS
+    from pseudopeople.constants.metadata import DATEFORMATS
 
     date_format = dataset.dataset_schema.date_format
 

@@ -274,7 +274,7 @@ def parse_dates(
     """Takes a Series of dates as strings and returns the years, months, and days
     after parsing the data assuming it is formatted according to the provided date_format."""
     # import here to avoid circular dependency
-    from pseudopeople.schema_entities import DATEFORMATS
+    from pseudopeople.constants.metadata import DATEFORMATS
 
     if date_format == DATEFORMATS.YYYYMMDD:  # YYYYMMDD
         year = dates.str[:4]
