@@ -46,7 +46,7 @@ class Dataset:
 
     def is_empty(self, column_name: str) -> Any:
         """Returns whether the column is empty."""
-        is_empty: bool = self.missingness[column_name].all()
+        is_empty: bool = bool(self.missingness[column_name].all())
         return is_empty
 
     def get_non_empty_index(self, required_columns: list[str] | None = None) -> pd.Index[int]:
@@ -132,19 +132,17 @@ class Dataset:
 
     def _reformat_dates_for_noising(self) -> None:
         """Formats date columns so they can be noised as strings."""
-        data = self.data.copy()
-
         for date_column in [COLUMNS.dob.name, COLUMNS.ssa_event_date.name]:
             # Format both the actual column, and the shadow version that will be used
             # to copy from a household member
             for column in [date_column, COPY_HOUSEHOLD_MEMBER_COLS.get(date_column)]:
-                if column in data.columns and isinstance(column, str):
+                if column in self.data.columns and isinstance(column, str):
                     # Avoid running strftime on large data, since that will
                     # re-parse the format string for each row
                     # https://github.com/pandas-dev/pandas/issues/44764
                     # Year is already guaranteed to be 4-digit: https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#timeseries-timestamp-limits
-                    is_na = data[column].isna()
-                    data_column = data.loc[~is_na, column]
+                    is_na = self.data[column].isna()
+                    data_column = self.data.loc[~is_na, column]
                     year_string = data_column.dt.year.astype(str)
                     month_string = _zfill_fast(data_column.dt.month.astype(str), 2)
                     day_string = _zfill_fast(data_column.dt.day.astype(str), 2)
@@ -159,10 +157,8 @@ class Dataset:
                             f"Invalid date format in {self.dataset_schema.name}."
                         )
 
-                    data[column] = pd.Series(np.nan, dtype=str)
-                    data.loc[~is_na, column] = result
-
-        self.data = data
+                    self.data[column] = pd.Series(np.nan, dtype=str)
+                    self.data.loc[~is_na, column] = result
 
     @staticmethod
     def drop_non_schema_columns(
