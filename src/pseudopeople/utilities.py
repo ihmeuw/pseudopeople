@@ -268,6 +268,34 @@ def coerce_dtypes(
     return data
 
 
+def parse_dates(
+    dates: pd.Series[str], date_format: str
+) -> tuple[pd.Series[str], pd.Series[str], pd.Series[str]]:
+    """Takes a Series of dates as strings and returns the years, months, and days
+    after parsing the data assuming it is formatted according to the provided date_format."""
+    # import here to avoid circular dependency
+    from pseudopeople.constants.metadata import DATEFORMATS
+
+    if date_format == DATEFORMATS.YYYYMMDD:  # YYYYMMDD
+        year = dates.str[:4]
+        month = dates.str[4:6]
+        day = dates.str[6:]
+    elif date_format == DATEFORMATS.MM_DD_YYYY:  # MM/DD/YYYY
+        year = dates.str[6:]
+        month = dates.str[:3]
+        day = dates.str[3:6]
+    elif date_format == DATEFORMATS.MMDDYYYY:  # MMDDYYYY
+        year = dates.str[4:]
+        month = dates.str[:2]
+        day = dates.str[2:4]
+    else:
+        raise ValueError(
+            f"Provided invalid date format {date_format} when trying to parse date data."
+        )
+
+    return year, month, day
+
+
 ####################
 # Engine utilities #
 ####################
