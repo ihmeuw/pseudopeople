@@ -33,6 +33,7 @@ from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
 from pseudopeople.utilities import (
     DASK_ENGINE,
     get_engine_from_string,
+    parse_dates,
     to_string,
     update_seed,
 )
@@ -113,6 +114,7 @@ def test_full_release_noising(
 
     for dataset in datasets:
         dataset._clean_input_data()
+        dataset._reformat_dates_for_noising()
 
     for noise_type in NOISE_TYPES:
         prenoised_dataframes: list[pd.DataFrame] = [
@@ -261,6 +263,15 @@ def run_column_noising_test(
             else:
                 num_sims_with_silent_noising = 0
             num_eligible -= num_sims_with_silent_noising
+
+        if noise_type == "swap_month_and_day":
+            dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+            date_format = dataset_schema.date_format
+            _, month, day = parse_dates(
+                shared_prenoised.loc[to_compare_idx, column], date_format
+            )
+            num_sims_with_same_month_and_day = sum(month == day)
+            num_eligible -= num_sims_with_same_month_and_day
 
         numerator += noise_level
         denominator += num_eligible
