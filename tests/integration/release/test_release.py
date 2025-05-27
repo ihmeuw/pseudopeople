@@ -154,13 +154,17 @@ def test_full_release_noising(
                         fuzzy_checker,
                     )
 
+    # post-processing tests on final data
     for dataset in datasets:
+        # these functions are called by Dataset during as part of noising process
+        # after noise types have been applied
         dataset.data = coerce_dtypes(dataset.data, dataset.dataset_schema)
         dataset.data = Dataset.drop_non_schema_columns(dataset.data, dataset.dataset_schema)
+
         test_column_dtypes(dataset.data)
-    
+    # do this outside loop to avoid reading data multiple times
     test_unnoised_id_cols(datasets, dataset.dataset_schema.name)
-        
+
 
 def test_column_dtypes(
     noised_data: pd.DataFrame,
