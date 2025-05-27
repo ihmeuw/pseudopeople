@@ -46,7 +46,7 @@ class Dataset:
 
     def is_empty(self, column_name: str) -> Any:
         """Returns whether the column is empty."""
-        is_empty: bool = self.missingness[column_name].all()
+        is_empty: bool = bool(self.missingness[column_name].all())
         return is_empty
 
     def get_non_empty_index(self, required_columns: list[str] | None = None) -> pd.Index[int]:

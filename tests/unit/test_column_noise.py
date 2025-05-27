@@ -317,7 +317,7 @@ def test_leave_blank(dataset: Dataset, fuzzy_checker: FuzzyChecker) -> None:
     NOISE_TYPES.leave_blank(dataset, config, column_name)
     noised_data: pd.Series[str] = dataset.data[column_name]
     # Calculate newly missing data, ie data that didn't come in as already missing
-    data = data.squeeze()
+    data = data.squeeze()  # type: ignore[assignment]
     is_not_missing = (data.notna()) & (data != "")
     orig_non_missing_idx = is_not_missing[is_not_missing].index
     newly_missing_idx = noised_data.index[
