@@ -32,6 +32,7 @@ from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
 from pseudopeople.utilities import (
     DASK_ENGINE,
+    coerce_dtypes,
     get_engine_from_string,
     to_string,
     update_seed,
@@ -154,7 +155,10 @@ def test_full_release_noising(
                     )
 
     for dataset in datasets:
+        dataset.data = coerce_dtypes(dataset.data, dataset.dataset_schema)
+        dataset.data = Dataset.drop_non_schema_columns(dataset.data, dataset.dataset_schema)
         test_column_dtypes(dataset.data)
+        test_unnoised_id_cols(dataset.dataset_schema.name, dataset.data)
         
 
 def test_column_dtypes(
@@ -172,11 +176,13 @@ def test_column_dtypes(
             # accept type as an output
             type_function: Callable[..., Any] = lambda x: type(x)
             actual_types = noised_data[col.name].dropna().apply(type_function)
-            assert (actual_types == str).all(), actual_types.unique()
-        assert noised_data[col.name].dtype == expected_dtype
+            with check:
+                assert (actual_types == str).all(), actual_types.unique()
+        with check:
+            assert noised_data[col.name].dtype == expected_dtype
 
 
-def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
+def test_unnoised_id_cols(dataset_name: str, noised_data: pd.DataFrame) -> None:
     """Tests that all datasets retain unnoised simulant_id and household_id
     (except for SSA which does not include household_id)
     """
@@ -184,8 +190,8 @@ def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
     if dataset_name != DATASET_SCHEMAS.ssa.name:
         unnoised_id_cols.append(COLUMNS.household_id.name)
     original = initialize_dataset_with_sample(dataset_name)
-    noised_data = request.getfixturevalue("noised_data")
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+
     check_noised, check_original, _ = get_common_datasets(
         dataset_schema, original.data, noised_data
     )
