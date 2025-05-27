@@ -226,10 +226,7 @@ def get_common_datasets(
     check_original = unnoised_data.set_index(idx_cols)
     check_noised = noised_data.set_index(idx_cols)
     # Ensure the idx_cols are unique
-    try:
-        assert check_original.index.duplicated().sum() == 0
-    except:
-        breakpoint()
+    assert check_original.index.duplicated().sum() == 0
     assert check_noised.index.duplicated().sum() == 0
     shared_idx = pd.Index(set(check_original.index).intersection(set(check_noised.index)))
     check_original = check_original.loc[shared_idx]
