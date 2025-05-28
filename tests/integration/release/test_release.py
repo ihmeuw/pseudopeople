@@ -123,6 +123,12 @@ def test_full_release_noising(
         ]
         if isinstance(noise_type, RowNoiseType):
             if config.has_noise_type(dataset_schema.name, noise_type.name):
+                # don't apply duplicate_with_guardian since this duplicates simulant id
+                # which must be unique to be used as an identifier
+                # TODO: Noise duplicate_with_guardian when record IDs
+                # are implemented (MIC-4039)
+                if noise_type.name == NOISE_TYPES.duplicate_with_guardian.name:
+                    continue
                 for dataset in datasets:
                     # noise datasets in place
                     noise_type(dataset, config)
@@ -136,14 +142,8 @@ def test_full_release_noising(
                 if config.has_noise_type(dataset_schema.name, noise_type.name, column):
                     # don't noise ssa_event_type because it's used as an identifier column
                     # along with simulant id
-                    # don't apply duplicate_with_guardian since this duplicates simulant id
-                    # which must be unique to be used as an identifier
-                    # TODO: Noise ssa_event_type and duplicate_with_guardian when record IDs
-                    # are implemented (MIC-4039)
-                    if (
-                        column == COLUMNS.ssa_event_type.name
-                        or noise_type.name == "duplicate_with_guardian"
-                    ):
+                    # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
+                    if column == COLUMNS.ssa_event_type.name:
                         continue
                     for dataset in datasets:
                         # noise datasets in place
