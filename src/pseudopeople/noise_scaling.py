@@ -56,7 +56,7 @@ def scale_copy_from_household_member(data: pd.DataFrame, column_name: str) -> An
 @cache
 def load_nicknames_data() -> pd.DataFrame:
     # Load and format nicknames dataset
-    nicknames = pd.read_csv(paths.NICKNAMES_DATA)
+    nicknames: pd.DataFrame = pd.read_csv(paths.NICKNAMES_DATA)
     nicknames = nicknames.apply(lambda x: x.astype(str).str.title()).set_index("name")
     nicknames = nicknames.replace("Nan", np.nan)
     return nicknames
