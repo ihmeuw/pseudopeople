@@ -50,7 +50,7 @@ if __name__ == "__main__":
         "layered_config_tree>=2.1.0",
         "loguru",
         # type stubs
-        "pandas-stubs",
+        "pandas-stubs<=2.2.3.250308",
         "types-PyYAML",
         "types-docutils",
         "types-tqdm",
@@ -78,6 +78,7 @@ if __name__ == "__main__":
     lint_requirements = [
         "black==22.3.0",
         "isort==5.13.2",
+        "mypy",
     ]
 
     doc_requirements = [
