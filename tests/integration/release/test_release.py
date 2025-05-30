@@ -164,7 +164,7 @@ def test_full_release_noising(
 
     # post-processing tests on final data
     for dataset in datasets:
-        # these functions are called by Dataset during as part of noising process
+        # these functions are called by Dataset as part of noising process
         # after noise types have been applied
         dataset.data = coerce_dtypes(dataset.data, dataset.dataset_schema)
         dataset.data = Dataset.drop_non_schema_columns(dataset.data, dataset.dataset_schema)
