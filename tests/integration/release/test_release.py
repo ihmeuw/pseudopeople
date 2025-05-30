@@ -32,6 +32,7 @@ from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
 from pseudopeople.utilities import (
     DASK_ENGINE,
+    coerce_dtypes,
     get_engine_from_string,
     parse_dates,
     to_string,
@@ -122,6 +123,12 @@ def test_full_release_noising(
         ]
         if isinstance(noise_type, RowNoiseType):
             if config.has_noise_type(dataset_schema.name, noise_type.name):
+                # don't apply duplicate_with_guardian since this duplicates simulant id
+                # which must be unique to be used as an identifier
+                # TODO: Noise duplicate_with_guardian when record IDs
+                # are implemented (MIC-4039)
+                if noise_type.name == NOISE_TYPES.duplicate_with_guardian.name:
+                    continue
                 for dataset in datasets:
                     # noise datasets in place
                     noise_type(dataset, config)
@@ -154,6 +161,62 @@ def test_full_release_noising(
                         column,
                         fuzzy_checker,
                     )
+
+    # post-processing tests on final data
+    for dataset in datasets:
+        # these functions are called by Dataset as part of noising process
+        # after noise types have been applied
+        dataset.data = coerce_dtypes(dataset.data, dataset.dataset_schema)
+        dataset.data = Dataset.drop_non_schema_columns(dataset.data, dataset.dataset_schema)
+
+        test_column_dtypes(dataset.data)
+    # do this outside loop to avoid reading data multiple times
+    test_unnoised_id_cols(datasets, dataset.dataset_schema.name)
+
+
+def test_column_dtypes(
+    noised_data: pd.DataFrame,
+) -> None:
+    """Tests that column dtypes are as expected"""
+    for col_name in noised_data.columns:
+        col = COLUMNS.get_column(col_name)
+        expected_dtype = col.dtype_name
+        if expected_dtype == np.dtype(object):
+            # str dtype is 'object'
+            # Check that they are actually strings and not some other
+            # type of object.
+            # mypy wants typed type_function to pass into apply but doesn't
+            # accept type as an output
+            type_function: Callable[..., Any] = lambda x: type(x)
+            actual_types = noised_data[col.name].dropna().apply(type_function)
+            with check:
+                assert (actual_types == str).all(), actual_types.unique()
+        with check:
+            assert noised_data[col.name].dtype == expected_dtype
+
+
+def test_unnoised_id_cols(datasets: list[Dataset], dataset_name: str) -> None:
+    """Tests that all datasets retain unnoised simulant_id and household_id
+    (except for SSA which does not include household_id)
+    """
+    unnoised_id_cols = [COLUMNS.simulant_id.name]
+    if dataset_name != DATASET_SCHEMAS.ssa.name:
+        unnoised_id_cols.append(COLUMNS.household_id.name)
+    original = initialize_dataset_with_sample(dataset_name)
+    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+
+    for noised_dataset in datasets:
+        check_noised, check_original, _ = get_common_datasets(
+            dataset_schema, original.data, noised_dataset.data
+        )
+        assert (
+            (
+                check_original.reset_index()[unnoised_id_cols]
+                == check_noised.reset_index()[unnoised_id_cols]
+            )
+            .all()
+            .all()
+        )
 
 
 def run_column_noising_test(
@@ -283,49 +346,4 @@ def run_column_noising_test(
         observed_denominator=denominator,
         target_proportion=expected_noise_level / denominator,
         name_additional=f"{dataset_name}_{column}_{noise_type}",
-    )
-
-
-def test_column_dtypes(
-    unnoised_dataset: Dataset,
-    noised_data: pd.DataFrame,
-    dataset_name: str,
-    config: dict[str, Any],
-) -> None:
-    """Tests that column dtypes are as expected"""
-    for col_name in noised_data.columns:
-        col = COLUMNS.get_column(col_name)
-        expected_dtype = col.dtype_name
-        if expected_dtype == np.dtype(object):
-            # str dtype is 'object'
-            # Check that they are actually strings and not some other
-            # type of object.
-            # mypy wants typed type_function to pass into apply but doesn't
-            # accept type as an output
-            type_function: Callable[..., Any] = lambda x: type(x)
-            actual_types = noised_data[col.name].dropna().apply(type_function)
-            assert (actual_types == str).all(), actual_types.unique()
-        assert noised_data[col.name].dtype == expected_dtype
-
-
-def test_unnoised_id_cols(dataset_name: str, request: FixtureRequest) -> None:
-    """Tests that all datasets retain unnoised simulant_id and household_id
-    (except for SSA which does not include household_id)
-    """
-    unnoised_id_cols = [COLUMNS.simulant_id.name]
-    if dataset_name != DATASET_SCHEMAS.ssa.name:
-        unnoised_id_cols.append(COLUMNS.household_id.name)
-    original = initialize_dataset_with_sample(dataset_name)
-    noised_data = request.getfixturevalue("noised_data")
-    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
-    check_noised, check_original, _ = get_common_datasets(
-        dataset_schema, original.data, noised_data
-    )
-    assert (
-        (
-            check_original.reset_index()[unnoised_id_cols]
-            == check_noised.reset_index()[unnoised_id_cols]
-        )
-        .all()
-        .all()
     )
