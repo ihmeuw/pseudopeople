@@ -186,7 +186,7 @@ def _generate_dataset(
                     configuration=noise_configuration,
                     seed=f"{seed}_{partition_info['number'] if partition_info is not None else 1}",
                     progress_bar=False,
-                ),
+                ),  #  type: ignore [no-untyped-call]
                 meta=[(c.name, c.dtype_name) for c in dataset_schema.columns],
             )
 

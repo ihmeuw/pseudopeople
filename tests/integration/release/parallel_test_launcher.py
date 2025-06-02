@@ -4,6 +4,7 @@ import os
 import shutil
 import subprocess
 import time
+from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
 
@@ -87,7 +88,7 @@ def is_job_running(job_id: str) -> bool:
         return False
 
 
-def wait_for_all_jobs(job_ids: list[str | None], poll_interval: int = 1800):
+def wait_for_all_jobs(job_ids: Sequence[str | None], poll_interval: int = 1800) -> None:
     """
     Waits for all jobs to complete, checking their status every `poll_interval` seconds.
 
@@ -95,7 +96,9 @@ def wait_for_all_jobs(job_ids: list[str | None], poll_interval: int = 1800):
         job_ids (list): List of Slurm job IDs to monitor.
         poll_interval (int): Time interval (in seconds) between status checks. Default is 1800 seconds (30 minutes).
     """
-    remaining_jobs = set(job_ids)  # Track jobs that are still running
+    remaining_jobs = set(
+        x for x in job_ids if x is not None
+    )  # Track jobs that are still running
     while remaining_jobs:
         print(f"Checking status of {len(remaining_jobs)} remaining jobs...")
 
