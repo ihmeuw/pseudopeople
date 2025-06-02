@@ -18,18 +18,18 @@ def create_slurm_script(row: dict[str, str], script_name: str, output_dir: str) 
     partition = (
         "all.q" if int(time_limit.split(":")[0]) <= 24 else "long.q"
     )  # long.q if 24 longer than 24 hours
-    # TODO: define cpus per task based on engine (ask Zeb)
     release_tests_dir = Path(__file__).parent
     pytest_command = (
         f"pytest -rA --release --dataset {dataset} --engine {engine} {release_tests_dir}"
     )
+    # TODO: define cpus per task based on engine (ask Zeb)
     slurm_script = f"""#!/bin/bash 
 #SBATCH --job-name=pytest_{dataset}_{engine} 
 #SBATCH --output={output_dir}/pytest_{dataset}_{engine}.out 
 #SBATCH --error={output_dir}/pytest_{dataset}_{engine}.err 
 #SBATCH --mem={memory}G
 #SBATCH --time={time_limit} 
-#SBATCH --account=proj_simscience
+#SBATCH --account=proj_simscience_prod
 #SBATCH --partition={partition}
 #SBATCH --cpus-per-task=1
         
