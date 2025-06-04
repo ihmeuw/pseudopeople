@@ -7,11 +7,12 @@ import time
 from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 
 
-def create_slurm_script(row: dict[str, str], script_name: str, output_dir: str) -> None:
+def create_slurm_script(row: pd.Series[Any], script_name: str, output_dir: str) -> None:
     dataset = row["dataset"]
     engine = row["engine"]
     memory = row["memory"]
@@ -95,9 +96,7 @@ def wait_for_all_jobs(job_ids: Sequence[str | None], poll_interval: int = 1800) 
         job_ids (list): List of Slurm job IDs to monitor.
         poll_interval (int): Time interval (in seconds) between status checks. Default is 1800 seconds (30 minutes).
     """
-    remaining_jobs = set(
-        x for x in job_ids if x is not None
-    )  # Track jobs that are still running
+    remaining_jobs = set(x for x in job_ids if x is not None)
     while remaining_jobs:
         print(f"Checking status of {len(remaining_jobs)} remaining jobs...")
 
