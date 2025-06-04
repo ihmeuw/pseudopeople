@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import csv
 import glob
 import os
@@ -14,20 +16,18 @@ import pandas as pd
 
 def create_slurm_script(row: pd.Series[Any], script_name: str, output_dir: str) -> None:
     dataset = row["dataset"]
-    pop = row['population']
-    state = row['state'] 
-    year = row['year']    
+    pop = row["population"]
+    state = row["state"]
+    year = row["year"]
     engine = row["engine"]
     memory = row["memory"]
     time_limit = row["time"]  # DD:HH:MM
     # long.q if 24 longer than 24 hours
     partition = "all.q" if int(time_limit.split(":")[0]) <= 24 else "long.q"
     release_tests_dir = Path(__file__).parent
-    state_flag = f"--state {state}" if state != 'none' else ""
-    year_flag = f"--year {year}" if year != 'default' else ""    
-    pytest_command = (
-        f"pytest -rA --release --dataset {dataset} --engine {engine} --population {pop} {state_flag} {year_flag} {release_tests_dir}"
-    )
+    state_flag = f"--state {state}" if state != "none" else ""
+    year_flag = f"--year {year}" if year != "default" else ""
+    pytest_command = f"pytest -rA --release --dataset {dataset} --engine {engine} --population {pop} {state_flag} {year_flag} {release_tests_dir}"
     # TODO: define cpus per task based on engine (ask Zeb)
     slurm_script = f"""#!/bin/bash 
 #SBATCH --job-name=pytest_{dataset}_{engine} 
@@ -176,8 +176,7 @@ def parse_outputs(output_dir: str, job_ids: list[str] | None = None) -> None:
 
 
 if __name__ == "__main__":
-    #csv_file = "data/parameters.csv
-    csv_file = "data/test.csv"
+    csv_file = "data/parameters.csv"
     timestamp = datetime.now().strftime("%d-%H-%M-%S")
     output_dir = f"/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing/logs/{timestamp}"  # Directory where Slurm output/error files are stored
     job_ids = []
