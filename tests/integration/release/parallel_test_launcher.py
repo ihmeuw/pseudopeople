@@ -16,9 +16,8 @@ def create_slurm_script(row: dict[str, str], script_name: str, output_dir: str) 
     engine = row["engine"]
     memory = row["memory"]
     time_limit = row["time"]  # DD:HH:MM
-    partition = (
-        "all.q" if int(time_limit.split(":")[0]) <= 24 else "long.q"
-    )  # long.q if 24 longer than 24 hours
+    # long.q if 24 longer than 24 hours
+    partition = "all.q" if int(time_limit.split(":")[0]) <= 24 else "long.q"
     release_tests_dir = Path(__file__).parent
     pytest_command = (
         f"pytest -rA --release --dataset {dataset} --engine {engine} {release_tests_dir}"
@@ -153,8 +152,10 @@ def parse_outputs(output_dir: str, job_ids: list[str] | None = None) -> None:
             outcome = "not_completed"
         elif "failed" in last_line.lower():
             outcome = "failed"
-        else:
+        elif "passed" in last_line.lower():
             outcome = "passed"
+        else:
+            outcome = "not_completed"
         job_info.append({"outcome": outcome, "filepath": str(file)})
 
     job_info_df = pd.DataFrame(job_info).sort_values(by="outcome")
@@ -178,19 +179,17 @@ if __name__ == "__main__":
     submission_failures = []
 
     # Step 1: Read the CSV and generate and run Slurm scripts
-    with open(csv_file, mode="r") as file:
-        reader = csv.DictReader(file)
-        rows = list(reader)  # Convert CSV rows into a list of dictionaries
+    parameters = pd.read_csv(csv_file)
 
-        for i, row in enumerate(rows):
-            script_name = f"job_{i}.sh"
-            create_slurm_script(row, script_name, output_dir)  # Create the Slurm job script
-            script_path = f"{output_dir}/tmp_scripts/{script_name}"
-            job_id = submit_slurm_job(script_path)  # Submit the script
-            if job_id:
-                job_ids.append(job_id)  # Save the job
-            else:
-                submission_failures.append(row)
+    for i, row in parameters.iterrows():
+        script_name = f"job_{i}.sh"
+        create_slurm_script(row, script_name, output_dir)  # Create the Slurm job script
+        script_path = f"{output_dir}/tmp_scripts/{script_name}"
+        job_id = submit_slurm_job(script_path)  # Submit the script
+        if job_id:
+            job_ids.append(job_id)  # Save the job
+        else:
+            submission_failures.append(row)
 
     # log submission failures
     print(f"{len(submission_failures)} submission failures: \n")
