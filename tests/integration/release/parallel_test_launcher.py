@@ -15,9 +15,7 @@ def create_slurm_script(row: dict[str, str], script_name: str, output_dir: str) 
     dataset = row["dataset"]
     pop = row['population']
     state = row['state'] 
-    state = None if state == "none" else state  # convert "none" string to None
-    year = row['year']
-    year = None if year == "default" else year  # convert "default" string to None
+    year = row['year']    
     engine = row["engine"]
     memory = row["memory"]
     time_limit = row["time"]  # DD:HH:MM
@@ -25,8 +23,10 @@ def create_slurm_script(row: dict[str, str], script_name: str, output_dir: str) 
         "all.q" if int(time_limit.split(":")[0]) <= 24 else "long.q"
     )  # long.q if 24 longer than 24 hours
     release_tests_dir = Path(__file__).parent
+    state_flag = f"--state {state}" if state != 'none' else ""
+    year_flag = f"--year {year}" if year != 'default' else ""    
     pytest_command = (
-        f"pytest -rA --release --dataset {dataset} --engine {engine} --population {pop} -- state {state} --year {year} {release_tests_dir}"
+        f"pytest -rA --release --dataset {dataset} --engine {engine} --population {pop} {state_flag} {year_flag} {release_tests_dir}"
     )
     # TODO: define cpus per task based on engine (ask Zeb)
     slurm_script = f"""#!/bin/bash 
@@ -42,6 +42,10 @@ def create_slurm_script(row: dict[str, str], script_name: str, output_dir: str) 
 echo "Running pytest for dataset {dataset} with engine {engine}" 
 {pytest_command} 
     """
+    # TODO: add to sbatch script
+    #PATH_ENV=get_path_env(python_version)
+    #source {PATH_ENV}
+
     # Ensure the directory we want to write to exists
     script_path = f"{output_dir}/tmp_scripts/{script_name}"
     directory = os.path.dirname(script_path)
@@ -154,6 +158,7 @@ def parse_outputs(output_dir: str, job_ids: list[str] | None = None) -> None:
                 continue  # Skip empty files
             last_line = lines[-1].strip()
 
+        # TODO: check that passed is in text to capture no tests being run
         if not (last_line.startswith("=") and last_line.endswith("=")):
             outcome = "not_completed"
         elif "failed" in last_line.lower():
@@ -176,11 +181,14 @@ def parse_outputs(output_dir: str, job_ids: list[str] | None = None) -> None:
 
 
 if __name__ == "__main__":
-    csv_file = "data/parameters.csv"
+    #csv_file = "data/parameters.csv
+    csv_file = "data/test.csv"
     timestamp = datetime.now().strftime("%d-%H-%M-%S")
     output_dir = f"/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing/logs/{timestamp}"  # Directory where Slurm output/error files are stored
     job_ids = []
     submission_failures = []
+
+    # TODO: check for python environment and create if it doesn't exist
 
     # Step 1: Read the CSV and generate and run Slurm scripts
     with open(csv_file, mode="r") as file:
@@ -210,7 +218,7 @@ if __name__ == "__main__":
         )
 
     # Step 2: Wait for jobs to complete
-    wait_for_all_jobs(job_ids, poll_interval=10)
+    wait_for_all_jobs(job_ids, poll_interval=60)
 
     # Step 3: delete tmp_scripts directory
     scripts_dir = f"{output_dir}/tmp_scripts"
