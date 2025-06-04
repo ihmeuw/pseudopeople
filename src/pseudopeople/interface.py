@@ -182,7 +182,7 @@ def _generate_dataset(
             noised_dataset = dask_data.map_partitions(
                 lambda data, partition_info=None: noise_data(
                     dataset_schema,
-                    data,
+                    data.copy(),
                     configuration=noise_configuration,
                     seed=f"{seed}_{partition_info['number'] if partition_info is not None else 1}",
                     progress_bar=False,
