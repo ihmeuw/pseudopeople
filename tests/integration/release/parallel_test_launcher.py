@@ -42,10 +42,6 @@ def create_slurm_script(row: dict[str, str], script_name: str, output_dir: str) 
 echo "Running pytest for dataset {dataset} with engine {engine}" 
 {pytest_command} 
     """
-    # TODO: add to sbatch script
-    #PATH_ENV=get_path_env(python_version)
-    #source {PATH_ENV}
-
     # Ensure the directory we want to write to exists
     script_path = f"{output_dir}/tmp_scripts/{script_name}"
     directory = os.path.dirname(script_path)
@@ -158,7 +154,6 @@ def parse_outputs(output_dir: str, job_ids: list[str] | None = None) -> None:
                 continue  # Skip empty files
             last_line = lines[-1].strip()
 
-        # TODO: check that passed is in text to capture no tests being run
         if not (last_line.startswith("=") and last_line.endswith("=")):
             outcome = "not_completed"
         elif "failed" in last_line.lower():
@@ -187,8 +182,6 @@ if __name__ == "__main__":
     output_dir = f"/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing/logs/{timestamp}"  # Directory where Slurm output/error files are stored
     job_ids = []
     submission_failures = []
-
-    # TODO: check for python environment and create if it doesn't exist
 
     # Step 1: Read the CSV and generate and run Slurm scripts
     with open(csv_file, mode="r") as file:
