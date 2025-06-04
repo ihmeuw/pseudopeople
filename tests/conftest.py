@@ -57,7 +57,7 @@ def pytest_collection_modifyitems(config: Config, items: list[Function]) -> None
                 item.add_marker(skip_release)
     else:
         for item in items:
-            if "test_parallel_runs.py" not in item.keywords:
+            if "release" not in item.keywords:
                 item.add_marker(skip_non_release)
 
     if config.getoption("--runslow"):

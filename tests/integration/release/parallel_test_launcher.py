@@ -13,6 +13,11 @@ import pandas as pd
 
 def create_slurm_script(row: dict[str, str], script_name: str, output_dir: str) -> None:
     dataset = row["dataset"]
+    pop = row['population']
+    state = row['state'] 
+    state = None if state == "none" else state  # convert "none" string to None
+    year = row['year']
+    year = None if year == "default" else year  # convert "default" string to None
     engine = row["engine"]
     memory = row["memory"]
     time_limit = row["time"]  # DD:HH:MM
@@ -21,7 +26,7 @@ def create_slurm_script(row: dict[str, str], script_name: str, output_dir: str) 
     )  # long.q if 24 longer than 24 hours
     release_tests_dir = Path(__file__).parent
     pytest_command = (
-        f"pytest -rA --release --dataset {dataset} --engine {engine} {release_tests_dir}"
+        f"pytest -rA --release --dataset {dataset} --engine {engine} --population {pop} -- state {state} --year {year} {release_tests_dir}"
     )
     # TODO: define cpus per task based on engine (ask Zeb)
     slurm_script = f"""#!/bin/bash 
