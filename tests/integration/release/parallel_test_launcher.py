@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import csv
 import glob
 import os
 import shutil
@@ -14,14 +13,14 @@ from typing import Any
 import pandas as pd
 
 
-def create_slurm_script(row: pd.Series[Any], script_name: str, output_dir: str) -> None:
+def write_slurm_script(row: pd.Series[Any], script_name: str, output_dir: str) -> None:
     dataset = row["dataset"]
     pop = row["population"]
     state = row["state"]
     year = row["year"]
     engine = row["engine"]
     memory = row["memory"]
-    time_limit = row["time"]  # DD:HH:MM
+    time_limit = row["time"]  # HH:MM:SS
     # long.q if 24 longer than 24 hours
     partition = "all.q" if int(time_limit.split(":")[0]) <= 24 else "long.q"
     release_tests_dir = Path(__file__).parent
@@ -42,10 +41,7 @@ def create_slurm_script(row: pd.Series[Any], script_name: str, output_dir: str) 
 echo "Running pytest for dataset {dataset} with engine {engine}" 
 {pytest_command} 
     """
-    # Ensure the directory we want to write to exists
     script_path = f"{output_dir}/tmp_scripts/{script_name}"
-    directory = os.path.dirname(script_path)
-    os.makedirs(directory, exist_ok=True)
 
     # Write the script to a file
     with open(script_path, "w") as script:
@@ -182,16 +178,20 @@ if __name__ == "__main__":
     job_ids = []
     submission_failures = []
 
+    # create scripts directory
+    scripts_dir = f"{output_dir}/tmp_scripts"
+    os.makedirs(scripts_dir, exist_ok=False)
+
     # Step 1: Read the CSV and generate and run Slurm scripts
     parameters = pd.read_csv(csv_file)
 
     for i, row in parameters.iterrows():
         script_name = f"job_{i}.sh"
-        create_slurm_script(row, script_name, output_dir)  # Create the Slurm job script
+        write_slurm_script(row, script_name, output_dir)
         script_path = f"{output_dir}/tmp_scripts/{script_name}"
         job_id = submit_slurm_job(script_path)  # Submit the script
         if job_id:
-            job_ids.append(job_id)  # Save the job
+            job_ids.append(job_id)  # Save the job id
         else:
             submission_failures.append(row)
 
