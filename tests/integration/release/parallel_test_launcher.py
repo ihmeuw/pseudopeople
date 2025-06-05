@@ -17,7 +17,7 @@ def write_slurm_script(row: pd.Series[Any], script_name: str, output_dir: str) -
     dataset = row["dataset"]
     engine = row["engine"]
     memory = row["memory"]
-    time_limit = row["time"]  # DD:HH:MM
+    time_limit = row["time"]  # HH:MM:SS
     # long.q if 24 longer than 24 hours
     partition = "all.q" if int(time_limit.split(":")[0]) <= 24 else "long.q"
     release_tests_dir = Path(__file__).parent
