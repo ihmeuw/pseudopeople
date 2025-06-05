@@ -209,7 +209,7 @@ if __name__ == "__main__":
         )
 
     # Step 2: Wait for jobs to complete
-    wait_for_all_jobs(job_ids, poll_interval=60)
+    wait_for_all_jobs(job_ids, poll_interval=1800)
 
     # Step 3: delete tmp_scripts directory
     scripts_dir = f"{output_dir}/tmp_scripts"
