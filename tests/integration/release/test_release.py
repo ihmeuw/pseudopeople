@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import os
 from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
@@ -9,6 +10,7 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 from _pytest.fixtures import FixtureRequest
+from dask.distributed import LocalCluster
 from pytest_check import check
 from pytest_mock import MockerFixture
 from vivarium_testing_utils import FuzzyChecker
@@ -103,6 +105,19 @@ def test_full_release_noising(
     ]
 
     if engine == DASK_ENGINE:
+        cluster = LocalCluster(
+            n_workers=int(os.environ["SLURM_CPUS_ON_NODE"]),
+            threads_per_worker=1,
+            memory_limit=(
+                # Per worker!
+                int(os.environ["SLURM_MEM_PER_NODE"])
+                / int(os.environ["SLURM_CPUS_ON_NODE"])
+            )
+            * 1_000
+            * 1_000,  # Dask uses bytes, Slurm reports in megabytes.
+        )
+        client = cluster.get_client()
+
         # TODO: [MIC-5960] move this compute to later in the code
         dataset_data: list[pd.DataFrame] = [data.compute() for data in unnoised_data if len(data) != 0]  # type: ignore [operator]
     else:
