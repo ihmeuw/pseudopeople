@@ -23,11 +23,12 @@ def write_slurm_script(row: pd.Series[Any], script_name: str, output_dir: str) -
     time_limit = row["time"]  # HH:MM:SS
     # long.q if 24 longer than 24 hours
     partition = "all.q" if int(time_limit.split(":")[0]) <= 24 else "long.q"
+    cpus_per_task = 50 if engine == "dask" else 1
+
     release_tests_dir = Path(__file__).parent
     state_flag = f"--state {state}" if state != "none" else ""
     year_flag = f"--year {year}" if year != "default" else ""
     pytest_command = f"pytest -rA --release --dataset {dataset} --engine {engine} --population {pop} {state_flag} {year_flag} {release_tests_dir}"
-    # TODO: define cpus per task based on engine (ask Zeb)
     slurm_script = f"""#!/bin/bash 
 #SBATCH --job-name=pytest_{dataset}_{engine} 
 #SBATCH --output={output_dir}/pytest_{dataset}_{engine}.out 
@@ -36,7 +37,7 @@ def write_slurm_script(row: pd.Series[Any], script_name: str, output_dir: str) -
 #SBATCH --time={time_limit} 
 #SBATCH --account=proj_simscience_prod
 #SBATCH --partition={partition}
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task={cpus_per_task}
         
 echo "Running pytest for dataset {dataset} with engine {engine}" 
 {pytest_command} 
