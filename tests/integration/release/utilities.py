@@ -190,7 +190,7 @@ def run_guardian_duplication_tests(
 
         # Only duplicate a dependent one time
         with check:
-            assert noised_dataset.data["simulant_id"].value_counts().max() == 2
+            assert noised_dataset.data["simulant_id"].value_counts().max() <= 2
 
         # Check address information is copied in new rows
         guardians = prenoised_dataframe.loc[

@@ -123,12 +123,6 @@ def test_full_release_noising(
         ]
         if isinstance(noise_type, RowNoiseType):
             if config.has_noise_type(dataset_schema.name, noise_type.name):
-                # don't apply duplicate_with_guardian since this duplicates simulant id
-                # which must be unique to be used as an identifier
-                # TODO: Noise duplicate_with_guardian when record IDs
-                # are implemented (MIC-4039)
-                if noise_type.name == NOISE_TYPES.duplicate_with_guardian.name:
-                    continue
                 for dataset in datasets:
                     # noise datasets in place
                     noise_type(dataset, config)
@@ -136,6 +130,15 @@ def test_full_release_noising(
                 test_function(
                     prenoised_dataframes, datasets, config, full_dataset_name, fuzzy_checker
                 )
+                if noise_type.name == NOISE_TYPES.duplicate_with_guardian.name:
+                    # noising after duplicate_with_guardian should be done on prenoised data
+                    # since it duplicates simulant ID which must be unique to be used as an identifier
+                    # TODO: Noise duplicate_with_guardian normally when record IDs
+                    # are implemented (MIC-4039)
+                    datasets = [
+                        Dataset(dataset_schema, data, f"{seed}_{i}")
+                        for i, data in enumerate(prenoised_dataframes)
+                    ]
 
         if isinstance(noise_type, ColumnNoiseType):
             for column in prenoised_dataframes[0].columns:
