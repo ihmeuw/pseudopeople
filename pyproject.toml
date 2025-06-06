@@ -24,5 +24,6 @@ exclude = [
 module = [
     "scipy.*",
     "pytest_check",
+    "dask",
 ]
 ignore_missing_imports = true
