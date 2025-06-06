@@ -114,31 +114,22 @@ def test_full_release_noising(
 
     data_file_paths = get_dataset_filepaths(Path(source), dataset_schema.name)
     filters = get_data_filters(dataset_schema, year, state)
-    # TODO: pass in entire directory in dask case
-    unnoised_data: list[pd.DataFrame] | dd.DataFrame = [
+    unnoised_data: list[pd.DataFrame | dd.DataFrame] = [
         load_standard_dataset(path, filters, engine) for path in data_file_paths
     ]
 
     if engine == DASK_ENGINE:
-        # TODO: don't compute here
+        # TODO: [MIC-5960] move this compute to later in the code
         dataset_data: list[pd.DataFrame] = [data.compute() for data in unnoised_data if len(data) != 0]  # type: ignore [operator]
     else:
         dataset_data = [data for data in unnoised_data if len(data) != 0]  # type: ignore [misc]
 
     seed = update_seed(SEED, year)
-    if engine == PANDAS_ENGINE:
-        datasets: list[Dataset] = [
+    datasets: list[Dataset] = [
         Dataset(dataset_schema, data, f"{seed}_{i}") for i, data in enumerate(dataset_data)
     ]
-    else:
-        wide_data = unnoised_data.map_partitions(
-            # TODO: this function appends wide the missingness data
-            make_wide_dataframe, 
-        )
 
     for dataset in datasets:
-        # TODO: refactor as functions that take dataframes and move to previous map_partitions
-        # and perform them before making wide
         dataset._clean_input_data()
         dataset._reformat_dates_for_noising()
 
