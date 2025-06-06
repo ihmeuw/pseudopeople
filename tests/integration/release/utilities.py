@@ -125,6 +125,48 @@ def run_omit_row_tests(
         )
 
 
+def get_noised_data(data: pd.DataFrame) -> pd.DataFrame:
+    return data[[col for col in data.columns if not col.endswith("_prenoised") and not col.endswith("_missingness")]]
+
+def get_prenoised_data(data: pd.DataFrame) -> pd.DataFrame:
+    return data[[col for col in data.columns if col.endswith("_prenoised")]]
+
+
+def get_omit_row_counts(data: pd.DataFrame) -> pd.DataFrame:
+    noised = get_noised_data(data)
+    prenoised = get_prenoised_data(data)
+    with check:
+        assert set(noised.columns) == set(prenoised.columns)
+    with check:
+        assert (noised.dtypes == prenoised.dtypes).all()
+
+    total_rows = len(data)
+    # TODO: memory issue?
+    omitted_rows = noised.isna().all(axis=1).sum()
+    # can we return a tuple or dictionary instead?
+    return pd.DataFrame({'numerator': [omitted_rows], 'denominator': [total_rows]})
+
+
+def fuzzy_check_omit_row_counts(
+    numerator: int,
+    denominator: int,
+    config: NoiseConfiguration,
+    dataset_name: str,
+    fuzzy_checker: FuzzyChecker,
+) -> None:
+    expected_noise = config.get_row_probability(dataset_name, NOISE_TYPES.omit_row.name)
+
+    # Test that noising affects expected proportion with expected types
+    with check:
+        fuzzy_checker.fuzzy_assert_proportion(
+            name="test_omit_row",
+            observed_numerator=numerator,
+            observed_denominator=denominator,
+            target_proportion=expected_noise,
+            name_additional="noised_data",
+        )
+
+
 def run_guardian_duplication_tests(
     prenoised_dataframes: list[pd.DataFrame],
     noised_datasets: list[Dataset],

@@ -20,7 +20,7 @@ from pseudopeople.configuration.entities import NO_NOISE
 from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import DatasetNames
-from pseudopeople.dataset import Dataset
+from pseudopeople.dataset import Dataset, clean_input_data, reformat_dates_for_noising
 from pseudopeople.dtypes import DtypeNames
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.filter import get_data_filters
@@ -112,94 +112,193 @@ def test_full_release_noising(
         )
         client = cluster.get_client()
 
-    data_file_paths = get_dataset_filepaths(Path(source), dataset_schema.name)
-    filters = get_data_filters(dataset_schema, year, state)
-    # TODO: pass in entire directory in dask case
-    unnoised_data: list[pd.DataFrame] | dd.DataFrame = [
-        load_standard_dataset(path, filters, engine) for path in data_file_paths
-    ]
+        data_directory_path = source / dataset_schema.name
+        filters = get_data_filters(dataset_schema, year, state)
+        unnoised_data: dd.DataFrame = load_standard_dataset(data_directory_path, filters, engine)
 
-    if engine == DASK_ENGINE:
-        # TODO: don't compute here
-        dataset_data: list[pd.DataFrame] = [data.compute() for data in unnoised_data if len(data) != 0]  # type: ignore [operator]
-    else:
-        dataset_data = [data for data in unnoised_data if len(data) != 0]  # type: ignore [misc]
+        seed = update_seed(SEED, year)
+        # TODO: do we need partition_info for map_partitions?
+        def make_wide_dataframe(data: pd.DataFrame) -> pd.DataFrame:
+            clean_input_data(dataset_schema, data)
+            reformat_dates_for_noising(dataset_schema, data)
+            missingness = Dataset.is_missing(data)
+            missingness.columns = ["f{col}_missingness" for col in missingness.columns]
+            prenoised = data.copy()
+            prenoised.columns = [f"{col}_prenoised" for col in prenoised.columns]
+            data = pd.concat([data, missingness, prenoised], axis=1)
+            return data
 
-    seed = update_seed(SEED, year)
-    if engine == PANDAS_ENGINE:
-        datasets: list[Dataset] = [
-        Dataset(dataset_schema, data, f"{seed}_{i}") for i, data in enumerate(dataset_data)
-    ]
-    else:
-        wide_data = unnoised_data.map_partitions(
-            # TODO: this function appends wide the missingness data
-            make_wide_dataframe, 
-        )
+        wide_data = unnoised_data.map_partitions(make_wide_dataframe)
 
-    for dataset in datasets:
-        # TODO: refactor as functions that take dataframes and move to previous map_partitions
-        # and perform them before making wide
-        dataset._clean_input_data()
-        dataset._reformat_dates_for_noising()
+        def apply_row_noise_type(data: pd.DataFrame) -> pd.DataFrame:
+            pass
 
-    for noise_type in NOISE_TYPES:
-        prenoised_dataframes: list[pd.DataFrame] = [
-            dataset.data.copy() for dataset in datasets
-        ]
-        if isinstance(noise_type, RowNoiseType):
-            if config.has_noise_type(dataset_schema.name, noise_type.name):
-                for dataset in datasets:
-                    # noise datasets in place
-                    noise_type(dataset, config)
-                test_function = ROW_TEST_FUNCTIONS[noise_type.name]
-                test_function(
-                    prenoised_dataframes, datasets, config, full_dataset_name, fuzzy_checker
-                )
-                if noise_type.name == NOISE_TYPES.duplicate_with_guardian.name:
-                    # noising after duplicate_with_guardian should be done on prenoised data
-                    # since it duplicates simulant ID which must be unique to be used as an identifier
-                    # TODO: Noise duplicate_with_guardian normally when record IDs
-                    # are implemented (MIC-4039)
-                    datasets = [
-                        Dataset(dataset_schema, data, f"{seed}_{i}")
-                        for i, data in enumerate(prenoised_dataframes)
-                    ]
+        def to_dataset(wide_data: pd.DataFrame) -> Dataset:
+            pass
 
-        if isinstance(noise_type, ColumnNoiseType):
-            for column in prenoised_dataframes[0].columns:
-                if config.has_noise_type(dataset_schema.name, noise_type.name, column):
-                    # don't noise ssa_event_type because it's used as an identifier column
-                    # along with simulant id
-                    # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
-                    if column == COLUMNS.ssa_event_type.name:
-                        continue
-                    for dataset in datasets:
-                        # noise datasets in place
-                        noise_type(dataset, config, column)
-                        with check:
-                            assert dataset.missingness.equals(
-                                dataset.is_missing(dataset.data)
-                            )
-                    run_column_noising_test(
-                        prenoised_dataframes,
-                        datasets,
-                        config,
-                        full_dataset_name,
-                        noise_type.name,
-                        column,
-                        fuzzy_checker,
+        for noise_type in NOISE_TYPES:
+            if isinstance(noise_type, RowNoiseType):
+                if config.has_noise_type(dataset_schema.name, noise_type.name):
+                    # TODO: can we do this in place with a function that returns None?
+                    wide_data = wide_data.map_partitions(apply_row_noise_type)
+                    # TODO: make ROW_COUNT_FUNCTIONS mapper
+                    count_function = ROW_COUNT_FUNCTIONS[noise_type.name]
+                    counts = wide_data.map_partitions(count_function)
+                    total_counts = counts.sum().compute()
+                    numerator = total_counts["numerator"].iloc[0]
+                    denominator = total_counts["denominator"].iloc[0]
+                    fuzzy_check_function = ROW_FUZZY_CHECK_FUNCTIONS[noise_type.name]
+                    fuzzy_check_function(
+                        numerator, denominator, config, full_dataset_name, fuzzy_checker
                     )
 
-    # post-processing tests on final data
-    for dataset in datasets:
-        # these functions are called by Dataset as part of noising process
-        # after noise types have been applied
-        dataset.data = coerce_dtypes(dataset.data, dataset.dataset_schema)
-        dataset.data = Dataset.drop_non_schema_columns(dataset.data, dataset.dataset_schema)
+        for noise_type in NOISE_TYPES:
+            prenoised_dataframes: list[pd.DataFrame] = [
+                dataset.data.copy() for dataset in datasets
+            ]
+            if isinstance(noise_type, RowNoiseType):
+                if config.has_noise_type(dataset_schema.name, noise_type.name):
+                    for dataset in datasets:
+                        # noise datasets in place
+                        noise_type(dataset, config)
+                    test_function = ROW_TEST_FUNCTIONS[noise_type.name]
+                    test_function(
+                        prenoised_dataframes, datasets, config, full_dataset_name, fuzzy_checker
+                    )
+                    if noise_type.name == NOISE_TYPES.duplicate_with_guardian.name:
+                        # noising after duplicate_with_guardian should be done on prenoised data
+                        # since it duplicates simulant ID which must be unique to be used as an identifier
+                        # TODO: Noise duplicate_with_guardian normally when record IDs
+                        # are implemented (MIC-4039)
+                        datasets = [
+                            Dataset(dataset_schema, data, f"{seed}_{i}")
+                            for i, data in enumerate(prenoised_dataframes)
+                        ]
 
-        test_column_dtypes(dataset.data)
-    # do this outside loop to avoid reading data multiple times
-    test_unnoised_id_cols(datasets, dataset.dataset_schema.name)
+            if isinstance(noise_type, ColumnNoiseType):
+                for column in prenoised_dataframes[0].columns:
+                    if config.has_noise_type(dataset_schema.name, noise_type.name, column):
+                        # don't noise ssa_event_type because it's used as an identifier column
+                        # along with simulant id
+                        # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
+                        if column == COLUMNS.ssa_event_type.name:
+                            continue
+                        for dataset in datasets:
+                            # noise datasets in place
+                            noise_type(dataset, config, column)
+                            with check:
+                                assert dataset.missingness.equals(
+                                    dataset.is_missing(dataset.data)
+                                )
+                        run_column_noising_test(
+                            prenoised_dataframes,
+                            datasets,
+                            config,
+                            full_dataset_name,
+                            noise_type.name,
+                            column,
+                            fuzzy_checker,
+                        )
+
+        # post-processing tests on final data
+        for dataset in datasets:
+            # these functions are called by Dataset as part of noising process
+            # after noise types have been applied
+            dataset.data = coerce_dtypes(dataset.data, dataset.dataset_schema)
+            dataset.data = Dataset.drop_non_schema_columns(dataset.data, dataset.dataset_schema)
+
+            test_column_dtypes(dataset.data)
+        # do this outside loop to avoid reading data multiple times
+        test_unnoised_id_cols(datasets, dataset.dataset_schema.name)
+    else:
+        data_file_paths = get_dataset_filepaths(Path(source), dataset_schema.name)
+        filters = get_data_filters(dataset_schema, year, state)
+        # TODO: pass in entire directory in dask case
+        unnoised_data: list[pd.DataFrame] | dd.DataFrame = [
+            load_standard_dataset(path, filters, engine) for path in data_file_paths
+        ]
+
+        if engine == DASK_ENGINE:
+            # TODO: don't compute here
+            dataset_data: list[pd.DataFrame] = [data.compute() for data in unnoised_data if len(data) != 0]  # type: ignore [operator]
+        else:
+            dataset_data = [data for data in unnoised_data if len(data) != 0]  # type: ignore [misc]
+
+        seed = update_seed(SEED, year)
+        if engine == PANDAS_ENGINE:
+            datasets: list[Dataset] = [
+            Dataset(dataset_schema, data, f"{seed}_{i}") for i, data in enumerate(dataset_data)
+        ]
+        else:
+            wide_data = unnoised_data.map_partitions(
+                # TODO: this function appends wide the missingness data
+                make_wide_dataframe, 
+            )
+
+        for dataset in datasets:
+            # TODO: refactor as functions that take dataframes and move to previous map_partitions
+            # and perform them before making wide
+            dataset._clean_input_data()
+            dataset._reformat_dates_for_noising()
+
+        for noise_type in NOISE_TYPES:
+            prenoised_dataframes: list[pd.DataFrame] = [
+                dataset.data.copy() for dataset in datasets
+            ]
+            if isinstance(noise_type, RowNoiseType):
+                if config.has_noise_type(dataset_schema.name, noise_type.name):
+                    for dataset in datasets:
+                        # noise datasets in place
+                        noise_type(dataset, config)
+                    test_function = ROW_TEST_FUNCTIONS[noise_type.name]
+                    test_function(
+                        prenoised_dataframes, datasets, config, full_dataset_name, fuzzy_checker
+                    )
+                    if noise_type.name == NOISE_TYPES.duplicate_with_guardian.name:
+                        # noising after duplicate_with_guardian should be done on prenoised data
+                        # since it duplicates simulant ID which must be unique to be used as an identifier
+                        # TODO: Noise duplicate_with_guardian normally when record IDs
+                        # are implemented (MIC-4039)
+                        datasets = [
+                            Dataset(dataset_schema, data, f"{seed}_{i}")
+                            for i, data in enumerate(prenoised_dataframes)
+                        ]
+
+            if isinstance(noise_type, ColumnNoiseType):
+                for column in prenoised_dataframes[0].columns:
+                    if config.has_noise_type(dataset_schema.name, noise_type.name, column):
+                        # don't noise ssa_event_type because it's used as an identifier column
+                        # along with simulant id
+                        # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
+                        if column == COLUMNS.ssa_event_type.name:
+                            continue
+                        for dataset in datasets:
+                            # noise datasets in place
+                            noise_type(dataset, config, column)
+                            with check:
+                                assert dataset.missingness.equals(
+                                    dataset.is_missing(dataset.data)
+                                )
+                        run_column_noising_test(
+                            prenoised_dataframes,
+                            datasets,
+                            config,
+                            full_dataset_name,
+                            noise_type.name,
+                            column,
+                            fuzzy_checker,
+                        )
+
+        # post-processing tests on final data
+        for dataset in datasets:
+            # these functions are called by Dataset as part of noising process
+            # after noise types have been applied
+            dataset.data = coerce_dtypes(dataset.data, dataset.dataset_schema)
+            dataset.data = Dataset.drop_non_schema_columns(dataset.data, dataset.dataset_schema)
+
+            test_column_dtypes(dataset.data)
+        # do this outside loop to avoid reading data multiple times
+        test_unnoised_id_cols(datasets, dataset.dataset_schema.name)
 
 
 def test_column_dtypes(
