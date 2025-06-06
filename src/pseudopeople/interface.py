@@ -179,10 +179,10 @@ def _generate_dataset(
                     f"the user provided 'state' or 'year' filters at {data_directory_path}."
                 )
 
-            noised_dataset = dask_data.map_partitions(  # type: ignore [no-untyped-call]
+            noised_dataset = dask_data.map_partitions(
                 lambda data, partition_info=None: noise_data(
                     dataset_schema,
-                    data,
+                    data.copy(),
                     configuration=noise_configuration,
                     seed=f"{seed}_{partition_info['number'] if partition_info is not None else 1}",
                     progress_bar=False,
