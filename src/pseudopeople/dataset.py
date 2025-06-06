@@ -66,8 +66,8 @@ class Dataset:
         progress_bar: bool = True,
     ) -> pd.DataFrame:
         """Returns the noised dataset data."""
-        self._clean_input_data()
-        self._reformat_dates_for_noising()
+        clean_input_data(self.dataset_schema, self.data)
+        reformat_dates_for_noising(self.dataset_schema, self.data)
         self._noise_dataset(configuration, noise_types, progress_bar=progress_bar)
         self.data = coerce_dtypes(self.data, self.dataset_schema)
         self.data = Dataset.drop_non_schema_columns(self.data, self.dataset_schema)
@@ -115,51 +115,6 @@ class Dataset:
                     f"{ColumnNoiseType}. Provided {type(noise_type)}."
                 )
 
-    def _clean_input_data(self) -> None:
-        for col in self.dataset_schema.columns:
-            # Coerce empty strings to nans
-            self.data[col.name] = self.data[col.name].replace("", np.nan)
-
-            if (
-                self.data[col.name].dtype.name == "category"
-                and col.dtype_name == DtypeNames.OBJECT
-            ):
-                # We made some columns in the pseudopeople input categorical
-                # purely as a kind of DIY compression.
-                # TODO: Determine whether this is benefitting us after
-                # the switch to Parquet.
-                self.data[col.name] = to_string(self.data[col.name])
-
-    def _reformat_dates_for_noising(self) -> None:
-        """Formats date columns so they can be noised as strings."""
-        for date_column in [COLUMNS.dob.name, COLUMNS.ssa_event_date.name]:
-            # Format both the actual column, and the shadow version that will be used
-            # to copy from a household member
-            for column in [date_column, COPY_HOUSEHOLD_MEMBER_COLS.get(date_column)]:
-                if column in self.data.columns and isinstance(column, str):
-                    # Avoid running strftime on large data, since that will
-                    # re-parse the format string for each row
-                    # https://github.com/pandas-dev/pandas/issues/44764
-                    # Year is already guaranteed to be 4-digit: https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#timeseries-timestamp-limits
-                    is_na = self.data[column].isna()
-                    data_column = self.data.loc[~is_na, column]
-                    year_string = data_column.dt.year.astype(str)
-                    month_string = _zfill_fast(data_column.dt.month.astype(str), 2)
-                    day_string = _zfill_fast(data_column.dt.day.astype(str), 2)
-                    if self.dataset_schema.date_format == DATEFORMATS.YYYYMMDD:
-                        result = year_string + month_string + day_string
-                    elif self.dataset_schema.date_format == DATEFORMATS.MM_DD_YYYY:
-                        result = month_string + "/" + day_string + "/" + year_string
-                    elif self.dataset_schema.date_format == DATEFORMATS.MMDDYYYY:
-                        result = month_string + day_string + year_string
-                    else:
-                        raise ValueError(
-                            f"Invalid date format in {self.dataset_schema.name}."
-                        )
-
-                    self.data[column] = pd.Series(np.nan, dtype=str)
-                    self.data.loc[~is_na, column] = result
-
     @staticmethod
     def drop_non_schema_columns(
         data: pd.DataFrame, dataset_schema: DatasetSchema
@@ -193,3 +148,50 @@ def _zfill_fast(col: pd.Series[str], desired_length: int) -> pd.Series[str]:
     maximum_padding = ("0" * desired_length) + col
     # Now trim to only the zeroes needed
     return maximum_padding.str[-desired_length:]
+
+
+def clean_input_data(dataset_schema: DatasetSchema, data: pd.DataFrame) -> None:
+    for col in dataset_schema.columns:
+        # Coerce empty strings to nans
+        data[col.name] = data[col.name].replace("", np.nan)
+
+        if (
+            data[col.name].dtype.name == "category"
+            and col.dtype_name == DtypeNames.OBJECT
+        ):
+            # We made some columns in the pseudopeople input categorical
+            # purely as a kind of DIY compression.
+            # TODO: Determine whether this is benefitting us after
+            # the switch to Parquet.
+            data[col.name] = to_string(data[col.name])
+
+
+def reformat_dates_for_noising(dataset_schema: DatasetSchema, data: pd.DataFrame) -> None:
+    """Formats date columns so they can be noised as strings."""
+    for date_column in [COLUMNS.dob.name, COLUMNS.ssa_event_date.name]:
+        # Format both the actual column, and the shadow version that will be used
+        # to copy from a household member
+        for column in [date_column, COPY_HOUSEHOLD_MEMBER_COLS.get(date_column)]:
+            if column in data.columns and isinstance(column, str):
+                # Avoid running strftime on large data, since that will
+                # re-parse the format string for each row
+                # https://github.com/pandas-dev/pandas/issues/44764
+                # Year is already guaranteed to be 4-digit: https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#timeseries-timestamp-limits
+                is_na = data[column].isna()
+                data_column = data.loc[~is_na, column]
+                year_string = data_column.dt.year.astype(str)
+                month_string = _zfill_fast(data_column.dt.month.astype(str), 2)
+                day_string = _zfill_fast(data_column.dt.day.astype(str), 2)
+                if dataset_schema.date_format == DATEFORMATS.YYYYMMDD:
+                    result = year_string + month_string + day_string
+                elif dataset_schema.date_format == DATEFORMATS.MM_DD_YYYY:
+                    result = month_string + "/" + day_string + "/" + year_string
+                elif dataset_schema.date_format == DATEFORMATS.MMDDYYYY:
+                    result = month_string + day_string + year_string
+                else:
+                    raise ValueError(
+                        f"Invalid date format in {dataset_schema.name}."
+                    )
+
+                data[column] = pd.Series(np.nan, dtype=str)
+                data.loc[~is_na, column] = result
