@@ -125,26 +125,42 @@ def run_omit_row_tests(
         )
 
 
+def get_noised_columns(data: pd.DataFrame) -> list[str]:
+    """Returns a list of columns that are noised, i.e., not prenoised and not missingness."""
+    return [
+        col for col in data.columns if not col.endswith("_prenoised") and not col.endswith("_missingness")
+    ]
+
 def get_noised_data(data: pd.DataFrame) -> pd.DataFrame:
-    return data[[col for col in data.columns if not col.endswith("_prenoised") and not col.endswith("_missingness")]]
+    return data[get_noised_columns(data)]
+
+def get_prenoised_columns(data: pd.DataFrame) -> list[str]:
+    """Returns a list of columns that are prenoised."""
+    return [col for col in data.columns if col.endswith("_prenoised")]
 
 def get_prenoised_data(data: pd.DataFrame) -> pd.DataFrame:
-    return data[[col for col in data.columns if col.endswith("_prenoised")]]
+    return data[get_prenoised_columns(data)]
+
+def get_missingness_columns(data: pd.DataFrame) -> list[str]:
+    """Returns a list of columns that are missingness."""
+    return [col for col in data.columns if col.endswith("_missingness")]
+
+def get_missingness_data(data: pd.DataFrame) -> pd.DataFrame:
+    return data[get_missingness_columns(data)]
 
 
 def get_omit_row_counts(data: pd.DataFrame) -> pd.DataFrame:
     noised = get_noised_data(data)
     prenoised = get_prenoised_data(data)
-    with check:
-        assert set(noised.columns) == set(prenoised.columns)
-    with check:
-        assert (noised.dtypes == prenoised.dtypes).all()
+
+    columns_are_same = set(noised.columns) == set(prenoised.columns)
+    dtypes_are_same = (noised.dtypes == prenoised.dtypes).all()
 
     total_rows = len(data)
     # TODO: memory issue?
     omitted_rows = noised.isna().all(axis=1).sum()
-    # can we return a tuple or dictionary instead?
-    return pd.DataFrame({'numerator': [omitted_rows], 'denominator': [total_rows]})
+    
+    return pd.DataFrame({'numerator': [omitted_rows], 'denominator': [total_rows], 'columns_are_same': [columns_are_same], 'dtypes_are_same': [dtypes_are_same]})
 
 
 def fuzzy_check_omit_row_counts(
