@@ -99,7 +99,7 @@ def test_full_release_noising(
     engine = get_engine_from_string(engine_name)
 
     if engine == DASK_ENGINE:
-        cluster = LocalCluster(
+        cluster = LocalCluster(  # type: ignore[no-untyped-call]
             n_workers=int(os.environ["SLURM_CPUS_ON_NODE"]),
             threads_per_worker=1,
             memory_limit=(
@@ -110,7 +110,7 @@ def test_full_release_noising(
             * 1_000
             * 1_000,  # Dask uses bytes, Slurm reports in megabytes.
         )
-        client = cluster.get_client()
+        client = cluster.get_client()  # type: ignore[no-untyped-call]
 
     data_file_paths = get_dataset_filepaths(Path(source), dataset_schema.name)
     filters = get_data_filters(dataset_schema, year, state)
