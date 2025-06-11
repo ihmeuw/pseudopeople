@@ -155,10 +155,7 @@ def clean_input_data(dataset_schema: DatasetSchema, data: pd.DataFrame) -> None:
         # Coerce empty strings to nans
         data[col.name] = data[col.name].replace("", np.nan)
 
-        if (
-            data[col.name].dtype.name == "category"
-            and col.dtype_name == DtypeNames.OBJECT
-        ):
+        if data[col.name].dtype.name == "category" and col.dtype_name == DtypeNames.OBJECT:
             # We made some columns in the pseudopeople input categorical
             # purely as a kind of DIY compression.
             # TODO: Determine whether this is benefitting us after
@@ -178,7 +175,10 @@ def reformat_dates_for_noising(dataset_schema: DatasetSchema, data: pd.DataFrame
                 # https://github.com/pandas-dev/pandas/issues/44764
                 # Year is already guaranteed to be 4-digit: https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#timeseries-timestamp-limits
                 is_na = data[column].isna()
-                data_column = data.loc[~is_na, column]
+                not_missing = ~is_na.values
+                if len(not_missing) == 0:
+                    continue
+                data_column = data.loc[not_missing, column]
                 year_string = data_column.dt.year.astype(str)
                 month_string = _zfill_fast(data_column.dt.month.astype(str), 2)
                 day_string = _zfill_fast(data_column.dt.day.astype(str), 2)
@@ -189,9 +189,7 @@ def reformat_dates_for_noising(dataset_schema: DatasetSchema, data: pd.DataFrame
                 elif dataset_schema.date_format == DATEFORMATS.MMDDYYYY:
                     result = month_string + day_string + year_string
                 else:
-                    raise ValueError(
-                        f"Invalid date format in {dataset_schema.name}."
-                    )
+                    raise ValueError(f"Invalid date format in {dataset_schema.name}.")
 
                 data[column] = pd.Series(np.nan, dtype=str)
-                data.loc[~is_na, column] = result
+                data.loc[~is_na.values, column] = result

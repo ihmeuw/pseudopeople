@@ -128,39 +128,51 @@ def run_omit_row_tests(
 def get_noised_columns(data: pd.DataFrame) -> list[str]:
     """Returns a list of columns that are noised, i.e., not prenoised and not missingness."""
     return [
-        col for col in data.columns if not col.endswith("_prenoised") and not col.endswith("_missingness")
+        col
+        for col in data.columns
+        if not col.endswith("_prenoised") and not col.endswith("_missingness")
     ]
+
 
 def get_noised_data(data: pd.DataFrame) -> pd.DataFrame:
     return data[get_noised_columns(data)]
+
 
 def get_prenoised_columns(data: pd.DataFrame) -> list[str]:
     """Returns a list of columns that are prenoised."""
     return [col for col in data.columns if col.endswith("_prenoised")]
 
+
 def get_prenoised_data(data: pd.DataFrame) -> pd.DataFrame:
     return data[get_prenoised_columns(data)]
+
 
 def get_missingness_columns(data: pd.DataFrame) -> list[str]:
     """Returns a list of columns that are missingness."""
     return [col for col in data.columns if col.endswith("_missingness")]
 
+
 def get_missingness_data(data: pd.DataFrame) -> pd.DataFrame:
     return data[get_missingness_columns(data)]
 
 
-def get_omit_row_counts(data: pd.DataFrame) -> pd.DataFrame:
+def get_omit_row_counts(data: pd.DataFrame, num_prenoised_rows: int) -> pd.DataFrame:
     noised = get_noised_data(data)
     prenoised = get_prenoised_data(data)
 
-    columns_are_same = set(noised.columns) == set(prenoised.columns)
-    dtypes_are_same = (noised.dtypes == prenoised.dtypes).all()
+    columns_are_different = set(noised.columns) != set(prenoised.columns)
+    dtypes_are_different = (noised.dtypes.values != prenoised.dtypes.values).any()
 
-    total_rows = len(data)
-    # TODO: memory issue?
-    omitted_rows = noised.isna().all(axis=1).sum()
-    
-    return pd.DataFrame({'numerator': [omitted_rows], 'denominator': [total_rows], 'columns_are_same': [columns_are_same], 'dtypes_are_same': [dtypes_are_same]})
+    omitted_rows = Dataset.is_missing(noised).all(axis=1).sum()
+
+    return pd.DataFrame(
+        {
+            "numerator": [omitted_rows],
+            "denominator": [num_prenoised_rows],
+            "columns_are_different": [columns_are_different],
+            "dtypes_are_different": [dtypes_are_different],
+        }
+    )
 
 
 def fuzzy_check_omit_row_counts(
@@ -171,7 +183,6 @@ def fuzzy_check_omit_row_counts(
     fuzzy_checker: FuzzyChecker,
 ) -> None:
     expected_noise = config.get_row_probability(dataset_name, NOISE_TYPES.omit_row.name)
-
     # Test that noising affects expected proportion with expected types
     with check:
         fuzzy_checker.fuzzy_assert_proportion(

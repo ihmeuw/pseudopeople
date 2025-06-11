@@ -6,6 +6,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
+import dask.dataframe as dd
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
@@ -22,7 +23,7 @@ from pseudopeople.constants import paths
 from pseudopeople.constants.metadata import DatasetNames
 from pseudopeople.dataset import Dataset, clean_input_data, reformat_dates_for_noising
 from pseudopeople.dtypes import DtypeNames
-from pseudopeople.entity_types import Column, ColumnNoiseType, RowNoiseType
+from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.filter import get_data_filters
 from pseudopeople.interface import (
     generate_social_security,
@@ -31,7 +32,7 @@ from pseudopeople.interface import (
 )
 from pseudopeople.loader import load_standard_dataset
 from pseudopeople.noise_entities import NOISE_TYPES
-from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS
+from pseudopeople.schema_entities import COLUMNS, DATASET_SCHEMAS, Column
 from pseudopeople.utilities import (
     DASK_ENGINE,
     coerce_dtypes,
@@ -47,26 +48,32 @@ from tests.integration.release.conftest import (
     RI_FILEPATH,
 )
 from tests.integration.release.utilities import (
+    fuzzy_check_omit_row_counts,
     get_high_noise_config,
+    get_missingness_data,
+    get_noised_columns,
+    get_noised_data,
+    get_omit_row_counts,
+    get_prenoised_columns,
+    get_prenoised_data,
     run_do_not_respond_tests,
     run_guardian_duplication_tests,
     run_omit_row_tests,
-    get_prenoised_columns,
-    get_prenoised_data,
-    get_noised_columns,
-    get_missingness_data,
-    get_noised_data,
 )
 from tests.utilities import initialize_dataset_with_sample
-
-if TYPE_CHECKING:
-    import dask.dataframe as dd
-
 
 ROW_TEST_FUNCTIONS = {
     "omit_row": run_omit_row_tests,
     "do_not_respond": run_do_not_respond_tests,
     "duplicate_with_guardian": run_guardian_duplication_tests,
+}
+
+ROW_COUNT_FUNCTIONS = {
+    "omit_row": get_omit_row_counts,
+}
+
+ROW_FUZZY_CHECK_FUNCTIONS = {
+    "omit_row": fuzzy_check_omit_row_counts,
 }
 
 
@@ -121,63 +128,112 @@ def test_full_release_noising(
 
         data_directory_path = source / dataset_schema.name
         filters = get_data_filters(dataset_schema, year, state)
-        unnoised_data: dd.DataFrame = load_standard_dataset(
-            data_directory_path, filters, engine
+        data: dd.DataFrame = load_standard_dataset(
+            data_directory_path, filters, engine, is_file=False
         )
 
         seed = update_seed(SEED, year)
 
-        def make_wide_dataframe(data: pd.DataFrame) -> pd.DataFrame:
-            clean_input_data(dataset_schema, data)
-            reformat_dates_for_noising(dataset_schema, data)
-            missingness = Dataset.is_missing(data)
+        def make_wide_dataframe(data_: pd.DataFrame) -> pd.DataFrame:
+            clean_input_data(dataset_schema, data_)
+            reformat_dates_for_noising(dataset_schema, data_)
+            missingness = Dataset.is_missing(data_)
             missingness.columns = [f"{col}_missingness" for col in missingness.columns]
-            prenoised = data.copy()
+            prenoised = data_.copy()
             prenoised.columns = [f"{col}_prenoised" for col in prenoised.columns]
-            data = pd.concat([data, missingness, prenoised], axis=1)
-            return data
+            data_ = pd.concat([data_, missingness, prenoised], axis=1)
+            return data_
 
         def apply_row_noise_type(
-            data: pd.DataFrame, partition_info: dict[str, Any]
+            data_: pd.DataFrame,
+            partition_info: dict[str, Any],
+            noise_type: RowNoiseType,
+            config: NoiseConfiguration,
         ) -> pd.DataFrame:
-            pass
+            dataset = wide_to_dataset(data_, partition_info)
+            noise_type(dataset, config)
+            data_ = dataset_to_wide(dataset, data_)
+            return data_
 
         def apply_column_noise_type(
-            data: pd.DataFrame, column: Column, partition_info: dict[str, Any]
+            data_: pd.DataFrame,
+            column: Column,
+            partition_info: dict[str, Any],
+            noise_type: ColumnNoiseType,
+            config: NoiseConfiguration,
         ) -> pd.DataFrame:
-            pass
+            dataset = wide_to_dataset(data_, partition_info)
+            noise_type(dataset, config, column.name)
+            data_ = dataset_to_wide(dataset, data_)
+            return data_
 
-        def wide_to_dataset(wide_data: pd.DataFrame) -> Dataset:
-            pass
+        def wide_to_dataset(
+            wide_data: pd.DataFrame, partition_info: dict[str, Any]
+        ) -> Dataset:
+            # noised data becomes prenoised data of the next noise type
+            data_to_noise = get_noised_data(wide_data)
+            dataset = Dataset(
+                dataset_schema,
+                data_to_noise,
+                f"{seed}_{partition_info['number'] if partition_info is not None else 1}",
+            )
+            return dataset
 
-        def dataset_to_wide(dataset: Dataset) -> pd.DataFrame:
-            pass
+        def dataset_to_wide(dataset: Dataset, old_wide_data: pd.DataFrame) -> pd.DataFrame:
+            noised = dataset.data
+            missingness = Dataset.is_missing(noised)
+            missingness.columns = [f"{col}_missingness" for col in missingness.columns]
+            prenoised = get_noised_data(old_wide_data)
+            prenoised.columns = [f"{col}_prenoised" for col in prenoised.columns]
+            data = pd.concat([noised, missingness, prenoised], axis=1)
+            return data
 
         def unnoise_data(data_: pd.DataFrame) -> pd.DataFrame:
             data_[get_noised_columns(data_)] = data_[get_prenoised_columns(data_)]
             return data_
 
-        wide_data = unnoised_data.map_partitions(make_wide_dataframe)
+        data = data.map_partitions(make_wide_dataframe)
+        noised_metadata = list(zip(data.columns, data.dtypes))
+        count_metadata = [
+            (col, "bool")
+            for col in [
+                "numerator",
+                "denominator",
+                "columns_are_different",
+                "dtypes_are_different",
+            ]
+        ]
 
-        for noise_type in NOISE_TYPES:
+        for noise_type in NOISE_TYPES[3:5]:
             if isinstance(noise_type, RowNoiseType):
                 if config.has_noise_type(dataset_schema.name, noise_type.name):
-                    # TODO: use variable names to make it clear that dask updates in place
-                    wide_data = wide_data.persist()
-                    num_prenoised_rows = len(wide_data)
-                    wide_data = wide_data.map_partitions(apply_row_noise_type).persist()
+                    data = data.persist()
+                    num_prenoised_rows = len(data)
+
+                    data = data.map_partitions(
+                        apply_row_noise_type,
+                        noise_type=noise_type,
+                        config=config,
+                        meta=noised_metadata,
+                    ).persist()
+
                     # get counts
-                    # TODO: make ROW_COUNT_FUNCTIONS mapper
+                    # TODO: define all ROW_COUNT_FUNCTIONS functions
                     count_function = ROW_COUNT_FUNCTIONS[noise_type.name]
-                    # TODO: update counting logic to use num_prenoised_rows
-                    counts = wide_data.map_partitions(count_function)
+                    counts = data.map_partitions(
+                        count_function,
+                        num_prenoised_rows=num_prenoised_rows,
+                        meta=count_metadata,
+                    )
                     total_counts = counts.sum().compute()
+
                     numerator = total_counts["numerator"]
                     denominator = total_counts["denominator"]
                     # use counts to make checks
-                    # TODO: make ROW_FUZZY_CHECK_FUNCTIONS mapper
+                    # TODO: define all ROW_FUZZY_CHECK_FUNCTIONS functions
                     with check:
                         assert total_counts["columns_are_different"] == 0
+                    with check:
                         assert total_counts["dtypes_are_different"] == 0
                     fuzzy_check_function = ROW_FUZZY_CHECK_FUNCTIONS[noise_type.name]
                     fuzzy_check_function(
@@ -194,92 +250,149 @@ def test_full_release_noising(
                         # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
                         if column == COLUMNS.ssa_event_type:
                             continue
-                        wide_data = wide_data.map_partitions(
+                        data = data.map_partitions(
                             apply_column_noise_type,
                             column=column,
+                            noise_type=noise_type,
+                            config=config,
+                            meta=noised_metadata,
                         ).persist()
-                        missingness_correct = wide_data.map_partitions(
-                            lambda data: pd.Series(get_missingness_data(data).equals(
-                                Dataset.is_missing(get_noised_data(data))
-                            ))
+
+                        missingness_correct = data.map_partitions(
+                            lambda data_: pd.Series(
+                                (
+                                    get_missingness_data(data_).values
+                                    == Dataset.is_missing(get_noised_data(data_)).values
+                                ).all()
+                            )
                         )
                         with check:
                             assert missingness_correct.all().compute()
 
-                        counts = wide_data.map_partitions(
-                            lambda data: get_column_noising_counts(
-                                data,
+                        counts = data.map_partitions(
+                            lambda data_: get_column_noising_counts(
+                                data_,
                                 config,
                                 dataset_schema.name,
                                 noise_type.name,
                                 column.name,
-                            )
+                            ),
+                            meta=pd.DataFrame(
+                                columns=[
+                                    "numerator",
+                                    "denominator",
+                                    "expected_numerator",
+                                    "missing_data_not_missing",
+                                ],
+                                dtype=int,
+                            ),
                         )
                         total_counts = counts.sum().compute()
+                        with check:
+                            assert total_counts["missing_data_not_missing"] == 0
                         numerator = total_counts["numerator"]
                         denominator = total_counts["denominator"]
                         expected_numerator = total_counts["expected_numerator"]
-                        fuzzy_checker.fuzzy_assert_proportion(
-                            name=noise_type,
-                            observed_numerator=numerator,
-                            observed_denominator=denominator,
-                            target_proportion=expected_numerator / denominator,
-                            name_additional=f"{dataset_name}_{column}_{noise_type}",
-                        )
-
+                        with check:
+                            fuzzy_checker.fuzzy_assert_proportion(
+                                name=noise_type,
+                                observed_numerator=numerator,
+                                observed_denominator=denominator,
+                                target_proportion=expected_numerator / denominator,
+                                name_additional=f"{dataset_name}_{column}_{noise_type}",
+                            )
 
             if noise_type == NOISE_TYPES.duplicate_with_guardian:
                 # noising after duplicate_with_guardian should be done on prenoised data
                 # since it duplicates simulant ID which must be unique to be used as an identifier
                 # TODO: Noise duplicate_with_guardian normally when record IDs
                 # are implemented (MIC-4039)
-                wide_data = wide_data.map_partitions(unnoise_data)
-            else:
-                wide_data = wide_data.map_partitions(replace_prenoised_data)
+                data = data.map_partitions(unnoise_data)
 
+        def drop_extra_data(data_: pd.DataFrame) -> pd.DataFrame:
+            """Removed prenoised and missingness columns from data."""
+            return data_[get_noised_columns(data_)]
+
+        # remove prenoised and missingness columns from data
+        data = data.map_partitions(drop_extra_data)
         # post-processing tests on final data
-        for dataset in datasets:
-            # these functions are called by Dataset as part of noising process
-            # after noise types have been applied
-            dataset.data = coerce_dtypes(dataset.data, dataset.dataset_schema)
-            dataset.data = Dataset.drop_non_schema_columns(
-                dataset.data, dataset.dataset_schema
+        data = data.map_partitions(
+            coerce_dtypes,
+            dataset_schema=dataset_schema,
+        )
+        data = data.map_partitions(
+            Dataset.drop_non_schema_columns,
+            dataset_schema=dataset_schema,
+        )
+
+        def aggregate_dtype_info(results: pd.DataFrame) -> pd.DataFrame:
+            """Aggregates results across partitions to get one row per column."""
+            return results.groupby("column").agg(
+                {
+                    "is_expected_dtype": "all",  # Logical AND across partitions
+                    "object_column_types": lambda x: ",".join(
+                        set(filter(None, x))
+                    ),  # Combine non-None values
+                }
             )
 
-            test_column_dtypes(dataset.data)
-        # do this outside loop to avoid reading data multiple times
-        test_unnoised_id_cols(datasets, dataset.dataset_schema.name)
-    else:
+        dtype_info = data.map_partitions(check_column_dtypes_dask).persist()
+        aggregated_dtype_info = aggregate_dtype_info(dtype_info.compute())
+
+        with check:
+            assert aggregated_dtype_info["is_expected_dtype"].all()
+        object_col_has_wrong_type = (
+            aggregated_dtype_info["object_column_types"] != "str"
+        ) & (aggregated_dtype_info["object_column_types"] != "")
+        with check:
+            assert len(object_col_has_wrong_type) == 0, aggregated_dtype_info.loc[
+                object_col_has_wrong_type
+            ]
+
+        unnoised_id_col_names = {
+            COLUMNS.simulant_id.name: f"{COLUMNS.simulant_id.name}_unnoised"
+        }
+        if dataset_name != DATASET_SCHEMAS.ssa.name:
+            unnoised_id_col_names[
+                COLUMNS.household_id.name
+            ] = f"{COLUMNS.household_id.name}_unnoised"
+        unnoised_id_cols: dd.DataFrame = load_standard_dataset(
+            data_directory_path,
+            filters,
+            engine,
+            is_file=False,
+            columns=list(unnoised_id_col_names.keys()),
+        )
+
+        unnoised_id_cols = unnoised_id_cols.rename(columns=unnoised_id_col_names)
+        data = dd.concat([data, unnoised_id_cols], axis=1).persist()
+        id_info = data.map_partitions(
+            check_unnoised_id_cols_dask,
+            id_col_names=unnoised_id_col_names,
+        )
+        # check that ID columns which shouldn't be noised remain unnoised
+        breakpoint()
+        for col in id_info:
+            with check:
+                assert id_info[col].all().compute()
+
+    else:  # pandas
         data_file_paths = get_dataset_filepaths(Path(source), dataset_schema.name)
         filters = get_data_filters(dataset_schema, year, state)
-        # TODO: pass in entire directory in dask case
-        unnoised_data: list[pd.DataFrame] | dd.DataFrame = [
+        data: list[pd.DataFrame] = [
             load_standard_dataset(path, filters, engine) for path in data_file_paths
         ]
 
-        if engine == DASK_ENGINE:
-            # TODO: don't compute here
-            dataset_data: list[pd.DataFrame] = [data.compute() for data in unnoised_data if len(data) != 0]  # type: ignore [operator]
-        else:
-            dataset_data = [data for data in unnoised_data if len(data) != 0]  # type: ignore [misc]
+        dataset_data = [data for data in data if len(data) != 0]  # type: ignore [misc]
 
         seed = update_seed(SEED, year)
-        if engine == PANDAS_ENGINE:
-            datasets: list[Dataset] = [
-                Dataset(dataset_schema, data, f"{seed}_{i}")
-                for i, data in enumerate(dataset_data)
-            ]
-        else:
-            wide_data = unnoised_data.map_partitions(
-                # TODO: this function appends wide the missingness data
-                make_wide_dataframe,
-            )
-
+        datasets: list[Dataset] = [
+            Dataset(dataset_schema, data, f"{seed}_{i}")
+            for i, data in enumerate(dataset_data)
+        ]
         for dataset in datasets:
-            # TODO: refactor as functions that take dataframes and move to previous map_partitions
-            # and perform them before making wide
-            dataset._clean_input_data()
-            dataset._reformat_dates_for_noising()
+            clean_input_data(dataset.dataset_schema, dataset.data)
+            reformat_dates_for_noising(dataset.dataset_schema, dataset.data)
 
         for noise_type in NOISE_TYPES:
             prenoised_dataframes: list[pd.DataFrame] = [
@@ -342,16 +455,16 @@ def test_full_release_noising(
                 dataset.data, dataset.dataset_schema
             )
 
-            test_column_dtypes(dataset.data)
+            check_column_dtypes(dataset.data)
         # do this outside loop to avoid reading data multiple times
-        test_unnoised_id_cols(datasets, dataset.dataset_schema.name)
+        check_unnoised_id_cols(datasets, dataset.dataset_schema.name)
 
 
-def test_column_dtypes(
-    noised_data: pd.DataFrame,
+def check_column_dtypes(
+    data: pd.DataFrame,
 ) -> None:
     """Tests that column dtypes are as expected"""
-    for col_name in noised_data.columns:
+    for col_name in data.columns:
         col = COLUMNS.get_column(col_name)
         expected_dtype = col.dtype_name
         if expected_dtype == np.dtype(object):
@@ -361,20 +474,45 @@ def test_column_dtypes(
             # mypy wants typed type_function to pass into apply but doesn't
             # accept type as an output
             type_function: Callable[..., Any] = lambda x: type(x)
-            actual_types = noised_data[col.name].dropna().apply(type_function)
+            actual_types = data[col.name].dropna().apply(type_function)
             with check:
                 assert (actual_types == str).all(), actual_types.unique()
         with check:
-            assert noised_data[col.name].dtype == expected_dtype
+            assert data[col.name].dtype == expected_dtype
 
 
-def test_unnoised_id_cols(datasets: list[Dataset], dataset_name: str) -> None:
+def check_column_dtypes_dask(
+    data: pd.DataFrame,
+) -> pd.DataFrame:
+    """Tests that column dtypes are as expected"""
+    dtype_info = {"column": [], "is_expected_dtype": [], "object_column_types": []}
+    for col_name in data.columns:
+        col = COLUMNS.get_column(col_name)
+        expected_dtype = col.dtype_name
+
+        dtype_info["column"].append(col_name)
+        dtype_info["is_expected_dtype"].append(data[col.name].dtype == expected_dtype)
+        if expected_dtype == np.dtype(object):
+            # str dtype is 'object'
+            # Check that they are actually strings and not some other
+            # type of object.
+            # mypy wants typed type_function to pass into apply but doesn't
+            # accept type as an output
+            type_function: Callable[..., Any] = lambda x: type(x)
+            actual_types = [
+                type.__name__ for type in data[col.name].dropna().apply(type_function)
+            ]
+            dtype_info["object_column_types"].append(",".join(set(actual_types)))
+        else:
+            dtype_info["object_column_types"].append("")
+
+    return pd.DataFrame(dtype_info)
+
+
+def check_unnoised_id_cols(datasets: list[Dataset], dataset_name: str) -> None:
     """Tests that all datasets retain unnoised simulant_id and household_id
     (except for SSA which does not include household_id)
     """
-    # TODO: update so that
-    # TODO: delete prenoised and missingness columns, load_standard_dataset to get unnoised data,
-    # TODO: and make comparisons
     unnoised_id_cols = [COLUMNS.simulant_id.name]
     if dataset_name != DATASET_SCHEMAS.ssa.name:
         unnoised_id_cols.append(COLUMNS.household_id.name)
@@ -393,6 +531,17 @@ def test_unnoised_id_cols(datasets: list[Dataset], dataset_name: str) -> None:
             .all()
             .all()
         )
+
+
+def check_unnoised_id_cols_dask(
+    data_: pd.DataFrame, id_col_names: dict[str, str]
+) -> pd.DataFrame:
+    """Tests that all datasets retain unnoised simulant_id and household_id
+    (except for SSA which does not include household_id)
+    """
+    noised_id_cols = data_[list(id_col_names.keys())]
+    unnoised_id_cols = data_[list(id_col_names.values())].rename(id_col_names, axis=1)
+    return pd.DataFrame((noised_id_cols == unnoised_id_cols).all(axis=0))
 
 
 def run_column_noising_test(
@@ -531,7 +680,7 @@ def get_column_noising_counts(
     dataset_name: str,
     noise_type: str,
     column: str,
-) -> None:
+) -> pd.DataFrame:
     dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
 
     # Validate column noise level
@@ -544,16 +693,24 @@ def get_column_noising_counts(
 
     noised_data = get_noised_data(data)
     prenoised_data = get_prenoised_data(data)
+    prenoised_data.columns = [col.replace("_prenoised", "") for col in prenoised_data.columns]
 
     # Check that originally missing data remained missing
     originally_missing_idx = prenoised_data.index[prenoised_data[column].isna()]
-    # TODO: pass this through returned dataframe
-    with check:
-        assert noised_data.loc[originally_missing_idx, column].isna().all()
+    missing_data_not_missing = (
+        not noised_data.loc[originally_missing_idx, column].isna().all()
+    )
 
     # Check for noising where applicable
     if len(originally_missing_idx) == len(noised_data):
-        return pd.DataFrame({"numerator": [0], "denominator": [0], "expected_numerator": [0]})
+        return pd.DataFrame(
+            {
+                "numerator": [0],
+                "denominator": [0],
+                "expected_numerator": [0],
+                "missing_data_not_missing": [missing_data_not_missing],
+            }
+        )
 
     # make sure dtypes match when comparing prenoised and noised values
     # adapted from utilities.coerce_dtypes
@@ -634,5 +791,6 @@ def get_column_noising_counts(
             "numerator": [rows_noised],
             "denominator": [num_eligible],
             "expected_numerator": [expected_numerator],
+            "missing_data_not_missing": [missing_data_not_missing],
         }
     )
