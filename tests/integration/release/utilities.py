@@ -175,6 +175,17 @@ def get_omit_row_counts(data: pd.DataFrame, num_prenoised_rows: int) -> pd.DataF
     )
 
 
+def get_passing_row_counts(data: pd.DataFrame, num_prenoised_rows: int) -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            "numerator": [0],
+            "denominator": [1],
+            "columns_are_different": [0],
+            "dtypes_are_different": [0],
+        }
+    )
+
+
 def fuzzy_check_omit_row_counts(
     numerator: int,
     denominator: int,

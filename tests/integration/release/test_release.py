@@ -54,6 +54,7 @@ from tests.integration.release.utilities import (
     get_noised_columns,
     get_noised_data,
     get_omit_row_counts,
+    get_passing_row_counts,
     get_prenoised_columns,
     get_prenoised_data,
     run_do_not_respond_tests,
@@ -70,10 +71,15 @@ ROW_TEST_FUNCTIONS = {
 
 ROW_COUNT_FUNCTIONS = {
     "omit_row": get_omit_row_counts,
+    # TODO: define all ROW_COUNT_FUNCTIONS functions
+    "do_not_respond": get_passing_row_counts,
+    "duplicate_with_guardian": get_passing_row_counts,
 }
 
 ROW_FUZZY_CHECK_FUNCTIONS = {
     "omit_row": fuzzy_check_omit_row_counts,
+    "do_not_respond": fuzzy_check_omit_row_counts,
+    "duplicate_with_guardian": fuzzy_check_omit_row_counts,
 }
 
 
@@ -188,6 +194,18 @@ def test_full_release_noising(
             data = pd.concat([noised, missingness, prenoised], axis=1)
             return data
 
+        def check_unnoised_id_cols(
+            data_: pd.DataFrame, id_col_names: list[str]
+        ) -> pd.DataFrame:
+            """Tests that all datasets retain unnoised simulant_id and household_id
+            (except for SSA which does not include household_id)
+            """
+            noised_id_cols = data_[id_col_names]
+            prenoised_col_names = [f"{col}_prenoised" for col in id_col_names]
+            unnoised_id_cols = data_[prenoised_col_names]
+            unnoised_id_cols.columns = id_col_names
+            return pd.DataFrame((noised_id_cols == unnoised_id_cols).all(axis=0))
+
         def unnoise_data(data_: pd.DataFrame) -> pd.DataFrame:
             data_[get_noised_columns(data_)] = data_[get_prenoised_columns(data_)]
             return data_
@@ -204,7 +222,13 @@ def test_full_release_noising(
             ]
         ]
 
-        for noise_type in NOISE_TYPES[3:5]:
+        unnoised_id_col_names = [COLUMNS.simulant_id.name]
+        if dataset_name != DATASET_SCHEMAS.ssa.name:
+            unnoised_id_col_names.append(COLUMNS.household_id.name)
+
+        for noise_type in NOISE_TYPES[:5]:
+            if noise_type.name == "do_not_respond":
+                continue
             if isinstance(noise_type, RowNoiseType):
                 if config.has_noise_type(dataset_schema.name, noise_type.name):
                     data = data.persist()
@@ -248,7 +272,7 @@ def test_full_release_noising(
                         # don't noise ssa_event_type because it's used as an identifier column
                         # along with simulant id
                         # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
-                        if column == COLUMNS.ssa_event_type:
+                        if column == COLUMNS.ssa_event_type or column == COLUMNS.unit_number:
                             continue
                         data = data.map_partitions(
                             apply_column_noise_type,
@@ -301,6 +325,15 @@ def test_full_release_noising(
                                 target_proportion=expected_numerator / denominator,
                                 name_additional=f"{dataset_name}_{column}_{noise_type}",
                             )
+            # TODO: check that ID cols haven't changed
+            id_info = data.map_partitions(
+                check_unnoised_id_cols,
+                id_col_names=unnoised_id_col_names,
+            )
+            # check that ID columns which shouldn't be noised remain unnoised
+            for col in id_info:
+                with check:
+                    assert id_info[col].all().compute()
 
             if noise_type == NOISE_TYPES.duplicate_with_guardian:
                 # noising after duplicate_with_guardian should be done on prenoised data
@@ -345,36 +378,9 @@ def test_full_release_noising(
             aggregated_dtype_info["object_column_types"] != "str"
         ) & (aggregated_dtype_info["object_column_types"] != "")
         with check:
-            assert len(object_col_has_wrong_type) == 0, aggregated_dtype_info.loc[
+            assert sum(object_col_has_wrong_type) == 0, aggregated_dtype_info.loc[
                 object_col_has_wrong_type
             ]
-
-        unnoised_id_col_names = {
-            COLUMNS.simulant_id.name: f"{COLUMNS.simulant_id.name}_unnoised"
-        }
-        if dataset_name != DATASET_SCHEMAS.ssa.name:
-            unnoised_id_col_names[
-                COLUMNS.household_id.name
-            ] = f"{COLUMNS.household_id.name}_unnoised"
-        unnoised_id_cols: dd.DataFrame = load_standard_dataset(
-            data_directory_path,
-            filters,
-            engine,
-            is_file=False,
-            columns=list(unnoised_id_col_names.keys()),
-        )
-
-        unnoised_id_cols = unnoised_id_cols.rename(columns=unnoised_id_col_names)
-        data = dd.concat([data, unnoised_id_cols], axis=1).persist()
-        id_info = data.map_partitions(
-            check_unnoised_id_cols_dask,
-            id_col_names=unnoised_id_col_names,
-        )
-        # check that ID columns which shouldn't be noised remain unnoised
-        breakpoint()
-        for col in id_info:
-            with check:
-                assert id_info[col].all().compute()
 
     else:  # pandas
         data_file_paths = get_dataset_filepaths(Path(source), dataset_schema.name)
