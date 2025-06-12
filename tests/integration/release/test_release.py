@@ -375,8 +375,9 @@ def test_full_release_noising(
         pandas_data = [
             load_standard_dataset(path, filters, engine) for path in data_file_paths
         ]
-
         dataset_data = [data for data in pandas_data if len(data) != 0]
+        for df in dataset_data:
+            assert isinstance(df, pd.DataFrame)
 
         seed = update_seed(SEED, year)
         datasets: list[Dataset] = [
