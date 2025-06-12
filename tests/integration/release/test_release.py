@@ -48,7 +48,9 @@ from tests.integration.release.conftest import (
     RI_FILEPATH,
 )
 from tests.integration.release.utilities import (
+    fuzzy_check_duplicate_with_guardian,
     fuzzy_check_omit_row_counts,
+    get_guardian_duplication_info,
     get_high_noise_config,
     get_missingness_data,
     get_noised_columns,
@@ -72,15 +74,15 @@ ROW_TEST_FUNCTIONS = {
 ROW_COUNT_FUNCTIONS = {
     "omit_row": get_omit_row_counts,
     # TODO: define all ROW_COUNT_FUNCTIONS functions
-    "do_not_respond": get_passing_row_counts,
-    "duplicate_with_guardian": get_passing_row_counts,
+    "do_not_respond": get_omit_row_counts,
+    "duplicate_with_guardian": get_guardian_duplication_info,
 }
 
 ROW_FUZZY_CHECK_FUNCTIONS = {
     "omit_row": fuzzy_check_omit_row_counts,
     # TODO: define all ROW_FUZZY_CHECK functions
     "do_not_respond": fuzzy_check_omit_row_counts,
-    "duplicate_with_guardian": fuzzy_check_omit_row_counts,
+    "duplicate_with_guardian": fuzzy_check_duplicate_with_guardian,
 }
 
 
@@ -115,7 +117,7 @@ def test_full_release_noising(
         source = Path(source)
         validate_source_compatibility(source, dataset_schema)
 
-    source = Path("/ihme/homes/hjafari/ppl_parquet_data/tax_1040/")
+    source = Path("/ihme/homes/hjafari/ppl_parquet_data/usa_census/")
 
     engine = get_engine_from_string(engine_name)
 
@@ -234,6 +236,8 @@ def test_full_release_noising(
         )
 
         for noise_type in NOISE_TYPES:
+            if noise_type.name != "duplicate_with_guardian":
+                continue
             if isinstance(noise_type, RowNoiseType):
                 if config.has_noise_type(dataset_schema.name, noise_type.name):
                     data = data.persist()
@@ -255,21 +259,41 @@ def test_full_release_noising(
                     )
                     total_counts = counts.sum().compute()
 
-                    numerator = total_counts["numerator"]
-                    # use counts to make checks
-                    # TODO: define all ROW_FUZZY_CHECK_FUNCTIONS functions
-                    with check:
-                        assert total_counts["columns_are_different"] == 0
-                    with check:
-                        assert total_counts["dtypes_are_different"] == 0
-                    fuzzy_check_function = ROW_FUZZY_CHECK_FUNCTIONS[noise_type.name]
-                    fuzzy_check_function(
-                        numerator,
-                        num_prenoised_rows,
-                        config,
-                        full_dataset_name,
-                        fuzzy_checker,
-                    )
+                    fuzzy_check_kwargs = {}
+                    if noise_type == NOISE_TYPES.duplicate_with_guardian:
+                        breakpoint()
+                        fuzzy_check_kwargs = {
+                            col: total_counts[col]
+                            for col in total_counts.columns
+                            if not col.endswith("_check")
+                        }
+                        with check:
+                            assert total_counts["multiple_duplications_check"] == 0
+                        with check:
+                            assert total_counts["non_guardian_duplications_check"] == 0
+                        fuzzy_check_function = ROW_FUZZY_CHECK_FUNCTIONS[noise_type.name]
+                        fuzzy_check_function(
+                            config,
+                            full_dataset_name,
+                            fuzzy_checker,
+                            **fuzzy_check_kwargs,
+                        )
+                    else:
+                        fuzzy_check_kwargs["numerator"] = total_counts["numerator"]
+                        fuzzy_check_kwargs["denominator"] = num_prenoised_rows
+                        # use counts to make checks
+                        # TODO: define all ROW_FUZZY_CHECK_FUNCTIONS functions
+                        with check:
+                            assert total_counts["columns_are_different"] == 0
+                        with check:
+                            assert total_counts["dtypes_are_different"] == 0
+                        fuzzy_check_function = ROW_FUZZY_CHECK_FUNCTIONS[noise_type.name]
+                        fuzzy_check_function(
+                            config,
+                            full_dataset_name,
+                            fuzzy_checker,
+                            **fuzzy_check_kwargs,
+                        )
 
             elif isinstance(noise_type, ColumnNoiseType):
                 for column in dataset_schema.columns:
