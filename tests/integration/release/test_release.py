@@ -648,7 +648,7 @@ def run_column_noising_test(
 
     # no eligible rows for unit number in acs data because it's a sparse column and acs is small
     if column == COLUMNS.unit_number.name and denominator == 0:
-        return  
+        return
 
     fuzzy_checker.fuzzy_assert_proportion(
         name=noise_type,
