@@ -115,8 +115,6 @@ def test_full_release_noising(
         source = Path(source)
         validate_source_compatibility(source, dataset_schema)
 
-    source = Path("/ihme/homes/hjafari/ppl_parquet_data/tax_1040/")
-
     engine = get_engine_from_string(engine_name)
 
     if engine == DASK_ENGINE:
@@ -323,8 +321,8 @@ def test_full_release_noising(
                             assert total_counts["missing_data_not_missing"] == 0
                         numerator = total_counts["numerator"]
                         denominator = total_counts["denominator"]
-                        # we can get no eligible rows for unit number in acs data because it
-                        # it's a sparse column and acs is small
+                        # we can get no eligible rows for unit number in acs RI data
+                        # because it's a sparse column and acs is small
                         if column == COLUMNS.unit_number and denominator == 0:
                             continue
                         expected_numerator = total_counts["expected_numerator"]
@@ -652,7 +650,8 @@ def run_column_noising_test(
         denominator += num_eligible
         expected_noise_level += expected_noise * num_eligible
 
-    # no eligible rows for unit number in acs data because it's a sparse column and acs is small
+    # we can get no eligible rows for unit number in acs RI data
+    # because it's a sparse column and acs is small
     if column == COLUMNS.unit_number.name and denominator == 0:
         return
 
