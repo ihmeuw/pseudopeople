@@ -236,7 +236,7 @@ def test_full_release_noising(
         for noise_type in NOISE_TYPES:
             if isinstance(noise_type, RowNoiseType):
                 if config.has_noise_type(dataset_schema.name, noise_type.name):
-                    data = data.persist()  # type: ignore[no-untyped-call]
+                    data = data.persist()
                     num_prenoised_rows = len(data)
 
                     data = data.map_partitions(
@@ -244,7 +244,7 @@ def test_full_release_noising(
                         noise_type=noise_type,
                         config=config,
                         meta=wide_data_meta,
-                    ).persist()  # type: ignore[no-untyped-call]
+                    ).persist()
 
                     # get counts
                     # TODO: define all ROW_COUNT_FUNCTIONS functions
@@ -252,7 +252,7 @@ def test_full_release_noising(
                     counts = data.map_partitions(
                         count_function,
                         meta=count_metadata,
-                    )  # type: ignore[no-untyped-call]
+                    )
                     total_counts = counts.sum().compute()
 
                     numerator = total_counts["numerator"]
@@ -287,7 +287,7 @@ def test_full_release_noising(
                             noise_type=noise_type,
                             config=config,
                             meta=noised_metadata,
-                        ).persist()  # type: ignore[no-untyped-call]
+                        ).persist()
 
                         missingness_correct = data.map_partitions(
                             lambda data_: pd.Series(
@@ -296,7 +296,7 @@ def test_full_release_noising(
                                     == Dataset.is_missing(get_noised_data(data_)).values
                                 ).all()
                             )
-                        )  # type: ignore[no-untyped-call]
+                        )
                         with check:
                             assert missingness_correct.all().compute()
 
@@ -317,7 +317,7 @@ def test_full_release_noising(
                                 ],
                                 dtype=int,
                             ),
-                        )  # type: ignore[no-untyped-call]
+                        )
                         total_counts = counts.sum().compute()
                         with check:
                             assert total_counts["missing_data_not_missing"] == 0
@@ -342,21 +342,21 @@ def test_full_release_noising(
                 # since it duplicates simulant ID which must be unique to be used as an identifier
                 # TODO: Noise duplicate_with_guardian normally when record IDs
                 # are implemented (MIC-4039)
-                data = data.map_partitions(unnoise_data)  # type: ignore[no-untyped-call]
+                data = data.map_partitions(unnoise_data)
 
         # remove prenoised and missingness columns from data
-        data = data.map_partitions(drop_extra_data)  # type: ignore[no-untyped-call]
+        data = data.map_partitions(drop_extra_data)
         # post-processing tests on final data
         data = data.map_partitions(
             coerce_dtypes,
             dataset_schema=dataset_schema,
-        )  # type: ignore[no-untyped-call]
+        )
         data = data.map_partitions(
             Dataset.drop_non_schema_columns,
             dataset_schema=dataset_schema,
-        )  # type: ignore[no-untyped-call]
+        )
 
-        dtype_info = data.map_partitions(get_column_dtypes_info).persist()  # type: ignore[no-untyped-call]
+        dtype_info = data.map_partitions(get_column_dtypes_info).persist()
         aggregated_dtype_info = aggregate_dtype_info(dtype_info.compute())
 
         with check:
@@ -372,7 +372,7 @@ def test_full_release_noising(
     else:  # pandas
         data_file_paths = get_dataset_filepaths(Path(source), dataset_schema.name)
         filters = get_data_filters(dataset_schema, year, state)
-        pandas_data: list[pd.DataFrame] = [
+        pandas_data = [
             load_standard_dataset(path, filters, engine) for path in data_file_paths
         ]
 
