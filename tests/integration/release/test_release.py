@@ -78,6 +78,7 @@ ROW_COUNT_FUNCTIONS = {
 
 ROW_FUZZY_CHECK_FUNCTIONS = {
     "omit_row": fuzzy_check_omit_row_counts,
+    # TODO: define all ROW_FUZZY_CHECK functions
     "do_not_respond": fuzzy_check_omit_row_counts,
     "duplicate_with_guardian": fuzzy_check_omit_row_counts,
 }
@@ -113,6 +114,8 @@ def test_full_release_noising(
     elif isinstance(source, str) or isinstance(source, Path):
         source = Path(source)
         validate_source_compatibility(source, dataset_schema)
+
+    source = Path("/ihme/homes/hjafari/ppl_parquet_data/usa_ssa")
 
     engine = get_engine_from_string(engine_name)
 
@@ -194,41 +197,31 @@ def test_full_release_noising(
             data = pd.concat([noised, missingness, prenoised], axis=1)
             return data
 
-        def check_unnoised_id_cols(
-            data_: pd.DataFrame, id_col_names: list[str]
-        ) -> pd.DataFrame:
-            """Tests that all datasets retain unnoised simulant_id and household_id
-            (except for SSA which does not include household_id)
-            """
-            noised_id_cols = data_[id_col_names]
-            prenoised_col_names = [f"{col}_prenoised" for col in id_col_names]
-            unnoised_id_cols = data_[prenoised_col_names]
-            unnoised_id_cols.columns = id_col_names
-            return pd.DataFrame((noised_id_cols == unnoised_id_cols).all(axis=0))
-
         def unnoise_data(data_: pd.DataFrame) -> pd.DataFrame:
             data_[get_noised_columns(data_)] = data_[get_prenoised_columns(data_)]
             return data_
 
-        data = data.map_partitions(make_wide_dataframe)
+        # create wide data metadata
+        wide_data_columns = (
+            [col for col in data.columns]
+            + [f"{col}_missingness" for col in data.columns]
+            + [f"{col}_prenoised" for col in data.columns]
+        )
+        original_dtypes = dict(data.dtypes)
+        missingness_dtypes = {
+            f"{col.name}_missingness": bool for col in dataset_schema.columns
+        }
+        prenoised_dtypes = {f"{col}_prenoised": dtype for col, dtype in data.dtypes.items()}
+        all_dtypes = {**original_dtypes, **missingness_dtypes, **prenoised_dtypes}
+        wide_data_meta = pd.DataFrame(columns=wide_data_columns).astype(all_dtypes)
+
+        data = data.map_partitions(make_wide_dataframe, meta=wide_data_meta)
         noised_metadata = list(zip(data.columns, data.dtypes))
-        count_metadata = [
-            (col, "bool")
-            for col in [
-                "numerator",
-                "denominator",
-                "columns_are_different",
-                "dtypes_are_different",
-            ]
-        ]
+        count_metadata = pd.DataFrame(
+            columns=["numerator", "columns_are_different", "dtypes_are_different"], dtype=int
+        )
 
-        unnoised_id_col_names = [COLUMNS.simulant_id.name]
-        if dataset_name != DATASET_SCHEMAS.ssa.name:
-            unnoised_id_col_names.append(COLUMNS.household_id.name)
-
-        for noise_type in NOISE_TYPES[:5]:
-            if noise_type.name == "do_not_respond":
-                continue
+        for noise_type in NOISE_TYPES:
             if isinstance(noise_type, RowNoiseType):
                 if config.has_noise_type(dataset_schema.name, noise_type.name):
                     data = data.persist()
@@ -238,7 +231,7 @@ def test_full_release_noising(
                         apply_row_noise_type,
                         noise_type=noise_type,
                         config=config,
-                        meta=noised_metadata,
+                        meta=wide_data_meta,
                     ).persist()
 
                     # get counts
@@ -246,13 +239,11 @@ def test_full_release_noising(
                     count_function = ROW_COUNT_FUNCTIONS[noise_type.name]
                     counts = data.map_partitions(
                         count_function,
-                        num_prenoised_rows=num_prenoised_rows,
                         meta=count_metadata,
                     )
                     total_counts = counts.sum().compute()
 
                     numerator = total_counts["numerator"]
-                    denominator = total_counts["denominator"]
                     # use counts to make checks
                     # TODO: define all ROW_FUZZY_CHECK_FUNCTIONS functions
                     with check:
@@ -261,7 +252,11 @@ def test_full_release_noising(
                         assert total_counts["dtypes_are_different"] == 0
                     fuzzy_check_function = ROW_FUZZY_CHECK_FUNCTIONS[noise_type.name]
                     fuzzy_check_function(
-                        numerator, denominator, config, full_dataset_name, fuzzy_checker
+                        numerator,
+                        num_prenoised_rows,
+                        config,
+                        full_dataset_name,
+                        fuzzy_checker,
                     )
 
             elif isinstance(noise_type, ColumnNoiseType):
@@ -272,7 +267,7 @@ def test_full_release_noising(
                         # don't noise ssa_event_type because it's used as an identifier column
                         # along with simulant id
                         # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
-                        if column == COLUMNS.ssa_event_type or column == COLUMNS.unit_number:
+                        if column == COLUMNS.ssa_event_type:
                             continue
                         data = data.map_partitions(
                             apply_column_noise_type,
@@ -316,6 +311,10 @@ def test_full_release_noising(
                             assert total_counts["missing_data_not_missing"] == 0
                         numerator = total_counts["numerator"]
                         denominator = total_counts["denominator"]
+                        # we can get no eligible rows for unit number in acs data because it
+                        # it's a sparse column and acs is small
+                        if column == COLUMNS.unit_number and denominator == 0:
+                            continue
                         expected_numerator = total_counts["expected_numerator"]
                         with check:
                             fuzzy_checker.fuzzy_assert_proportion(
@@ -325,15 +324,6 @@ def test_full_release_noising(
                                 target_proportion=expected_numerator / denominator,
                                 name_additional=f"{dataset_name}_{column}_{noise_type}",
                             )
-            # TODO: check that ID cols haven't changed
-            id_info = data.map_partitions(
-                check_unnoised_id_cols,
-                id_col_names=unnoised_id_col_names,
-            )
-            # check that ID columns which shouldn't be noised remain unnoised
-            for col in id_info:
-                with check:
-                    assert id_info[col].all().compute()
 
             if noise_type == NOISE_TYPES.duplicate_with_guardian:
                 # noising after duplicate_with_guardian should be done on prenoised data

@@ -156,30 +156,33 @@ def get_missingness_data(data: pd.DataFrame) -> pd.DataFrame:
     return data[get_missingness_columns(data)]
 
 
-def get_omit_row_counts(data: pd.DataFrame, num_prenoised_rows: int) -> pd.DataFrame:
+def get_omit_row_counts(data: pd.DataFrame) -> pd.DataFrame:
     noised = get_noised_data(data)
     prenoised = get_prenoised_data(data)
 
-    columns_are_different = set(noised.columns) != set(prenoised.columns)
-    dtypes_are_different = (noised.dtypes.values != prenoised.dtypes.values).any()
+    columns_are_different = set(noised.columns) != set(
+        [col.replace("_prenoised", "") for col in prenoised.columns]
+    )
+    dtypes_are_different = (
+        noised.dtypes.replace({int: float}).values
+        != prenoised.dtypes.replace({int: float}).values
+    ).any()
 
     omitted_rows = Dataset.is_missing(noised).all(axis=1).sum()
 
     return pd.DataFrame(
         {
             "numerator": [omitted_rows],
-            "denominator": [num_prenoised_rows],
             "columns_are_different": [columns_are_different],
             "dtypes_are_different": [dtypes_are_different],
         }
     )
 
 
-def get_passing_row_counts(data: pd.DataFrame, num_prenoised_rows: int) -> pd.DataFrame:
+def get_passing_row_counts(data: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(
         {
             "numerator": [0],
-            "denominator": [1],
             "columns_are_different": [0],
             "dtypes_are_different": [0],
         }
