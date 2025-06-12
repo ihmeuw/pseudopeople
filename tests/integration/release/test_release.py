@@ -115,8 +115,6 @@ def test_full_release_noising(
         source = Path(source)
         validate_source_compatibility(source, dataset_schema)
 
-    source = Path("/ihme/homes/hjafari/ppl_parquet_data/usa_ssa")
-
     engine = get_engine_from_string(engine_name)
 
     if engine == DASK_ENGINE:
@@ -132,8 +130,6 @@ def test_full_release_noising(
             * 1_000,  # Dask uses bytes, Slurm reports in megabytes.
         )
         client = cluster.get_client()
-        # TODO: check this works
-        print(f"dask dashboard link: {client.dashboard_link}")
 
         data_directory_path = source / dataset_schema.name
         filters = get_data_filters(dataset_schema, year, state)
@@ -152,6 +148,27 @@ def test_full_release_noising(
             prenoised.columns = [f"{col}_prenoised" for col in prenoised.columns]
             data_ = pd.concat([data_, missingness, prenoised], axis=1)
             return data_
+
+        def wide_to_dataset(
+            wide_data: pd.DataFrame, partition_info: dict[str, Any]
+        ) -> Dataset:
+            # noised data becomes prenoised data of the next noise type
+            data_to_noise = get_noised_data(wide_data)
+            dataset = Dataset(
+                dataset_schema,
+                data_to_noise,
+                f"{seed}_{partition_info['number'] if partition_info is not None else 1}",
+            )
+            return dataset
+
+        def dataset_to_wide(dataset: Dataset, old_wide_data: pd.DataFrame) -> pd.DataFrame:
+            noised = dataset.data
+            missingness = Dataset.is_missing(noised)
+            missingness.columns = [f"{col}_missingness" for col in missingness.columns]
+            prenoised = get_noised_data(old_wide_data)
+            prenoised.columns = [f"{col}_prenoised" for col in prenoised.columns]
+            data = pd.concat([noised, missingness, prenoised], axis=1)
+            return data
 
         def apply_row_noise_type(
             data_: pd.DataFrame,
@@ -176,30 +193,24 @@ def test_full_release_noising(
             data_ = dataset_to_wide(dataset, data_)
             return data_
 
-        def wide_to_dataset(
-            wide_data: pd.DataFrame, partition_info: dict[str, Any]
-        ) -> Dataset:
-            # noised data becomes prenoised data of the next noise type
-            data_to_noise = get_noised_data(wide_data)
-            dataset = Dataset(
-                dataset_schema,
-                data_to_noise,
-                f"{seed}_{partition_info['number'] if partition_info is not None else 1}",
-            )
-            return dataset
-
-        def dataset_to_wide(dataset: Dataset, old_wide_data: pd.DataFrame) -> pd.DataFrame:
-            noised = dataset.data
-            missingness = Dataset.is_missing(noised)
-            missingness.columns = [f"{col}_missingness" for col in missingness.columns]
-            prenoised = get_noised_data(old_wide_data)
-            prenoised.columns = [f"{col}_prenoised" for col in prenoised.columns]
-            data = pd.concat([noised, missingness, prenoised], axis=1)
-            return data
-
         def unnoise_data(data_: pd.DataFrame) -> pd.DataFrame:
             data_[get_noised_columns(data_)] = data_[get_prenoised_columns(data_)]
             return data_
+
+        def drop_extra_data(data_: pd.DataFrame) -> pd.DataFrame:
+            """Removed prenoised and missingness columns from data."""
+            return data_[get_noised_columns(data_)]
+
+        def aggregate_dtype_info(results: pd.DataFrame) -> pd.DataFrame:
+            """Aggregates results across partitions to get one row per column."""
+            return results.groupby("column").agg(
+                {
+                    "is_expected_dtype": "all",  # Logical AND across partitions
+                    "object_column_types": lambda x: ",".join(
+                        set(filter(None, x))
+                    ),  # Combine non-None values
+                }
+            )
 
         # create wide data metadata
         wide_data_columns = (
@@ -332,10 +343,6 @@ def test_full_release_noising(
                 # are implemented (MIC-4039)
                 data = data.map_partitions(unnoise_data)
 
-        def drop_extra_data(data_: pd.DataFrame) -> pd.DataFrame:
-            """Removed prenoised and missingness columns from data."""
-            return data_[get_noised_columns(data_)]
-
         # remove prenoised and missingness columns from data
         data = data.map_partitions(drop_extra_data)
         # post-processing tests on final data
@@ -348,18 +355,7 @@ def test_full_release_noising(
             dataset_schema=dataset_schema,
         )
 
-        def aggregate_dtype_info(results: pd.DataFrame) -> pd.DataFrame:
-            """Aggregates results across partitions to get one row per column."""
-            return results.groupby("column").agg(
-                {
-                    "is_expected_dtype": "all",  # Logical AND across partitions
-                    "object_column_types": lambda x: ",".join(
-                        set(filter(None, x))
-                    ),  # Combine non-None values
-                }
-            )
-
-        dtype_info = data.map_partitions(check_column_dtypes_dask).persist()
+        dtype_info = data.map_partitions(get_column_dtypes_info).persist()
         aggregated_dtype_info = aggregate_dtype_info(dtype_info.compute())
 
         with check:
@@ -477,7 +473,7 @@ def check_column_dtypes(
             assert data[col.name].dtype == expected_dtype
 
 
-def check_column_dtypes_dask(
+def get_column_dtypes_info(
     data: pd.DataFrame,
 ) -> pd.DataFrame:
     """Tests that column dtypes are as expected"""
@@ -527,17 +523,6 @@ def check_unnoised_id_cols(datasets: list[Dataset], dataset_name: str) -> None:
             .all()
             .all()
         )
-
-
-def check_unnoised_id_cols_dask(
-    data_: pd.DataFrame, id_col_names: dict[str, str]
-) -> pd.DataFrame:
-    """Tests that all datasets retain unnoised simulant_id and household_id
-    (except for SSA which does not include household_id)
-    """
-    noised_id_cols = data_[list(id_col_names.keys())]
-    unnoised_id_cols = data_[list(id_col_names.values())].rename(id_col_names, axis=1)
-    return pd.DataFrame((noised_id_cols == unnoised_id_cols).all(axis=0))
 
 
 def run_column_noising_test(
