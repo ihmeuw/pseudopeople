@@ -164,12 +164,12 @@ def get_missing_row_counts(data: pd.DataFrame) -> pd.DataFrame:
         [col.replace("_prenoised", "") for col in prenoised.columns]
     )
 
-    # Fix: Handle the case where dtypes comparison might return a single boolean
+    # ints sometimes get converted to floats during noising
     dtype_comparison = (
         noised.dtypes.replace({int: float}).values
         != prenoised.dtypes.replace({int: float}).values
     )
-    # Ensure we can call .any() by converting to numpy array if needed
+    # handle both Series of bools and single bool
     if hasattr(dtype_comparison, "any"):
         dtypes_are_different = dtype_comparison.any()
     else:

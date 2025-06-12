@@ -322,8 +322,8 @@ def test_full_release_noising(
                             assert total_counts["missing_data_not_missing"] == 0
                         numerator = total_counts["numerator"]
                         denominator = total_counts["denominator"]
-                        # we can get no eligible rows for unit number in acs data because it
-                        # it's a sparse column and acs is small
+                        # we can get no eligible rows for unit number in acs RI data
+                        # because it's a sparse column and acs is small
                         if column == COLUMNS.unit_number and denominator == 0:
                             continue
                         expected_numerator = total_counts["expected_numerator"]
@@ -377,11 +377,8 @@ def test_full_release_noising(
         dataset_data = [data for data in pandas_data if len(data) != 0]
 
         seed = update_seed(SEED, year)
-        for data in dataset_data:
-            if not isinstance(data, pd.DataFrame):
-                raise TypeError()
         datasets: list[Dataset] = [
-            Dataset(dataset_schema, data, f"{seed}_{i}")
+            Dataset(dataset_schema, data, f"{seed}_{i}")  # type: ignore[arg-type]
             for i, data in enumerate(dataset_data)
         ]
         for dataset in datasets:
@@ -654,7 +651,8 @@ def run_column_noising_test(
         denominator += num_eligible
         expected_noise_level += expected_noise * num_eligible
 
-    # no eligible rows for unit number in acs data because it's a sparse column and acs is small
+    # we can get no eligible rows for unit number in acs RI data
+    # because it's a sparse column and acs is small
     if column == COLUMNS.unit_number.name and denominator == 0:
         return
 
