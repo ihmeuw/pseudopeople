@@ -329,7 +329,7 @@ def test_full_release_noising(
                         expected_numerator = total_counts["expected_numerator"]
                         with check:
                             fuzzy_checker.fuzzy_assert_proportion(
-                                name=noise_type,
+                                name=noise_type.name,
                                 observed_numerator=numerator,
                                 observed_denominator=denominator,
                                 target_proportion=expected_numerator / denominator,
