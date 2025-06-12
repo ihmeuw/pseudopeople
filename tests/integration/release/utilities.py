@@ -163,10 +163,17 @@ def get_omit_row_counts(data: pd.DataFrame) -> pd.DataFrame:
     columns_are_different = set(noised.columns) != set(
         [col.replace("_prenoised", "") for col in prenoised.columns]
     )
-    dtypes_are_different = (
+
+    # Fix: Handle the case where dtypes comparison might return a single boolean
+    dtype_comparison = (
         noised.dtypes.replace({int: float}).values
         != prenoised.dtypes.replace({int: float}).values
-    ).any()
+    )
+    # Ensure we can call .any() by converting to numpy array if needed
+    if hasattr(dtype_comparison, "any"):
+        dtypes_are_different = dtype_comparison.any()
+    else:
+        dtypes_are_different = bool(dtype_comparison)
 
     omitted_rows = Dataset.is_missing(noised).all(axis=1).sum()
 

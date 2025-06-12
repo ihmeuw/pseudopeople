@@ -174,9 +174,9 @@ def reformat_dates_for_noising(dataset_schema: DatasetSchema, data: pd.DataFrame
                 # re-parse the format string for each row
                 # https://github.com/pandas-dev/pandas/issues/44764
                 # Year is already guaranteed to be 4-digit: https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#timeseries-timestamp-limits
-                is_na = data[column].isna()
-                not_missing = ~is_na.values
-                if len(not_missing) == 0:
+                is_na = data[column].isna().astype(bool)
+                not_missing: pd.Series[bool] = ~is_na
+                if not_missing.sum() == 0:
                     continue
                 data_column = data.loc[not_missing, column]
                 year_string = data_column.dt.year.astype(str)
@@ -191,5 +191,5 @@ def reformat_dates_for_noising(dataset_schema: DatasetSchema, data: pd.DataFrame
                 else:
                     raise ValueError(f"Invalid date format in {dataset_schema.name}.")
 
-                data[column] = pd.Series(np.nan, dtype=str)
-                data.loc[~is_na.values, column] = result
+                data[column] = pd.Series(np.nan, dtype=str, index=data.index)
+                data.loc[not_missing, column] = result
