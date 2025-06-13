@@ -48,12 +48,13 @@ from tests.integration.release.conftest import (
     RI_FILEPATH,
 )
 from tests.integration.release.utilities import (
+    fuzzy_check_do_not_respond_counts,
     fuzzy_check_omit_row_counts,
     get_high_noise_config,
+    get_missing_row_counts,
     get_missingness_data,
     get_noised_columns,
     get_noised_data,
-    get_omit_row_counts,
     get_passing_row_counts,
     get_prenoised_columns,
     get_prenoised_data,
@@ -70,16 +71,16 @@ ROW_TEST_FUNCTIONS = {
 }
 
 ROW_COUNT_FUNCTIONS = {
-    "omit_row": get_omit_row_counts,
-    # TODO: define all ROW_COUNT_FUNCTIONS functions
-    "do_not_respond": get_passing_row_counts,
+    "omit_row": get_missing_row_counts,
+    "do_not_respond": get_missing_row_counts,
+    # TODO: define duplicate_with_guardian counts
     "duplicate_with_guardian": get_passing_row_counts,
 }
 
 ROW_FUZZY_CHECK_FUNCTIONS = {
     "omit_row": fuzzy_check_omit_row_counts,
-    # TODO: define all ROW_FUZZY_CHECK functions
-    "do_not_respond": fuzzy_check_omit_row_counts,
+    "do_not_respond": fuzzy_check_do_not_respond_counts,
+    # TODO: define duplicate_with_guardian fuzzy check
     "duplicate_with_guardian": fuzzy_check_omit_row_counts,
 }
 
