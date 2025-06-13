@@ -175,6 +175,7 @@ def get_omit_row_counts(data: pd.DataFrame) -> pd.DataFrame:
     else:
         dtypes_are_different = bool(dtype_comparison)
 
+    # if a row gets dropped by noising it contains all nans in the noised data
     omitted_rows = Dataset.is_missing(noised).all(axis=1).sum()
 
     return pd.DataFrame(
