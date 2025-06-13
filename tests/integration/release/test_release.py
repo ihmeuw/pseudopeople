@@ -117,6 +117,8 @@ def test_full_release_noising(
         source = Path(source)
         validate_source_compatibility(source, dataset_schema)
 
+    source = Path('/ihme/homes/hjafari/ppl_parquet_data/small_usa_census')
+
     engine = get_engine_from_string(engine_name)
 
     if engine == DASK_ENGINE:
@@ -229,9 +231,16 @@ def test_full_release_noising(
 
         data = data.map_partitions(make_wide_dataframe, meta=wide_data_meta)  # type: ignore[no-untyped-call]
         noised_metadata = list(zip(data.columns, data.dtypes))
-        count_metadata = pd.DataFrame(
+        missing_row_counts_meta = pd.DataFrame(
             columns=["numerator", "columns_are_different", "dtypes_are_different"], dtype=int
         )
+        duplicate_row_counts_meta = pd.DataFrame(
+            columns=['household_under_18_duplications', 'college_under_24_duplications',
+                     'household_under_18_eligible', 'college_under_24_eligible',
+                     'multiple_duplications_check', 'non_guardian_duplications_check'],
+            dtype=int,
+        )
+        ROW_NOISE_META = {'omit_row': missing_row_counts_meta, 'do_not_respond': missing_row_counts_meta, 'duplicate_with_guardian': duplicate_row_counts_meta}
 
         for noise_type in NOISE_TYPES:
             if noise_type.name != "duplicate_with_guardian":
@@ -253,13 +262,12 @@ def test_full_release_noising(
                     count_function = ROW_COUNT_FUNCTIONS[noise_type.name]
                     counts = data.map_partitions(
                         count_function,
-                        meta=count_metadata,
+                        meta=ROW_NOISE_META[noise_type.name],
                     )
                     total_counts = counts.sum().compute()
 
                     fuzzy_check_kwargs = {}
                     if noise_type == NOISE_TYPES.duplicate_with_guardian:
-                        breakpoint()
                         fuzzy_check_kwargs = {
                             col: total_counts[col]
                             for col in total_counts.columns
