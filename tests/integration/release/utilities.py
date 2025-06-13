@@ -156,7 +156,7 @@ def get_missingness_data(data: pd.DataFrame) -> pd.DataFrame:
     return data[get_missingness_columns(data)]
 
 
-def get_omit_row_counts(data: pd.DataFrame) -> pd.DataFrame:
+def get_missing_row_counts(data: pd.DataFrame) -> pd.DataFrame:
     noised = get_noised_data(data)
     prenoised = get_prenoised_data(data)
 
@@ -164,17 +164,18 @@ def get_omit_row_counts(data: pd.DataFrame) -> pd.DataFrame:
         [col.replace("_prenoised", "") for col in prenoised.columns]
     )
 
-    # Fix: Handle the case where dtypes comparison might return a single boolean
+    # ints sometimes get converted to floats during noising
     dtype_comparison = (
         noised.dtypes.replace({int: float}).values
         != prenoised.dtypes.replace({int: float}).values
     )
-    # Ensure we can call .any() by converting to numpy array if needed
+    # handle both Series of bools and single bool
     if hasattr(dtype_comparison, "any"):
         dtypes_are_different = dtype_comparison.any()
     else:
         dtypes_are_different = bool(dtype_comparison)
 
+    # if a row gets dropped by noising it contains all nans in the noised data
     omitted_rows = Dataset.is_missing(noised).all(axis=1).sum()
 
     return pd.DataFrame(
@@ -250,6 +251,31 @@ def fuzzy_check_duplicate_with_guardian(
                 Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24
             ],
             name_additional="college_under_24_duplications",
+        )
+
+
+def fuzzy_check_do_not_respond_counts(
+    numerator: int,
+    denominator: int,
+    config: NoiseConfiguration,
+    dataset_name: str,
+    fuzzy_checker: FuzzyChecker,
+) -> None:
+    expected_noise = config.get_row_probability(dataset_name, NOISE_TYPES.do_not_respond.name)
+    # ACS and CPS data are oversampled by a factor of 2 so we apply a baseline probability of
+    # 0.5 for do_not_respond so the data returned is of the expected size
+    # # TODO: [MIC-6002] move this processing step out of noising
+    if dataset_name is not DATASET_SCHEMAS.census.name:  # is acs or cps
+        expected_noise = 0.5 + expected_noise / 2
+
+    # Test that noising affects expected proportion with expected types
+    with check:
+        fuzzy_checker.fuzzy_assert_proportion(
+            name="test_do_not_respond",
+            observed_numerator=numerator,
+            observed_denominator=denominator,
+            target_proportion=expected_noise,
+            name_additional="noised_data",
         )
 
 

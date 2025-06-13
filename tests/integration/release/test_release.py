@@ -48,6 +48,7 @@ from tests.integration.release.conftest import (
     RI_FILEPATH,
 )
 from tests.integration.release.utilities import (
+    fuzzy_check_do_not_respond_counts,
     fuzzy_check_duplicate_with_guardian,
     fuzzy_check_omit_row_counts,
     get_guardian_duplication_info,
@@ -55,7 +56,7 @@ from tests.integration.release.utilities import (
     get_missingness_data,
     get_noised_columns,
     get_noised_data,
-    get_omit_row_counts,
+    get_missing_row_counts,
     get_passing_row_counts,
     get_prenoised_columns,
     get_prenoised_data,
@@ -72,16 +73,14 @@ ROW_TEST_FUNCTIONS = {
 }
 
 ROW_COUNT_FUNCTIONS = {
-    "omit_row": get_omit_row_counts,
-    # TODO: define all ROW_COUNT_FUNCTIONS functions
-    "do_not_respond": get_omit_row_counts,
+    "omit_row": get_missing_row_counts,
+    "do_not_respond": get_missing_row_counts,
     "duplicate_with_guardian": get_guardian_duplication_info,
 }
 
 ROW_FUZZY_CHECK_FUNCTIONS = {
     "omit_row": fuzzy_check_omit_row_counts,
-    # TODO: define all ROW_FUZZY_CHECK functions
-    "do_not_respond": fuzzy_check_omit_row_counts,
+    "do_not_respond": fuzzy_check_do_not_respond_counts,
     "duplicate_with_guardian": fuzzy_check_duplicate_with_guardian,
 }
 
@@ -117,7 +116,7 @@ def test_full_release_noising(
         source = Path(source)
         validate_source_compatibility(source, dataset_schema)
 
-    source = Path('/ihme/homes/hjafari/ppl_parquet_data/small_usa_census')
+    source = Path("/ihme/homes/hjafari/ppl_parquet_data/small_usa_census")
 
     engine = get_engine_from_string(engine_name)
 
@@ -142,6 +141,7 @@ def test_full_release_noising(
 
         seed = update_seed(SEED, year)
 
+        # we need prenoised, noised, and missingness data to replicate what's in Dataset
         def make_wide_dataframe(data_: pd.DataFrame) -> pd.DataFrame:
             clean_input_data(dataset_schema, data_)
             reformat_dates_for_noising(dataset_schema, data_)
@@ -235,12 +235,21 @@ def test_full_release_noising(
             columns=["numerator", "columns_are_different", "dtypes_are_different"], dtype=int
         )
         duplicate_row_counts_meta = pd.DataFrame(
-            columns=['household_under_18_duplications', 'college_under_24_duplications',
-                     'household_under_18_eligible', 'college_under_24_eligible',
-                     'multiple_duplications_check', 'non_guardian_duplications_check'],
+            columns=[
+                "household_under_18_duplications",
+                "college_under_24_duplications",
+                "household_under_18_eligible",
+                "college_under_24_eligible",
+                "multiple_duplications_check",
+                "non_guardian_duplications_check",
+            ],
             dtype=int,
         )
-        ROW_NOISE_META = {'omit_row': missing_row_counts_meta, 'do_not_respond': missing_row_counts_meta, 'duplicate_with_guardian': duplicate_row_counts_meta}
+        ROW_NOISE_META = {
+            "omit_row": missing_row_counts_meta,
+            "do_not_respond": missing_row_counts_meta,
+            "duplicate_with_guardian": duplicate_row_counts_meta,
+        }
 
         for noise_type in NOISE_TYPES:
             if noise_type.name != "duplicate_with_guardian":
