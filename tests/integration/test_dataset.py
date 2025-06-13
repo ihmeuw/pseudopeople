@@ -2,6 +2,7 @@ import pytest
 from layered_config_tree import LayeredConfigTree
 
 from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.dataset import clean_input_data, reformat_dates_for_noising
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASET_SCHEMAS
@@ -24,8 +25,8 @@ def test_dataset_missingness(dataset_name: str) -> None:
     """Tests that missingness is accurate with dataset.data."""
     dataset = initialize_dataset_with_sample(dataset_name)
     # We must manually clean the data for noising since we are recreating our main noising loop
-    dataset._clean_input_data()
-    dataset._reformat_dates_for_noising()
+    clean_input_data(dataset.dataset_schema, dataset.data)
+    reformat_dates_for_noising(dataset.dataset_schema, dataset.data)
     config = get_configuration()
     # NOTE: This is recreating Dataset._noise_dataset but adding assertions for missingness
     for noise_type in NOISE_TYPES:

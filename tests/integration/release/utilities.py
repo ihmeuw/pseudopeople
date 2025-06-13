@@ -125,6 +125,97 @@ def run_omit_row_tests(
         )
 
 
+def get_noised_columns(data: pd.DataFrame) -> list[str]:
+    """Returns a list of columns that are noised, i.e., not prenoised and not missingness."""
+    return [
+        col
+        for col in data.columns
+        if not col.endswith("_prenoised") and not col.endswith("_missingness")
+    ]
+
+
+def get_noised_data(data: pd.DataFrame) -> pd.DataFrame:
+    return data[get_noised_columns(data)]
+
+
+def get_prenoised_columns(data: pd.DataFrame) -> list[str]:
+    """Returns a list of columns that are prenoised."""
+    return [col for col in data.columns if col.endswith("_prenoised")]
+
+
+def get_prenoised_data(data: pd.DataFrame) -> pd.DataFrame:
+    return data[get_prenoised_columns(data)]
+
+
+def get_missingness_columns(data: pd.DataFrame) -> list[str]:
+    """Returns a list of columns that are missingness."""
+    return [col for col in data.columns if col.endswith("_missingness")]
+
+
+def get_missingness_data(data: pd.DataFrame) -> pd.DataFrame:
+    return data[get_missingness_columns(data)]
+
+
+def get_omit_row_counts(data: pd.DataFrame) -> pd.DataFrame:
+    noised = get_noised_data(data)
+    prenoised = get_prenoised_data(data)
+
+    columns_are_different = set(noised.columns) != set(
+        [col.replace("_prenoised", "") for col in prenoised.columns]
+    )
+
+    # ints sometimes get converted to floats during noising
+    dtype_comparison = (
+        noised.dtypes.replace({int: float}).values
+        != prenoised.dtypes.replace({int: float}).values
+    )
+    # handle both Series of bools and single bool
+    if hasattr(dtype_comparison, "any"):
+        dtypes_are_different = dtype_comparison.any()
+    else:
+        dtypes_are_different = bool(dtype_comparison)
+
+    # if a row gets dropped by noising it contains all nans in the noised data
+    omitted_rows = Dataset.is_missing(noised).all(axis=1).sum()
+
+    return pd.DataFrame(
+        {
+            "numerator": [omitted_rows],
+            "columns_are_different": [columns_are_different],
+            "dtypes_are_different": [dtypes_are_different],
+        }
+    )
+
+
+def get_passing_row_counts(data: pd.DataFrame) -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            "numerator": [0],
+            "columns_are_different": [0],
+            "dtypes_are_different": [0],
+        }
+    )
+
+
+def fuzzy_check_omit_row_counts(
+    numerator: int,
+    denominator: int,
+    config: NoiseConfiguration,
+    dataset_name: str,
+    fuzzy_checker: FuzzyChecker,
+) -> None:
+    expected_noise = config.get_row_probability(dataset_name, NOISE_TYPES.omit_row.name)
+    # Test that noising affects expected proportion with expected types
+    with check:
+        fuzzy_checker.fuzzy_assert_proportion(
+            name="test_omit_row",
+            observed_numerator=numerator,
+            observed_denominator=denominator,
+            target_proportion=expected_noise,
+            name_additional="noised_data",
+        )
+
+
 def run_guardian_duplication_tests(
     prenoised_dataframes: list[pd.DataFrame],
     noised_datasets: list[Dataset],
