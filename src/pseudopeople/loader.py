@@ -15,6 +15,7 @@ def load_standard_dataset(
     filters: Sequence[DataFilter],
     engine: Engine = PANDAS_ENGINE,
     is_file: bool = True,
+    columns: list[str] | None = None,
 ) -> DataFrame:
     if is_file and data_path.suffix != ".parquet":
         raise DataSourceError(
@@ -29,12 +30,13 @@ def load_standard_dataset(
         data: DataFrame = pq.read_table(
             str(data_path),
             filters=parquet_filters,  # type: ignore [arg-type]
+            columns=columns,
         ).to_pandas()
     else:
         # Dask
         import dask.dataframe as dd
 
-        data = dd.read_parquet(str(data_path), filters=parquet_filters)
+        data = dd.read_parquet(str(data_path), filters=parquet_filters, columns=columns)
 
     # TODO: The index in our simulated population files is never meaningful.
     # For some reason, the 1040 dataset is currently saved with a non-RangeIndex
