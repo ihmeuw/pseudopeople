@@ -200,7 +200,7 @@ def test_full_release_noising(
 
         def remove_missing_rows(data_: pd.DataFrame) -> pd.DataFrame:
             """Removes rows that are missing in all columns."""
-            return data_[~get_missingness_data(data_).all(axis=1)]
+            return data_[~Dataset.is_missing(get_noised_data(data_)).all(axis=1)]
 
         def drop_extra_data(data_: pd.DataFrame) -> pd.DataFrame:
             """Removed prenoised and missingness columns from data."""
@@ -275,7 +275,8 @@ def test_full_release_noising(
                         fuzzy_checker,
                     )
                     # get rid of rows that became missing after noising
-                    data = data.map_partitions(remove_missing_rows)
+                    if noise_type != NOISE_TYPES.duplicate_with_guardian:
+                        data = data.map_partitions(remove_missing_rows)
 
             elif isinstance(noise_type, ColumnNoiseType):
                 for column in dataset_schema.columns:
