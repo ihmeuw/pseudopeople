@@ -139,6 +139,7 @@ def test_full_release_noising(
 
         seed = update_seed(SEED, year)
 
+        # we need prenoised, noised, and missingness data to replicate what's in Dataset
         def make_wide_dataframe(data_: pd.DataFrame) -> pd.DataFrame:
             clean_input_data(dataset_schema, data_)
             reformat_dates_for_noising(dataset_schema, data_)
@@ -343,9 +344,9 @@ def test_full_release_noising(
                 # are implemented (MIC-4039)
                 data = data.map_partitions(unnoise_data)
 
+        # post-processing tests on final data
         # remove prenoised and missingness columns from data
         data = data.map_partitions(drop_extra_data)
-        # post-processing tests on final data
         data = data.map_partitions(
             coerce_dtypes,
             dataset_schema=dataset_schema,
@@ -354,8 +355,8 @@ def test_full_release_noising(
             Dataset.drop_non_schema_columns,
             dataset_schema=dataset_schema,
         )
-
-        dtype_info = data.map_partitions(get_column_dtypes_info).persist()
+        # check that dtypes are as expected
+        dtype_info = data.map_partitions(get_column_dtypes_info)
         aggregated_dtype_info = aggregate_dtype_info(dtype_info.compute())
 
         with check:
