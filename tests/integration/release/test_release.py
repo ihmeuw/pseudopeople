@@ -718,7 +718,7 @@ def get_column_noising_counts(
                 "denominator": [0],
                 "expected_numerator": [0],
                 "missing_data_not_missing": [missing_data_not_missing],
-                "num_noised_id_cols": [0],
+                "num_noised_id_cols": [num_noised_id_cols],
             }
         )
 
