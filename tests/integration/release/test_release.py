@@ -293,7 +293,9 @@ def test_full_release_noising(
                             assert total_counts["multiple_duplications_check"] == 0
                         with check:
                             assert total_counts["non_guardian_duplications_check"] == 0
-                        fuzzy_check_function: Callable[..., None] = ROW_FUZZY_CHECK_FUNCTIONS[noise_type.name]
+                        fuzzy_check_function: Callable[..., None] = ROW_FUZZY_CHECK_FUNCTIONS[
+                            noise_type.name
+                        ]
                         fuzzy_check_function(
                             config,
                             full_dataset_name,
@@ -392,9 +394,9 @@ def test_full_release_noising(
                 # are implemented (MIC-4039)
                 data = data.map_partitions(unnoise_data)
 
+        # post-processing tests on final data
         # remove prenoised and missingness columns from data
         data = data.map_partitions(drop_extra_data)
-        # post-processing tests on final data
         data = data.map_partitions(
             coerce_dtypes,
             dataset_schema=dataset_schema,
@@ -404,11 +406,15 @@ def test_full_release_noising(
             dataset_schema=dataset_schema,
         )
 
-        dtype_info = data.map_partitions(get_column_dtypes_info).persist()
+        dtype_info = data.map_partitions(get_column_dtypes_info)
         aggregated_dtype_info = aggregate_dtype_info(dtype_info.compute())
 
         with check:
+            # check that all columns have expected dtypes
             assert aggregated_dtype_info["is_expected_dtype"].all()
+        # check that object dtype columns are actually strings
+        # str means object column is a string and blank means
+        # column is not an object dtype
         object_col_has_wrong_type = (
             aggregated_dtype_info["object_column_types"] != "str"
         ) & (aggregated_dtype_info["object_column_types"] != "")
