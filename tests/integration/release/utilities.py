@@ -255,11 +255,11 @@ def fuzzy_check_duplicate_with_guardian(
 
 
 def fuzzy_check_do_not_respond_counts(
-    numerator: int,
-    denominator: int,
     config: NoiseConfiguration,
     dataset_name: str,
     fuzzy_checker: FuzzyChecker,
+    numerator: int,
+    denominator: int,
 ) -> None:
     expected_noise = config.get_row_probability(dataset_name, NOISE_TYPES.do_not_respond.name)
     # ACS and CPS data are oversampled by a factor of 2 so we apply a baseline probability of
