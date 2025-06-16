@@ -293,9 +293,7 @@ def test_full_release_noising(
                             assert total_counts["multiple_duplications_check"] == 0
                         with check:
                             assert total_counts["non_guardian_duplications_check"] == 0
-                        fuzzy_check_function: Callable[..., None] = ROW_FUZZY_CHECK_FUNCTIONS[
-                            noise_type.name
-                        ]
+                        fuzzy_check_function = ROW_FUZZY_CHECK_FUNCTIONS[noise_type.name]  # type: ignore[operator]
                         fuzzy_check_function(
                             config,
                             full_dataset_name,
@@ -309,7 +307,7 @@ def test_full_release_noising(
                             assert total_counts["columns_are_different"] == 0
                         with check:
                             assert total_counts["dtypes_are_different"] == 0
-                        fuzzy_check_function = ROW_FUZZY_CHECK_FUNCTIONS[noise_type.name]
+                        fuzzy_check_function = ROW_FUZZY_CHECK_FUNCTIONS[noise_type.name]  # type: ignore[operator]
                         fuzzy_check_function(
                             config,
                             full_dataset_name,
