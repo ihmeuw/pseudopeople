@@ -202,6 +202,10 @@ def test_full_release_noising(
             data_[get_noised_columns(data_)] = data_[get_prenoised_columns(data_)]
             return data_
 
+        def remove_missing_rows(data_: pd.DataFrame) -> pd.DataFrame:
+            """Removes rows that are missing in all columns."""
+            return data_[~Dataset.is_missing(get_noised_data(data_)).all(axis=1)]
+
         def drop_extra_data(data_: pd.DataFrame) -> pd.DataFrame:
             """Removed prenoised and missingness columns from data."""
             return data_[get_noised_columns(data_)]
@@ -305,6 +309,7 @@ def test_full_release_noising(
                             fuzzy_checker,
                             **fuzzy_check_kwargs,
                         )
+                        data = data.map_partitions(remove_missing_rows)
                    
             elif isinstance(noise_type, ColumnNoiseType):
                 for column in dataset_schema.columns:
@@ -349,6 +354,7 @@ def test_full_release_noising(
                                     "denominator",
                                     "expected_numerator",
                                     "missing_data_not_missing",
+                                    "num_noised_id_cols",
                                 ],
                                 dtype=int,
                             ),
@@ -356,6 +362,8 @@ def test_full_release_noising(
                         total_counts = counts.sum().compute()
                         with check:
                             assert total_counts["missing_data_not_missing"] == 0
+                        with check:
+                            assert total_counts["num_noised_id_cols"] == 0
                         numerator = total_counts["numerator"]
                         denominator = total_counts["denominator"]
                         # we can get no eligible rows for unit number in acs RI data
@@ -722,6 +730,14 @@ def get_column_noising_counts(
     prenoised_data = get_prenoised_data(data)
     prenoised_data.columns = [col.replace("_prenoised", "") for col in prenoised_data.columns]
 
+    # check that reference id cols don't get noised
+    unnoised_id_cols = [COLUMNS.simulant_id.name]
+    if dataset_name != DATASET_SCHEMAS.ssa.name:
+        unnoised_id_cols.append(COLUMNS.household_id.name)
+    num_noised_id_cols = (
+        (prenoised_data[unnoised_id_cols] != noised_data[unnoised_id_cols]).any(axis=0).sum()
+    )
+
     # Check that originally missing data remained missing
     originally_missing_idx = prenoised_data.index[prenoised_data[column].isna()]
     missing_data_not_missing = (
@@ -736,6 +752,7 @@ def get_column_noising_counts(
                 "denominator": [0],
                 "expected_numerator": [0],
                 "missing_data_not_missing": [missing_data_not_missing],
+                "num_noised_id_cols": [num_noised_id_cols],
             }
         )
 
@@ -819,5 +836,6 @@ def get_column_noising_counts(
             "denominator": [num_eligible],
             "expected_numerator": [expected_numerator],
             "missing_data_not_missing": [missing_data_not_missing],
+            "num_noised_id_cols": [num_noised_id_cols],
         }
     )
