@@ -53,10 +53,10 @@ from tests.integration.release.utilities import (
     fuzzy_check_omit_row_counts,
     get_guardian_duplication_info,
     get_high_noise_config,
+    get_missing_row_counts,
     get_missingness_data,
     get_noised_columns,
     get_noised_data,
-    get_missing_row_counts,
     get_passing_row_counts,
     get_prenoised_columns,
     get_prenoised_data,
@@ -118,8 +118,6 @@ def test_full_release_noising(
         source = Path(source)
         validate_source_compatibility(source, dataset_schema)
 
-    source = Path("/ihme/homes/hjafari/ppl_parquet_data/small_acs_data")
-
     engine = get_engine_from_string(engine_name)
 
     if engine == DASK_ENGINE:
@@ -139,8 +137,9 @@ def test_full_release_noising(
         data_directory_path = source / dataset_schema.name
         filters = get_data_filters(dataset_schema, year, state)
         data = load_standard_dataset(data_directory_path, filters, engine, is_file=False)
+        # assert to make mypy happy
+        # we know data will be a dask dataframe because of the engine
         assert isinstance(data, dd.DataFrame)
-
         seed = update_seed(SEED, year)
 
         # we need prenoised, noised, and missingness data to replicate what's in Dataset
@@ -199,7 +198,12 @@ def test_full_release_noising(
             return data_
 
         def unnoise_data(data_: pd.DataFrame) -> pd.DataFrame:
+            """Undo noising by copying prenoised data back to noised columns
+            and removing any new rows that got created."""
             data_[get_noised_columns(data_)] = data_[get_prenoised_columns(data_)]
+            # any new rows from noising will be all missing in prenoised columns
+            # we just copied over prenoised data, so we need to remove these missing rows
+            data_ = remove_missing_rows(data_)
             return data_
 
         def remove_missing_rows(data_: pd.DataFrame) -> pd.DataFrame:
@@ -281,14 +285,15 @@ def test_full_release_noising(
                     if noise_type == NOISE_TYPES.duplicate_with_guardian:
                         fuzzy_check_kwargs = {
                             col: total_counts[col]
-                            for col in total_counts.columns
+                            for col in total_counts.index
                             if not col.endswith("_check")
                         }
+
                         with check:
                             assert total_counts["multiple_duplications_check"] == 0
                         with check:
                             assert total_counts["non_guardian_duplications_check"] == 0
-                        fuzzy_check_function = ROW_FUZZY_CHECK_FUNCTIONS[noise_type.name]
+                        fuzzy_check_function: Callable[..., None] = ROW_FUZZY_CHECK_FUNCTIONS[noise_type.name]
                         fuzzy_check_function(
                             config,
                             full_dataset_name,
@@ -310,7 +315,7 @@ def test_full_release_noising(
                             **fuzzy_check_kwargs,
                         )
                         data = data.map_partitions(remove_missing_rows)
-                   
+
             elif isinstance(noise_type, ColumnNoiseType):
                 for column in dataset_schema.columns:
                     if config.has_noise_type(

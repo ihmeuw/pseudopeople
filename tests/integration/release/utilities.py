@@ -401,7 +401,7 @@ def run_guardian_duplication_tests(
 
 def get_guardian_duplication_info(
     data: pd.DataFrame,
-) -> None:
+) -> pd.DataFrame:
     """Takes a list of prenoised DataFrames and matching noised Datasets and checks that
     after applying duplicate_with_guardian, 1) no simulants are duplicated more than once,
     2) address information was duplicated correctly and 3) the expected number of simulants
@@ -461,7 +461,7 @@ def get_guardian_duplication_info(
         denominators[probability_name] += len(sims_eligible_for_duplication)
 
     # Only duplicate a dependent one time
-    has_multiple_duplications = noised_data["simulant_id"].value_counts().max() <= 2
+    has_multiple_duplications = noised_data["simulant_id"].value_counts().max() > 2
 
     # Check address information is copied in new rows
     guardians = prenoised_data.loc[
