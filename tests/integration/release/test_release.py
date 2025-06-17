@@ -294,12 +294,6 @@ def test_full_release_noising(
                         with check:
                             assert total_counts["non_guardian_duplications_check"] == 0
                         fuzzy_check_function = ROW_FUZZY_CHECK_FUNCTIONS[noise_type.name]
-                        fuzzy_check_function(  # type: ignore[operator]
-                            config,
-                            full_dataset_name,
-                            fuzzy_checker,
-                            **fuzzy_check_kwargs,
-                        )
                     else:
                         fuzzy_check_kwargs["numerator"] = total_counts["numerator"]
                         fuzzy_check_kwargs["denominator"] = num_prenoised_rows
@@ -308,13 +302,13 @@ def test_full_release_noising(
                         with check:
                             assert total_counts["dtypes_are_different"] == 0
                         fuzzy_check_function = ROW_FUZZY_CHECK_FUNCTIONS[noise_type.name]
-                        fuzzy_check_function(  # type: ignore[operator]
-                            config,
-                            full_dataset_name,
-                            fuzzy_checker,
-                            **fuzzy_check_kwargs,
-                        )
                         data = data.map_partitions(remove_missing_rows)
+                    fuzzy_check_function(  # type: ignore[operator]
+                        config,
+                        full_dataset_name,
+                        fuzzy_checker,
+                        **fuzzy_check_kwargs,
+                    )
 
             elif isinstance(noise_type, ColumnNoiseType):
                 for column in dataset_schema.columns:
