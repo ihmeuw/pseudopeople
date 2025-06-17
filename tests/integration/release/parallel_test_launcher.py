@@ -15,25 +15,30 @@ import pandas as pd
 
 def write_slurm_script(row: pd.Series[Any], script_name: str, output_dir: str) -> None:
     dataset = row["dataset"]
+    pop = row["population"]
     engine = row["engine"]
-    memory = row["memory"]
-    time_limit = row["time"]  # HH:MM:SS
+    state = row["state"]
+    year = row["year"]
+    noise_level = row["noise_level"]
+    memory = row["memory"]  # GB
+    time_limit_in_hours = row["time_limit"]
     # long.q if 24 longer than 24 hours
-    partition = "all.q" if int(time_limit.split(":")[0]) <= 24 else "long.q"
+    partition = "all.q" if int(time_limit_in_hours) <= 24 else "long.q"
+    cpus_per_task = row["cpus_per_task"]
+
     release_tests_dir = Path(__file__).parent
-    pytest_command = (
-        f"pytest -rA --release --dataset {dataset} --engine {engine} {release_tests_dir}"
-    )
-    # TODO: define cpus per task based on engine (ask Zeb)
+    state_flag = f"--state {state}" if state != "none" else ""
+    year_flag = f"--year {year}" if year != "default" else ""
+    pytest_command = f"pytest -rA --release --dataset {dataset} --engine {engine} --population {pop} --noise-level {noise_level} {state_flag} {year_flag} {release_tests_dir}"
     slurm_script = f"""#!/bin/bash 
 #SBATCH --job-name=pytest_{dataset}_{engine} 
 #SBATCH --output={output_dir}/pytest_{dataset}_{engine}.out 
 #SBATCH --error={output_dir}/pytest_{dataset}_{engine}.err 
 #SBATCH --mem={memory}G
-#SBATCH --time={time_limit} 
+#SBATCH --time={time_limit_in_hours}:00:00
 #SBATCH --account=proj_simscience_prod
 #SBATCH --partition={partition}
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task={cpus_per_task}
         
 echo "Running pytest for dataset {dataset} with engine {engine}" 
 {pytest_command} 
@@ -160,7 +165,7 @@ def parse_outputs(output_dir: str, job_ids: list[str] | None = None) -> None:
 
     num_failures = sum(job_info_df["outcome"] == "failed")
     num_incomplete = sum(job_info_df["outcome"] == "not_completed")
-    if num_failures:
+    if (num_failures + num_incomplete) > 0:
         print(
             f"FAIL: {num_failures} tests failed and {num_incomplete} tests did not finish. See {output_dir}/summary_results.csv for details."
         )
@@ -205,7 +210,7 @@ if __name__ == "__main__":
         )
 
     # Step 2: Wait for jobs to complete
-    wait_for_all_jobs(job_ids, poll_interval=10)
+    wait_for_all_jobs(job_ids, poll_interval=60 * 15)  # every 15 minutes
 
     # Step 3: delete tmp_scripts directory
     scripts_dir = f"{output_dir}/tmp_scripts"
