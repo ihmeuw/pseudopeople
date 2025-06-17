@@ -12,6 +12,7 @@ from vivarium_testing_utils import FuzzyChecker
 
 from pseudopeople import NO_NOISE
 from pseudopeople.configuration.noise_configuration import NoiseConfiguration
+from pseudopeople.dataset import reformat_dates_for_noising
 from pseudopeople.schema_entities import DATASET_SCHEMAS, DatasetSchema
 from pseudopeople.utilities import coerce_dtypes
 from tests.constants import DATASET_GENERATION_FUNCS
@@ -71,7 +72,7 @@ def test_noising_sharded_vs_unsharded_data(
     # in integration/conftest.py
     # Define indexes
     idx_cols = IDX_COLS.get(unnoised_dataset.dataset_schema.name)
-    unnoised_dataset._reformat_dates_for_noising()
+    reformat_dates_for_noising(unnoised_dataset.dataset_schema, unnoised_dataset.data)
     unnoised_dataset.data = coerce_dtypes(
         unnoised_dataset.data, unnoised_dataset.dataset_schema
     )

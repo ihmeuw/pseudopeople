@@ -125,6 +125,160 @@ def run_omit_row_tests(
         )
 
 
+def get_noised_columns(data: pd.DataFrame) -> list[str]:
+    """Returns a list of columns that are noised, i.e., not prenoised and not missingness."""
+    return [
+        col
+        for col in data.columns
+        if not col.endswith("_prenoised") and not col.endswith("_missingness")
+    ]
+
+
+def get_noised_data(data: pd.DataFrame) -> pd.DataFrame:
+    return data[get_noised_columns(data)]
+
+
+def get_prenoised_columns(data: pd.DataFrame) -> list[str]:
+    """Returns a list of columns that are prenoised."""
+    return [col for col in data.columns if col.endswith("_prenoised")]
+
+
+def get_prenoised_data(data: pd.DataFrame) -> pd.DataFrame:
+    return data[get_prenoised_columns(data)]
+
+
+def get_missingness_columns(data: pd.DataFrame) -> list[str]:
+    """Returns a list of columns that are missingness."""
+    return [col for col in data.columns if col.endswith("_missingness")]
+
+
+def get_missingness_data(data: pd.DataFrame) -> pd.DataFrame:
+    return data[get_missingness_columns(data)]
+
+
+def get_missing_row_counts(data: pd.DataFrame) -> pd.DataFrame:
+    noised = get_noised_data(data)
+    prenoised = get_prenoised_data(data)
+
+    columns_are_different = set(noised.columns) != set(
+        [col.replace("_prenoised", "") for col in prenoised.columns]
+    )
+
+    # ints sometimes get converted to floats during noising
+    dtype_comparison = (
+        noised.dtypes.replace({int: float}).values
+        != prenoised.dtypes.replace({int: float}).values
+    )
+    # handle both Series of bools and single bool
+    if hasattr(dtype_comparison, "any"):
+        dtypes_are_different = dtype_comparison.any()
+    else:
+        dtypes_are_different = bool(dtype_comparison)
+
+    # if a row gets dropped by noising it contains all nans in the noised data
+    omitted_rows = Dataset.is_missing(noised).all(axis=1).sum()
+
+    return pd.DataFrame(
+        {
+            "numerator": [omitted_rows],
+            "columns_are_different": [columns_are_different],
+            "dtypes_are_different": [dtypes_are_different],
+        }
+    )
+
+
+def get_passing_row_counts(data: pd.DataFrame) -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            "numerator": [0],
+            "columns_are_different": [0],
+            "dtypes_are_different": [0],
+        }
+    )
+
+
+def fuzzy_check_omit_row_counts(
+    config: NoiseConfiguration,
+    dataset_name: str,
+    fuzzy_checker: FuzzyChecker,
+    numerator: int,
+    denominator: int,
+) -> None:
+    expected_noise = config.get_row_probability(dataset_name, NOISE_TYPES.omit_row.name)
+    # Test that noising affects expected proportion with expected types
+    with check:
+        fuzzy_checker.fuzzy_assert_proportion(
+            name="test_omit_row",
+            observed_numerator=numerator,
+            observed_denominator=denominator,
+            target_proportion=expected_noise,
+            name_additional="noised_data",
+        )
+
+
+def fuzzy_check_duplicate_with_guardian(
+    config: NoiseConfiguration,
+    dataset_name: str,
+    fuzzy_checker: FuzzyChecker,
+    household_under_18_duplications: int,
+    college_under_24_duplications: int,
+    household_under_18_eligible: int,
+    college_under_24_eligible: int,
+) -> None:
+    expected_noise = {}
+    for probability_name in [
+        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18,
+        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24,
+    ]:
+        expected_noise[probability_name] = config.get_duplicate_with_guardian_probabilities(
+            DATASET_SCHEMAS.census.name, probability_name
+        )
+    # Test that noising affects expected proportion with expected types
+    with check:
+        fuzzy_checker.fuzzy_assert_proportion(
+            name="test_duplicate_guardian",
+            observed_numerator=household_under_18_duplications,
+            observed_denominator=household_under_18_eligible,
+            target_proportion=expected_noise[Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18],
+            name_additional="household_under_18_duplications",
+        )
+    with check:
+        fuzzy_checker.fuzzy_assert_proportion(
+            name="test_duplicate_guardian",
+            observed_numerator=college_under_24_duplications,
+            observed_denominator=college_under_24_eligible,
+            target_proportion=expected_noise[
+                Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24
+            ],
+            name_additional="college_under_24_duplications",
+        )
+
+
+def fuzzy_check_do_not_respond_counts(
+    config: NoiseConfiguration,
+    dataset_name: str,
+    fuzzy_checker: FuzzyChecker,
+    numerator: int,
+    denominator: int,
+) -> None:
+    expected_noise = config.get_row_probability(dataset_name, NOISE_TYPES.do_not_respond.name)
+    # ACS and CPS data are oversampled by a factor of 2 so we apply a baseline probability of
+    # 0.5 for do_not_respond so the data returned is of the expected size
+    # # TODO: [MIC-6002] move this processing step out of noising
+    if dataset_name is not DATASET_SCHEMAS.census.name:  # is acs or cps
+        expected_noise = 0.5 + expected_noise / 2
+
+    # Test that noising affects expected proportion with expected types
+    with check:
+        fuzzy_checker.fuzzy_assert_proportion(
+            name="test_do_not_respond",
+            observed_numerator=numerator,
+            observed_denominator=denominator,
+            target_proportion=expected_noise,
+            name_additional="noised_data",
+        )
+
+
 def run_guardian_duplication_tests(
     prenoised_dataframes: list[pd.DataFrame],
     noised_datasets: list[Dataset],
@@ -190,7 +344,7 @@ def run_guardian_duplication_tests(
 
         # Only duplicate a dependent one time
         with check:
-            assert noised_dataset.data["simulant_id"].value_counts().max() == 2
+            assert noised_dataset.data["simulant_id"].value_counts().max() <= 2
 
         # Check address information is copied in new rows
         guardians = prenoised_dataframe.loc[
@@ -243,3 +397,122 @@ def run_guardian_duplication_tests(
                 target_proportion=expected_noise,
                 name_additional="noised_data",
             )
+
+
+def get_guardian_duplication_info(
+    data: pd.DataFrame,
+) -> pd.DataFrame:
+    """Takes a list of prenoised DataFrames and matching noised Datasets and checks that
+    after applying duplicate_with_guardian, 1) no simulants are duplicated more than once,
+    2) address information was duplicated correctly and 3) the expected number of simulants
+    were duplicated."""
+    numerators = {
+        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0,
+        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: 0,
+    }
+    denominators = {
+        Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18: 0,
+        Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24: 0,
+    }
+    noised_data = get_noised_data(data)
+    prenoised_data = get_prenoised_data(data)
+    prenoised_data.columns = noised_data.columns
+
+    # get duplicated simulants
+    duplicated = noised_data.loc[noised_data["simulant_id"].duplicated()]
+
+    # add old housing type data to duplicated simulants
+    old_housing_data = prenoised_data[["simulant_id", "housing_type"]].rename(
+        {"housing_type": "unnoised_housing_type"}, axis=1
+    )
+    duplicated = duplicated.merge(old_housing_data)
+
+    # collect data for fuzzy checking for household under 18 and for college under 24
+    for probability_name, max_age, housing_type in zip(
+        [
+            Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18,
+            Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24,
+        ],
+        [18, 24],
+        ["Household", "College"],
+    ):
+        group_data = prenoised_data.loc[
+            (prenoised_data["age"] < max_age)
+            & (prenoised_data["housing_type"] == housing_type)
+            & (prenoised_data["guardian_1"].notna())
+        ]
+        merged_data = merge_dependents_and_guardians(group_data, prenoised_data)
+        sims_eligible_for_duplication = merged_data.index[
+            (
+                (merged_data["household_id"] != merged_data["guardian_1_household_id"])
+                & (merged_data["guardian_1_household_id"].notna())
+            )
+            | (
+                (merged_data["household_id"] != merged_data["guardian_2_household_id"])
+                & (merged_data["guardian_2_household_id"].notna())
+            )
+        ]
+        duplicated_in_group = duplicated.loc[
+            (duplicated["age"] < max_age)
+            & (duplicated["unnoised_housing_type"] == housing_type)
+        ]
+
+        numerators[probability_name] += len(duplicated_in_group)
+        denominators[probability_name] += len(sims_eligible_for_duplication)
+
+    # Only duplicate a dependent one time
+    has_multiple_duplications = noised_data["simulant_id"].value_counts().max() > 2
+
+    # Check address information is copied in new rows
+    guardians = prenoised_data.loc[
+        prenoised_data["simulant_id"].isin(prenoised_data["guardian_1"])
+        | prenoised_data["simulant_id"].isin(prenoised_data["guardian_2"])
+    ]
+    simulant_ids = prenoised_data["simulant_id"].values
+
+    copied_wrong_info = [False]
+    for i in duplicated.index:
+        dependent = duplicated.loc[i]
+
+        for column in GUARDIAN_DUPLICATION_ADDRESS_COLUMNS:
+            guardian_1 = dependent["guardian_1"]
+            guardian_2 = dependent["guardian_2"]
+
+            if guardian_2 is np.nan:
+                guardians_values = [
+                    guardians.loc[guardians["simulant_id"] == guardian_1, column].values[0]
+                ]
+            else:  # dependent has both guardians
+                guardians_values = []
+                for guardian in [guardian_1, guardian_2]:
+                    if (
+                        guardian in simulant_ids
+                    ):  # duplicates will not have addresses copied from guardians not in data
+                        guardians_values += [
+                            guardians.loc[
+                                guardians["simulant_id"] == guardian, column
+                            ].values[0]
+                        ]
+            copied_wrong_info.append(dependent[column] not in guardians_values)
+
+    # mark as False if any of the guardian information was duplicated incorrectly
+    copied_any_wrong_info = any(copied_wrong_info)
+
+    return pd.DataFrame(
+        {
+            "household_under_18_duplications": [
+                numerators[Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18]
+            ],
+            "college_under_24_duplications": [
+                numerators[Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24]
+            ],
+            "household_under_18_eligible": [
+                denominators[Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18]
+            ],
+            "college_under_24_eligible": [
+                denominators[Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24]
+            ],
+            "multiple_duplications_check": [has_multiple_duplications],
+            "non_guardian_duplications_check": [copied_any_wrong_info],
+        }
+    )
