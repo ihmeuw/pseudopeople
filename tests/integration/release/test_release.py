@@ -49,7 +49,9 @@ from tests.integration.release.conftest import (
 )
 from tests.integration.release.utilities import (
     fuzzy_check_do_not_respond_counts,
+    fuzzy_check_duplicate_with_guardian,
     fuzzy_check_omit_row_counts,
+    get_guardian_duplication_info,
     get_high_noise_config,
     get_missing_row_counts,
     get_missingness_data,
@@ -64,24 +66,24 @@ from tests.integration.release.utilities import (
 )
 from tests.utilities import initialize_dataset_with_sample
 
+# pandas functions
 ROW_TEST_FUNCTIONS = {
     "omit_row": run_omit_row_tests,
     "do_not_respond": run_do_not_respond_tests,
     "duplicate_with_guardian": run_guardian_duplication_tests,
 }
 
+# dask functions
 ROW_COUNT_FUNCTIONS = {
     "omit_row": get_missing_row_counts,
     "do_not_respond": get_missing_row_counts,
-    # TODO: define duplicate_with_guardian counts
-    "duplicate_with_guardian": get_passing_row_counts,
+    "duplicate_with_guardian": get_guardian_duplication_info,
 }
 
 ROW_FUZZY_CHECK_FUNCTIONS = {
     "omit_row": fuzzy_check_omit_row_counts,
     "do_not_respond": fuzzy_check_do_not_respond_counts,
-    # TODO: define duplicate_with_guardian fuzzy check
-    "duplicate_with_guardian": fuzzy_check_omit_row_counts,
+    "duplicate_with_guardian": fuzzy_check_duplicate_with_guardian,
 }
 
 
@@ -135,8 +137,9 @@ def test_full_release_noising(
         data_directory_path = source / dataset_schema.name
         filters = get_data_filters(dataset_schema, year, state)
         data = load_standard_dataset(data_directory_path, filters, engine, is_file=False)
+        # assert to make mypy happy
+        # we know data will be a dask dataframe because of the engine
         assert isinstance(data, dd.DataFrame)
-
         seed = update_seed(SEED, year)
 
         # we need prenoised, noised, and missingness data to replicate what's in Dataset
@@ -195,7 +198,12 @@ def test_full_release_noising(
             return data_
 
         def unnoise_data(data_: pd.DataFrame) -> pd.DataFrame:
+            """Undo noising by copying prenoised data back to noised columns
+            and removing any new rows that got created."""
             data_[get_noised_columns(data_)] = data_[get_prenoised_columns(data_)]
+            # any new rows from noising will be all missing in prenoised columns
+            # we just copied over prenoised data, so we need to remove these missing rows
+            data_ = remove_missing_rows(data_)
             return data_
 
         def remove_missing_rows(data_: pd.DataFrame) -> pd.DataFrame:
@@ -233,9 +241,25 @@ def test_full_release_noising(
 
         data = data.map_partitions(make_wide_dataframe, meta=wide_data_meta)  # type: ignore[no-untyped-call]
         noised_metadata = list(zip(data.columns, data.dtypes))
-        count_metadata = pd.DataFrame(
+        missing_row_counts_meta = pd.DataFrame(
             columns=["numerator", "columns_are_different", "dtypes_are_different"], dtype=int
         )
+        duplicate_row_counts_meta = pd.DataFrame(
+            columns=[
+                "household_under_18_duplications",
+                "college_under_24_duplications",
+                "household_under_18_eligible",
+                "college_under_24_eligible",
+                "multiple_duplications_check",
+                "non_guardian_duplications_check",
+            ],
+            dtype=int,
+        )
+        ROW_NOISE_META = {
+            "omit_row": missing_row_counts_meta,
+            "do_not_respond": missing_row_counts_meta,
+            "duplicate_with_guardian": duplicate_row_counts_meta,
+        }
 
         for noise_type in NOISE_TYPES:
             if isinstance(noise_type, RowNoiseType):
@@ -251,32 +275,40 @@ def test_full_release_noising(
                     ).persist()
 
                     # get counts
-                    # TODO: define all ROW_COUNT_FUNCTIONS functions
-                    count_function = ROW_COUNT_FUNCTIONS[noise_type.name]
                     counts = data.map_partitions(
-                        count_function,
-                        meta=count_metadata,
+                        ROW_COUNT_FUNCTIONS[noise_type.name],
+                        meta=ROW_NOISE_META[noise_type.name],
                     )
                     total_counts = counts.sum().compute()
 
-                    numerator = total_counts["numerator"]
-                    # use counts to make checks
-                    # TODO: define all ROW_FUZZY_CHECK_FUNCTIONS functions
-                    with check:
-                        assert total_counts["columns_are_different"] == 0
-                    with check:
-                        assert total_counts["dtypes_are_different"] == 0
-                    fuzzy_check_function = ROW_FUZZY_CHECK_FUNCTIONS[noise_type.name]
-                    fuzzy_check_function(
-                        numerator,
-                        num_prenoised_rows,
+                    fuzzy_check_kwargs = {}
+                    if noise_type == NOISE_TYPES.duplicate_with_guardian:
+                        fuzzy_check_kwargs = {
+                            col: total_counts[col]
+                            for col in total_counts.index
+                            if not col.endswith("_check")
+                        }
+
+                        with check:
+                            assert total_counts["multiple_duplications_check"] == 0
+                        with check:
+                            assert total_counts["non_guardian_duplications_check"] == 0
+                        fuzzy_check_function = ROW_FUZZY_CHECK_FUNCTIONS[noise_type.name]
+                    else:
+                        fuzzy_check_kwargs["numerator"] = total_counts["numerator"]
+                        fuzzy_check_kwargs["denominator"] = num_prenoised_rows
+                        with check:
+                            assert total_counts["columns_are_different"] == 0
+                        with check:
+                            assert total_counts["dtypes_are_different"] == 0
+                        fuzzy_check_function = ROW_FUZZY_CHECK_FUNCTIONS[noise_type.name]
+                        data = data.map_partitions(remove_missing_rows)
+                    fuzzy_check_function(  # type: ignore[operator]
                         config,
                         full_dataset_name,
                         fuzzy_checker,
+                        **fuzzy_check_kwargs,
                     )
-                    # get rid of rows that became missing after noising
-                    if noise_type != NOISE_TYPES.duplicate_with_guardian:
-                        data = data.map_partitions(remove_missing_rows)
 
             elif isinstance(noise_type, ColumnNoiseType):
                 for column in dataset_schema.columns:
@@ -365,12 +397,16 @@ def test_full_release_noising(
             Dataset.drop_non_schema_columns,
             dataset_schema=dataset_schema,
         )
-        # check that dtypes are as expected
+
         dtype_info = data.map_partitions(get_column_dtypes_info)
         aggregated_dtype_info = aggregate_dtype_info(dtype_info.compute())
 
         with check:
+            # check that all columns have expected dtypes
             assert aggregated_dtype_info["is_expected_dtype"].all()
+        # check that object dtype columns are actually strings
+        # str means object column is a string and blank means
+        # column is not an object dtype
         object_col_has_wrong_type = (
             aggregated_dtype_info["object_column_types"] != "str"
         ) & (aggregated_dtype_info["object_column_types"] != "")
