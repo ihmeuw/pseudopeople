@@ -165,7 +165,7 @@ def parse_outputs(output_dir: str, job_ids: list[str] | None = None) -> None:
 
     num_failures = sum(job_info_df["outcome"] == "failed")
     num_incomplete = sum(job_info_df["outcome"] == "not_completed")
-    if num_failures:
+    if (num_failures + num_incomplete) > 0:
         print(
             f"FAIL: {num_failures} tests failed and {num_incomplete} tests did not finish. See {output_dir}/summary_results.csv for details."
         )
