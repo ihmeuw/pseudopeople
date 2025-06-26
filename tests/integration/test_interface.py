@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import pytest
 from _pytest.fixtures import FixtureRequest
@@ -11,13 +13,25 @@ from pytest_mock import MockerFixture
 from vivarium_testing_utils import FuzzyChecker
 
 from pseudopeople import NO_NOISE
+from pseudopeople.configuration import get_configuration
 from pseudopeople.configuration.noise_configuration import NoiseConfiguration
 from pseudopeople.dataset import reformat_dates_for_noising
-from pseudopeople.schema_entities import DATASET_SCHEMAS, DatasetSchema
+from pseudopeople.schema_entities import (
+    COLUMNS,
+    DATASET_SCHEMAS,
+    NOISE_TYPES,
+    DatasetSchema,
+)
 from pseudopeople.utilities import coerce_dtypes
 from tests.constants import DATASET_GENERATION_FUNCS
-from tests.integration.conftest import IDX_COLS, SEED, STATE, get_unnoised_data
-from tests.utilities import initialize_dataset_with_sample
+from tests.integration.conftest import (
+    IDX_COLS,
+    SEED,
+    STATE,
+    get_common_datasets,
+    get_unnoised_data,
+)
+from tests.utilities import initialize_dataset_with_sample, validate_column_noise_level
 
 
 @pytest.mark.parametrize(
@@ -160,6 +174,203 @@ def test_seed_behavior(
     assert not original.data.equals(noised_data)
     assert noised_data.equals(noised_data_same_seed)
     assert not noised_data.equals(noised_data_different_seed)
+
+
+@pytest.mark.parametrize(
+    "dataset_name",
+    [
+        DATASET_SCHEMAS.census.name,
+        DATASET_SCHEMAS.acs.name,
+        DATASET_SCHEMAS.cps.name,
+        DATASET_SCHEMAS.ssa.name,
+        DATASET_SCHEMAS.tax_w2_1099.name,
+        DATASET_SCHEMAS.wic.name,
+        DATASET_SCHEMAS.tax_1040.name,
+    ],
+)
+@pytest.mark.parametrize(
+    "engine",
+    [
+        "pandas",
+        "dask",
+    ],
+)
+def test_column_dtypes(
+    dataset_name: str, engine: str, config: dict[str, Any], request: FixtureRequest
+) -> None:
+    """Tests that column dtypes are as expected"""
+    if "TODO" in dataset_name:
+        pytest.skip(reason=dataset_name)
+
+    if engine == "dask":
+        generation_function = DATASET_GENERATION_FUNCS[dataset_name]
+        noised_data = generation_function(
+            seed=SEED,
+            year=None,
+            config=config,
+            engine=engine,
+        ).compute()
+    else:
+        noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
+
+    for col_name in noised_data.columns:
+        col = COLUMNS.get_column(col_name)
+        expected_dtype = col.dtype_name
+        if expected_dtype == np.dtype(object):
+            # str dtype is 'object'
+            # Check that they are actually strings and not some other
+            # type of object.
+            actual_types = noised_data[col.name].dropna().apply(type)
+            assert (actual_types == str).all(), actual_types.unique()
+        assert noised_data[col.name].dtype == expected_dtype
+
+
+@pytest.mark.parametrize(
+    "dataset_name",
+    [
+        DATASET_SCHEMAS.census.name,
+        DATASET_SCHEMAS.acs.name,
+        DATASET_SCHEMAS.cps.name,
+        DATASET_SCHEMAS.ssa.name,
+        DATASET_SCHEMAS.tax_w2_1099.name,
+        DATASET_SCHEMAS.wic.name,
+        DATASET_SCHEMAS.tax_1040.name,
+    ],
+)
+@pytest.mark.parametrize(
+    "engine",
+    [
+        "pandas",
+        "dask",
+    ],
+)
+def test_column_noising(
+    dataset_name: str,
+    engine: str,
+    config: dict[str, Any],
+    request: FixtureRequest,
+    fuzzy_checker: FuzzyChecker,
+) -> None:
+    """Tests that columns are noised as expected"""
+    if "TODO" in dataset_name:
+        pytest.skip(reason=dataset_name)
+    original = initialize_dataset_with_sample(dataset_name)
+    if engine == "dask":
+        generation_function = DATASET_GENERATION_FUNCS[dataset_name]
+        noised_data = generation_function(
+            seed=SEED,
+            year=None,
+            config=config,
+            engine=engine,
+        ).compute()
+    else:
+        noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
+    dataset_schema = DATASET_SCHEMAS.get_dataset_schema(dataset_name)
+    check_noised, check_original, shared_idx = get_common_datasets(
+        dataset_schema, original.data, noised_data
+    )
+
+    config_tree = get_configuration(config)
+    for col_name in check_noised.columns:
+        col = COLUMNS.get_column(col_name)
+
+        # Check that originally missing data remained missing
+        originally_missing_idx = check_original.index[check_original[col.name].isna()]
+        assert check_noised.loc[originally_missing_idx, col.name].isna().all()
+
+        # Check for noising where applicable
+        to_compare_idx = shared_idx.difference(originally_missing_idx)
+        if col.noise_types:
+            different_check: npt.NDArray[np.bool_] = np.array(
+                check_original.loc[to_compare_idx, col.name].values
+                != check_noised.loc[to_compare_idx, col.name].values
+            )
+            assert different_check.any()
+
+            noise_level = different_check.sum()
+
+            # Validate column noise level
+            validate_column_noise_level(
+                dataset_name=dataset_name,
+                check_data=check_original,
+                check_idx=to_compare_idx,
+                noise_level=noise_level,
+                col=col,
+                config=config_tree,
+                fuzzy_name="test_column_noising",
+                validator=fuzzy_checker,
+            )
+        else:  # No noising - should be identical
+            same_check: npt.NDArray[np.bool_] = np.array(
+                check_original.loc[to_compare_idx, col.name].values
+                == check_noised.loc[to_compare_idx, col.name].values
+            )
+
+            assert same_check.all()
+
+
+@pytest.mark.parametrize(
+    "dataset_name",
+    [
+        DATASET_SCHEMAS.census.name,
+        DATASET_SCHEMAS.acs.name,
+        DATASET_SCHEMAS.cps.name,
+        DATASET_SCHEMAS.ssa.name,
+        DATASET_SCHEMAS.tax_w2_1099.name,
+        DATASET_SCHEMAS.wic.name,
+        DATASET_SCHEMAS.tax_1040.name,
+    ],
+)
+@pytest.mark.parametrize(
+    "engine",
+    [
+        "pandas",
+        "dask",
+    ],
+)
+def test_row_noising_omit_row_or_do_not_respond(
+    dataset_name: str, engine: str, config: dict[str, Any], request: FixtureRequest
+) -> None:
+    """Tests that omit_row and do_not_respond row noising are being applied"""
+    if "TODO" in dataset_name:
+        pytest.skip(reason=dataset_name)
+    idx_cols = IDX_COLS.get(dataset_name)
+    original = get_unnoised_data(dataset_name)
+    original_data = original.data.set_index(idx_cols)
+    if engine == "dask":
+        generation_function = DATASET_GENERATION_FUNCS[dataset_name]
+        noised_data = generation_function(
+            seed=SEED,
+            year=None,
+            config=config,
+            engine=engine,
+        ).compute()
+    else:
+        noised_data = request.getfixturevalue(f"noised_sample_data_{dataset_name}")
+    noised_data = noised_data.set_index(idx_cols)
+    noise_config: NoiseConfiguration = get_configuration(config)
+    noise_types = [
+        noise_type
+        for noise_type in [NOISE_TYPES.omit_row.name, NOISE_TYPES.do_not_respond.name]
+        if noise_config.has_noise_type(dataset_name, noise_type)
+    ]
+
+    if dataset_name in [
+        DATASET_SCHEMAS.census.name,
+        DATASET_SCHEMAS.acs.name,
+        DATASET_SCHEMAS.cps.name,
+    ]:
+        # Census and household surveys have do_not_respond and omit_row.
+        # For all other datasets they are mutually exclusive
+        assert len(noise_types) == 2
+    else:
+        assert len(noise_types) < 2
+    if not noise_types:  # Check that there are no missing indexes
+        assert noised_data.index.symmetric_difference(original_data.index).empty
+    else:  # Check that there are some omissions
+        # TODO: assert levels are as expected
+        assert noised_data.index.difference(original_data.index).empty
+        assert not original_data.index.difference(noised_data.index).empty
 
 
 @pytest.mark.skip(reason="TODO: Implement duplication row noising")
