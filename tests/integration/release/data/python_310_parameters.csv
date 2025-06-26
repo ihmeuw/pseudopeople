@@ -1,0 +1,8 @@
+dataset,population,engine,state,year,noise_level,memory,time_limit,cpus_per_task,run_group
+census,RI,pandas,none,default,default,50,1,1,
+acs,RI,pandas,none,default,default,10,1,1,
+cps,RI,pandas,none,default,default,10,1,1,
+wic,RI,pandas,none,default,default,10,1,1,
+ssa,RI,pandas,none,1960,default,10,1,1,
+tax_w2_1099,RI,pandas,none,default,default,100,1,1,
+tax_1040,RI,pandas,none,default,default,100,1,1,
