@@ -194,7 +194,7 @@ if __name__ == "__main__":
     )  # Read the CSV file, ignoring commented lines
 
     for job_num, row in parameters.iterrows():
-        script_path = write_slurm_script(row, int(job_num), output_dir)
+        script_path = write_slurm_script(row, int(job_num), output_dir)  # type: ignore[call-overload]
         job_id = submit_slurm_job(script_path)  # Submit the script
         if job_id:
             job_ids.append(job_id)  # Save the job id
