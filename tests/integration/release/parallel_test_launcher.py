@@ -13,7 +13,7 @@ from typing import Any
 import pandas as pd
 
 
-def write_slurm_script(row: pd.Series[Any], script_name: str, output_dir: str) -> None:
+def write_slurm_script(row: pd.Series[Any], job_num: int, output_dir: str) -> str:
     dataset = row["dataset"]
     pop = row["population"]
     engine = row["engine"]
@@ -25,15 +25,16 @@ def write_slurm_script(row: pd.Series[Any], script_name: str, output_dir: str) -
     # long.q if 24 longer than 24 hours
     partition = "all.q" if int(time_limit_in_hours) <= 24 else "long.q"
     cpus_per_task = row["cpus_per_task"]
+    script_id = f"{dataset}_{engine}_{pop}_{state}_{year}_{noise_level}"
 
     release_tests_dir = Path(__file__).parent
     state_flag = f"--state {state}" if state != "none" else ""
     year_flag = f"--year {year}" if year != "default" else ""
     pytest_command = f"pytest -rA --release --dataset {dataset} --engine {engine} --population {pop} --noise-level {noise_level} {state_flag} {year_flag} {release_tests_dir}"
     slurm_script = f"""#!/bin/bash 
-#SBATCH --job-name=pytest_{dataset}_{engine} 
-#SBATCH --output={output_dir}/pytest_{dataset}_{engine}.out 
-#SBATCH --error={output_dir}/pytest_{dataset}_{engine}.err 
+#SBATCH --job-name=release_test_{script_id}
+#SBATCH --output={output_dir}/{script_id}.out
+#SBATCH --error={output_dir}/{script_id}.err
 #SBATCH --mem={memory}G
 #SBATCH --time={time_limit_in_hours}:00:00
 #SBATCH --account=proj_simscience_prod
@@ -43,11 +44,14 @@ def write_slurm_script(row: pd.Series[Any], script_name: str, output_dir: str) -
 echo "Running pytest for dataset {dataset} with engine {engine}" 
 {pytest_command} 
     """
+    script_name = f"job_{job_num}_{script_id}.sh"
     script_path = f"{output_dir}/tmp_scripts/{script_name}"
 
     # Write the script to a file
     with open(script_path, "w") as script:
         script.write(slurm_script)
+
+    return script_path
 
 
 def submit_slurm_job(script_name: str) -> str | None:
@@ -185,12 +189,12 @@ if __name__ == "__main__":
     os.makedirs(scripts_dir, exist_ok=False)
 
     # Step 1: Read the CSV and generate and run Slurm scripts
-    parameters = pd.read_csv(csv_file)
+    parameters = pd.read_csv(
+        csv_file, comment="#"
+    )  # Read the CSV file, ignoring commented lines
 
-    for i, row in parameters.iterrows():
-        script_name = f"job_{i}.sh"
-        write_slurm_script(row, script_name, output_dir)
-        script_path = f"{output_dir}/tmp_scripts/{script_name}"
+    for job_num, row in parameters.iterrows():
+        script_path = write_slurm_script(row, int(job_num), output_dir)
         job_id = submit_slurm_job(script_path)  # Submit the script
         if job_id:
             job_ids.append(job_id)  # Save the job id
@@ -211,13 +215,6 @@ if __name__ == "__main__":
 
     # Step 2: Wait for jobs to complete
     wait_for_all_jobs(job_ids, poll_interval=60 * 15)  # every 15 minutes
-
-    # Step 3: delete tmp_scripts directory
-    scripts_dir = f"{output_dir}/tmp_scripts"
-    try:
-        shutil.rmtree(scripts_dir)
-    except:
-        print(f"Failed to delete temporary scripts directory: {scripts_dir}")
 
     # Step 4: Parse outputs and write summary CSV
     parse_outputs(output_dir, job_ids)
