@@ -283,6 +283,10 @@ def test_full_release_noising(
 
                     fuzzy_check_kwargs = {}
                     if noise_type == NOISE_TYPES.duplicate_with_guardian:
+                        # don't perform checks if no simulants in shard were
+                        # eligible for noising
+                        if total_counts["denominator"] == 0:
+                            continue
                         fuzzy_check_kwargs = {
                             col: total_counts[col]
                             for col in total_counts.index
