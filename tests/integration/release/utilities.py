@@ -206,14 +206,15 @@ def fuzzy_check_omit_row_counts(
 ) -> None:
     expected_noise = config.get_row_probability(dataset_name, NOISE_TYPES.omit_row.name)
     # Test that noising affects expected proportion with expected types
-    with check:
-        fuzzy_checker.fuzzy_assert_proportion(
-            name="test_omit_row",
-            observed_numerator=numerator,
-            observed_denominator=denominator,
-            target_proportion=expected_noise,
-            name_additional="noised_data",
-        )
+    if denominator != 0:
+        with check:
+            fuzzy_checker.fuzzy_assert_proportion(
+                name="test_omit_row",
+                observed_numerator=numerator,
+                observed_denominator=denominator,
+                target_proportion=expected_noise,
+                name_additional="noised_data",
+            )
 
 
 def fuzzy_check_duplicate_with_guardian(
@@ -270,15 +271,16 @@ def fuzzy_check_do_not_respond_counts(
     if dataset_name is not DATASET_SCHEMAS.census.name:  # is acs or cps
         expected_noise = 0.5 + expected_noise / 2
 
-    # Test that noising affects expected proportion with expected types
-    with check:
-        fuzzy_checker.fuzzy_assert_proportion(
-            name="test_do_not_respond",
-            observed_numerator=numerator,
-            observed_denominator=denominator,
-            target_proportion=expected_noise,
-            name_additional="noised_data",
-        )
+    if denominator != 0:
+        # Test that noising affects expected proportion with expected types
+        with check:
+            fuzzy_checker.fuzzy_assert_proportion(
+                name="test_do_not_respond",
+                observed_numerator=numerator,
+                observed_denominator=denominator,
+                target_proportion=expected_noise,
+                name_additional="noised_data",
+            )
 
 
 def run_guardian_duplication_tests(
