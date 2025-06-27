@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import logging
 import pandas as pd
 import pytest
 from _pytest.legacypath import TempdirFactory
@@ -48,6 +49,10 @@ IDX_COLS = {
     ],
 }
 
+
+def pytest_configure(config):
+    logging.basicConfig(level=logging.INFO, force=True)
+    
 
 @pytest.fixture(scope="session")
 def split_sample_data_dir(tmpdir_factory: TempdirFactory) -> Path:

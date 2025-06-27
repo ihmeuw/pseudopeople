@@ -206,14 +206,15 @@ def fuzzy_check_omit_row_counts(
 ) -> None:
     expected_noise = config.get_row_probability(dataset_name, NOISE_TYPES.omit_row.name)
     # Test that noising affects expected proportion with expected types
-    with check:
-        fuzzy_checker.fuzzy_assert_proportion(
-            name="test_omit_row",
-            observed_numerator=numerator,
-            observed_denominator=denominator,
-            target_proportion=expected_noise,
-            name_additional="noised_data",
-        )
+    if denominator != 0:
+        with check:
+            fuzzy_checker.fuzzy_assert_proportion(
+                name="test_omit_row",
+                observed_numerator=numerator,
+                observed_denominator=denominator,
+                target_proportion=expected_noise,
+                name_additional="noised_data",
+            )
 
 
 def fuzzy_check_duplicate_with_guardian(
@@ -234,24 +235,26 @@ def fuzzy_check_duplicate_with_guardian(
             DATASET_SCHEMAS.census.name, probability_name
         )
     # Test that noising affects expected proportion with expected types
-    with check:
-        fuzzy_checker.fuzzy_assert_proportion(
-            name="test_duplicate_guardian",
-            observed_numerator=household_under_18_duplications,
-            observed_denominator=household_under_18_eligible,
-            target_proportion=expected_noise[Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18],
-            name_additional="household_under_18_duplications",
-        )
-    with check:
-        fuzzy_checker.fuzzy_assert_proportion(
-            name="test_duplicate_guardian",
-            observed_numerator=college_under_24_duplications,
-            observed_denominator=college_under_24_eligible,
-            target_proportion=expected_noise[
-                Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24
-            ],
-            name_additional="college_under_24_duplications",
-        )
+    if household_under_18_eligible != 0:
+        with check:
+            fuzzy_checker.fuzzy_assert_proportion(
+                name="test_duplicate_guardian",
+                observed_numerator=household_under_18_duplications,
+                observed_denominator=household_under_18_eligible,
+                target_proportion=expected_noise[Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18],
+                name_additional="household_under_18_duplications",
+            )
+    if college_under_24_eligible != 0:
+        with check:
+            fuzzy_checker.fuzzy_assert_proportion(
+                name="test_duplicate_guardian",
+                observed_numerator=college_under_24_duplications,
+                observed_denominator=college_under_24_eligible,
+                target_proportion=expected_noise[
+                    Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24
+                ],
+                name_additional="college_under_24_duplications",
+            )
 
 
 def fuzzy_check_do_not_respond_counts(
@@ -269,14 +272,15 @@ def fuzzy_check_do_not_respond_counts(
         expected_noise = 0.5 + expected_noise / 2
 
     # Test that noising affects expected proportion with expected types
-    with check:
-        fuzzy_checker.fuzzy_assert_proportion(
-            name="test_do_not_respond",
-            observed_numerator=numerator,
-            observed_denominator=denominator,
-            target_proportion=expected_noise,
-            name_additional="noised_data",
-        )
+    if denominator != 0:
+        with check:
+            fuzzy_checker.fuzzy_assert_proportion(
+                name="test_do_not_respond",
+                observed_numerator=numerator,
+                observed_denominator=denominator,
+                target_proportion=expected_noise,
+                name_additional="noised_data",
+            )
 
 
 def run_guardian_duplication_tests(

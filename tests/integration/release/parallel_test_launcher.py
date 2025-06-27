@@ -30,7 +30,7 @@ def write_slurm_script(row: pd.Series[Any], job_num: int, output_dir: str) -> st
     release_tests_dir = Path(__file__).parent
     state_flag = f"--state {state}" if state != "none" else ""
     year_flag = f"--year {year}" if year != "default" else ""
-    pytest_command = f"pytest -rA --release --dataset {dataset} --engine {engine} --population {pop} --noise-level {noise_level} {state_flag} {year_flag} {release_tests_dir}"
+    pytest_command = f"pytest -rA -s --release --dataset {dataset} --engine {engine} --population {pop} --noise-level {noise_level} {state_flag} {year_flag} {release_tests_dir}"
     slurm_script = f"""#!/bin/bash 
 #SBATCH --job-name=release_test_{script_id}
 #SBATCH --output={output_dir}/{script_id}.out
@@ -178,9 +178,10 @@ def parse_outputs(output_dir: str, job_ids: list[str] | None = None) -> None:
 
 
 if __name__ == "__main__":
-    csv_file = "data/parameters.csv"
+    csv_file = "data/python_311_parameters.csv"
     timestamp = datetime.now().strftime("%d-%H-%M-%S")
-    output_dir = f"/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing/logs/{timestamp}"  # Directory where Slurm output/error files are stored
+    #output_dir = f"/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing/logs/{timestamp}"  # Directory where Slurm output/error files are stored
+    output_dir = f'/ihme/homes/hjafari/pseudopeople_logs/long_311_ssa_{timestamp}'
     job_ids = []
     submission_failures = []
 

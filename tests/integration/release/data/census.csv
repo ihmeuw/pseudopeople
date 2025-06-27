@@ -1,0 +1,6 @@
+dataset,population,engine,state,year,noise_level,memory,time_limit,cpus_per_task
+census,USA,dask,none,default,default,750,3,50
+census,USA,dask,none,default,high,750,12,50
+census,USA,dask,none,2021,default,750,3,50
+census,USA,dask,WI,default,default,750,3,50
+census,USA,dask,SD,2034,default,750,3,50

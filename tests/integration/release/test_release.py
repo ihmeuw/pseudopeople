@@ -6,6 +6,8 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
+import pytest
+import logging
 import dask.dataframe as dd
 import numpy as np
 import numpy.typing as npt
@@ -65,6 +67,8 @@ from tests.integration.release.utilities import (
     run_omit_row_tests,
 )
 from tests.utilities import initialize_dataset_with_sample
+import logging
+logging.basicConfig(level=logging.INFO)
 
 # pandas functions
 ROW_TEST_FUNCTIONS = {
@@ -283,6 +287,10 @@ def test_full_release_noising(
 
                     fuzzy_check_kwargs = {}
                     if noise_type == NOISE_TYPES.duplicate_with_guardian:
+                        # don't perform checks if no simulants in shard were
+                        # eligible for noising
+                        if total_counts["denominator"] == 0:
+                            continue
                         fuzzy_check_kwargs = {
                             col: total_counts[col]
                             for col in total_counts.index
@@ -327,7 +335,7 @@ def test_full_release_noising(
                             config=config,
                             meta=noised_metadata,
                         ).persist()
-
+                        logging.getLogger().info(f'testing column {column.name} with {noise_type.name}')
                         missingness_correct = data.map_partitions(
                             lambda data_: pd.Series(
                                 (
@@ -418,6 +426,7 @@ def test_full_release_noising(
     else:  # pandas
         data_file_paths = get_dataset_filepaths(Path(source), dataset_schema.name)
         filters = get_data_filters(dataset_schema, year, state)
+        logging.getLogger().info('loading data')
         pandas_data = [
             load_standard_dataset(path, filters, engine) for path in data_file_paths
         ]
@@ -433,6 +442,7 @@ def test_full_release_noising(
             reformat_dates_for_noising(dataset.dataset_schema, dataset.data)
 
         for noise_type in NOISE_TYPES:
+            logging.getLogger().info(f'noising with {noise_type.name}')
             prenoised_dataframes: list[pd.DataFrame] = [
                 dataset.data.copy() for dataset in datasets
             ]
@@ -442,6 +452,7 @@ def test_full_release_noising(
                         # noise datasets in place
                         noise_type(dataset, config)
                     test_function = ROW_TEST_FUNCTIONS[noise_type.name]
+                    logging.getLogger().info(f'testing {noise_type.name}')
                     test_function(
                         prenoised_dataframes,
                         datasets,
@@ -464,6 +475,7 @@ def test_full_release_noising(
                     if config.has_noise_type(
                         dataset_schema.name, noise_type.name, column.name
                     ):
+                        logging.getLogger().info(f'noising column {column.name} with {noise_type.name}')
                         # don't noise ssa_event_type because it's used as an identifier column
                         # along with simulant id
                         # TODO: Noise ssa_event_type when record IDs are implemented (MIC-4039)
@@ -487,6 +499,7 @@ def test_full_release_noising(
                         )
 
         # post-processing tests on final data
+        logging.getLogger().info(f'performing post-processing')
         for dataset in datasets:
             # these functions are called by Dataset as part of noising process
             # after noise types have been applied
