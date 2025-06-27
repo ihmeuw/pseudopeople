@@ -234,24 +234,26 @@ def fuzzy_check_duplicate_with_guardian(
             DATASET_SCHEMAS.census.name, probability_name
         )
     # Test that noising affects expected proportion with expected types
-    with check:
-        fuzzy_checker.fuzzy_assert_proportion(
-            name="test_duplicate_guardian",
-            observed_numerator=household_under_18_duplications,
-            observed_denominator=household_under_18_eligible,
-            target_proportion=expected_noise[Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18],
-            name_additional="household_under_18_duplications",
-        )
-    with check:
-        fuzzy_checker.fuzzy_assert_proportion(
-            name="test_duplicate_guardian",
-            observed_numerator=college_under_24_duplications,
-            observed_denominator=college_under_24_eligible,
-            target_proportion=expected_noise[
-                Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24
-            ],
-            name_additional="college_under_24_duplications",
-        )
+    if household_under_18_eligible != 0:
+        with check:
+            fuzzy_checker.fuzzy_assert_proportion(
+                name="test_duplicate_guardian",
+                observed_numerator=household_under_18_duplications,
+                observed_denominator=household_under_18_eligible,
+                target_proportion=expected_noise[Keys.ROW_PROBABILITY_IN_HOUSEHOLDS_UNDER_18],
+                name_additional="household_under_18_duplications",
+            )
+    if college_under_24_eligible != 0:
+        with check:
+            fuzzy_checker.fuzzy_assert_proportion(
+                name="test_duplicate_guardian",
+                observed_numerator=college_under_24_duplications,
+                observed_denominator=college_under_24_eligible,
+                target_proportion=expected_noise[
+                    Keys.ROW_PROBABILITY_IN_COLLEGE_GROUP_QUARTERS_UNDER_24
+                ],
+                name_additional="college_under_24_duplications",
+            )
 
 
 def fuzzy_check_do_not_respond_counts(
