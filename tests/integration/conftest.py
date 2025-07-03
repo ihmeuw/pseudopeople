@@ -6,6 +6,7 @@ from typing import Any
 
 import pandas as pd
 import pytest
+from _pytest.config import Config
 from _pytest.legacypath import TempdirFactory
 
 from pseudopeople.configuration import Keys, get_configuration
@@ -50,7 +51,7 @@ IDX_COLS = {
 }
 
 
-def pytest_configure(config):
+def pytest_configure(config: Config) -> None:
     logging.basicConfig(level=logging.INFO, force=True)
 
 
