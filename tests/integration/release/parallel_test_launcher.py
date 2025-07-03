@@ -180,8 +180,8 @@ def parse_outputs(output_dir: str, job_ids: list[str] | None = None) -> None:
 if __name__ == "__main__":
     csv_file = "data/large_312_parameters.csv"
     timestamp = datetime.now().strftime("%d-%H-%M-%S")
-    #output_dir = f"/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing/logs/{timestamp}"  # Directory where Slurm output/error files are stored
-    output_dir = f'/ihme/homes/hjafari/pseudopeople_logs/large_312_{timestamp}'
+    # output_dir = f"/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing/logs/{timestamp}"  # Directory where Slurm output/error files are stored
+    output_dir = f"/ihme/homes/hjafari/pseudopeople_logs/large_312_{timestamp}"
     job_ids = []
     submission_failures = []
 
