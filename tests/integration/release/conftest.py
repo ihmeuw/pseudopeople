@@ -59,6 +59,7 @@ FULL_USA_FILEPATH = "/mnt/team/simulation_science/pub/models/vivarium_census_prl
 RI_FILEPATH = "/mnt/team/simulation_science/pub/models/vivarium_census_prl_synth_pop/results/release_02_yellow/full_data/united_states_of_america/2023_08_21_16_35_27/final_results/2023_08_31_15_58_01/states/pseudopeople_simulated_population_rhode_island_2_0_0"
 SOURCE_MAPPER = {"usa": FULL_USA_FILEPATH, "ri": RI_FILEPATH, "sample": None}
 
+
 def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
         "--output-dir",
