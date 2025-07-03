@@ -22,8 +22,8 @@ def write_slurm_script(row: pd.Series[Any], job_num: int, output_dir: str) -> st
     noise_level = row["noise_level"]
     memory = row["memory"]  # GB
     time_limit_in_hours = row["time_limit"]
-    # long.q if 24 longer than 24 hours
-    partition = "all.q" if int(time_limit_in_hours) <= 24 else "long.q"
+    # long.q if 24 longer than 24 hours or memory greater than 750GB
+    partition = "all.q" if (int(time_limit_in_hours) <= 24) or (memory > 750) else "long.q"
     cpus_per_task = row["cpus_per_task"]
     script_id = f"{dataset}_{engine}_{pop}_{state}_{year}_{noise_level}"
 
@@ -178,10 +178,10 @@ def parse_outputs(output_dir: str, job_ids: list[str] | None = None) -> None:
 
 
 if __name__ == "__main__":
-    csv_file = "data/python_311_parameters.csv"
+    csv_file = "data/large_312_parameters.csv"
     timestamp = datetime.now().strftime("%d-%H-%M-%S")
     #output_dir = f"/mnt/team/simulation_science/priv/engineering/pseudopeople_release_testing/logs/{timestamp}"  # Directory where Slurm output/error files are stored
-    output_dir = f'/ihme/homes/hjafari/pseudopeople_logs/long_311_ssa_{timestamp}'
+    output_dir = f'/ihme/homes/hjafari/pseudopeople_logs/large_312_{timestamp}'
     job_ids = []
     submission_failures = []
 
