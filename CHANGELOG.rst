@@ -1,4 +1,8 @@
-**1.2.3 - 05/06/25**
+**1.2.4 - 07/16/25**
+
+ - Support pinning of vivarium_build_utils; pin vivarium_build_utils>=1.1.0,<2.0.0
+ 
+ **1.2.3 - 05/06/25**
 
  - request reusable pipeline to stagger scheduled builds
 
