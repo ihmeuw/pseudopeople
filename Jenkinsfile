@@ -29,6 +29,9 @@ library("vivarium_build_utils@${get_vbu_version()}")
 
 reusable_pipeline(
   scheduled_branches: [
+    // Add additional branches for cron jobs below.
+    // Note: Newly added branches will require a manual trigger of the first build 
+    // for subsequent scheduled builds to run.
     "main",
     "epic/full_scale_testing",
     "release-candidate/v.orange.rebased",
