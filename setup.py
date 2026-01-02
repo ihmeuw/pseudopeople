@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     lint_requirements = ["vivarium_dependencies[lint]"]
 
-    doc_requirements = ["vivarium_dependencies[sphinx,ipython,matplotlib]"]
+    doc_requirements = ["vivarium_dependencies[sphinx,sphinx-click,ipython,matplotlib]"]
 
     setup(
         name=about["__title__"],
