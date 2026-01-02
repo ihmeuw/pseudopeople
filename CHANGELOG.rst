@@ -1,3 +1,7 @@
+**1.2.5 - 01/02/26**
+
+ - Leverage vivarium_dependencies
+
 **1.2.4 - 07/16/25**
 
  - Support pinning of vivarium_build_utils; pin vivarium_build_utils>=1.1.0,<2.0.0

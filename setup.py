@@ -39,23 +39,16 @@ if __name__ == "__main__":
         long_description = f.read()
 
     install_requirements = [
+        "vivarium_dependencies[numpy_lt_2,pandas,pyyaml,pyarrow]",
         "vivarium_build_utils>=1.1.0,<2.0.0",
-        "pandas",
-        "numpy<2.0.0",
-        "pyyaml>=5.1",
         "vivarium>=1.2.0",
-        "pyarrow>=19.0.1,<20.0.0",
         "tqdm",
         "layered_config_tree>=1.0.1",
     ]
 
     setup_requires = ["setuptools_scm"]
 
-    interactive_requirements = [
-        "IPython",
-        "ipywidgets",
-        "jupyter",
-    ]
+    interactive_requirements = ["vivarium_dependencies[jupyter]"]
 
     dask_requirements = ["dask[distributed,dataframe]"]
 
@@ -65,18 +58,9 @@ if __name__ == "__main__":
         "pytest-mock",
     ] + dask_requirements
 
-    lint_requirements = [
-        "black==22.3.0",
-        "isort==5.13.2",
-    ]
+    lint_requirements = ["vivarium_dependencies[lint]"]
 
-    doc_requirements = [
-        "sphinx>=4.0",
-        "sphinx-rtd-theme",
-        "sphinx-click",
-        "IPython",
-        "matplotlib",
-    ]
+    doc_requirements = ["vivarium_dependencies[sphinx,ipython,matplotlib]"]
 
     setup(
         name=about["__title__"],
