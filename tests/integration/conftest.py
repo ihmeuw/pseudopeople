@@ -105,7 +105,7 @@ def split_sample_data_dir_state_edit(tmpdir_factory, split_sample_data_dir):
             split_sample_data_dir / dataset_name / f"{dataset_name}_2.parquet",
         ]
         for data_path in data_paths:
-            data = pd.read_parquet(data_path)
+            data = pd.read_parquet(data_path).copy()
             # We do not filter by state for SSA
             if dataset_name != DatasetNames.SSA:
                 # Add a state so we can filter for integration tests

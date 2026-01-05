@@ -1,6 +1,7 @@
-**1.2.5 - 01/02/26**
+**1.2.5 - 01/05/26**
 
  - Leverage vivarium_dependencies
+ - Bugfix: copy parquet file in integration tests
 
 **1.2.4 - 07/16/25**
 
