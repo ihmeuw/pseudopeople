@@ -1,3 +1,7 @@
+**1.2.6 - 01/05/26**
+
+ - Bugfix: Fix pandas array read only error when loading test data
+
 **1.2.5 - 01/02/26**
 
  - Leverage vivarium_dependencies
