@@ -1,3 +1,7 @@
+**1.2.6 - 01/06/26**
+
+ - Fail deployment if changelog date does not match current date
+
 **1.2.5 - 01/05/26**
 
  - Leverage vivarium_dependencies
