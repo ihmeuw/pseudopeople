@@ -48,7 +48,7 @@ out more about the principles and processes underlying this work.
 Quickstart
 ----------
 
-pseudopeople requires a version of `Python <https://www.python.org/>`_ between 3.8 and 3.11 (inclusive) to be installed.
+pseudopeople requires a version of `Python <https://www.python.org/>`_ between 3.10 and 3.12 (inclusive) to be installed.
 Once Python is installed, you can install pseudopeople with `pip <https://pip.pypa.io/en/stable/>`_ by running the command:
 
 .. highlight:: console

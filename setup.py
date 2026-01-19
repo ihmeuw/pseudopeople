@@ -39,7 +39,7 @@ if __name__ == "__main__":
         long_description = f.read()
 
     install_requirements = [
-        "vivarium_dependencies[numpy_lt_2,pandas,pyyaml,pyarrow]",
+        "vivarium_dependencies[numpy,pandas,pyyaml,pyarrow]",
         "vivarium_build_utils>=1.1.0,<2.0.0",
         "vivarium>=1.2.0",
         "tqdm",
