@@ -1,3 +1,7 @@
+**1.2.7 - 01/21/26**
+
+ - Add support for python 3.12 and numpy 2.x
+
 **1.2.6 - 01/06/26**
 
  - Fail deployment if changelog date does not match current date
