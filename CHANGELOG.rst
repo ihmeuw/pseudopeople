@@ -1,3 +1,7 @@
+**1.2.8 - 02/05/26**
+
+ - automatically use pretty progress bars when run in Jupyter Notebook
+
 **1.2.7 - 01/21/26**
 
  - Add support for python 3.12 and numpy 2.x

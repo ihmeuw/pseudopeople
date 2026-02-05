@@ -16,7 +16,7 @@ from typing import Any
 
 import pandas as pd
 from layered_config_tree import LayeredConfigTree
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
@@ -60,7 +60,7 @@ def noise_dataset(
 
     if progress_bar:
         noise_type_iterator = tqdm(
-            NOISE_TYPES, desc="Applying noise", unit="type", leave=False
+            NOISE_TYPES, desc="Applying noise", unit="type", position=1, leave=False
         )
     else:
         noise_type_iterator = NOISE_TYPES

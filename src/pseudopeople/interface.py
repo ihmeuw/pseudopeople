@@ -6,7 +6,7 @@ import pandas as pd
 from layered_config_tree import LayeredConfigTree
 from loguru import logger
 from packaging.version import parse
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
@@ -82,7 +82,7 @@ def _generate_dataset(
         # Iterate sequentially
         noised_dataset = []
         iterator = (
-            tqdm(data_file_paths, desc="Noising data", leave=False)
+            tqdm(data_file_paths, desc="Noising data", position=0, leave=False)
             if len(data_file_paths) > 1
             else data_file_paths
         )
