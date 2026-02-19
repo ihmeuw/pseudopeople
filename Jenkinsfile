@@ -33,8 +33,7 @@ reusable_pipeline(
     // Note: Newly added branches will require a manual trigger of the first build 
     // for subsequent scheduled builds to run.
     "main",
-    "epic/full_scale_testing",
-    "release-candidate/v.orange.rebased",
+    "release-candidate-spring26",
   ],
   stagger_scheduled_builds: true,
   upstream_repos: ["layered_config_tree"],
