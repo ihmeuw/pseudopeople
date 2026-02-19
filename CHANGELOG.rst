@@ -1,3 +1,7 @@
+**1.3.0 - 02/19/26**
+
+ - Add support for python 3.13
+
 **1.2.7 - 01/21/26**
 
  - Add support for python 3.12 and numpy 2.x
