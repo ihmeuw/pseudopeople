@@ -1,4 +1,4 @@
-**1.3.0 - 02/19/26**
+**1.3.0 - TBD/TBD/TBD**
 
  - Add support for python 3.13
 
