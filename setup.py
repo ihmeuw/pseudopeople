@@ -40,8 +40,8 @@ if __name__ == "__main__":
 
     install_requirements = [
         "vivarium_dependencies[numpy,pandas,pyyaml,pyarrow]",
-        "vivarium_build_utils>=1.1.0,<2.0.0",
-        "vivarium>=1.2.0",
+        "vivarium_build_utils>=2.1.0,<3.0.0",
+        "vivarium>=3.0.0,<4.0.0",
         "tqdm",
         "layered_config_tree>=1.0.1",
     ]
