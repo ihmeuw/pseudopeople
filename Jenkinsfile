@@ -37,6 +37,5 @@ reusable_pipeline(
     "release-candidate/v.orange.rebased",
   ],
   stagger_scheduled_builds: true,
-  upstream_repos: ["layered_config_tree"],
   run_mypy: false,
 )

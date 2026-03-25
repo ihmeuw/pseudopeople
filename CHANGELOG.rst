@@ -1,3 +1,7 @@
+**1.2.8 - 03/25/26**
+
+ - Remove upstream_repos from Jenkinsfile
+
 **1.2.7 - 01/21/26**
 
  - Add support for python 3.12 and numpy 2.x
