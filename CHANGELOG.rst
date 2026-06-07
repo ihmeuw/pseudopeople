@@ -1,3 +1,8 @@
+**1.2.9 - 06/07/26**
+
+ - Performance: size the randomness IndexMap to the data instead of a 1,000,000 floor, and skip the empty-string-to-NaN replace on categorical columns when it is a no-op (output unchanged)
+ - Fix pandas SettingWithCopyWarning emitted during row and column noising
+
 **1.2.8 - 03/25/26**
 
  - Remove upstream_repos from Jenkinsfile

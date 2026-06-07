@@ -16,7 +16,15 @@ from pseudopeople.dtypes import DtypeNames
 
 
 def get_randomness_stream(dataset_name: str, seed: Any, index: pd.Index) -> RandomnessStream:
-    map_size = max(1_000_000, max(index) * 2)
+    # pseudopeople builds a fresh stream per shard with no CRN key columns, so the
+    # IndexMap is just an identity lookup that needs to be large enough to index
+    # every value in ``index`` (the ``* 2`` leaves headroom for rows added by
+    # duplication noise). RandomnessStream.get_draw samples an array the size of
+    # the IndexMap on every draw, so the previous 1_000_000 floor generated ~1M
+    # random numbers per draw even for tiny shards. Sizing to the data avoids that
+    # waste; output is unchanged because numpy's RandomState yields the same stream
+    # prefix for any sufficiently large sample size.
+    map_size = max(index) * 2 + 2 if len(index) else 2
     return RandomnessStream(
         key=dataset_name,
         clock=lambda: pd.Timestamp("2020-04-01"),

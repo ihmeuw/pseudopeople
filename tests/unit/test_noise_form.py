@@ -124,7 +124,9 @@ def test_noise_order(mocker, dummy_data, dataset):
     )
     for field in NOISE_TYPES._fields:
         mock_return = (
-            dummy_data[["event_type"]]
+            # .copy() to mirror the real row-noise functions, which return an owned
+            # frame rather than a slice view of the input.
+            dummy_data[["event_type"]].copy()
             if field
             in [
                 NOISE_TYPES.do_not_respond.name,

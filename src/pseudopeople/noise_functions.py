@@ -54,7 +54,9 @@ def omit_rows(
         randomness_stream,
         f"{dataset_name}_omit_choice",
     )
-    noised_data = dataset_data.loc[dataset_data.index.difference(to_noise_index)]
+    # .copy() so subsequent column noise mutates an owned frame rather than a
+    # slice view (avoids pandas SettingWithCopyWarning).
+    noised_data = dataset_data.loc[dataset_data.index.difference(to_noise_index)].copy()
 
     return noised_data
 
@@ -137,7 +139,9 @@ def apply_do_not_respond(
     to_noise_idx = get_index_to_noise(
         dataset_data, noise_levels, randomness_stream, f"do_not_respond_{dataset_name}"
     )
-    noised_data = dataset_data.loc[dataset_data.index.difference(to_noise_idx)]
+    # .copy() so subsequent column noise mutates an owned frame rather than a
+    # slice view (avoids pandas SettingWithCopyWarning).
+    noised_data = dataset_data.loc[dataset_data.index.difference(to_noise_idx)].copy()
 
     return noised_data
 
