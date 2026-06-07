@@ -8,6 +8,7 @@ from pseudopeople.dtypes import DtypeNames
 from pseudopeople.noise_functions import _corrupt_tokens
 from pseudopeople.utilities import (
     get_index_to_noise,
+    get_randomness_stream,
     to_string_as_integer,
     two_d_array_choice,
     vectorized_choice,
@@ -261,3 +262,31 @@ def test_two_d_array_choice(fuzzy_checker: FuzzyChecker):
                 target_proportion=1 / num_choices,
                 name_additional=f"team {team} for sport {sport}",
             )
+
+
+def test_get_randomness_stream_is_sized_to_the_data():
+    # The IndexMap is sized to the data (with headroom), not floored at 1,000,000,
+    # so get_draw does not generate ~1M random numbers per draw on small shards.
+    index = pd.RangeIndex(100)
+    stream = get_randomness_stream("decennial_census", 0, index)
+    assert len(stream.index_map) == max(index) * 2 + 2
+    assert len(stream.index_map) < 1_000_000
+
+
+@pytest.mark.parametrize("n", [1, 93, 9_287])
+def test_get_randomness_stream_draws_unchanged_by_sizing(n):
+    # Right-sizing the IndexMap must not change the random draws: numpy's
+    # RandomState yields the same stream prefix for any sufficiently large size,
+    # and the (no-CRN) IndexMap is an identity lookup.
+    index = pd.RangeIndex(n)
+    data_sized = get_randomness_stream("decennial_census", 0, index)
+    one_million = RandomnessStream(
+        key="decennial_census",
+        clock=lambda: pd.Timestamp("2020-04-01"),
+        seed=0,
+        index_map=IndexMap(size=max(1_000_000, max(index) * 2)),
+    )
+    pd.testing.assert_series_equal(
+        data_sized.get_draw(index, additional_key="x"),
+        one_million.get_draw(index, additional_key="x"),
+    )

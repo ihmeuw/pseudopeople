@@ -225,15 +225,21 @@ def _clean_input_data(
     dataset: Dataset,
 ) -> pd.DataFrame:
     for col in dataset.columns:
-        # Coerce empty strings to nans
-        data[col.name] = data[col.name].replace("", np.nan)
-
-        if data[col.name].dtype.name == "category" and col.dtype_name == DtypeNames.OBJECT:
-            # We made some columns in the pseudopeople input categorical
-            # purely as a kind of DIY compression.
-            # TODO: Determine whether this is benefitting us after
-            # the switch to Parquet.
-            data[col.name] = to_string(data[col.name])
+        # Coerce empty strings to nans. Calling .replace on a categorical column is
+        # expensive (it validates/rebuilds the category index) and is a no-op unless
+        # "" is actually one of the categories, so skip it in that case.
+        column = data[col.name]
+        if column.dtype.name == "category":
+            if "" in column.cat.categories:
+                data[col.name] = column.replace("", np.nan)
+            if col.dtype_name == DtypeNames.OBJECT:
+                # We made some columns in the pseudopeople input categorical
+                # purely as a kind of DIY compression.
+                # TODO: Determine whether this is benefitting us after
+                # the switch to Parquet.
+                data[col.name] = to_string(data[col.name])
+        else:
+            data[col.name] = column.replace("", np.nan)
 
     return data
 
@@ -296,7 +302,9 @@ def _zfill_fast(col: pd.Series, desired_length: int) -> pd.Series:
 def _extract_columns(columns_to_keep, noised_dataset):
     """Helper function for test mocking purposes"""
     if columns_to_keep:
-        noised_dataset = noised_dataset[[c.name for c in columns_to_keep]]
+        # .copy() so downstream in-place dtype coercion does not operate on a
+        # column-subset view (avoids pandas SettingWithCopyWarning).
+        noised_dataset = noised_dataset[[c.name for c in columns_to_keep]].copy()
     return noised_dataset
 
 
