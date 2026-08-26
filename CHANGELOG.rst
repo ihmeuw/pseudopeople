@@ -1,3 +1,7 @@
+**1.2.9 - 08/26/26**
+
+ - Add support for the pandas 3.0 string dtype when exploding strings into characters
+
 **1.2.8 - 03/25/26**
 
  - Remove upstream_repos from Jenkinsfile

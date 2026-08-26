@@ -450,7 +450,7 @@ def write_wrong_zipcode_digits(
     # https://stackoverflow.com/a/9493192/
     # Changing this to a U5 numpy string type means that each string will have exactly 5 characters.
     # view("U1") then reinterprets this memory as an array of individual (Unicode) characters.
-    same_len_col_exploded = column.values.astype("U5").view("U1").reshape(shape)
+    same_len_col_exploded = np.array(column, dtype="U5").view("U1").reshape(shape)
     same_len_col_exploded[replace] = random_digits
     return pd.Series(
         same_len_col_exploded.view("U5").reshape(len(column)),
@@ -530,7 +530,7 @@ def write_wrong_digits(
     # number of characters, equal to the longest string in the array.
     # view("U1") then reinterprets this memory as an array of individual (Unicode) characters.
     same_len_col_exploded = (
-        column.values.astype(str).view("U1").reshape((len(column), max_str_length))
+        np.array(column, dtype=str).view("U1").reshape((len(column), max_str_length))
     )
     # Surprisingly, Numpy does not provide a computationally efficient way to do
     # this check for which characters are eligible.
@@ -704,9 +704,9 @@ def make_typos(
     )
 
     same_len_col_exploded = (
-        # Somewhat counterintuitively, .astype(str) turns the column into a numpy,
+        # Somewhat counterintuitively, np.array(..., dtype=str) turns the column into a numpy,
         # fixed-length string type, U#, where # is the length of the longest string.
-        column.values.astype(str)
+        np.array(column, dtype=str)
         # Split into individual characters
         .view("U1").reshape((len(column), -1))
         # https://stackoverflow.com/a/9493192/
@@ -825,9 +825,8 @@ def _corrupt_tokens(
     lengths = column.str.len().values
 
     same_len_col_exploded = (
-        column
         # Convert to numpy string dtype
-        .values.astype(str)
+        np.array(column, dtype=str)
         .view("U1")
         .reshape((len(column), lengths.max()))
     )

@@ -62,7 +62,9 @@ def test_to_string_as_integer():
     assert s.dtype.name == t.dtype.name
     assert t.dtype.name == DtypeNames.OBJECT
 
-    expected = pd.Series([np.nan, "1", "2", "3", "4", "5", np.nan])
+    # NOTE: pandas 3.0 infers the pandas string dtype for a list of strings, but
+    # to_string_as_integer intentionally returns object dtype (see the assertion above).
+    expected = pd.Series([np.nan, "1", "2", "3", "4", "5", np.nan], dtype=object)
 
     pd.testing.assert_series_equal(t, expected)
 
