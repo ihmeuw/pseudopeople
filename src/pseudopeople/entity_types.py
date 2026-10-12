@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 from layered_config_tree import LayeredConfigTree
 from loguru import logger
-from vivarium.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
 from pseudopeople.dtypes import DtypeNames
@@ -17,7 +16,7 @@ from pseudopeople.utilities import get_index_to_noise, to_string
 class NoiseType(ABC):
     name: str
     noise_function: Callable[
-        [pd.DataFrame, LayeredConfigTree, RandomnessStream], pd.DataFrame
+        [pd.DataFrame, LayeredConfigTree, np.random.Generator], pd.DataFrame
     ]
     probability: Optional[float] = 0.0
     additional_parameters: Dict[str, Any] = None
@@ -36,7 +35,7 @@ class RowNoiseType(NoiseType):
     "duplicate_row").
 
     The noise function takes as input a DataFrame, the configuration value
-    for this RowNoise operation, and a RandomnessStream for controlling
+    for this RowNoise operation, and a np.random.Generator for controlling
     randomness. It applies the noising operation to the entire DataFrame and
     returns the modified DataFrame.
     """
@@ -50,10 +49,10 @@ class RowNoiseType(NoiseType):
         dataset_name: str,
         dataset_data: pd.DataFrame,
         configuration: LayeredConfigTree,
-        randomness_stream: RandomnessStream,
+        random_generator: np.random.Generator,
     ) -> pd.DataFrame:
         return self.noise_function(
-            dataset_name, dataset_data, configuration, randomness_stream
+            dataset_name, dataset_data, configuration, random_generator
         )
 
 
@@ -66,9 +65,8 @@ class ColumnNoiseType(NoiseType):
     "make_phonetic_errors").
 
     The noise function takes as input a DataFrame, the LayeredConfigTree object for this
-    ColumnNoise operation, a RandomnessStream for controlling randomness, and
-    a column name, which is the column that will be noised and who's name will be used
-    as the additional key for the RandomnessStream.
+    ColumnNoise operation, a np.random.Generator for controlling randomness, and
+    a column name, which is the column that will be noised.
     Optionally, it can take a pre-existing DataFrame indicating where there is missingness
     in the data (same index and columns as the main DataFrame, all boolean type) --
     if this is not passed, it calculates it, which can be expensive for large data.
@@ -89,7 +87,7 @@ class ColumnNoiseType(NoiseType):
         self,
         data: pd.DataFrame,
         configuration: LayeredConfigTree,
-        randomness_stream: RandomnessStream,
+        random_generator: np.random.Generator,
         dataset_name: str,
         column_name: str,
         missingness: Optional[pd.DataFrame] = None,
@@ -106,8 +104,7 @@ class ColumnNoiseType(NoiseType):
         to_noise_idx = get_index_to_noise(
             data,
             noise_level,
-            randomness_stream,
-            f"{self.name}_{column_name}",
+            random_generator,
             is_column_noise=True,
             missingness=missingness,
         )
@@ -120,7 +117,7 @@ class ColumnNoiseType(NoiseType):
         noised_data = self.noise_function(
             data.loc[to_noise_idx],
             configuration,
-            randomness_stream,
+            random_generator,
             dataset_name,
             column_name,
         )

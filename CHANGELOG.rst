@@ -1,3 +1,7 @@
+**1.3.0 - 10/12/26**
+
+ - Remove the dependency on vivarium; use numpy random number generators for noising
+
 **1.2.9 - 08/26/26**
 
  - Add support for the pandas 3.0 string dtype when exploding strings into characters

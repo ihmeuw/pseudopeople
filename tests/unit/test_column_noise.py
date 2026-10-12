@@ -3,8 +3,6 @@ import math
 import numpy as np
 import pandas as pd
 import pytest
-from vivarium.framework.randomness import RandomnessStream
-from vivarium.framework.randomness.index_map import IndexMap
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.constants.noise_type_metadata import COPY_HOUSEHOLD_MEMBER_COLS
@@ -12,6 +10,7 @@ from pseudopeople.data.fake_names import fake_first_names, fake_last_names
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import DATASETS
 from pseudopeople.utilities import (
+    get_random_generator,
     load_ocr_errors,
     load_phonetic_errors,
     load_qwerty_errors_data,
@@ -19,18 +18,7 @@ from pseudopeople.utilities import (
 )
 from tests.conftest import FuzzyChecker
 
-RANDOMNESS0 = RandomnessStream(
-    key="test_column_noise",
-    clock=lambda: pd.Timestamp("2020-09-01"),
-    seed=0,
-    index_map=IndexMap(),
-)
-RANDOMNESS1 = RandomnessStream(
-    key="test_column_noise",
-    clock=lambda: pd.Timestamp("2020-09-01"),
-    seed=1,
-    index_map=IndexMap(),
-)
+RANDOMNESS0 = get_random_generator("test_column_noise", 0)
 CHARACTERS_LIST = [
     "A",
     "test123",
@@ -1310,9 +1298,15 @@ def test_seeds_behave_as_expected(noise_type, data_col, dataset, dataset_col, du
     else:
         data = dummy_dataset[[data_col]]
 
-    noised_data, _ = noise_type(data, config, RANDOMNESS0, dataset, data_col)
-    noised_data_same_seed, _ = noise_type(data, config, RANDOMNESS0, dataset, data_col)
-    noised_data_different_seed, _ = noise_type(data, config, RANDOMNESS1, dataset, data_col)
+    noised_data, _ = noise_type(
+        data, config, get_random_generator(dataset, 0), dataset, data_col
+    )
+    noised_data_same_seed, _ = noise_type(
+        data, config, get_random_generator(dataset, 0), dataset, data_col
+    )
+    noised_data_different_seed, _ = noise_type(
+        data, config, get_random_generator(dataset, 1), dataset, data_col
+    )
     data = data[data_col]
 
     assert (noised_data != data).any()

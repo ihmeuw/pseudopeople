@@ -11,6 +11,7 @@ from layered_config_tree import LayeredConfigTree
 from pandas.api.types import is_datetime64_any_dtype as is_datetime
 
 from pseudopeople.configuration import Keys, get_configuration
+from pseudopeople.constants import paths
 from pseudopeople.interface import (
     _coerce_dtypes,
     _reformat_dates_for_noising,
@@ -211,6 +212,42 @@ def test_seed_behavior(dataset_name: str, engine: str, config, request):
     assert not data.equals(noised_data)
     assert noised_data.equals(noised_data_same_seed)
     assert not noised_data.equals(noised_data_different_seed)
+
+
+@pytest.mark.parametrize(
+    "engine",
+    [
+        "pandas",
+        "dask",
+    ],
+)
+def test_shards_are_noised_differently(engine: str, tmp_path, mocker):
+    """Tests that identical shards do not receive identical noise, which would
+    happen if every shard were noised with the same seed."""
+    mocker.patch("pseudopeople.interface.validate_source_compatibility")
+    dataset_name = DATASETS.ssa.name
+    data = pd.read_parquet(paths.SAMPLE_DATA_ROOT / dataset_name / f"{dataset_name}.parquet")
+    outdir = tmp_path / dataset_name
+    outdir.mkdir()
+    for shard in [1, 2]:
+        data.to_parquet(outdir / f"{dataset_name}_{shard}.parquet")
+    # Turn off row noise so each shard keeps all of its rows
+    config = {
+        dataset_name: {
+            Keys.ROW_NOISE: {NOISE_TYPES.omit_row.name: {Keys.ROW_PROBABILITY: 0.0}}
+        }
+    }
+
+    noised = generate_social_security(
+        seed=SEED, year=None, source=tmp_path, engine=engine, config=config
+    )
+    if engine == "dask":
+        noised = noised.compute()
+
+    assert len(noised) == 2 * len(data)
+    first_shard = noised.iloc[: len(data)].reset_index(drop=True)
+    second_shard = noised.iloc[len(data) :].reset_index(drop=True)
+    assert not first_shard.equals(second_shard)
 
 
 @pytest.mark.parametrize(

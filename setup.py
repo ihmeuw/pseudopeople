@@ -39,9 +39,9 @@ if __name__ == "__main__":
         long_description = f.read()
 
     install_requirements = [
-        "vivarium_dependencies[numpy,pandas,pyyaml,pyarrow]",
+        "vivarium_dependencies[numpy,pandas,pyyaml,pyarrow,loguru]",
         "vivarium_build_utils>=1.1.0,<2.0.0",
-        "vivarium>=1.2.0",
+        "packaging",
         "tqdm",
         "layered_config_tree>=1.0.1",
     ]
@@ -53,6 +53,7 @@ if __name__ == "__main__":
     dask_requirements = ["dask[distributed,dataframe]"]
 
     test_requirements = [
+        "vivarium_dependencies[scipy]",
         "pytest",
         "pytest-cov",
         "pytest-mock",
