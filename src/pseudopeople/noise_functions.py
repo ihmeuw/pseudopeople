@@ -19,6 +19,8 @@ from pseudopeople.noise_scaling import (
     load_nicknames_data,
 )
 from pseudopeople.utilities import (
+    RandomnessStream,
+    get_hash,
     get_index_to_noise,
     load_ocr_errors,
     load_phonetic_errors,
@@ -33,7 +35,7 @@ def omit_rows(
     dataset_name: str,
     dataset_data: pd.DataFrame,
     configuration: LayeredConfigTree,
-    random_generator: np.random.Generator,
+    randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
     Function that omits rows from a dataset and returns only the remaining rows.  Note that for the ACS and CPS datasets
@@ -41,7 +43,7 @@ def omit_rows(
     :param dataset_name: Dataset object being noised
     :param dataset_data:  pd.DataFrame of one of the dataset types used in Pseudopeople
     :param configuration: LayeredConfigTree object containing noise level values
-    :param random_generator: np.random.Generator object to make random selection for noise
+    :param randomness_stream: RandomnessStream object to make random selection for noise
     :return: pd.DataFrame with rows from the original dataframe removed
     """
 
@@ -50,7 +52,8 @@ def omit_rows(
     to_noise_index = get_index_to_noise(
         dataset_data,
         noise_level,
-        random_generator,
+        randomness_stream,
+        f"{dataset_name}_omit_choice",
     )
     noised_data = dataset_data.loc[dataset_data.index.difference(to_noise_index)]
 
@@ -98,7 +101,7 @@ def apply_do_not_respond(
     dataset_name: str,
     dataset_data: pd.DataFrame,
     configuration: LayeredConfigTree,
-    random_generator: np.random.Generator,
+    randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
     Applies targeted omission based on demographic model for census and surveys.
@@ -106,7 +109,7 @@ def apply_do_not_respond(
     :param dataset_name: Dataset object name being noised
     :param dataset_data:  pd.DataFrame of one of the form types used in Pseudopeople
     :param configuration: LayeredConfigTree object containing noise level values
-    :param random_generator: np.random.Generator object to make random selection for noise
+    :param randomness_stream: RandomnessStream object to make random selection for noise
     :return: pd.DataFrame with rows from the original dataframe removed
     """
     required_columns = ("age", "race_ethnicity", "sex")
@@ -132,7 +135,9 @@ def apply_do_not_respond(
     if dataset_name in [DatasetNames.ACS, DatasetNames.CPS]:
         noise_levels = 0.5 + noise_levels / 2
 
-    to_noise_idx = get_index_to_noise(dataset_data, noise_levels, random_generator)
+    to_noise_idx = get_index_to_noise(
+        dataset_data, noise_levels, randomness_stream, f"do_not_respond_{dataset_name}"
+    )
     noised_data = dataset_data.loc[dataset_data.index.difference(to_noise_idx)]
 
     return noised_data
@@ -141,13 +146,13 @@ def apply_do_not_respond(
 # def duplicate_rows(
 #     dataset_data: pd.DataFrame,
 #     configuration: LayeredConfigTree,
-#     random_generator: np.random.Generator,
+#     randomness_stream: RandomnessStream,
 # ) -> pd.DataFrame:
 #     """
 
 #     :param dataset_data:
 #     :param configuration:
-#     :param random_generator:
+#     :param randomness_stream:
 #     :return:
 #     """
 #     # todo actually duplicate rows
@@ -158,7 +163,7 @@ def duplicate_with_guardian(
     dataset_name: str,
     dataset_data: pd.DataFrame,
     configuration: LayeredConfigTree,
-    random_generator: np.random.Generator,
+    randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
     Function that duplicates rows of a dataset. Rows that are duplicated fall into one of three groups of
@@ -169,7 +174,7 @@ def duplicate_with_guardian(
     :param dataset_name: Name of the dataset being noised
     :param dataset_data: pd.DataFrame that will be noised
     :param configuration: LayeredConfigTree object containing noise level values. Dict with three key groups for duplication
-    :param random_generator: np.random.Generator instance to make random selection for noise
+    :param randomness_stream: RandomnessStream instance to make random selection for noise
     :return: pd.DataFrame with rows from the original dataframe duplicated along with the original
     dataframe itself.
     """
@@ -240,11 +245,10 @@ def duplicate_with_guardian(
             & (group_df["guardian_2_household_id"].notna())
         ]
         # Choose which guardian to copy when dependent lives in different address from both guardains
-        choices = pd.Series(
-            random_generator.choice(
-                ["guardian_1", "guardian_2"], size=len(both_different_index)
-            ),
-            index=both_different_index,
+        choices = randomness_stream.choice(
+            both_different_index,
+            choices=["guardian_1", "guardian_2"],
+            additional_key=f"{dataset_name}_duplicate_with_guardian_{group}_guardian_choice",
         )
         group_df.loc[both_different_index, "copy_guardian"] = choices
         # Get remaining dependents that live in different address from one of their guardians
@@ -263,7 +267,8 @@ def duplicate_with_guardian(
         to_noise_index = get_index_to_noise(
             group_df,
             configuration[group],
-            random_generator,
+            randomness_stream,
+            f"{dataset_name}_duplicate_with_guardian_{group}",
         )
         # Copy over address information from guardian to dependent
         for guardian in ["guardian_1", "guardian_2"]:
@@ -302,7 +307,7 @@ def duplicate_with_guardian(
 def choose_wrong_options(
     data: pd.DataFrame,
     _: LayeredConfigTree,
-    random_generator: np.random.Generator,
+    randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
 ) -> pd.Series:
@@ -312,8 +317,8 @@ def choose_wrong_options(
 
     :param data:  A pandas dataframe containing necessary columns for column noise
     :param _: LayeredConfigTree with rate at which to blank the data in column.
-    :param random_generator: Random number generator used to select noise.
-    :param column_name: String for column that will be noised
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :returns: pd.Series where data has been noised with other values from a list of possibilities
     """
 
@@ -330,7 +335,8 @@ def choose_wrong_options(
     new_values = vectorized_choice(
         options=options,
         n_to_choose=len(data),
-        random_generator=random_generator,
+        randomness_stream=randomness_stream,
+        additional_key=f"{column_name}_incorrect_select_choice",
     ).to_numpy()
 
     return pd.Series(new_values, index=data.index, name=column_name)
@@ -339,7 +345,7 @@ def choose_wrong_options(
 def copy_from_household_member(
     data: pd.DataFrame,
     configuration: LayeredConfigTree,
-    random_generator: np.random.Generator,
+    randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
 ) -> pd.Series:
@@ -347,8 +353,8 @@ def copy_from_household_member(
 
     :param data:  A pandas dataframe containing necessary columns for column noise
     :param _: LayeredConfigTree with rate at which to blank the data in column.
-    :param random_generator: Random number generator used to select noise.
-    :param column_name: String for column that will be noised
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :returns: pd.Series where data has been noised with other values from a list of possibilities
     """
 
@@ -360,7 +366,7 @@ def copy_from_household_member(
 def swap_months_and_days(
     data: pd.DataFrame,
     _: LayeredConfigTree,
-    random_generator: np.random.Generator,
+    randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
 ) -> pd.Series:
@@ -369,8 +375,8 @@ def swap_months_and_days(
 
     :param data: A pandas dataframe containing necessary columns for column noise
     :param _: LayeredConfigTree object containing noise level values
-    :param random_generator: Random number generator used to select noise.
-    :param column_name: String for column that will be noised
+    :param randomness_stream: Randomness Stream object for random choices using vivarium CRN framework
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: Noised pd.Series where some dates have month and day swapped.
     """
     from pseudopeople.schema_entities import DATASETS, DATEFORMATS
@@ -402,7 +408,7 @@ def swap_months_and_days(
 def write_wrong_zipcode_digits(
     data: pd.DataFrame,
     configuration: LayeredConfigTree,
-    random_generator: np.random.Generator,
+    randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
 ) -> pd.Series:
@@ -411,8 +417,8 @@ def write_wrong_zipcode_digits(
 
     :param data: A pandas dataframe containing necessary columns for column noise
     :param configuration:  Config tree object at column node.
-    :param random_generator: Random number generator used to select noise.
-    :param column_name: String for column that will be noised
+    :param randomness_stream:  RandomnessStream object from Vivarium framework
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: pd.Series of noised zipcodes
     """
 
@@ -425,6 +431,9 @@ def write_wrong_zipcode_digits(
             "Zipcode data contains zipcodes that are not 5 digits long. Please check simulated population data."
         )
 
+    rng = np.random.default_rng(
+        get_hash(f"{randomness_stream.seed}_{column_name}_write_wrong_zipcode_digits")
+    )
     shape = (len(column), 5)
 
     # todo: Update when vectorized choice is improved
@@ -435,9 +444,9 @@ def write_wrong_zipcode_digits(
     digit_probabilities = scaleup_factor * np.array(
         configuration[Keys.ZIPCODE_DIGIT_PROBABILITIES]
     )
-    replace = random_generator.random(shape) < digit_probabilities
+    replace = rng.random(shape) < digit_probabilities
     num_to_replace = replace.sum()
-    random_digits = random_generator.choice(possible_replacements, num_to_replace)
+    random_digits = rng.choice(possible_replacements, num_to_replace)
 
     # https://stackoverflow.com/a/9493192/
     # Changing this to a U5 numpy string type means that each string will have exactly 5 characters.
@@ -454,7 +463,7 @@ def write_wrong_zipcode_digits(
 def misreport_ages(
     data: pd.DataFrame,
     configuration: LayeredConfigTree,
-    random_generator: np.random.Generator,
+    randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
 ) -> pd.Series:
@@ -463,8 +472,8 @@ def misreport_ages(
 
     :param data: A pandas dataframe containing necessary columns for column noise
     :param configuration:  Config tree object at column node.
-    :param random_generator: Random number generator used to select noise.
-    :param column_name: String for column that will be noised
+    :param randomness_stream:  RandomnessStream object from Vivarium framework
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: pd.Series with some values noised from the original
     """
 
@@ -474,7 +483,8 @@ def misreport_ages(
         options=list(possible_perturbations.keys()),
         weights=list(possible_perturbations.values()),
         n_to_choose=len(column),
-        random_generator=random_generator,
+        randomness_stream=randomness_stream,
+        additional_key=f"{column_name}_{column.name}_miswrite_ages",
     )
     new_values = column.astype(int) + perturbations
     # Reflect negative values to positive
@@ -488,7 +498,7 @@ def misreport_ages(
 def write_wrong_digits(
     data: pd.DataFrame,
     configuration: LayeredConfigTree,
-    random_generator: np.random.Generator,
+    randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
 ) -> pd.Series:
@@ -497,8 +507,8 @@ def write_wrong_digits(
 
     :param data:  A pandas dataframe containing necessary columns for column noise
     :param configuration: LayeredConfigTree with rate at which to blank the data in column.
-    :param random_generator: Random number generator used to select noise.
-    :param column_name: String for column that will be noised
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
 
     returns: pd.Series with some numeric values experiencing noise.
     """
@@ -507,6 +517,9 @@ def write_wrong_digits(
         return column
     # This is a fix to not replacing the original token for noise options
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY] / 0.9
+    rng = np.random.default_rng(
+        get_hash(f"{randomness_stream.seed}_{column_name}_write_wrong_digits")
+    )
     column = to_string(column)
 
     max_str_length = column.str.len().max()
@@ -530,9 +543,9 @@ def write_wrong_digits(
     )
 
     replace = np.zeros_like(is_number, dtype=bool)
-    replace[is_number] = random_generator.random(is_number.sum()) < token_noise_level
+    replace[is_number] = rng.random(is_number.sum()) < token_noise_level
     num_to_replace = replace.sum()
-    random_digits = random_generator.choice(possible_replacements, num_to_replace)
+    random_digits = rng.choice(possible_replacements, num_to_replace)
 
     same_len_col_exploded[replace] = random_digits
     noised_column = same_len_col_exploded.view(f"U{max_str_length}").reshape(len(column))
@@ -543,7 +556,7 @@ def write_wrong_digits(
 def use_nicknames(
     data: pd.DataFrame,
     _: LayeredConfigTree,
-    random_generator: np.random.Generator,
+    randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
 ) -> pd.Series:
@@ -552,8 +565,8 @@ def use_nicknames(
 
     :param data:  A pandas dataframe containing necessary columns for column noise
     :param _: LayeredConfigTree with rate at which to blank the data in column.
-    :param random_generator: Random number generator used to select noise.
-    :param column_name: String for column that will be noised
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: pd.Series of nicknames replacing original names
     """
     nicknames = load_nicknames_data()
@@ -563,7 +576,8 @@ def use_nicknames(
     noised = two_d_array_choice(
         column.loc[have_nickname_idx],
         nicknames,
-        random_generator,
+        randomness_stream,
+        f"{column_name}_use_nicknames",
     )
     column.loc[have_nickname_idx] = noised
     return column
@@ -572,7 +586,7 @@ def use_nicknames(
 def use_fake_names(
     data: pd.DataFrame,
     _: LayeredConfigTree,
-    random_generator: np.random.Generator,
+    randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
 ) -> pd.Series:
@@ -580,8 +594,8 @@ def use_fake_names(
 
     :param data:  A pandas dataframe containing necessary columns for column noise
     :param _: LayeredConfigTree with rate at which to blank the data in column.
-    :param random_generator: Random number generator used to select noise.
-    :param column_name: String for column that will be noised
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return:
     """
     column = data[column_name]
@@ -607,7 +621,8 @@ def use_fake_names(
     new_values = vectorized_choice(
         options=options,
         n_to_choose=len(column),
-        random_generator=random_generator,
+        randomness_stream=randomness_stream,
+        additional_key=f"{column_name}_fake_names",
     )
     return pd.Series(new_values, index=column.index, name=column.name)
 
@@ -615,7 +630,7 @@ def use_fake_names(
 def make_phonetic_errors(
     data: pd.Series,
     configuration: LayeredConfigTree,
-    random_generator: np.random.Generator,
+    randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: Any,
 ) -> pd.Series:
@@ -623,8 +638,8 @@ def make_phonetic_errors(
 
     :param data:  A pandas dataframe containing necessary columns for column noise
     :param configuration: LayeredConfigTree with rate at which to blank the data in column.
-    :param random_generator: Random number generator used to select noise.
-    :param column_name: String for column that will be noised
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: pd.Series of noised data
     """
 
@@ -635,14 +650,15 @@ def make_phonetic_errors(
         phonetic_errors,
         data[column_name].astype(str),
         configuration[Keys.TOKEN_PROBABILITY],
-        random_generator,
+        randomness_stream,
+        addl_key=f"{column_name}_make_phonetic_errors",
     )
 
 
 def leave_blanks(
     data: pd.DataFrame,
     configuration: LayeredConfigTree,
-    random_generator: np.random.Generator,
+    randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
 ) -> pd.Series:
@@ -651,8 +667,8 @@ def leave_blanks(
 
     :param data:  A pandas dataframe containing necessary columns for column noise
     :param configuration: LayeredConfigTree with rate at which to blank the data in column.
-    :param random_generator: Random number generator used to select noise.
-    :param column_name: String for column that will be noised
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     """
     return pd.Series(np.nan, index=data.index, name=column_name)
 
@@ -660,7 +676,7 @@ def leave_blanks(
 def make_typos(
     data: pd.DataFrame,
     configuration: LayeredConfigTree,
-    random_generator: np.random.Generator,
+    randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
 ) -> pd.Series:
@@ -669,8 +685,8 @@ def make_typos(
 
     :param data:  A pandas dataframe containing necessary columns for column noise
     :param configuration: LayeredConfigTree with rate at which to blank the data in column.
-    :param random_generator: Random number generator used to select noise.
-    :param column_name: String for column that will be noised
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :returns: pd.Series of column with noised data
     """
 
@@ -684,6 +700,9 @@ def make_typos(
     token_noise_level = configuration[Keys.TOKEN_PROBABILITY]
     # TODO: remove this hard-coding
     include_token_probability_level = 0.1
+    rng = np.random.default_rng(
+        seed=get_hash(f"{randomness_stream.seed}_{column_name}_make_typos")
+    )
 
     same_len_col_exploded = (
         # Somewhat counterintuitively, np.array(..., dtype=str) turns the column into a numpy,
@@ -707,17 +726,13 @@ def make_typos(
         pd.DataFrame(same_len_col_exploded).isin(qwerty_errors_eligible_chars).to_numpy()
     )
     replace = np.zeros_like(is_typo_option)
-    replace[is_typo_option] = (
-        random_generator.random(is_typo_option.sum()) < token_noise_level
-    )
+    replace[is_typo_option] = rng.random(is_typo_option.sum()) < token_noise_level
     keep_original = np.zeros_like(replace)
-    keep_original[replace] = (
-        random_generator.random(replace.sum()) < include_token_probability_level
-    )
+    keep_original[replace] = rng.random(replace.sum()) < include_token_probability_level
 
     # Apply noising
     to_replace = same_len_col_exploded[replace]
-    replace_random = random_generator.random(replace.sum())
+    replace_random = rng.random(replace.sum())
     number_of_options = qwerty_errors.count(axis=1)
     replace_option_index = np.floor(
         replace_random * number_of_options.loc[to_replace].to_numpy()
@@ -747,15 +762,15 @@ def make_typos(
 def make_ocr_errors(
     data: pd.DataFrame,
     configuration: LayeredConfigTree,
-    random_generator: np.random.Generator,
+    randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
 ) -> pd.Series:
     """
     :param data:  A pandas dataframe containing necessary columns for column noise
     :param configuration: LayeredConfigTree with rate at which to blank the data in column.
-    :param random_generator: Random number generator used to select noise.
-    :param column_name: String for column that will be noised
+    :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
+    :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: pd.Series of noised data
     """
 
@@ -766,7 +781,8 @@ def make_ocr_errors(
         ocr_errors,
         data[column_name].astype(str),
         configuration[Keys.TOKEN_PROBABILITY],
-        random_generator,
+        randomness_stream,
+        addl_key=f"{column_name}_make_ocr_errors",
     )
 
 
@@ -774,7 +790,8 @@ def _corrupt_tokens(
     errors: pd.DataFrame,
     column: pd.Series,
     token_probability: float,
-    random_generator: np.random.Generator,
+    randomness_stream: RandomnessStream,
+    addl_key: str,
 ) -> pd.Series:
     """
     Performs token-level corruption on a string Series when the tokens to corrupt
@@ -814,6 +831,8 @@ def _corrupt_tokens(
         .view("U1")
         .reshape((len(column), lengths.max()))
     )
+
+    rng = np.random.default_rng(seed=get_hash(f"{randomness_stream.seed}_{addl_key}"))
 
     # NOTE: Somewhat surprisingly, this seemed to perform better using Python string types than NumPy types.
     # Perhaps worth more investigation in the future.
@@ -869,7 +888,7 @@ def _corrupt_tokens(
 
             # If so, should we corrupt them?
             corrupted = np.zeros(len(column), dtype=bool)
-            corrupted[eligible] = random_generator.random(eligible.sum()) < token_probability
+            corrupted[eligible] = rng.random(eligible.sum()) < token_probability
             if corrupted.sum() == 0:
                 continue
             del eligible
@@ -883,8 +902,7 @@ def _corrupt_tokens(
             num_options = number_of_options.loc[to_corrupt].to_numpy()
             multiple_options = num_options > 1
             corrupted_token_index[multiple_options] = np.floor(
-                random_generator.random(multiple_options.sum())
-                * num_options[multiple_options]
+                rng.random(multiple_options.sum()) * num_options[multiple_options]
             )
             # Get the actual string corresponding to the corrupted token chosen.
             # First, find the index in the errors array corresponding to the first corruption

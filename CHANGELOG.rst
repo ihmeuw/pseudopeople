@@ -1,6 +1,7 @@
 **1.3.0 - 10/12/26**
 
  - Remove the dependency on vivarium; use numpy random number generators for noising
+ - Noised data generated with a given seed will differ from versions 1.2.9 and earlier, so results from earlier versions cannot be reproduced with this version
 
 **1.2.9 - 08/26/26**
 

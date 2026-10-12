@@ -9,10 +9,10 @@ from pseudopeople.constants.noise_type_metadata import (
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.noise_functions import _get_census_omission_noise_levels
 from pseudopeople.schema_entities import DATASETS
-from pseudopeople.utilities import get_random_generator
+from pseudopeople.utilities import RandomnessStream
 from tests.conftest import FuzzyChecker
 
-RANDOMNESS = get_random_generator("test_row_noise", 0)
+RANDOMNESS = RandomnessStream(key="test_row_noise", seed=0)
 
 
 @pytest.fixture()

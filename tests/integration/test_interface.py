@@ -118,10 +118,20 @@ def test_generate_dataset_from_multiple_shards(
     if engine == "dask":
         noised_dataset = noised_dataset.compute()
 
-    # Check same order of magnitude of rows was removed -- we don't know the
-    # full data size (we would need unnoised data for that), so we just check
-    # for similar lengths
-    assert 0.9 <= (len(noised_dataset) / len(noised_sample)) <= 1.1
+    # Row counts have high variance on the small sample data, so use the fuzzy checker
+    # with a 95% interval around the proportion kept when noising the unsplit sample
+    sample_proportion = len(noised_sample) / len(data)
+    margin = 1.96 * np.sqrt(sample_proportion * (1 - sample_proportion) / len(data))
+    fuzzy_checker.fuzzy_assert_proportion(
+        name="test_generate_dataset_from_multiple_shards_row_count",
+        observed_numerator=len(noised_dataset),
+        observed_denominator=len(data),
+        target_proportion=(
+            max(sample_proportion - margin, 0.0),
+            min(sample_proportion + margin, 1.0),
+        ),
+        name_additional=dataset_name,
+    )
     # Check that columns are identical
     assert noised_dataset.columns.equals(noised_sample.columns)
 

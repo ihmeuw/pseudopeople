@@ -5,15 +5,15 @@ import pytest
 from pseudopeople.dtypes import DtypeNames
 from pseudopeople.noise_functions import _corrupt_tokens
 from pseudopeople.utilities import (
+    RandomnessStream,
     get_index_to_noise,
-    get_random_generator,
     to_string_as_integer,
     two_d_array_choice,
     vectorized_choice,
 )
 from tests.conftest import FuzzyChecker
 
-RANDOMNESS0 = get_random_generator("test_utils", 0)
+RANDOMNESS0 = RandomnessStream(key="test_utils", seed=0)
 CORRUPT_TOKENS_TEST_CASES = {
     # Possible tokens to noise: abc, ab, a, c
     # Tuples of (token noised, token not noised)
@@ -90,7 +90,8 @@ def test__corrupt_tokens(pair, fuzzy_checker: FuzzyChecker):
         errors=fake_errors,
         column=data,
         token_probability=token_probability,
-        random_generator=RANDOMNESS0,
+        randomness_stream=RANDOMNESS0,
+        addl_key="test__corrupt_tokens",
     )
 
     # Assert our noised data is one of our possible strings. This also checks that
@@ -146,7 +147,8 @@ def test__corrupt_tokens_multiple_options(fuzzy_checker: FuzzyChecker):
         errors=fake_errors,
         column=data,
         token_probability=token_probability,
-        random_generator=RANDOMNESS0,
+        randomness_stream=RANDOMNESS0,
+        addl_key="test__corrupt_tokens",
     )
     strings = ["abc", "def", "ghi", "jkl"]
     assert (noised.isin(strings)).all()
@@ -172,7 +174,8 @@ def test_get_index_to_noise(fuzzy_checker: FuzzyChecker):
     chosen_idx = get_index_to_noise(
         data=df,
         noise_level=noise_level,
-        random_generator=RANDOMNESS0,
+        randomness_stream=RANDOMNESS0,
+        additional_key="test_get_index_to_noise",
         is_column_noise=False,
     )
     # Assert that the proportion of rows to noise is correct
@@ -192,8 +195,9 @@ def test_vectorized_choice(fuzzy_checker: FuzzyChecker):
     picks = vectorized_choice(
         options=options,
         n_to_choose=num_choices,
-        random_generator=RANDOMNESS0,
+        randomness_stream=RANDOMNESS0,
         weights=choice_weights,
+        additional_key="best_seattle_sports_team",
     )
     picks = pd.Series(picks)
 
@@ -236,7 +240,8 @@ def test_two_d_array_choice(fuzzy_checker: FuzzyChecker):
     choices = two_d_array_choice(
         data=sports,
         options=options,
-        random_generator=RANDOMNESS0,
+        randomness_stream=RANDOMNESS0,
+        additional_key="2D_best_sports_team",
     )
 
     assert (choices.isin(options.values.flatten())).all()

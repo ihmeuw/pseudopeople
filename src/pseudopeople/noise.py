@@ -22,7 +22,7 @@ from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
 from pseudopeople.noise_entities import NOISE_TYPES
 from pseudopeople.schema_entities import COLUMNS, Dataset
-from pseudopeople.utilities import get_random_generator
+from pseudopeople.utilities import get_randomness_stream
 
 
 def noise_dataset(
@@ -50,7 +50,7 @@ def noise_dataset(
     :return:
         Noised dataset data
     """
-    randomness = get_random_generator(dataset.name, seed)
+    randomness = get_randomness_stream(dataset.name, seed)
 
     noise_configuration = configuration[dataset.name]
 
