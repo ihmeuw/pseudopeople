@@ -3,10 +3,10 @@ from typing import Any, Dict, List, Literal, Optional, Union
 
 import numpy as np
 import pandas as pd
-from layered_config_tree import LayeredConfigTree
 from loguru import logger
 from packaging.version import parse
 from tqdm import tqdm
+from vivarium.config_tree import ConfigTree
 
 from pseudopeople import __version__ as psp_version
 from pseudopeople.configuration import get_configuration
@@ -168,7 +168,7 @@ def _generate_dataset(
 def _prep_and_noise_dataset(
     data: pd.DataFrame,
     dataset: Dataset,
-    configuration_tree: LayeredConfigTree,
+    configuration_tree: ConfigTree,
     seed: Any,
     progress_bar: bool = True,
 ) -> pd.DataFrame:

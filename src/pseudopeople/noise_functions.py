@@ -2,8 +2,8 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from layered_config_tree import LayeredConfigTree
-from vivarium.framework.randomness import RandomnessStream, get_hash
+from vivarium.config_tree import ConfigTree
+from vivarium.engine.framework.randomness import RandomnessStream, get_hash
 
 from pseudopeople.configuration import Keys
 from pseudopeople.constants import data_values
@@ -33,7 +33,7 @@ from pseudopeople.utilities import (
 def omit_rows(
     dataset_name: str,
     dataset_data: pd.DataFrame,
-    configuration: LayeredConfigTree,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
@@ -41,7 +41,7 @@ def omit_rows(
       we need to account for oversampling in the PRL simulation so a helper function has been hadded here to do so.
     :param dataset_name: Dataset object being noised
     :param dataset_data:  pd.DataFrame of one of the dataset types used in Pseudopeople
-    :param configuration: LayeredConfigTree object containing noise level values
+    :param configuration: ConfigTree object containing noise level values
     :param randomness_stream: RandomnessStream object to make random selection for noise
     :return: pd.DataFrame with rows from the original dataframe removed
     """
@@ -99,7 +99,7 @@ def _get_census_omission_noise_levels(
 def apply_do_not_respond(
     dataset_name: str,
     dataset_data: pd.DataFrame,
-    configuration: LayeredConfigTree,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
@@ -107,7 +107,7 @@ def apply_do_not_respond(
 
     :param dataset_name: Dataset object name being noised
     :param dataset_data:  pd.DataFrame of one of the form types used in Pseudopeople
-    :param configuration: LayeredConfigTree object containing noise level values
+    :param configuration: ConfigTree object containing noise level values
     :param randomness_stream: RandomnessStream object to make random selection for noise
     :return: pd.DataFrame with rows from the original dataframe removed
     """
@@ -144,7 +144,7 @@ def apply_do_not_respond(
 
 # def duplicate_rows(
 #     dataset_data: pd.DataFrame,
-#     configuration: LayeredConfigTree,
+#     configuration: ConfigTree,
 #     randomness_stream: RandomnessStream,
 # ) -> pd.DataFrame:
 #     """
@@ -161,7 +161,7 @@ def apply_do_not_respond(
 def duplicate_with_guardian(
     dataset_name: str,
     dataset_data: pd.DataFrame,
-    configuration: LayeredConfigTree,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
 ) -> pd.DataFrame:
     """
@@ -172,7 +172,7 @@ def duplicate_with_guardian(
     have the dependent's correct address and the other will have the guardian's address.
     :param dataset_name: Name of the dataset being noised
     :param dataset_data: pd.DataFrame that will be noised
-    :param configuration: LayeredConfigTree object containing noise level values. Dict with three key groups for duplication
+    :param configuration: ConfigTree object containing noise level values. Dict with three key groups for duplication
     :param randomness_stream: RandomnessStream instance to make random selection for noise
     :return: pd.DataFrame with rows from the original dataframe duplicated along with the original
     dataframe itself.
@@ -305,7 +305,7 @@ def duplicate_with_guardian(
 
 def choose_wrong_options(
     data: pd.DataFrame,
-    _: LayeredConfigTree,
+    _: ConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -315,7 +315,7 @@ def choose_wrong_options(
     a list.
 
     :param data:  A pandas dataframe containing necessary columns for column noise
-    :param _: LayeredConfigTree with rate at which to blank the data in column.
+    :param _: ConfigTree with rate at which to blank the data in column.
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :returns: pd.Series where data has been noised with other values from a list of possibilities
@@ -343,7 +343,7 @@ def choose_wrong_options(
 
 def copy_from_household_member(
     data: pd.DataFrame,
-    configuration: LayeredConfigTree,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -351,7 +351,7 @@ def copy_from_household_member(
     """
 
     :param data:  A pandas dataframe containing necessary columns for column noise
-    :param _: LayeredConfigTree with rate at which to blank the data in column.
+    :param _: ConfigTree with rate at which to blank the data in column.
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :returns: pd.Series where data has been noised with other values from a list of possibilities
@@ -364,7 +364,7 @@ def copy_from_household_member(
 
 def swap_months_and_days(
     data: pd.DataFrame,
-    _: LayeredConfigTree,
+    _: ConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -373,7 +373,7 @@ def swap_months_and_days(
     Function that swaps month and day of dates.
 
     :param data: A pandas dataframe containing necessary columns for column noise
-    :param _: LayeredConfigTree object containing noise level values
+    :param _: ConfigTree object containing noise level values
     :param randomness_stream: Randomness Stream object for random choices using vivarium CRN framework
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: Noised pd.Series where some dates have month and day swapped.
@@ -406,7 +406,7 @@ def swap_months_and_days(
 
 def write_wrong_zipcode_digits(
     data: pd.DataFrame,
-    configuration: LayeredConfigTree,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -461,7 +461,7 @@ def write_wrong_zipcode_digits(
 
 def misreport_ages(
     data: pd.DataFrame,
-    configuration: LayeredConfigTree,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -496,7 +496,7 @@ def misreport_ages(
 
 def write_wrong_digits(
     data: pd.DataFrame,
-    configuration: LayeredConfigTree,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -505,7 +505,7 @@ def write_wrong_digits(
     Function that noises numeric characters in a series.
 
     :param data:  A pandas dataframe containing necessary columns for column noise
-    :param configuration: LayeredConfigTree with rate at which to blank the data in column.
+    :param configuration: ConfigTree with rate at which to blank the data in column.
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
 
@@ -554,7 +554,7 @@ def write_wrong_digits(
 
 def use_nicknames(
     data: pd.DataFrame,
-    _: LayeredConfigTree,
+    _: ConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -563,7 +563,7 @@ def use_nicknames(
     Function that replaces a name with a choice of potential nicknames.
 
     :param data:  A pandas dataframe containing necessary columns for column noise
-    :param _: LayeredConfigTree with rate at which to blank the data in column.
+    :param _: ConfigTree with rate at which to blank the data in column.
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: pd.Series of nicknames replacing original names
@@ -584,7 +584,7 @@ def use_nicknames(
 
 def use_fake_names(
     data: pd.DataFrame,
-    _: LayeredConfigTree,
+    _: ConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -592,7 +592,7 @@ def use_fake_names(
     """
 
     :param data:  A pandas dataframe containing necessary columns for column noise
-    :param _: LayeredConfigTree with rate at which to blank the data in column.
+    :param _: ConfigTree with rate at which to blank the data in column.
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return:
@@ -628,7 +628,7 @@ def use_fake_names(
 
 def make_phonetic_errors(
     data: pd.Series,
-    configuration: LayeredConfigTree,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: Any,
@@ -636,7 +636,7 @@ def make_phonetic_errors(
     """
 
     :param data:  A pandas dataframe containing necessary columns for column noise
-    :param configuration: LayeredConfigTree with rate at which to blank the data in column.
+    :param configuration: ConfigTree with rate at which to blank the data in column.
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: pd.Series of noised data
@@ -656,7 +656,7 @@ def make_phonetic_errors(
 
 def leave_blanks(
     data: pd.DataFrame,
-    configuration: LayeredConfigTree,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -665,7 +665,7 @@ def leave_blanks(
     Function that takes a column and blanks out all values.
 
     :param data:  A pandas dataframe containing necessary columns for column noise
-    :param configuration: LayeredConfigTree with rate at which to blank the data in column.
+    :param configuration: ConfigTree with rate at which to blank the data in column.
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     """
@@ -674,7 +674,7 @@ def leave_blanks(
 
 def make_typos(
     data: pd.DataFrame,
-    configuration: LayeredConfigTree,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
@@ -683,7 +683,7 @@ def make_typos(
     representative of keyboard mistyping.
 
     :param data:  A pandas dataframe containing necessary columns for column noise
-    :param configuration: LayeredConfigTree with rate at which to blank the data in column.
+    :param configuration: ConfigTree with rate at which to blank the data in column.
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :returns: pd.Series of column with noised data
@@ -760,14 +760,14 @@ def make_typos(
 
 def make_ocr_errors(
     data: pd.DataFrame,
-    configuration: LayeredConfigTree,
+    configuration: ConfigTree,
     randomness_stream: RandomnessStream,
     dataset_name: str,
     column_name: str,
 ) -> pd.Series:
     """
     :param data:  A pandas dataframe containing necessary columns for column noise
-    :param configuration: LayeredConfigTree with rate at which to blank the data in column.
+    :param configuration: ConfigTree with rate at which to blank the data in column.
     :param randomness_stream:  RandomnessStream to utilize Vivarium CRN.
     :param column_name: String for column that will be noised, will be the key for RandomnessStream
     :return: pd.Series of noised data

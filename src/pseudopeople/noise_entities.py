@@ -18,7 +18,7 @@ class __NoiseTypes(NamedTuple):
     make_phonetic_errors, make_ocr_errors, make_typos
 
     NOTE: Any configuration tree overwrites in these objects are what ends up
-    in the "baseline" LayeredConfigTree layer.
+    in the "baseline" ConfigTree layer.
     """
 
     duplicate_with_guardian: RowNoiseType = RowNoiseType(

@@ -7,8 +7,8 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 import pytest
-from layered_config_tree import LayeredConfigTree
 from pandas.api.types import is_datetime64_any_dtype as is_datetime
+from vivarium.config_tree import ConfigTree
 
 from pseudopeople.configuration import Keys, get_configuration
 from pseudopeople.interface import (
@@ -798,7 +798,7 @@ def _validate_column_noise_level(
     check_idx: pd.Index,
     noise_level: float,
     col: Column,
-    config: LayeredConfigTree,
+    config: ConfigTree,
     fuzzy_name: str,
     validator: FuzzyChecker,
 ):
