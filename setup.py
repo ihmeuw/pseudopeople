@@ -40,10 +40,10 @@ if __name__ == "__main__":
 
     install_requirements = [
         "vivarium_dependencies[numpy,pandas,pyyaml,pyarrow]",
-        "vivarium_build_utils>=4.0.0,<5.0.0",
-        "vivarium_engine>=5.14.1,<6.0.0",
+        "vivarium-build-utils>=4.0.0,<5.0.0",
+        "vivarium-engine>=5.14.1,<6.0.0",
         "tqdm",
-        "vivarium_config_tree>=5.2.1,<6.0.0",
+        "vivarium-config-tree>=5.2.1,<6.0.0",
     ]
 
     setup_requires = ["setuptools_scm"]
