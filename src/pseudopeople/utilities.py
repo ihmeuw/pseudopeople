@@ -24,8 +24,9 @@ def get_random_generator(dataset_name: str, seed: Any) -> np.random.Generator:
     """Get the random number generator used to noise one dataset (or one shard of it).
 
     The generator is seeded from the dataset name and seed, so noising the same data
-    with the same configuration and seed gives the same result. Callers noising
-    multiple shards must pass a different seed for each shard.
+    with the same configuration and seed gives the same result. When a dataset is
+    split across multiple shards, the interface derives a distinct seed for each
+    shard from the user's seed so that shards are not noised identically.
     """
     return np.random.default_rng(get_hash(f"{dataset_name}_{seed}"))
 
