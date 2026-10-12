@@ -52,11 +52,7 @@ if __name__ == "__main__":
 
     dask_requirements = ["dask[distributed,dataframe]"]
 
-    test_requirements = [
-        "pytest",
-        "pytest-cov",
-        "pytest-mock",
-    ] + dask_requirements
+    test_requirements = ["vivarium-dependencies[pytest]"] + dask_requirements
 
     lint_requirements = ["vivarium_dependencies[lint]"]
 
