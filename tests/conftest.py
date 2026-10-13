@@ -13,7 +13,6 @@ from loguru import logger
 
 
 def pytest_addoption(parser):
-    parser.addoption("--runslow", action="store_true", default=False, help="run slow tests")
     parser.addoption(
         "--limit",
         action="store",
@@ -21,10 +20,6 @@ def pytest_addoption(parser):
         type=int,
         help="Maximum number of parameterized tests to run",
     )
-
-
-def pytest_configure(config):
-    config.addinivalue_line("markers", "slow: mark test as slow to run")
 
 
 def pytest_collection_modifyitems(config, items):

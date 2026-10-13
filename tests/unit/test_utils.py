@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 import pytest
-from vivarium.framework.randomness import RandomnessStream
-from vivarium.framework.randomness.index_map import IndexMap
+from vivarium.engine.framework.randomness import RandomnessStream
+from vivarium.engine.framework.randomness.index_map import IndexMap
 
 from pseudopeople.dtypes import DtypeNames
 from pseudopeople.noise_functions import _corrupt_tokens
@@ -19,6 +19,7 @@ RANDOMNESS0 = RandomnessStream(
     clock=lambda: pd.Timestamp("2020-09-01"),
     seed=0,
     index_map=IndexMap(),
+    component=None,
 )
 CORRUPT_TOKENS_TEST_CASES = {
     # Possible tokens to noise: abc, ab, a, c

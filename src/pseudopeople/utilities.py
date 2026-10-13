@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 import yaml
 from loguru import logger
-from vivarium.framework.randomness import RandomnessStream, get_hash
-from vivarium.framework.randomness.index_map import IndexMap
+from vivarium.engine.framework.randomness import RandomnessStream, get_hash
+from vivarium.engine.framework.randomness.index_map import IndexMap
 
 from pseudopeople.constants import metadata, paths
 from pseudopeople.constants.noise_type_metadata import INT_TO_STRING_COLUMNS
@@ -22,6 +22,7 @@ def get_randomness_stream(dataset_name: str, seed: Any, index: pd.Index) -> Rand
         clock=lambda: pd.Timestamp("2020-04-01"),
         seed=seed,
         index_map=IndexMap(size=map_size),
+        component=None,
     )
 
 

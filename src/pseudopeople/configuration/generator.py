@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 import yaml
-from layered_config_tree import LayeredConfigTree
+from vivarium.config_tree import ConfigTree
 
 from pseudopeople.configuration import NO_NOISE, Keys
 from pseudopeople.configuration.validator import (
@@ -84,12 +84,12 @@ def get_configuration(
     overrides: Optional[Union[Path, str, Dict]] = None,
     dataset: Dataset = None,
     user_filters: List[Tuple[Union[str, int, pd.Timestamp]]] = None,
-) -> LayeredConfigTree:
+) -> ConfigTree:
     """
-    Gets a noising configuration LayeredConfigTree, optionally overridden by a user-provided YAML.
+    Gets a noising configuration ConfigTree, optionally overridden by a user-provided YAML.
 
     :param overrides: A path to the YAML file or a dictionary defining user overrides for the defaults
-    :return: a LayeredConfigTree object of the noising configuration
+    :return: a ConfigTree object of the noising configuration
     """
 
     if overrides == NO_NOISE:
@@ -108,13 +108,13 @@ def get_configuration(
     return noising_configuration
 
 
-def _generate_configuration(is_no_noise: bool) -> LayeredConfigTree:
+def _generate_configuration(is_no_noise: bool) -> ConfigTree:
     default_config_layers = [
         "baseline",
         "default",
         "user",
     ]
-    noising_configuration = LayeredConfigTree(layers=default_config_layers)
+    noising_configuration = ConfigTree(layers=default_config_layers)
     # Instantiate the configuration file with baseline values
     baseline_dict = {}
     # Loop through each dataset
@@ -175,7 +175,7 @@ def get_noise_type_dict(noise_type, is_no_noise: bool) -> Dict:
 
 
 def add_overrides(
-    noising_configuration: LayeredConfigTree,
+    noising_configuration: ConfigTree,
     overrides: Dict,
     dataset: Dataset = None,
     user_filters: List[Tuple[Union[str, int, pd.Timestamp]]] = None,
@@ -191,7 +191,7 @@ def add_overrides(
         validate_noise_level_proportions(noising_configuration, dataset, user_filters)
 
 
-def _format_overrides(default_config: LayeredConfigTree, user_dict: Dict) -> Dict:
+def _format_overrides(default_config: ConfigTree, user_dict: Dict) -> Dict:
     """Formats the user's configuration file as necessary, so it can properly
     update noising configuration to be used
     """
@@ -199,9 +199,7 @@ def _format_overrides(default_config: LayeredConfigTree, user_dict: Dict) -> Dic
     return user_dict
 
 
-def _format_misreport_age_perturbations(
-    default_config: LayeredConfigTree, user_dict: Dict
-) -> Dict:
+def _format_misreport_age_perturbations(default_config: ConfigTree, user_dict: Dict) -> Dict:
     # Format any age perturbation lists as a dictionary with uniform probabilities
     for dataset in user_dict:
         user_perturbations = (

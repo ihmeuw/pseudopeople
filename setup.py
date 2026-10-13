@@ -40,10 +40,10 @@ if __name__ == "__main__":
 
     install_requirements = [
         "vivarium_dependencies[numpy,pandas,pyyaml,pyarrow]",
-        "vivarium_build_utils>=1.1.0,<2.0.0",
-        "vivarium>=1.2.0",
+        "vivarium-build-utils>=4.0.0,<5.0.0",
+        "vivarium-engine>=5.14.1,<6.0.0",
         "tqdm",
-        "layered_config_tree>=1.0.1",
+        "vivarium-config-tree>=5.2.1,<6.0.0",
     ]
 
     setup_requires = ["setuptools_scm"]
@@ -53,9 +53,8 @@ if __name__ == "__main__":
     dask_requirements = ["dask[distributed,dataframe]"]
 
     test_requirements = [
-        "pytest",
-        "pytest-cov",
-        "pytest-mock",
+        "vivarium-dependencies[pytest]",
+        "pytest-vivarium",
     ] + dask_requirements
 
     lint_requirements = ["vivarium_dependencies[lint]"]

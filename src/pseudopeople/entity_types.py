@@ -4,9 +4,9 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from layered_config_tree import LayeredConfigTree
 from loguru import logger
-from vivarium.framework.randomness import RandomnessStream
+from vivarium.config_tree import ConfigTree
+from vivarium.engine.framework.randomness import RandomnessStream
 
 from pseudopeople.configuration import Keys
 from pseudopeople.dtypes import DtypeNames
@@ -16,9 +16,7 @@ from pseudopeople.utilities import get_index_to_noise, to_string
 @dataclass
 class NoiseType(ABC):
     name: str
-    noise_function: Callable[
-        [pd.DataFrame, LayeredConfigTree, RandomnessStream], pd.DataFrame
-    ]
+    noise_function: Callable[[pd.DataFrame, ConfigTree, RandomnessStream], pd.DataFrame]
     probability: Optional[float] = 0.0
     additional_parameters: Dict[str, Any] = None
 
@@ -49,7 +47,7 @@ class RowNoiseType(NoiseType):
         self,
         dataset_name: str,
         dataset_data: pd.DataFrame,
-        configuration: LayeredConfigTree,
+        configuration: ConfigTree,
         randomness_stream: RandomnessStream,
     ) -> pd.DataFrame:
         return self.noise_function(
@@ -65,7 +63,7 @@ class ColumnNoiseType(NoiseType):
     The name is the name of the particular noise type (e.g. use_nickname" or
     "make_phonetic_errors").
 
-    The noise function takes as input a DataFrame, the LayeredConfigTree object for this
+    The noise function takes as input a DataFrame, the ConfigTree object for this
     ColumnNoise operation, a RandomnessStream for controlling randomness, and
     a column name, which is the column that will be noised and who's name will be used
     as the additional key for the RandomnessStream.
@@ -88,7 +86,7 @@ class ColumnNoiseType(NoiseType):
     def __call__(
         self,
         data: pd.DataFrame,
-        configuration: LayeredConfigTree,
+        configuration: ConfigTree,
         randomness_stream: RandomnessStream,
         dataset_name: str,
         column_name: str,

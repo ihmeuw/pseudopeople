@@ -1,3 +1,8 @@
+**1.3.0 - 10/12/26**
+
+ - Replace the vivarium dependency with vivarium-engine, which supports numpy 2
+ - Drop support for Python 3.10
+
 **1.2.9 - 08/26/26**
 
  - Add support for the pandas 3.0 string dtype when exploding strings into characters

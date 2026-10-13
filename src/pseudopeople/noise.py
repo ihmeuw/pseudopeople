@@ -15,8 +15,8 @@ by column and row for each type of additional noise type.
 from typing import Any
 
 import pandas as pd
-from layered_config_tree import LayeredConfigTree
 from tqdm import tqdm
+from vivarium.config_tree import ConfigTree
 
 from pseudopeople.configuration import Keys
 from pseudopeople.entity_types import ColumnNoiseType, RowNoiseType
@@ -28,7 +28,7 @@ from pseudopeople.utilities import get_randomness_stream
 def noise_dataset(
     dataset: Dataset,
     dataset_data: pd.DataFrame,
-    configuration: LayeredConfigTree,
+    configuration: ConfigTree,
     seed: Any,
     progress_bar: bool = True,
 ) -> pd.DataFrame:
