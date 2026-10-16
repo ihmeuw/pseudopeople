@@ -40,6 +40,15 @@ def dummy_data():
     )
 
 
+@pytest.fixture(scope="module")
+def noise_order_data(dummy_data):
+    """A small slice of the dummy dataset. test_noise_order only checks the order in
+    which noise functions are called, and its mocks hold copies of the data they are
+    given, so the full dataset uses several GB of memory without testing anything more.
+    """
+    return dummy_data.iloc[:1_000].copy()
+
+
 def get_dummy_config_noise_numbers(dataset):
     """Create a dummy configuration that applies all noise functions to a single
     column in the dummy_data fixture. All noise function specs are defined in
@@ -108,7 +117,7 @@ def get_dummy_config_noise_numbers(dataset):
     "dataset",
     list(DATASETS),
 )
-def test_noise_order(mocker, dummy_data, dataset):
+def test_noise_order(mocker, noise_order_data, dataset):
     """From docs: "Noising should be applied in the following order: omit_row,
     do_not_respond, duplicate_row, leave_blank, choose_wrong_option,
     copy_from_household_member, swap_month_and_day, write_wrong_zipcode_digits,
@@ -120,11 +129,11 @@ def test_noise_order(mocker, dummy_data, dataset):
     # return the original one-column dataframe (so that it doesn't become a mock
     # object itself after the first mocked function is applied.)
     mocker.patch(
-        "pseudopeople.entity_types.get_index_to_noise", return_value=dummy_data.index
+        "pseudopeople.entity_types.get_index_to_noise", return_value=noise_order_data.index
     )
     for field in NOISE_TYPES._fields:
         mock_return = (
-            dummy_data[["event_type"]]
+            noise_order_data[["event_type"]]
             if field
             in [
                 NOISE_TYPES.do_not_respond.name,
@@ -132,7 +141,7 @@ def test_noise_order(mocker, dummy_data, dataset):
                 "duplicate_row",
                 NOISE_TYPES.duplicate_with_guardian.name,
             ]
-            else dummy_data["event_type"]
+            else noise_order_data["event_type"]
         )
         mock.attach_mock(
             mocker.patch(
@@ -165,7 +174,7 @@ def test_noise_order(mocker, dummy_data, dataset):
     # Get config for dataset
     dummy_config = get_dummy_config_noise_numbers(dataset)
     # FIXME: would be better to mock the dataset instead of using census
-    noise_dataset(dataset, dummy_data, dummy_config, 0)
+    noise_dataset(dataset, noise_order_data, dummy_config, 0)
 
     # This is getting the string of each noise type. There are two mock calls
     # being made to each noise type with how we are mocking noise type attirbutes

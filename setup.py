@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     test_requirements = [
         "vivarium-dependencies[pytest]",
-        "pytest-vivarium",
+        "pytest-vivarium>=0.3.1",
     ] + dask_requirements
 
     lint_requirements = ["vivarium_dependencies[lint]"]
