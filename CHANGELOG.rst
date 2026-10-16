@@ -1,3 +1,7 @@
+**1.3.1 - 10/16/26**
+
+ - Require pytest-vivarium 0.3.1 or newer so the parallel test worker cap is always applied
+
 **1.3.0 - 10/12/26**
 
  - Replace the vivarium dependency with vivarium-engine, which supports numpy 2
