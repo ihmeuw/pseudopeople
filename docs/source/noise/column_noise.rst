@@ -316,6 +316,14 @@ A phonetic error occurs when a character is misheard. For instance, this could h
 
 pseudopeople defines the possible phonetic substitutions using `this file <https://github.com/ihmeuw/pseudopeople/blob/develop/src/pseudopeople/data/phonetic_variations.csv>`_, which was produced by the `GeCO project <https://dl.acm.org/doi/10.1145/2505515.2508207>`_.
 
+.. note::
+
+  This noise type currently only applies to lowercase letters, which we plan to fix in a future release.
+
+.. note::
+
+  Currently, the tag in the CSV file for position in the word is not respected by pseudopeople.
+
 This noise type is called :code:`make_phonetic_errors` in the configuration. It takes two parameters:
 
 .. list-table:: Parameters to the make_phonetic_errors noise type
